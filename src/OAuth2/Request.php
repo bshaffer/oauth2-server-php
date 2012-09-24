@@ -164,7 +164,8 @@ class OAuth2_Request
      */
     static public function createFromGlobals()
     {
-        $request = new static($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER);
+        $class = __CLASS__;
+        $request = new $class($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER);
 
         $contentType = isset($request->server['CONTENT_TYPE']) ? $request->server['CONTENT_TYPE'] : '';
         $requestMethod = isset($request->server['REQUEST_METHOD']) ? $request->server['REQUEST_METHOD'] : 'GET';
