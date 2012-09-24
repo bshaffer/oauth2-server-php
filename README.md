@@ -15,21 +15,21 @@ to the constructor of OAuth2_Storage_Pdo:
 
     $storage = new OAuth2_Storage_Pdo($dsn, $username, $password);
     $server = new OAuth2_Server($storage);
-    $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage); // or some other grant type.  This is the easiest
+    $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage)); // or some other grant type.  This is the simplest
     $server->grantAccessToken();
     $server->getResponse()->send();
 
 Let's break this down line by line. The first line is how the OAuth2 data is stored.
-There are several built in storage types, for your convenience.  To use the PDO Storage,
-instantiate the OAuth2_Storage_Pdo class and provide the database connection arguments:
+There are several built in storage types, for your convenience.  To use PDO Storage,
+instantiate the `OAuth2_Storage_Pdo` class and provide the database connection arguments:
 
     $storage = new OAuth2_Storage_Pdo($dsn, $username, $password);
     $server = new OAuth2_Server($storage);
 
-The next step is to add a grant type.  There are many supported grant types in the OAuth2 specification,
-and this library allows for the addition of custom grant types as well. This example uses the "User Credentials" grant type,
-which grants a token based on explicit user credentials passed to the request. Read more on supported grant types below, or
-in the OAuth2 spec.  Each grant type also requires storage, so pass the existing storage to the constructor:
+The next step is to add a grant type.  This example uses the "User Credentials" grant type, which grants a token based on
+explicit user credentials passed to the request. Read more on supported grant types below, or in the
+[OAuth2 spec](http://tools.ietf.org/html/draft-ietf-oauth-v2-20).  Each grant type also requires storage, so pass the
+existing storage to the constructor:
 
     $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage));
 
@@ -39,7 +39,7 @@ if successful.  Access the server's response object to send the successful respo
     $token = $server->grantAccessToken();
     $server->getResponse()->send();
 
-The Resposne Object
+The Response Object
 -------------------
 
 The response object serves the purpose of making your server OAuth2 compliant.  It will set the appropriate status codes, headers,
@@ -71,6 +71,18 @@ the response object can be used to display the information in any other format:
     }
 
 This is very useful when working in a framework or existing codebase, where this library will not have full control of the response.
+
+Grant Types
+-----------
+
+There are many supported grant types in the OAuth2 specification, and this library allows for the addition of custom grant types as well.
+Supported grant types are as follows:
+
+  1. Resource Owner Password Credentials
+
+        The username and password are submitted as part of the request, and a token is issued upon successful authentication
+
+Create a custom grant type by implementing the `OAuth2_GrantTypeInterface` and adding it to the OAuth2 Server object.
 
 Contact
 -------
