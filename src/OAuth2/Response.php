@@ -26,7 +26,7 @@ class OAuth2_Response implements OAuth2_ResponseInterface
 
     public function getResponseParameters()
     {
-        return $responseParameters;
+        return $this->responseParameters;
     }
 
     public function setHttpHeaders($httpHeaders)
