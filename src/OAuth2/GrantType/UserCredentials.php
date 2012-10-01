@@ -32,7 +32,7 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface
         return $this->storage->checkUserCredentials($request->query["username"], $request->query["password"]);
     }
 
-    public function validateTokenData(array $tokenData)
+    public function validateTokenData(array $tokenData, array $clientData)
     {
         // Scope is validated in the client class
         return true;
