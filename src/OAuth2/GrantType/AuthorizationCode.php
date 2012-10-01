@@ -19,16 +19,12 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
     public function validateRequest($request)
     {
         if (!isset($request->query['code']) || !$request->query['code']) {
-            if (!is_null($this->response)) {
-                $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_REQUEST, 'Missing parameter. "code" is required');
-            }
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'Missing parameter: "code" is required');
             return false;
         }
 
-        if ($this->config['enforce_redirect'] && !isset($parameters['redirect_uri']) || !$parameters['redirect_uri']){
-            if (!is_null($this->response)) {
-                $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_REQUEST, "The redirect URI parameter is required.");
-            }
+        if ($this->config['enforce_redirect'] && (!isset($request->query['redirect_uri']) || !$request->query['redirect_uri'])){
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', "The redirect URI parameter is required.");
             return false;
         }
 
@@ -37,32 +33,30 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
 
     public function getTokenDataFromRequest($request)
     {
-        return $this->storage->getAuthorizationCode($parameters['code']);
+        if (!$tokenData = $this->storage->getAuthorizationCode($request->query['code'])) {
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
+            return null;
+        }
+        return $tokenData;
     }
 
-    public function validateTokenData(array $tokenData)
+    public function validateTokenData(array $tokenData, array $clientData)
     {
         // Check the code exists
-        if ($tokenData === null || $client[0] != $tokenData['client_id']) {
-            if (!is_null($this->response)) {
-                $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_GRANT, "Refresh token doesn't exist or is invalid for the client");
-            }
+        if ($tokenData === null || $clientData['client_id'] != $tokenData['client_id']) {
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
             return false;
         }
 
         // Validate the redirect URI. If a redirect URI has been provided on input, it must be validated
         if ($input["redirect_uri"] && !$this->validateRedirectUri($input["redirect_uri"], $tokenData["redirect_uri"])) {
-            if (!is_null($this->response)) {
-                $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_REDIRECT_URI_MISMATCH, "The redirect URI is missing or do not match");
-            }
+            $this->response = new OAuth2_ErrorResponse(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match");
             return false;
         }
 
         if ($tokenData["expires"] < time()) {
-            if (!is_null($this->response)) {
-                $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_GRANT, "The authorization code has expired");
-            }
-            return false;;
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', "The authorization code has expired");
+            return false;
         }
 
         // Scope is validated in the client class

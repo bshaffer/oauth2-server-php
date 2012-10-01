@@ -18,7 +18,7 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface
         if (!isset($request->query["username"]) || !isset($request->query["password"])
             || !$request->query["username"] || !$request->query["password"]) {
             if (!is_null($this->response)) {
-                $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_REQUEST, 'Missing parameters. "username" and "password" required');
+                $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
             }
 
             return false;

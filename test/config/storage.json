@@ -1,0 +1,16 @@
+{
+    "authorization_codes": {
+        "randomcode": {
+            "client_id": "Test Client ID",
+            "user_id": "",
+            "redirect_uri": "",
+            "expires": "",
+            "scope": ""
+        }
+    },
+    "client_credentials" : {
+        "Test Client ID": {
+            "secret": "TestSecret"
+        }
+    }
+}

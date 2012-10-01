@@ -1,0 +1,18 @@
+<?php
+
+/**
+*
+*/
+class OAuth2_AuthenticationErrorResponse extends OAuth2_ErrorResponse
+{
+    public function __construct($statusCode, $error, $errorDescription, $tokenType, $realm, $scope = null)
+    {
+        parent::__construct($statusCode, $error, $errorDescription);
+        $authHeader = sprintf('WWW-Authenticate: %s realm=%s', $tokenType, $realm);
+        if ($scope) {
+            $authHeader = sprintf('%s, scope=%s', $authHeader, $scope);
+        }
+        $this->setHttpHeader('WWW-Authenticate', $authHeader);
+    }
+}
+

@@ -8,15 +8,6 @@
 interface OAuth2_Storage_AccessTokenInterface
 {
     /**
-     * The Implicit grant type supports a response type of "token".
-     *
-     * @var string
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-1.4.2
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.2
-     */
-    const RESPONSE_TYPE_TOKEN = "token";
-
-    /**
      * Look up the supplied oauth_token from storage.
      *
      * We need to retrieve access token data as we create and verify tokens.

@@ -5,7 +5,16 @@ A library for implementing an OAuth2 Server in php
 
 Largely inspired and modified from [Quizlet's OAuth2 PHP library](https://github.com/quizlet/oauth2-php)
 
-THIS PROJECT IS STILL UNDER DEVELOPMENT
+> THIS PROJECT IS STILL UNDER DEVELOPMENT
+
+Autoloading
+-----------
+
+This library follows the zend [PSR-0](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md) standards.  A number of
+autoloaders exist which can autoload this library for that reason, but if you are not using one, you can register the `OAuth2_Autoloader`:
+
+    require_once('/path/to/oauth2-server-php/src/OAuth2/Autoloader.php');
+    OAuth2_Autoloader::register();
 
 Get Started
 -----------
@@ -27,9 +36,9 @@ instantiate the `OAuth2_Storage_Pdo` class and provide the database connection a
     $server = new OAuth2_Server($storage);
 
 The next step is to add a grant type.  This example uses the "User Credentials" grant type, which grants a token based on
-explicit user credentials passed to the request. Read more on supported grant types below, or in the
-[OAuth2 spec](http://tools.ietf.org/html/draft-ietf-oauth-v2-20).  Each grant type also requires storage, so pass the
-existing storage to the constructor:
+explicit user credentials passed to the request. Read more on [supported grant types](https://github.com/bshaffer/oauth2-server-php#the-response-object)
+below, or in the [OAuth2 spec](http://tools.ietf.org/html/draft-ietf-oauth-v2-20). Each grant type also requires storage,
+so pass the existing storage to the constructor:
 
     $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage));
 
@@ -64,7 +73,7 @@ the response object can be used to display the information in any other format:
         $response = $server->getResponse();
         $parameters = $response->getResponseParameters();
 
-        // format as HTML
+        // format as XML
         header("HTTP/1.1 " . $response->getStatusCode());
         header("Content-Type: text/xml");
         echo "<error><name>".$parameters['error']."</name><message>".$parameters['error_description']."</message></error>";

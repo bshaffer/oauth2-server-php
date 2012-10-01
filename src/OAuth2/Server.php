@@ -6,6 +6,18 @@
 */
 class OAuth2_Server
 {
+    /**
+     * List of possible authentication response types.
+     * The "authorization_code" mechanism exclusively supports 'code'
+     * and the "implicit" mechanism exclusively supports 'token'.
+     *
+     * @var string
+     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1.1
+     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.2.1
+     */
+    const RESPONSE_TYPE_AUTHORIZATION_CODE = 'code';
+    const RESPONSE_TYPE_ACCESS_TOKEN = 'token';
+
     protected $request;
     protected $storage;
     protected $grantTypes;
@@ -26,13 +38,13 @@ class OAuth2_Server
      *
      * @return
      * TRUE if everything in required scope is contained in available scope,
-     * and False if it isn't.
+     * and FALSE if it isn't.
      *
      * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-7
      *
      * @ingroup oauth2_section_7
      */
-    public function __construct($storage, array $grantTypes = null, array $config = array(), $request = null, OAuth2_ResponseInterface $response = null)
+    public function __construct($storage, array $grantTypes = array(), array $config = array())
     {
         $validStorage = array(
             'access_token' => 'OAuth2_Storage_AccessTokenInterface',
@@ -56,11 +68,6 @@ class OAuth2_Server
 			throw new InvalidArgumentException('you must provide at least one storage implementing OAuth2_Server_AccessTokenInterface and one implementing OAuth2_Server_ClientCredentialsInterface');
 		}
 
-        if (is_null($request)) {
-            $request = OAuth2_Request::createFromGlobals();
-        }
-        $this->request = $request;
-
         $this->config = array_merge(array(
             'token_type'               => 'bearer',
             'access_lifetime'          => 3600,
@@ -69,15 +76,11 @@ class OAuth2_Server
             'www_realm'                => 'Service',
             'token_param_name'         => 'access_token',
             'token_bearer_header_name' => 'Bearer',
+            'supported_scopes'         => array(),
+            'enforce_state'            => false,
         ), $config);
 
         $this->setGrantTypes($grantTypes);
-
-        // set response object
-        if (is_null($response)) {
-            $response = new OAuth2_Response();
-        }
-        $this->response = $response;
     }
 
     public function getGrantTypes()
@@ -98,9 +101,17 @@ class OAuth2_Server
         }
     }
 
+    /**
+     * addGrantType
+     *
+     * @param grantType - OAuth2_GrantTypeInterface
+     * the grant type to add for the specified identifier
+     * @param identifier - string
+     * a string passed in as "grant_type" in the response that will call this grantType
+     **/
     public function addGrantType(OAuth2_GrantTypeInterface $grantType, $identifier = null)
     {
-        if (is_null($type) || is_numeric($identifier)) {
+        if (is_null($identifier) || is_numeric($identifier)) {
             $identifier = $grantType->getIdentifier();
         }
 
@@ -116,11 +127,19 @@ class OAuth2_Server
         );
     }
 
+    public function handleAccessTokenRequest(OAuth2_Request $request, $grantType = null)
+    {
+        $this->grantAccessToken($request, $grantType);
+        return $this->response;
+    }
+
     /**
      * Grant or deny a requested access token.
      * This would be called from the "/token" endpoint as defined in the spec.
      * Obviously, you can call your endpoint whatever you want.
      *
+     * @param $request - OAuth2_Request
+     * Request object to grant access token
      * @param $grantType - mixed
      * OAuth2_GrantTypeInterface instance or one of the grant types configured in the constructor
      *
@@ -133,25 +152,25 @@ class OAuth2_Server
      *
      * @ingroup oauth2_section_4
      */
-    public function grantAccessToken($grantType = null)
+    public function grantAccessToken(OAuth2_Request $request, $grantType = null)
     {
         if (!$grantType instanceof OAuth2_GrantTypeInterface) {
             if (is_null($grantType)) {
-                if (!isset($this->request->query['grant_type'])) {
-                    $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_CLIENT, 'The grant type was not specified in the request');
+                if (!isset($request->query['grant_type']) || !$grantType = $request->query['grant_type']) {
+                    $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'The grant type was not specified in the request');
+                    return null;
                 }
-                return null;
             } else if (!is_string($grantType)) {
                 throw new InvalidArgumentException('parameter $grantType must be an instance of OAuth2_GrantTypeInterface, a string representing a configured grant type, or null to pull grant type from request');
             }
             if (!isset($this->grantTypes[$grantType])) {
-                $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_UNSUPPORTED_GRANT_TYPE, sprintf('Grant type "%s" not supported', $grantType));
+                $this->response = new OAuth2_ErrorResponse(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantType));
                 return null;
             }
             $grantType = $this->grantTypes[$grantType];
         }
 
-        if (!$clientData = $this->getClientCredentials()) {
+        if (!$clientData = $this->getClientCredentials($request)) {
                 return null;
         }
 
@@ -159,28 +178,30 @@ class OAuth2_Server
             throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.  Use getClientCredentials()');
         }
 
-        if ($this->storage['client_credentials']->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === FALSE) {
-            $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_CLIENT, 'The client credentials are invalid');
+        if ($this->storage['client_credentials']->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_client', 'The client credentials are invalid');
             return null;
         }
 
         if (!$this->storage['client_credentials']->checkRestrictedGrantType($clientData['client_id'], $grantType)) {
-            $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_UNAUTHORIZED_CLIENT, 'The grant type is unauthorized for this client_id');
+            $this->response = new OAuth2_ErrorResponse(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
             return null;
         }
 
-        // set response on grant type to utilize error response handling
-        $grantType->response = $this->response;
+        /* TODO: Find a better way to handle grantTypes and their responses */
 
-        if (!$grantType->validateRequest($this->request)) {
+        if (!$grantType->validateRequest($request)) {
+            $this->response = $grantType->response;
             return null;
         }
 
-        if (!$tokenData = $grantType->getTokenDataFromRequest($this->request)) {
+        if (!$tokenData = $grantType->getTokenDataFromRequest($request)) {
+            $this->response = $grantType->response;
             return null;
         }
 
-        if (!$grantType->validateTokenData($tokenData)) {
+        if (!$grantType->validateTokenData($tokenData, $clientData)) {
+            $this->response = $grantType->response;
             return null;
         }
 
@@ -189,8 +210,8 @@ class OAuth2_Server
         }
 
         // Check scope, if provided
-        if (isset($this->request->query["scope"]) && (!is_array($tokenData) || !isset($tokenData["scope"]) || !$this->checkScope($this->request->query["scope"], $tokenData["scope"]))) {
-            $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_SCOPE, 'An unsupported scope was requested.');
+        if (isset($request->query['scope']) && (!is_array($tokenData) || !isset($tokenData["scope"]) || !$this->checkScope($request->query['scope'], $tokenData["scope"]))) {
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_scope', 'An unsupported scope was requested.');
             return null;
         }
 
@@ -203,42 +224,195 @@ class OAuth2_Server
     public function verifyAccessToken($token_param, $scope = null)
     {
         if (!$token_param) { // Access token was not provided
-            $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_REQUEST, 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed.');
-            $this->response->setHttpHeaders($this->getAuthorizationErrorHeaders($scope));
+            $this->response = new OAuth2_AuthenticationErrorResponse(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed.', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         // Get the stored token data (from the implementing subclass)
         $token = $this->storage['access_token']->getAccessToken($token_param);
         if ($token === null) {
-            $this->response->setErrorResponse(OAuth2_Http::HTTP_UNAUTHORIZED, OAuth2_Http::ERROR_INVALID_GRANT, 'The access token provided is invalid.', $scope);
-            $this->response->setHttpHeaders($this->getAuthorizationErrorHeaders($scope));
+            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'The access token provided is invalid.', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         // Check we have a well formed token
         if (!isset($token["expires"]) || !isset($token["client_id"])) {
-            $this->response->setErrorResponse(OAuth2_Http::HTTP_UNAUTHORIZED, OAuth2_Http::ERROR_INVALID_GRANT, 'Malformed token (missing "expires" or "client_id")', $scope);
-            $this->response->setHttpHeaders($this->getAuthorizationErrorHeaders($scope));
+            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         // Check token expiration (expires is a mandatory paramter)
         if (isset($token["expires"]) && time() > strtotime($token["expires"])) {
-            $this->response->setErrorResponse(OAuth2_Http::HTTP_UNAUTHORIZED, OAuth2_Http::ERROR_INVALID_GRANT, 'The access token provided has expired.', $scope);
-            $this->response->setHttpHeaders($this->getAuthorizationErrorHeaders($scope));
+            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'The access token provided has expired.', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         // Check scope, if provided
-        // If token doesn't have a scope, it's NULL/empty, or it's insufficient, then throw an error
+        // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
         if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->checkScope($scope, $token["scope"]))) {
-            $this->response->setErrorResponse(OAuth2_Http::HTTP_FORBIDDEN, OAuth2_Http::ERROR_INSUFFICIENT_SCOPE, 'The request requires higher privileges than provided by the access token.', $scope);
-            $this->response->setHttpHeaders($this->getAuthorizationErrorHeaders($scope));
+            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token.', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         return $token;
+    }
+
+    /**
+     * Redirect the user appropriately after approval.
+     *
+     * After the user has approved or denied the access request the
+     * authorization server should call this function to redirect the user
+     * appropriately.
+     *
+     * @param $request
+     * The request should have the follow parameters set in the querystring:
+     * - response_type: The requested response: an access token, an
+     * authorization code, or both.
+     * - client_id: The client identifier as described in Section 2.
+     * - redirect_uri: An absolute URI to which the authorization server
+     * will redirect the user-agent to when the end-user authorization
+     * step is completed.
+     * - scope: (optional) The scope of the access request expressed as a
+     * list of space-delimited strings.
+     * - state: (optional) An opaque value used by the client to maintain
+     * state between the request and callback.
+     * @param $is_authorized
+     * TRUE or FALSE depending on whether the user authorized the access.
+     * @param $user_id
+     * Identifier of user who authorized the client
+     *
+     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4
+     *
+     * @ingroup oauth2_section_4
+     */
+    public function getClientAuthorizationResponse(OAuth2_Request $request, $is_authorized, $user_id = null)
+    {
+        if (!$authResult = $this->getAuthorizationResult($request, $is_authorized, $user_id)) {
+            // an error has occurred along the way, return error response
+            return $this->response;
+        }
+        list($redirect_uri, $result) = $authResult;
+        $uri = $this->buildUri($redirect_uri, $result);
+
+        // return redirect response
+        return new OAuth2_RedirectResponse($url);
+    }
+
+    // same params as above
+    public function getAuthorizationResult(OAuth2_Request $request, $is_authorized, $user_id = null)
+    {
+        // We repeat this, because we need to re-validate. In theory, this could be POSTed
+        // by a 3rd-party (because we are not internally enforcing NONCEs, etc)
+        if (!$params = $this->validateAuthorizeParams($request)) {
+            return null;
+        }
+
+        $params += array('scope' => null, 'state' => null);
+        extract($params);
+
+        if ($state !== null) {
+            $result["query"]["state"] = $state;
+        }
+
+        if ($is_authorized === false) {
+            $this->response = new OAuth2_RedirectResponse($redirect_uri, 302, 'access_denied', "The user denied access to your application", $state);
+            return null;
+        }
+
+        if ($response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
+            $result["query"]["code"] = $this->createAuthCode($client_id, $user_id, $redirect_uri, $scope);
+        } elseif ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN) {
+            $result["fragment"] = $this->createAccessToken($client_id, $user_id, $scope);
+        }
+
+        return array($redirect_uri, $result);
+    }
+
+    /**
+     * Pull the authorization request data out of the HTTP request.
+     * - The redirect_uri is OPTIONAL as per draft 20. But your implementation can enforce it
+     * by setting CONFIG_ENFORCE_INPUT_REDIRECT to true.
+     * - The state is OPTIONAL but recommended to enforce CSRF. Draft 21 states, however, that
+     * CSRF protection is MANDATORY. You can enforce this by setting the CONFIG_ENFORCE_STATE to true.
+     *
+     * The draft specifies that the parameters should be retrieved from GET, override the Response
+     * object to change this
+     *
+     * @return
+     * The authorization parameters so the authorization server can prompt
+     * the user for approval if valid.
+     *
+     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1.1
+     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-10.12
+     *
+     * @ingroup oauth2_section_3
+     */
+    public function validateAuthorizeParams(OAuth2_Request $request)
+    {
+        // Make sure a valid client id was supplied (we can not redirect because we were unable to verify the URI)
+        if (!$client_id = $request->query["client_id"]) {
+            // We don't have a good URI to use
+            $request = new OAuth2_ErrorResponse(400, 'invalid_client', "No client id supplied");
+            return false;
+        }
+
+        // Get client details
+        $clientData = $this->storage['client_credentials']->getClientDetails($client_id);
+        if ($clientData === false) {
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_client', "Client id does not exist");
+            return false;
+        }
+
+        // Make sure a valid redirect_uri was supplied. If specified, it must match the clientData URI.
+        // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-3.1.2
+        // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1.2.1
+        // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.2.2.1
+        if (!$redirect_uri = $request->query["redirect_uri"] && !$clientData["redirect_uri"]) {
+            $this->response = new OAuth2_ErrorResponse(400, 'redirect_uri_mismatch', 'No redirect URL was supplied or stored.');
+            return false;
+        }
+        // ??? how to deal with this? (Put this method in OAuth2_GrantType_AuthorizationCode?)
+        // if ($this->getVariable(self::CONFIG_ENFORCE_INPUT_REDIRECT) && !$redirect_uri) {
+        //     throw new OAuth2ServerException(self::HTTP_BAD_REQUEST, self::ERROR_REDIRECT_URI_MISMATCH, 'The redirect URI is mandatory and was not supplied.');
+        // }
+        // Only need to validate if redirect_uri provided on input and clientData.
+        if ($clientData["redirect_uri"] && $redirect_uri && !$this->validateRedirectUri($redirect_uri, $clientData["redirect_uri"])) {
+            $this->response = new OAuth2_ErrorResponse(400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match');
+            return false;
+        }
+
+        // Select the redirect URI
+        $redirect_uri = $redirect_uri ? $redirect_uri : $clientData["redirect_uri"];
+        $response_type = $request->query['response_type'];
+        $state = $request->query['state'];
+
+        // type and client_id are required
+        if (!$response_type) {
+            $this->response = new OAuth2_RedirectResponse($redirect_uri, 302, 'invalid_request', 'Invalid or missing response type.', $state);
+            return false;
+        }
+
+        if ($response_type != self::RESPONSE_TYPE_AUTHORIZATION_CODE && $response_type != self::RESPONSE_TYPE_ACCESS_TOKEN) {
+            $this->response = new OAuth2_RedirectResponse($redirect_uri, 302, 'unsupported_response_type', null, $state);
+            return false;
+        }
+
+        // Validate that the requested scope is supported
+        if ($scope && !$this->checkScope($scope, $this->config['supported_scopes'])) {
+            $this->response = new OAuth2_RedirectResponse($redirect_uri, 302, 'invalid_scope', 'An unsupported scope was requested.', $state);
+            return false;
+        }
+
+        // Validate state parameter exists (if configured to enforce this)
+        if ($this->config['enforce_state'] && !$state) {
+            $this->response = new OAuth2_RedirectResponse(302, 'invalid_request', "The state parameter is required.");
+            return false;
+        }
+
+        /* TODO: Add CSRF Protection */
+
+        // Return retrieved client details together with input
+        return ($request->query + $clientData);
     }
 
     /**
@@ -255,10 +429,10 @@ class OAuth2_Server
      * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-5
      * @ingroup oauth2_section_5
      */
-    protected function createAccessToken($client_id, $user_id, $scope = NULL)
+    protected function createAccessToken($client_id, $user_id, $scope = null)
     {
         $token = array(
-            "access_token" => $this->genAccessToken(),
+            "access_token" => $this->generateAccessToken(),
             "expires_in" => $this->config['access_lifetime'],
             "token_type" => $this->config['token_type'],
             "scope" => $scope
@@ -268,7 +442,7 @@ class OAuth2_Server
 
         // Issue a refresh token also, if we support them
         if (isset($this->storage['refresh_token'])) {
-            $token["refresh_token"] = $this->genAccessToken();
+            $token["refresh_token"] = $this->generateRefreshToken();
             $this->storage['refresh_token']->setRefreshToken($token["refresh_token"], $client_id, $user_id, time() + $this->config['refresh_lifetime'], $scope);
 
             // If we've granted a new refresh token, expire the old one
@@ -291,9 +465,9 @@ class OAuth2_Server
      * An unique access token.
      *
      * @ingroup oauth2_section_4
-     * @see OAuth2::genAuthCode()
+     * @see OAuth2::generateAuthorizationCode()
      */
-    protected function genAccessToken()
+    protected function generateAccessToken()
     {
         $tokenLen = 40;
         if (file_exists('/dev/urandom')) { // Get 100 bytes of random data
@@ -302,6 +476,100 @@ class OAuth2_Server
             $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
         }
         return substr(hash('sha512', $randomData), 0, $tokenLen);
+    }
+
+    /**
+     * Generates an unique auth code.
+     *
+     * Implementing classes may want to override this function to implement
+     * other auth code generation schemes.
+     *
+     * @return
+     * An unique auth code.
+     *
+     * @ingroup oauth2_section_4
+     * @see OAuth2::generateAccessToken()
+     */
+    protected function generateAuthorizationCode()
+    {
+        return $this->generateAccessToken(); // let's reuse the same scheme for token generation
+    }
+
+    /**
+     * Generates an unique refresh token
+     *
+     * Implementing classes may want to override this function to implement
+     * other refresh token generation schemes.
+     *
+     * @return
+     * An unique refresh.
+     *
+     * @ingroup oauth2_section_4
+     * @see OAuth2::generateAccessToken()
+     */
+    protected function generateRefreshToken()
+    {
+        return $this->generateAccessToken(); // let's reuse the same scheme for token generation
+    }
+
+    /**
+     * Handle the creation of auth code.
+     *
+     * This belongs in a separate factory, but to keep it simple, I'm just
+     * keeping it here.
+     *
+     * @param $client_id
+     * Client identifier related to the access token.
+     * @param $redirect_uri
+     * An absolute URI to which the authorization server will redirect the
+     * user-agent to when the end-user authorization step is completed.
+     * @param $scope
+     * (optional) Scopes to be stored in space-separated string.
+     *
+     * @ingroup oauth2_section_4
+     */
+    private function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null) {
+        $code = $this->generateAuthCode();
+        $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->getVariable(self::CONFIG_AUTH_LIFETIME), $scope);
+        return $code;
+    }
+
+    /**
+     * Build the absolute URI based on supplied URI and parameters.
+     *
+     * @param $uri
+     * An absolute URI.
+     * @param $params
+     * Parameters to be append as GET.
+     *
+     * @return
+     * An absolute URI with supplied parameters.
+     *
+     * @ingroup oauth2_section_4
+     */
+    private function buildUri($uri, $params) {
+        $parse_url = parse_url($uri);
+
+        // Add our params to the parsed uri
+        foreach ( $params as $k => $v ) {
+            if (isset($parse_url[$k])) {
+                $parse_url[$k] .= "&" . http_build_query($v);
+            } else {
+                $parse_url[$k] = http_build_query($v);
+            }
+        }
+
+        // Put humpty dumpty back together
+        return
+            ((isset($parse_url["scheme"])) ? $parse_url["scheme"] . "://" : "")
+            . ((isset($parse_url["user"])) ? $parse_url["user"]
+            . ((isset($parse_url["pass"])) ? ":" . $parse_url["pass"] : "") . "@" : "")
+            . ((isset($parse_url["host"])) ? $parse_url["host"] : "")
+            . ((isset($parse_url["port"])) ? ":" . $parse_url["port"] : "")
+            . ((isset($parse_url["path"])) ? $parse_url["path"] : "")
+            . ((isset($parse_url["query"])) ? "?" . $parse_url["query"] : "")
+            . ((isset($parse_url["fragment"])) ? "#" . $parse_url["fragment"] : "")
+        ;
     }
 
     /**
@@ -324,22 +592,22 @@ class OAuth2_Server
      *
      * @ingroup oauth2_section_2
      */
-    public function getClientCredentials()
+    public function getClientCredentials(OAuth2_Request $request)
     {
-        if (isset($this->request->headers['PHP_AUTH_USER'])) {
-            return array('client_id' => $this->request->headers['PHP_AUTH_USER'], 'client_secret' => $this->request->headers['PHP_AUTH_PW']);
+        if (isset($request->headers['PHP_AUTH_USER'], $request->headers['PHP_AUTH_PW'])) {
+            return array('client_id' => $request->headers['PHP_AUTH_USER'], 'client_secret' => $request->headers['PHP_AUTH_PW']);
         }
 
         // This method is not recommended, but is supported by specification
-        if (isset($this->request->request['client_id'])) {
-            return array('client_id' => $this->request->request['client_id'], 'client_secret' => $this->request->request['client_secret']);
+        if (isset($request->request['client_id'], $request->request['client_secret'])) {
+            return array('client_id' => $request->request['client_id'], 'client_secret' => $request->request['client_secret']);
         }
 
-        if (isset($this->request->query['client_id'])) {
-            return array('client_id' => $this->request->query['client_id'], 'client_secret' => $this->request->query['client_secret']);
+        if (isset($request->query['client_id'], $request->query['client_secret'])) {
+            return array('client_id' => $request->query['client_id'], 'client_secret' => $request->query['client_secret']);
         }
 
-        $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_CLIENT, 'Client id was not found in the headers or body');
+        $this->response = new OAuth2_ErrorResponse(400, 'invalid_client', 'Client credentials were not found in the headers or body');
         return null;
     }
 
@@ -351,7 +619,7 @@ class OAuth2_Server
      *
      * @return
      * TRUE if everything in required scope is contained in available scope,
-     * and False if it isn't.
+     * and FALSE if it isn't.
      *
      * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-7
      *
@@ -395,57 +663,48 @@ class OAuth2_Server
      * We don't want to test this functionality as it relies on superglobals and headers:
      * @codeCoverageIgnoreStart
      */
-    public function getBearerToken()
+    public function getBearerToken(OAuth2_Request $request)
     {
-        if (isset($this->request->server['AUTHORIZATION'])) {
-            $headers = $this->request->server['AUTHORIZATION'];
+        if (isset($request->server['AUTHORIZATION'])) {
+            $headers = $request->server['AUTHORIZATION'];
         }
 
         // Check that exactly one method was used
-        $methodsUsed = !empty($headers) + isset($this->request->query[$this->config['token_param_name']]) + isset($this->request->request[$this->config['token_param_name']]);
+        $methodsUsed = !empty($headers) + isset($request->query[$this->config['token_param_name']]) + isset($request->request[$this->config['token_param_name']]);
         if ($methodsUsed > 1) {
-            $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_REQUEST, 'Only one method may be used to authenticate at a time (Auth header, GET or POST).');
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'Only one method may be used to authenticate at a time (Auth header, GET or POST).');
             return null;
         }
         if ($methodsUsed == 0) {
-            $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_REQUEST, 'The access token was not found.');
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'The access token was not found.');
             return null;
         }
 
         // HEADER: Get the access token from the header
         if (!empty($headers)) {
             if (!preg_match('/' . $this->config['token_bearer_header_name'] . '\s(\S+)/', $headers, $matches)) {
-                $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_REQUEST, 'Malformed auth header');
+                $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'Malformed auth header');
             }
             return $matches[1];
         }
 
-        if (isset($this->request->request[$this->config['token_param_name']])) {
+        if (isset($request->request[$this->config['token_param_name']])) {
             // POST: Get the token from POST data
-            if ($this->request->server['REQUEST_METHOD'] != 'POST') {
-                $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_REQUEST, 'When putting the token in the body, the method must be POST.');
+            if ($request->server['REQUEST_METHOD'] != 'POST') {
+                $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'When putting the token in the body, the method must be POST.');
                 return null;
             }
 
-            if (isset($this->request->server['CONTENT_TYPE']) && $this->request->server['CONTENT_TYPE'] != 'application/x-www-form-urlencoded') {
+            if (isset($request->server['CONTENT_TYPE']) && $request->server['CONTENT_TYPE'] != 'application/x-www-form-urlencoded') {
                 // IETF specifies content-type. NB: Not all webservers populate this _SERVER variable
-                $this->response->setErrorResponse(OAuth2_Http::HTTP_BAD_REQUEST, OAuth2_Http::ERROR_INVALID_REQUEST, 'The content type for POST requests must be "application/x-www-form-urlencoded"');
+                $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'The content type for POST requests must be "application/x-www-form-urlencoded"');
                 return null;
             }
 
-            return $this->request->request[$this->config['token_param_name']];
+            return $request->request[$this->config['token_param_name']];
         }
 
         // GET method
-        return $this->request->query[$this->config['token_param_name']];
-    }
-
-    private function getAuthorizationErrorHeaders($scope = null)
-    {
-        $header = sprintf('WWW-Authenticate: %s realm=%s', $this->config['token_type'], $this->config['www_realm'], $scope);
-        if ($scope) {
-            $header = sprintf('%s, scope=%s', $header, $scope);
-        }
-        return array($header);
+        return $request->query[$this->config['token_param_name']];
     }
 }

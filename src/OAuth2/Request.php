@@ -5,7 +5,7 @@
 * This class is taken from the Symfony2 Framework and is part of the Symfony package.
 * See Symfony\Component\HttpFoundation\Request (https://github.com/symfony/symfony)
 */
-class OAuth2_Request
+class OAuth2_Request implements OAuth2_RequestInterface
 {
     public $attributes;
     public $request;
@@ -59,10 +59,13 @@ class OAuth2_Request
         $this->headers = $this->getHeadersFromServer($this->server);
     }
 
-    public function get($type, $name, $default = null)
+    public function getOrPost($name, $default = null)
     {
-        if (isset($this->$type[$name])) {
-            return $this->$type[$name];
+        if (isset($this->query[$name])) {
+            return $this->query[$name];
+        }
+        if (isset($this->request[$name])) {
+            return $this->request[$name];
         }
         return $default;
     }

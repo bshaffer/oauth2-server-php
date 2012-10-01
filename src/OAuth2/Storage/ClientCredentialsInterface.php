@@ -24,7 +24,7 @@ interface OAuth2_Storage_ClientCredentialsInterface
      *
      * @ingroup oauth2_section_3
      */
-    public function checkClientCredentials($client_id, $client_secret = NULL);
+    public function checkClientCredentials($client_id, $client_secret = null);
 
     /**
      * Get client details corresponding client_id.
