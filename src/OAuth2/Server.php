@@ -118,15 +118,6 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
         $this->grantTypes[$identifier] = $grantType;
     }
 
-    private function getTypeFromGrantType(OAuth2_GrantTypeInterface $grantType)
-    {
-        $validGrantTypes = array(
-            'password'       => 'OAuth2_Storage_AccessTokenInterface',
-            'client_credentials' => 'OAuth2_Storage_ClientCredentialsInterface',
-            'refresh_token'      => 'OAuth2_Storage_RefreshTokenInterface'
-        );
-    }
-
     public function handleAccessTokenRequest(OAuth2_Request $request, $grantType = null)
     {
         $this->grantAccessToken($request, $grantType);
@@ -215,7 +206,7 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
                 $this->response = $response;
             } else {
                 // create a default response
-                $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', 'Token is no longer valid');
+                $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', 'Token is no longer valid' );
             }
             return null;
         }
@@ -232,42 +223,6 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
 
         $user_id = isset($tokenData['user_id']) ? $tokenData['user_id'] : null;
         $token = $this->createAccessToken($clientData['client_id'], $user_id, $tokenData['scope']);
-
-        return $token;
-    }
-
-    public function verifyAccessToken($token_param, $scope = null)
-    {
-        if (!$token_param) { // Access token was not provided
-            $this->response = new OAuth2_AuthenticationErrorResponse(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed.', $this->config['token_type'], $this->config['www_realm'], $scope);
-            return null;
-        }
-
-        // Get the stored token data (from the implementing subclass)
-        $token = $this->storage['access_token']->getAccessToken($token_param);
-        if ($token === null) {
-            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'The access token provided is invalid.', $this->config['token_type'], $this->config['www_realm'], $scope);
-            return null;
-        }
-
-        // Check we have a well formed token
-        if (!isset($token["expires"]) || !isset($token["client_id"])) {
-            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")', $this->config['token_type'], $this->config['www_realm'], $scope);
-            return null;
-        }
-
-        // Check token expiration (expires is a mandatory paramter)
-        if (isset($token["expires"]) && time() > strtotime($token["expires"])) {
-            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'The access token provided has expired.', $this->config['token_type'], $this->config['www_realm'], $scope);
-            return null;
-        }
-
-        // Check scope, if provided
-        // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
-        if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->checkScope($scope, $token["scope"]))) {
-            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token.', $this->config['token_type'], $this->config['www_realm'], $scope);
-            return null;
-        }
 
         return $token;
     }
@@ -300,9 +255,9 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
      *
      * @ingroup oauth2_section_4
      */
-    public function getClientAuthorizationResponse(OAuth2_Request $request, $is_authorized, $user_id = null)
+    public function handleAuthorizationCodeRequest(OAuth2_Request $request, $is_authorized, $user_id = null)
     {
-        if (!$authResult = $this->getAuthorizationResult($request, $is_authorized, $user_id)) {
+        if (!$authResult = $this->grantAuthorizationCode($request, $is_authorized, $user_id)) {
             // an error has occurred along the way, return error response
             return $this->response;
         }
@@ -314,7 +269,7 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
     }
 
     // same params as above
-    public function getAuthorizationResult(OAuth2_Request $request, $is_authorized, $user_id = null)
+    public function grantAuthorizationCode(OAuth2_Request $request, $is_authorized, $user_id = null)
     {
         // We repeat this, because we need to re-validate. In theory, this could be POSTed
         // by a 3rd-party (because we are not internally enforcing NONCEs, etc)
@@ -545,7 +500,7 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
      */
     private function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null) {
         $code = $this->generateAuthCode();
-        $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->getVariable(self::CONFIG_AUTH_LIFETIME), $scope);
+        $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->config['auth_code_lifetime'], $scope);
         return $code;
     }
 
@@ -626,32 +581,50 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
         return null;
     }
 
-    /**
-     * Check if everything in required scope is contained in available scope.
-     *
-     * @param $required_scope
-     * Required scope to be check with.
-     *
-     * @return
-     * TRUE if everything in required scope is contained in available scope,
-     * and FALSE if it isn't.
-     *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-7
-     *
-     * @ingroup oauth2_section_7
-     */
-    private function checkScope($required_scope, $available_scope)
+    public function verifyAccessTokenRequest(OAuth2_Request $request)
     {
-        // The required scope should match or be a subset of the available scope
-        if (!is_array($required_scope)) {
-            $required_scope = explode(' ', trim($required_scope));
+        if ($token = $this->getBearerToken($request)) {
+            $scope = isset($request->query['scope']) ? $request->query['scope'] : null;
+            return $this->verifyAccessToken($token, $scope);
         }
 
-        if (!is_array($available_scope)) {
-            $available_scope = explode(' ', trim($available_scope));
+        return null;
+    }
+
+    public function verifyAccessToken($token_param, $scope = null)
+    {
+        if (!$token_param) { // Access token was not provided
+            $this->response = new OAuth2_AuthenticationErrorResponse(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            return null;
         }
 
-        return (count(array_diff($required_scope, $available_scope)) == 0);
+        // Get the stored token data (from the implementing subclass)
+        $token = $this->storage['access_token']->getAccessToken($token_param);
+        if ($token === null) {
+            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'The access token provided is invalid.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            return null;
+        }
+
+        // Check we have a well formed token
+        if (!isset($token["expires"]) || !isset($token["client_id"])) {
+            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")', $this->config['token_type'], $this->config['www_realm'], $scope);
+            return null;
+        }
+
+        // Check token expiration (expires is a mandatory paramter)
+        if (isset($token["expires"]) && time() > strtotime($token["expires"])) {
+            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'The access token provided has expired.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            return null;
+        }
+
+        // Check scope, if provided
+        // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
+        if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->checkScope($scope, $token["scope"]))) {
+            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            return null;
+        }
+
+        return $token;
     }
 
     /**
@@ -721,5 +694,33 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
 
         // GET method
         return $request->query[$this->config['token_param_name']];
+    }
+
+    /**
+     * Check if everything in required scope is contained in available scope.
+     *
+     * @param $required_scope
+     * Required scope to be check with.
+     *
+     * @return
+     * TRUE if everything in required scope is contained in available scope,
+     * and FALSE if it isn't.
+     *
+     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-7
+     *
+     * @ingroup oauth2_section_7
+     */
+    private function checkScope($required_scope, $available_scope)
+    {
+        // The required scope should match or be a subset of the available scope
+        if (!is_array($required_scope)) {
+            $required_scope = explode(' ', trim($required_scope));
+        }
+
+        if (!is_array($available_scope)) {
+            $available_scope = explode(' ', trim($available_scope));
+        }
+
+        return (count(array_diff($required_scope, $available_scope)) == 0);
     }
 }
