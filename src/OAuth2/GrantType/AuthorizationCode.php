@@ -3,10 +3,10 @@
 /**
 *
 */
-class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
+class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, OAuth2_ResponseServerInterface
 {
     private $storage;
-    public $response;
+    private $response;
 
     public function __construct(OAuth2_Storage_AuthorizationCodeInterface $storage, $config = array())
     {
@@ -66,5 +66,10 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
     public function getIdentifier()
     {
         return 'code';
+    }
+
+    public function getResponse()
+    {
+        return $this->response;
     }
 }

@@ -12,5 +12,8 @@
         "Test Client ID": {
             "secret": "TestSecret"
         }
+    },
+    "user_credentials" : {
+        "test-username": "testpass"
     }
 }

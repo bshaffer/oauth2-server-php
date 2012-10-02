@@ -3,10 +3,10 @@
 /**
 *
 */
-class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface
+class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAuth2_ResponseServerInterface
 {
     private $storage;
-    public $response;
+    private $response;
 
     public function __construct(OAuth2_Storage_UserCredentialsInterface $storage)
     {
@@ -15,12 +15,8 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface
 
     public function validateRequest($request)
     {
-        if (!isset($request->query["username"]) || !isset($request->query["password"])
-            || !$request->query["username"] || !$request->query["password"]) {
-            if (!is_null($this->response)) {
-                $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
-            }
-
+        if (!isset($request->query["username"]) || !isset($request->query["password"]) || !$request->query["username"] || !$request->query["password"]) {
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
             return false;
         }
 
@@ -29,7 +25,12 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface
 
     public function getTokenDataFromRequest($request)
     {
-        return $this->storage->checkUserCredentials($request->query["username"], $request->query["password"]);
+        if (!$tokenData = $this->storage->checkUserCredentials($request->query["username"], $request->query["password"])) {
+            $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', 'Invalid username and password combination');
+            return false;
+        }
+
+        return $tokenData;
     }
 
     public function validateTokenData(array $tokenData, array $clientData)
@@ -41,5 +42,10 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface
     public function getIdentifier()
     {
         return 'password';
+    }
+
+    public function getResponse()
+    {
+        return $this->response;
     }
 }

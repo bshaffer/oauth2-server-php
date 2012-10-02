@@ -4,7 +4,7 @@
 * Service class for OAuth
 * Inspired by oauth2-php (https://github.com/quizlet/oauth2-php)
 */
-class OAuth2_Server
+class OAuth2_Server implements OAuth2_ResponseServerInterface
 {
     /**
      * List of possible authentication response types.
@@ -191,17 +191,32 @@ class OAuth2_Server
         /* TODO: Find a better way to handle grantTypes and their responses */
 
         if (!$grantType->validateRequest($request)) {
-            $this->response = $grantType->response;
+            if ($grantType instanceof OAuth2_ResponseServerInterface && $response = $grantType->getResponse()) {
+                $this->response = $response;
+            } else {
+                // create a default response
+                $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', sprintf('Invalid request for "%s" grant type', $grantType->getIdentifier()));
+            }
             return null;
         }
 
         if (!$tokenData = $grantType->getTokenDataFromRequest($request)) {
-            $this->response = $grantType->response;
+            if ($grantType instanceof OAuth2_ResponseServerInterface && $response = $grantType->getResponse()) {
+                $this->response = $response;
+            } else {
+                // create a default response
+                $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantType->getIdentifier()));
+            }
             return null;
         }
 
         if (!$grantType->validateTokenData($tokenData, $clientData)) {
-            $this->response = $grantType->response;
+            if ($grantType instanceof OAuth2_ResponseServerInterface && $response = $grantType->getResponse()) {
+                $this->response = $response;
+            } else {
+                // create a default response
+                $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', 'Token is no longer valid');
+            }
             return null;
         }
 
