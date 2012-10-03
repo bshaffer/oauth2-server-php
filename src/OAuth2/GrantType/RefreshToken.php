@@ -3,7 +3,7 @@
 /**
 *
 */
-class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2_ResponseProviderInterface
+class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2_Response_ProviderInterface
 {
     private $storage;
     private $response;
@@ -17,7 +17,7 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
     public function validateRequest($request)
     {
         if (!isset($request->query["refresh_token"]) || !$request->query['refresh_token']) {
-            $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'Missing parameter: "refresh_token" is required');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameter: "refresh_token" is required');
             return false;
         }
 
@@ -27,7 +27,7 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
     public function getTokenDataFromRequest($request)
     {
         if (!$stored = $this->storage->getRefreshToken($request->query["refresh_token"])) {
-            $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', 'Invalid refresh token');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid refresh token');
             return false;
         }
 
@@ -37,12 +37,12 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
     public function validateTokenData(array $tokenData, array $clientData)
     {
         if ($tokenData === null || $clientData['client_id'] != $tokenData["client_id"]) {
-            $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', 'Invalid refresh token');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid refresh token');
             return false;
         }
 
         if ($tokenData["expires"] < time()) {
-            $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', 'Refresh token has expired');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Refresh token has expired');
             return false;
         }
 

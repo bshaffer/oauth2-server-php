@@ -3,7 +3,7 @@
 /**
 *
 */
-class OAuth2_ErrorResponse extends OAuth2_Response
+class OAuth2_Response_Error extends OAuth2_Response
 {
     public function __construct($statusCode, $error, $errorDescription)
     {

@@ -1,0 +1,6 @@
+<?php
+
+interface OAuth2_Response_ProviderInterface
+{
+    function getResponse();
+}

@@ -4,7 +4,7 @@
 * Service class for OAuth
 * Inspired by oauth2-php (https://github.com/quizlet/oauth2-php)
 */
-class OAuth2_Server implements OAuth2_ResponseProviderInterface
+class OAuth2_Server implements OAuth2_Response_ProviderInterface
 {
     /**
      * List of possible authentication response types.
@@ -149,7 +149,7 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
         if (!$grantType instanceof OAuth2_GrantTypeInterface) {
             if (is_null($grantType)) {
                 if (!isset($request->query['grant_type']) || !$grantType = $request->query['grant_type']) {
-                    $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'The grant type was not specified in the request');
+                    $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The grant type was not specified in the request');
                     return null;
                 }
             } else if (!is_string($grantType)) {
@@ -157,7 +157,7 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
             }
             if (!isset($this->grantTypes[$grantType])) {
                 /* TODO: If this is an OAuth2 supported grant type that we have chosen not to implement, throw a 501 Not Implemented instead */
-                $this->response = new OAuth2_ErrorResponse(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantType));
+                $this->response = new OAuth2_Response_Error(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantType));
                 return null;
             }
             $grantType = $this->grantTypes[$grantType];
@@ -172,43 +172,43 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
         }
 
         if ($this->storage['client_credentials']->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
-            $this->response = new OAuth2_ErrorResponse(400, 'invalid_client', 'The client credentials are invalid');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'The client credentials are invalid');
             return null;
         }
 
         if (!$this->storage['client_credentials']->checkRestrictedGrantType($clientData['client_id'], $grantType)) {
-            $this->response = new OAuth2_ErrorResponse(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
+            $this->response = new OAuth2_Response_Error(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
             return null;
         }
 
         /* TODO: Find a better way to handle grantTypes and their responses */
 
         if (!$grantType->validateRequest($request)) {
-            if ($grantType instanceof OAuth2_ResponseProviderInterface && $response = $grantType->getResponse()) {
+            if ($grantType instanceof OAuth2_Response_ProviderInterface && $response = $grantType->getResponse()) {
                 $this->response = $response;
             } else {
                 // create a default response
-                $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', sprintf('Invalid request for "%s" grant type', $grantType->getIdentifier()));
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', sprintf('Invalid request for "%s" grant type', $grantType->getIdentifier()));
             }
             return null;
         }
 
         if (!$tokenData = $grantType->getTokenDataFromRequest($request)) {
-            if ($grantType instanceof OAuth2_ResponseProviderInterface && $response = $grantType->getResponse()) {
+            if ($grantType instanceof OAuth2_Response_ProviderInterface && $response = $grantType->getResponse()) {
                 $this->response = $response;
             } else {
                 // create a default response
-                $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantType->getIdentifier()));
+                $this->response = new OAuth2_Response_Error(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantType->getIdentifier()));
             }
             return null;
         }
 
         if (!$grantType->validateTokenData($tokenData, $clientData)) {
-            if ($grantType instanceof OAuth2_ResponseProviderInterface && $response = $grantType->getResponse()) {
+            if ($grantType instanceof OAuth2_Response_ProviderInterface && $response = $grantType->getResponse()) {
                 $this->response = $response;
             } else {
                 // create a default response
-                $this->response = new OAuth2_ErrorResponse(400, 'invalid_grant', 'Token is no longer valid' );
+                $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Token is no longer valid' );
             }
             return null;
         }
@@ -219,7 +219,7 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
 
         // Check scope, if provided
         if (isset($request->query['scope']) && (!is_array($tokenData) || !isset($tokenData["scope"]) || !$this->checkScope($request->query['scope'], $tokenData["scope"]))) {
-            $this->response = new OAuth2_ErrorResponse(400, 'invalid_scope', 'An unsupported scope was requested.');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
             return null;
         }
 
@@ -269,7 +269,7 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
         $uri = $this->buildUri($redirect_uri, $result);
 
         // return redirect response
-        return new OAuth2_RedirectResponse($url);
+        return new OAuth2_Response_Redirect($url);
     }
 
     // same params as above
@@ -289,7 +289,7 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
         }
 
         if ($is_authorized === false) {
-            $this->response = new OAuth2_RedirectResponse($redirect_uri, 302, 'access_denied', "The user denied access to your application", $state);
+            $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'access_denied', "The user denied access to your application", $state);
             return null;
         }
 
@@ -326,14 +326,14 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
         // Make sure a valid client id was supplied (we can not redirect because we were unable to verify the URI)
         if (!$client_id = $request->query["client_id"]) {
             // We don't have a good URI to use
-            $request = new OAuth2_ErrorResponse(400, 'invalid_client', "No client id supplied");
+            $request = new OAuth2_Response_Error(400, 'invalid_client', "No client id supplied");
             return false;
         }
 
         // Get client details
         $clientData = $this->storage['client_credentials']->getClientDetails($client_id);
         if ($clientData === false) {
-            $this->response = new OAuth2_ErrorResponse(400, 'invalid_client', "Client id does not exist");
+            $this->response = new OAuth2_Response_Error(400, 'invalid_client', "Client id does not exist");
             return false;
         }
 
@@ -342,7 +342,7 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
         // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1.2.1
         // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.2.2.1
         if (!$redirect_uri = $request->query["redirect_uri"] && !$clientData["redirect_uri"]) {
-            $this->response = new OAuth2_ErrorResponse(400, 'redirect_uri_mismatch', 'No redirect URL was supplied or stored.');
+            $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', 'No redirect URL was supplied or stored.');
             return false;
         }
         // ??? how to deal with this? (Put this method in OAuth2_GrantType_AuthorizationCode?)
@@ -351,7 +351,7 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
         // }
         // Only need to validate if redirect_uri provided on input and clientData.
         if ($clientData["redirect_uri"] && $redirect_uri && !$this->validateRedirectUri($redirect_uri, $clientData["redirect_uri"])) {
-            $this->response = new OAuth2_ErrorResponse(400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match');
+            $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match');
             return false;
         }
 
@@ -362,25 +362,25 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
 
         // type and client_id are required
         if (!$response_type) {
-            $this->response = new OAuth2_RedirectResponse($redirect_uri, 302, 'invalid_request', 'Invalid or missing response type.', $state);
+            $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'invalid_request', 'Invalid or missing response type.', $state);
             return false;
         }
 
         // Isn't this the difference between "Implicit" and "Authorization Code" ?
         if ($response_type != self::RESPONSE_TYPE_AUTHORIZATION_CODE && $response_type != self::RESPONSE_TYPE_ACCESS_TOKEN) {
-            $this->response = new OAuth2_RedirectResponse($redirect_uri, 302, 'unsupported_response_type', null, $state);
+            $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unsupported_response_type', null, $state);
             return false;
         }
 
         // Validate that the requested scope is supported
         if ($scope && !$this->checkScope($scope, $this->config['supported_scopes'])) {
-            $this->response = new OAuth2_RedirectResponse($redirect_uri, 302, 'invalid_scope', 'An unsupported scope was requested.', $state);
+            $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'invalid_scope', 'An unsupported scope was requested.', $state);
             return false;
         }
 
         // Validate state parameter exists (if configured to enforce this)
         if ($this->config['enforce_state'] && !$state) {
-            $this->response = new OAuth2_RedirectResponse(302, 'invalid_request', "The state parameter is required.");
+            $this->response = new OAuth2_Response_Redirect(302, 'invalid_request', "The state parameter is required.");
             return false;
         }
 
@@ -577,7 +577,7 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
             return array('client_id' => $request->query['client_id'], 'client_secret' => $request->query['client_secret']);
         }
 
-        $this->response = new OAuth2_ErrorResponse(400, 'invalid_client', 'Client credentials were not found in the headers or body');
+        $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'Client credentials were not found in the headers or body');
         return null;
     }
 
@@ -594,33 +594,33 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
     public function verifyAccessToken($token_param, $scope = null)
     {
         if (!$token_param) { // Access token was not provided
-            $this->response = new OAuth2_AuthenticationErrorResponse(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            $this->response = new OAuth2_Response_AuthenticationError(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed.', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         // Get the stored token data (from the implementing subclass)
         $token = $this->storage['access_token']->getAccessToken($token_param);
         if ($token === null) {
-            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'The access token provided is invalid.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'The access token provided is invalid.', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         // Check we have a well formed token
         if (!isset($token["expires"]) || !isset($token["client_id"])) {
-            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")', $this->config['token_type'], $this->config['www_realm'], $scope);
+            $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         // Check token expiration (expires is a mandatory paramter)
         if (isset($token["expires"]) && time() > strtotime($token["expires"])) {
-            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'invalid_grant', 'The access token provided has expired.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'The access token provided has expired.', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         // Check scope, if provided
         // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
         if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->checkScope($scope, $token["scope"]))) {
-            $this->response = new OAuth2_AuthenticationErrorResponse(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            $this->response = new OAuth2_Response_AuthenticationError(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token.', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
@@ -660,18 +660,18 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
         // Check that exactly one method was used
         $methodsUsed = !empty($headers) + isset($request->query[$this->config['token_param_name']]) + isset($request->request[$this->config['token_param_name']]);
         if ($methodsUsed > 1) {
-            $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'Only one method may be used to authenticate at a time (Auth header, GET or POST).');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Only one method may be used to authenticate at a time (Auth header, GET or POST).');
             return null;
         }
         if ($methodsUsed == 0) {
-            $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'The access token was not found.');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The access token was not found.');
             return null;
         }
 
         // HEADER: Get the access token from the header
         if (!empty($headers)) {
             if (!preg_match('/' . $this->config['token_bearer_header_name'] . '\s(\S+)/', $headers, $matches)) {
-                $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'Malformed auth header');
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Malformed auth header');
             }
             return $matches[1];
         }
@@ -679,13 +679,13 @@ class OAuth2_Server implements OAuth2_ResponseProviderInterface
         if (isset($request->request[$this->config['token_param_name']])) {
             // POST: Get the token from POST data
             if ($request->server['REQUEST_METHOD'] != 'POST') {
-                $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'When putting the token in the body, the method must be POST.');
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'When putting the token in the body, the method must be POST.');
                 return null;
             }
 
             if (isset($request->server['CONTENT_TYPE']) && $request->server['CONTENT_TYPE'] != 'application/x-www-form-urlencoded') {
                 // IETF specifies content-type. NB: Not all webservers populate this _SERVER variable
-                $this->response = new OAuth2_ErrorResponse(400, 'invalid_request', 'The content type for POST requests must be "application/x-www-form-urlencoded"');
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The content type for POST requests must be "application/x-www-form-urlencoded"');
                 return null;
             }
 

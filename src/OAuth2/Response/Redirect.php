@@ -3,7 +3,7 @@
 /**
 *
 */
-class OAuth2_RedirectResponse extends OAuth2_Response
+class OAuth2_Response_Redirect extends OAuth2_Response
 {
     public function __construct($url, $statusCode = 302, $error = null, $errorDescription = null, $state = null)
     {
