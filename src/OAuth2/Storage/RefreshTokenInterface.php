@@ -8,7 +8,8 @@
  * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-6
  * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-1.5
  */
-interface OAuth2_Storage_RefreshTokens extends IOAuth2Storage {
+interface OAuth2_Storage_RefreshTokenInterface
+{
 
     /**
      * Grant refresh access tokens.

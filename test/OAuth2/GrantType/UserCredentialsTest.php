@@ -76,7 +76,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
     {
         $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../config/storage.json'), true));
         $server = new OAuth2_Server($storage);
-        $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage)); // or some other grant type.  This is the simplest
+        $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage));
 
         return $server;
     }

@@ -15,5 +15,14 @@
     },
     "user_credentials" : {
         "test-username": "testpass"
+    },
+    "refresh_tokens" : {
+        "test-refreshtoken": {
+            "refresh_token": "test-refreshtoken",
+            "client_id": "Test Client ID",
+            "user_id": "test-username",
+            "expires": 99999999900,
+            "scope": null
+        }
     }
 }

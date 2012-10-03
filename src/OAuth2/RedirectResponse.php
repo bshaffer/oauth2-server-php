@@ -12,7 +12,7 @@ class OAuth2_RedirectResponse extends OAuth2_Response
         }
 
         $httpHeaders = array(
-            'Location', $url,
+            'Location' =>  $url,
         );
 
         $responseParameters = array();

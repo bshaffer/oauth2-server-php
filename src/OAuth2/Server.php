@@ -4,7 +4,7 @@
 * Service class for OAuth
 * Inspired by oauth2-php (https://github.com/quizlet/oauth2-php)
 */
-class OAuth2_Server implements OAuth2_ResponseServerInterface
+class OAuth2_Server implements OAuth2_ResponseProviderInterface
 {
     /**
      * List of possible authentication response types.
@@ -19,6 +19,7 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
     const RESPONSE_TYPE_ACCESS_TOKEN = 'token';
 
     protected $request;
+    protected $response;
     protected $storage;
     protected $grantTypes;
 
@@ -155,6 +156,7 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
                 throw new InvalidArgumentException('parameter $grantType must be an instance of OAuth2_GrantTypeInterface, a string representing a configured grant type, or null to pull grant type from request');
             }
             if (!isset($this->grantTypes[$grantType])) {
+                /* TODO: If this is an OAuth2 supported grant type that we have chosen not to implement, throw a 501 Not Implemented instead */
                 $this->response = new OAuth2_ErrorResponse(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantType));
                 return null;
             }
@@ -182,7 +184,7 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
         /* TODO: Find a better way to handle grantTypes and their responses */
 
         if (!$grantType->validateRequest($request)) {
-            if ($grantType instanceof OAuth2_ResponseServerInterface && $response = $grantType->getResponse()) {
+            if ($grantType instanceof OAuth2_ResponseProviderInterface && $response = $grantType->getResponse()) {
                 $this->response = $response;
             } else {
                 // create a default response
@@ -192,7 +194,7 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
         }
 
         if (!$tokenData = $grantType->getTokenDataFromRequest($request)) {
-            if ($grantType instanceof OAuth2_ResponseServerInterface && $response = $grantType->getResponse()) {
+            if ($grantType instanceof OAuth2_ResponseProviderInterface && $response = $grantType->getResponse()) {
                 $this->response = $response;
             } else {
                 // create a default response
@@ -202,7 +204,7 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
         }
 
         if (!$grantType->validateTokenData($tokenData, $clientData)) {
-            if ($grantType instanceof OAuth2_ResponseServerInterface && $response = $grantType->getResponse()) {
+            if ($grantType instanceof OAuth2_ResponseProviderInterface && $response = $grantType->getResponse()) {
                 $this->response = $response;
             } else {
                 // create a default response
@@ -223,6 +225,8 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
 
         $user_id = isset($tokenData['user_id']) ? $tokenData['user_id'] : null;
         $token = $this->createAccessToken($clientData['client_id'], $user_id, $tokenData['scope']);
+
+        $grantType->finishTokenGrant($token);
 
         return $token;
     }
@@ -362,6 +366,7 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
             return false;
         }
 
+        // Isn't this the difference between "Implicit" and "Authorization Code" ?
         if ($response_type != self::RESPONSE_TYPE_AUTHORIZATION_CODE && $response_type != self::RESPONSE_TYPE_ACCESS_TOKEN) {
             $this->response = new OAuth2_RedirectResponse($redirect_uri, 302, 'unsupported_response_type', null, $state);
             return false;
@@ -411,15 +416,10 @@ class OAuth2_Server implements OAuth2_ResponseServerInterface
         $this->storage['access_token']->setAccessToken($token["access_token"], $client_id, $user_id, $this->config['access_lifetime'] ? time() + $this->config['access_lifetime'] : null, $scope);
 
         // Issue a refresh token also, if we support them
+        /* TODO: Move this to the grant type */
         if (isset($this->storage['refresh_token'])) {
             $token["refresh_token"] = $this->generateRefreshToken();
             $this->storage['refresh_token']->setRefreshToken($token["refresh_token"], $client_id, $user_id, time() + $this->config['refresh_lifetime'], $scope);
-
-            // If we've granted a new refresh token, expire the old one
-            if ($this->oldRefreshToken) {
-                $this->storage['refresh_token']->unsetRefreshToken($this->oldRefreshToken);
-                unset($this->oldRefreshToken);
-            }
         }
 
         return $token;

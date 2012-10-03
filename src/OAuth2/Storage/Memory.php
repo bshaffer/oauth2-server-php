@@ -3,7 +3,9 @@
 /**
 *
 */
-class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface, OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface
+class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface,
+    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_AccessTokenInterface,
+    OAuth2_Storage_ClientCredentialsInterface, OAuth2_Storage_RefreshTokenInterface
 {
     private $authorizationCodes;
     private $userCredentials;

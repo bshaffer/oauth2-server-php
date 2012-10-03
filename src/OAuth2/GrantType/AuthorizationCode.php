@@ -3,7 +3,7 @@
 /**
 *
 */
-class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, OAuth2_ResponseServerInterface
+class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, OAuth2_ResponseProviderInterface
 {
     private $storage;
     private $response;
@@ -62,6 +62,9 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         // Scope is validated in the client class
         return true;
     }
+
+    public function finishTokenGrant($token)
+    {}
 
     public function getIdentifier()
     {

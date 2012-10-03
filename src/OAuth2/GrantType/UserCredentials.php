@@ -3,7 +3,7 @@
 /**
 *
 */
-class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAuth2_ResponseServerInterface
+class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAuth2_ResponseProviderInterface
 {
     private $storage;
     private $response;
@@ -38,6 +38,9 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
         // Scope is validated in the client class
         return true;
     }
+
+    public function finishTokenGrant($token)
+    {}
 
     public function getIdentifier()
     {
