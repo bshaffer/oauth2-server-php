@@ -1,6 +1,6 @@
 <?php
 
-class OAuth2_AuthorizeRequestTest extends PHPUnit_Framework_TestCase
+class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_TestCase
 {
     public function testNoClientIdResponse()
     {
@@ -71,9 +71,24 @@ class OAuth2_AuthorizeRequestTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getResponseParameter('error_description'), 'The redirect URI must not contain a fragment');
     }
 
+    public function testEnforceState()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer(array('enforce_state' => true));
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['client_id'] = 'Test Client ID'; // valid client id
+        $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
+        $request->query['response_type'] = 'code';
+        $response = $server->handleAuthorizeRequest($request, true);
+
+        $this->assertEquals($response->getStatusCode(), 302);
+        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getResponseParameter('error_description'), 'The state parameter is required');
+    }
+
     private function getTestServer($config = array())
     {
-        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../config/storage.json'), true));
+        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));
         $server = new OAuth2_Server($storage, $config);
 
         // Add the two types supported for authorization grant

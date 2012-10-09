@@ -257,14 +257,18 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
 
         $params += array('scope' => null, 'state' => null);
 
-        if (isset($params['state'])) {
-            $result["query"]["state"] = $params['state'];
-        }
-
         if ($params['response_type'] == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
             $result["query"]["code"] = $this->grantTypes['code']->createAuthorizationCode($params['client_id'], $user_id, $params['redirect_uri'], $params['scope']);
+
+            if (isset($params['state'])) {
+                $result["query"]["state"] = $params['state'];
+            }
         } elseif ($params['response_type'] == self::RESPONSE_TYPE_ACCESS_TOKEN) {
             $result["fragment"] = $this->createAccessToken($params['client_id'], $user_id, $params['scope']);
+
+            if (isset($params['state'])) {
+                $result["fragment"]["state"] = $params['state'];
+            }
         }
 
         return array($params['redirect_uri'], $result);
@@ -402,7 +406,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
 
         // Validate state parameter exists (if configured to enforce this)
         if ($this->config['enforce_state'] && !$state) {
-            $this->response = new OAuth2_Response_Redirect(302, 'invalid_request', 'The state parameter is required');
+            $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'invalid_request', 'The state parameter is required');
             return false;
         }
 

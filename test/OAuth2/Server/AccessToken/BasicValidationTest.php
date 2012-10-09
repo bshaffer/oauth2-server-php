@@ -1,6 +1,6 @@
 <?php
 
-class OAuth2_AccessTokenRequestTest extends PHPUnit_Framework_TestCase
+class OAuth2_Server_AccessToken_BasicValidationTest extends PHPUnit_Framework_TestCase
 {
     public function testNoGrantType()
     {
@@ -78,7 +78,7 @@ class OAuth2_AccessTokenRequestTest extends PHPUnit_Framework_TestCase
 
     private function getTestServer()
     {
-        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../config/storage.json'), true));
+        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));
         $server = new OAuth2_Server($storage);
         $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage)); // or some other grant type.  This is the simplest
 

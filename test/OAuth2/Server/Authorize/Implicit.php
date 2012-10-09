@@ -1,6 +1,6 @@
 <?php
 
-class OAuth2_AuthorizeRequestImplicitTest extends PHPUnit_Framework_TestCase
+class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
 {
     public function testImplicitNotAllowedResponse()
     {
@@ -62,9 +62,60 @@ class OAuth2_AuthorizeRequestImplicitTest extends PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('token_type', $params);
     }
 
+    public function testSuccessfulRequestReturnsStateParameter()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer(array('allow_implicit' => true));
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['client_id'] = 'Test Client ID'; // valid client id
+        $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
+        $request->query['response_type'] = 'token'; // invalid response type
+        $request->query['state'] = 'test'; // valid state string (just needs to be passed back to us)
+        $response = $server->handleAuthorizeRequest($request, true);
+
+        $this->assertEquals($response->getStatusCode(), 302);
+        $this->assertNull($response->getResponseParameter('error'));
+        $this->assertNull($response->getResponseParameter('error_description'));
+
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        $this->assertArrayHasKey('fragment', $parts);
+        parse_str($parts['fragment'], $params);
+
+        $this->assertArrayHasKey('state', $params);
+        $this->assertEquals($params['state'], 'test');
+    }
+
+    public function testSuccessfulRequestStripsExtraParameters()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer(array('allow_implicit' => true));
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['client_id'] = 'Test Client ID'; // valid client id
+        $request->query['redirect_uri'] = 'http://adobe.com?fake=something'; // valid redirect URI
+        $request->query['response_type'] = 'token'; // invalid response type
+        $request->query['state'] = 'test'; // valid state string (just needs to be passed back to us)
+        $request->query['fake'] = 'something'; // add extra param to querystring
+        $response = $server->handleAuthorizeRequest($request, true);
+
+        $this->assertEquals($response->getStatusCode(), 302);
+        $this->assertNull($response->getResponseParameter('error'));
+        $this->assertNull($response->getResponseParameter('error_description'));
+
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        $this->assertFalse(isset($parts['fake']));
+        $this->assertArrayHasKey('fragment', $parts);
+        parse_str($parts['fragment'], $params);
+
+        $this->assertFalse(isset($parmas['fake']));
+        $this->assertArrayHasKey('state', $params);
+        $this->assertEquals($params['state'], 'test');
+    }
+
     private function getTestServer($config = array())
     {
-        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../config/storage.json'), true));
+        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));
         $server = new OAuth2_Server($storage, $config);
 
         // Add the two types supported for authorization grant

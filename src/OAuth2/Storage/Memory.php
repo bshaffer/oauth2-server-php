@@ -104,7 +104,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
 
     public function unsetRefreshToken($refresh_token)
     {
-        unset($this->refreshToken[$refresh_token]);
+        unset($this->refreshTokens[$refresh_token]);
     }
 
     public function setRefreshTokens($refresh_tokens)

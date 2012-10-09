@@ -2,6 +2,8 @@
 
 class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
 {
+    private $storage;
+
     public function testNoRefreshToken()
     {
         // add the test parameters in memory
@@ -47,13 +49,18 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
         $token = $server->grantAccessToken($request);
 
         $this->assertTrue(isset($token['refresh_token']));
+
+        $refresh_token = $this->storage->getRefreshToken($token['refresh_token']);
+        $this->assertNotNull($refresh_token);
+        $this->assertEquals($refresh_token['refresh_token'], $token['refresh_token']);
+        $this->assertEquals($refresh_token['client_id'], $request->query('client_id'));
     }
 
     private function getTestServer()
     {
-        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../config/storage.json'), true));
-        $server = new OAuth2_Server($storage);
-        $server->addGrantType(new OAuth2_GrantType_RefreshToken($storage));
+        $this->storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../config/storage.json'), true));
+        $server = new OAuth2_Server($this->storage);
+        $server->addGrantType(new OAuth2_GrantType_RefreshToken($this->storage));
 
         return $server;
     }
