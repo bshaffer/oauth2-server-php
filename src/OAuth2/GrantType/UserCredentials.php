@@ -44,7 +44,7 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
         return true;
     }
 
-    public function finishTokenGrant($token)
+    public function finishGrantRequest($token)
     {}
 
     public function getResponse()

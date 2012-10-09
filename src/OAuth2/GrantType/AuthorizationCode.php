@@ -119,7 +119,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantType_Authorizati
         return substr(hash('sha512', $randomData), 0, $tokenLen);
     }
 
-    public function finishTokenGrant($token)
+    public function finishGrantRequest($token)
     {}
 
     public function getResponse()

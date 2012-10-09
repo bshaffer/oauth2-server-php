@@ -84,7 +84,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         $this->setGrantTypes($this->config['grant_types']);
     }
 
-    public function handleTokenGrantRequest(OAuth2_Request $request, $grantType = null)
+    public function handleGrantRequest(OAuth2_Request $request, $grantType = null)
     {
         $this->grantAccessToken($request, $grantType);
         return $this->response;
@@ -191,7 +191,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         $user_id = isset($tokenData['user_id']) ? $tokenData['user_id'] : null;
         $token = $this->createAccessToken($clientData['client_id'], $user_id, $tokenData['scope']);
 
-        $grantType->finishTokenGrant($token);
+        $grantType->finishGrantRequest($token);
 
         return $token;
     }

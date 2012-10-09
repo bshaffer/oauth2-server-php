@@ -62,7 +62,7 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantType_RefreshTokenInte
         return true;
     }
 
-    public function finishTokenGrant($token)
+    public function finishGrantRequest($token)
     {
         $this->storage->unsetRefreshToken($this->oldRefreshToken);
     }
