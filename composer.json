@@ -1,1 +1,6 @@
-{ "name": "bshaffer/oauth2-server-php" }
+{ 
+    "name": "bshaffer/oauth2-server-php",
+    "autoload": {
+        "psr-0": { "OAuth2": "src/" }
+    }
+}
