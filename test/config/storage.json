@@ -24,5 +24,24 @@
             "expires": 99999999900,
             "scope": null
         }
+    },
+    "access_tokens" : {
+        "accesstoken-expired": {
+            "access_token": "accesstoken-expired",
+            "client_id": "Test Client ID",
+            "expires": 1234567,
+            "scope": null
+        },
+        "accesstoken-scope": {
+            "access_token": "accesstoken-scope",
+            "client_id": "Test Client ID",
+            "expires": 99999999900,
+            "scope": "testscope"
+        },
+        "accesstoken-malformed": {
+            "access_token": "accesstoken-mallformed",
+            "expires": 99999999900,
+            "scope": "testscope"
+        }
     }
 }

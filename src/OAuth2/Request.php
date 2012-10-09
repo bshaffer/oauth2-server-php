@@ -69,6 +69,16 @@ class OAuth2_Request implements OAuth2_RequestInterface
         return isset($this->request[$name]) ? $this->request[$name] : $default;
     }
 
+    public function server($name, $default = null)
+    {
+        return isset($this->server[$name]) ? $this->server[$name] : $default;
+    }
+
+    public function headers($name, $default = null)
+    {
+        return isset($this->headers[$name]) ? $this->headers[$name] : $default;
+    }
+
     /**
      * Returns the request body content.
      *
@@ -169,8 +179,8 @@ class OAuth2_Request implements OAuth2_RequestInterface
         $class = __CLASS__;
         $request = new $class($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER);
 
-        $contentType = isset($request->server['CONTENT_TYPE']) ? $request->server['CONTENT_TYPE'] : '';
-        $requestMethod = isset($request->server['REQUEST_METHOD']) ? $request->server['REQUEST_METHOD'] : 'GET';
+        $contentType = $request->server('CONTENT_TYPE', '');
+        $requestMethod = $request->server('REQUEST_METHOD', 'GET');
         if (0 === strpos($contentType, 'application/x-www-form-urlencoded')
             && in_array(strtoupper($requestMethod), array('PUT', 'DELETE'))
         ) {

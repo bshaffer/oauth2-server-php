@@ -84,7 +84,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         $this->setGrantTypes($this->config['grant_types']);
     }
 
-    public function handleAccessTokenRequest(OAuth2_Request $request, $grantType = null)
+    public function handleTokenGrantRequest(OAuth2_Request $request, $grantType = null)
     {
         $this->grantAccessToken($request, $grantType);
         return $this->response;
@@ -274,27 +274,27 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         return array($params['redirect_uri'], $result);
     }
 
-    public function verifyAccessTokenRequest(OAuth2_Request $request)
+    public function verifyAccessRequest(OAuth2_Request $request)
     {
         if ($token = $this->getBearerToken($request)) {
-            $scope = isset($request->query['scope']) ? $request->query['scope'] : null;
-            return $this->verifyAccessToken($token, $scope);
+            $access_token = $this->getAccessTokenData($token, $request->query('scope'));
+            return (bool) $access_token;
         }
 
-        return null;
+        return false;
     }
 
-    public function verifyAccessToken($token_param, $scope = null)
+    public function getAccessTokenData($token_param, $scope = null)
     {
         if (!$token_param) { // Access token was not provided
-            $this->response = new OAuth2_Response_AuthenticationError(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            $this->response = new OAuth2_Response_AuthenticationError(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         // Get the stored token data (from the implementing subclass)
         $token = $this->storage['access_token']->getAccessToken($token_param);
         if ($token === null) {
-            $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'The access token provided is invalid.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'The access token provided is invalid', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
@@ -305,15 +305,15 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         }
 
         // Check token expiration (expires is a mandatory paramter)
-        if (isset($token["expires"]) && time() > strtotime($token["expires"])) {
-            $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'The access token provided has expired.', $this->config['token_type'], $this->config['www_realm'], $scope);
+        if (isset($token["expires"]) && time() > $token["expires"]) {
+            $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'The access token provided has expired', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
         // Check scope, if provided
         // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
         if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->checkScope($scope, $token["scope"]))) {
-            $this->response = new OAuth2_Response_AuthenticationError(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token.', $this->config['token_type'], $this->config['www_realm'], $scope);
+            $this->response = new OAuth2_Response_AuthenticationError(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
         }
 
@@ -604,7 +604,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
 
     /**
      * This is a convenience function that can be used to get the token, which can then
-     * be passed to verifyAccessToken(). The constraints specified by the draft are
+     * be passed to getAccessTokenData(). The constraints specified by the draft are
      * attempted to be adheared to in this method.
      *
      * As per the Bearer spec (draft 8, section 2) - there are three ways for a client
@@ -633,13 +633,13 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         }
 
         // Check that exactly one method was used
-        $methodsUsed = !empty($headers) + isset($request->query[$this->config['token_param_name']]) + isset($request->request[$this->config['token_param_name']]);
+        $methodsUsed = !empty($headers) + !is_null($request->query($this->config['token_param_name'])) + !is_null($request->request($this->config['token_param_name']));
         if ($methodsUsed > 1) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Only one method may be used to authenticate at a time (Auth header, GET or POST).');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Only one method may be used to authenticate at a time (Auth header, GET or POST)');
             return null;
         }
         if ($methodsUsed == 0) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The access token was not found.');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The access token was not found');
             return null;
         }
 
@@ -647,28 +647,29 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         if (!empty($headers)) {
             if (!preg_match('/' . $this->config['token_bearer_header_name'] . '\s(\S+)/', $headers, $matches)) {
                 $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Malformed auth header');
+                return null;
             }
             return $matches[1];
         }
 
-        if (isset($request->request[$this->config['token_param_name']])) {
+        if ($request->request($this->config['token_param_name'])) {
             // POST: Get the token from POST data
-            if ($request->server['REQUEST_METHOD'] != 'POST') {
-                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'When putting the token in the body, the method must be POST.');
+            if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'When putting the token in the body, the method must be POST');
                 return null;
             }
 
-            if (isset($request->server['CONTENT_TYPE']) && $request->server['CONTENT_TYPE'] != 'application/x-www-form-urlencoded') {
+            if ($request->server('CONTENT_TYPE') !== null && $request->server('CONTENT_TYPE') != 'application/x-www-form-urlencoded') {
                 // IETF specifies content-type. NB: Not all webservers populate this _SERVER variable
                 $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The content type for POST requests must be "application/x-www-form-urlencoded"');
                 return null;
             }
 
-            return $request->request[$this->config['token_param_name']];
+            return $request->request($this->config['token_param_name']);
         }
 
         // GET method
-        return $request->query[$this->config['token_param_name']];
+        return $request->query($this->config['token_param_name']);
     }
 
     /**

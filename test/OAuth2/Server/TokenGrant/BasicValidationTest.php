@@ -1,12 +1,12 @@
 <?php
 
-class OAuth2_Server_AccessToken_BasicValidationTest extends PHPUnit_Framework_TestCase
+class OAuth2_Server_TokenGrant_BasicValidationTest extends PHPUnit_Framework_TestCase
 {
     public function testNoGrantType()
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
-        $response = $server->handleAccessTokenRequest(OAuth2_Request::createFromGlobals());
+        $response = $server->handleTokenGrantRequest(OAuth2_Request::createFromGlobals());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
@@ -19,7 +19,7 @@ class OAuth2_Server_AccessToken_BasicValidationTest extends PHPUnit_Framework_Te
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'invalid_grant_type'; // invalid grant type
-        $response = $server->handleAccessTokenRequest($request);
+        $response = $server->handleTokenGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getResponseParameter('error'), 'unsupported_grant_type');
@@ -32,7 +32,7 @@ class OAuth2_Server_AccessToken_BasicValidationTest extends PHPUnit_Framework_Te
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'code'; // valid grant type
-        $response = $server->handleAccessTokenRequest($request);
+        $response = $server->handleTokenGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
@@ -46,7 +46,7 @@ class OAuth2_Server_AccessToken_BasicValidationTest extends PHPUnit_Framework_Te
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'code'; // valid grant type
         $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $response = $server->handleAccessTokenRequest($request);
+        $response = $server->handleTokenGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
@@ -61,7 +61,7 @@ class OAuth2_Server_AccessToken_BasicValidationTest extends PHPUnit_Framework_Te
         $request->query['grant_type'] = 'code'; // valid grant type
         $request->query['client_id'] = 'Fake Client ID'; // invalid client id
         $request->query['client_secret'] = 'Fake Client Secret'; // invalid client secret
-        $response = $server->handleAccessTokenRequest($request);
+        $response = $server->handleTokenGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
@@ -69,7 +69,7 @@ class OAuth2_Server_AccessToken_BasicValidationTest extends PHPUnit_Framework_Te
 
         // try again with a real client ID, but an invalid secret
         $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $response = $server->handleAccessTokenRequest($request);
+        $response = $server->handleTokenGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');

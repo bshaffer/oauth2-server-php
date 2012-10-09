@@ -6,7 +6,6 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
 
     public function testNoRefreshToken()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'refresh_token'; // valid grant type
@@ -22,7 +21,6 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidRefreshToken()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'refresh_token'; // valid grant type
@@ -39,7 +37,6 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
 
     public function testValidRefreshToken()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'refresh_token'; // valid grant type

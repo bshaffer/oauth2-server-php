@@ -4,7 +4,6 @@ class OAuth2_Server_Authorize_CodeTest extends PHPUnit_Framework_TestCase
 {
     public function testUserDeniesAccessResponse()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
@@ -19,7 +18,6 @@ class OAuth2_Server_Authorize_CodeTest extends PHPUnit_Framework_TestCase
 
     public function testCodeQueryParamIsSet()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
@@ -47,7 +45,6 @@ class OAuth2_Server_Authorize_CodeTest extends PHPUnit_Framework_TestCase
 
     public function testSuccessfulRequestReturnsStateParameter()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer(array('allow_implicit' => true));
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
@@ -70,7 +67,6 @@ class OAuth2_Server_Authorize_CodeTest extends PHPUnit_Framework_TestCase
 
     public function testSuccessfulRequestStripsExtraParameters()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer(array('allow_implicit' => true));
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id

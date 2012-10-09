@@ -4,7 +4,6 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
 {
     public function testNoCode()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'code'; // valid grant type
@@ -20,7 +19,6 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidCode()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'code'; // valid grant type

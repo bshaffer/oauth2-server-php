@@ -4,7 +4,6 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
 {
     public function testNoClientIdResponse()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $response = $server->handleAuthorizeRequest($request, false);
@@ -16,7 +15,6 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
 
     public function testNoRedirectUriSuppliedOrStoredResponse()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
@@ -29,7 +27,6 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
 
     public function testNoResponseTypeResponse()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
@@ -43,7 +40,6 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
 
     public function testInvalidResponseTypeResponse()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
@@ -58,7 +54,6 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
 
     public function testRedirectUriFragmentResponse()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
@@ -73,7 +68,6 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
 
     public function testEnforceState()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer(array('enforce_state' => true));
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id

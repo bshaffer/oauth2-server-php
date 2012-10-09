@@ -4,7 +4,6 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
 {
     public function testNoUsername()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'password'; // valid grant type
@@ -21,7 +20,6 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
 
     public function testNoPassword()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'password'; // valid grant type
@@ -38,7 +36,6 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidUsername()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'password'; // valid grant type
@@ -56,7 +53,6 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidPassword()
     {
-        // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['grant_type'] = 'password'; // valid grant type
