@@ -349,7 +349,11 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         }
 
         // Get client details
-        $clientData = $this->storage['client_credentials']->getClientDetails($client_id);
+        if (!$clientData = $this->storage['client_credentials']->getClientDetails($client_id)) {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'The client id supplied is invalid');
+            return false;
+        }
+
         $clientData += array('redirect_uri' => null); // this should be set.  We should create ClientData interface
         if ($clientData === false) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_client', "Client id does not exist");
