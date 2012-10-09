@@ -19,7 +19,7 @@
 
   <filter>
     <whitelist>
-      <directory suffix=".php">./lib/OAuth2/</directory>
+      <directory suffix=".php">./src/OAuth2/</directory>
     </whitelist>
   </filter>
 </phpunit>
