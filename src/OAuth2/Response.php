@@ -152,6 +152,11 @@ class OAuth2_Response
         switch ($format) {
             case 'json':
                 return json_encode($this->responseParameters, true);
+            case 'xml':
+                // this only works for single-level arrays
+                $xml = new SimpleXMLElement('<response/>');
+                array_walk($this->responseParameters, array($xml, 'addChild'));
+                return $xml->asXML();
         }
 
         throw new InvalidArgumentException(sprintf('The format %s is not supported'));
@@ -168,6 +173,9 @@ class OAuth2_Response
         switch ($format) {
             case 'json':
                 $this->setHttpHeader('Content-Type', 'application/json');
+                break;
+            case 'xml':
+                $this->setHttpHeader('Content-Type', 'text/xml');
                 break;
         }
         // status
@@ -245,6 +253,9 @@ class OAuth2_Response
      */
     private function getHttpHeadersAsString($headers)
     {
+        if (count($headers) == 0) {
+            return '';
+        }
         $max = max(array_map('strlen', array_keys($headers))) + 1;
         $content = '';
         ksort($headers);
