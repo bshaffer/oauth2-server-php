@@ -72,7 +72,6 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         $this->config = array_merge(array(
             'token_type'               => 'bearer',
             'access_lifetime'          => 3600,
-            'auth_code_lifetime'       => 30,
             'www_realm'                => 'Service',
             'token_param_name'         => 'access_token',
             'token_bearer_header_name' => 'Bearer',
@@ -257,19 +256,18 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         $result = array('query' => array());
 
         $params += array('scope' => null, 'state' => null);
-        extract($params);
 
-        if ($state !== null) {
-            $result["query"]["state"] = $state;
+        if (isset($params['state'])) {
+            $result["query"]["state"] = $params['state'];
         }
 
-        if ($response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
-            $result["query"]["code"] = $this->createAuthCode($client_id, $user_id, $redirect_uri, $scope);
-        } elseif ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN) {
-            $result["fragment"] = $this->createAccessToken($client_id, $user_id, $scope);
+        if ($params['response_type'] == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
+            $result["query"]["code"] = $this->grantTypes['code']->createAuthorizationCode($params['client_id'], $user_id, $params['redirect_uri'], $params['scope']);
+        } elseif ($params['response_type'] == self::RESPONSE_TYPE_ACCESS_TOKEN) {
+            $result["fragment"] = $this->createAccessToken($params['client_id'], $user_id, $params['scope']);
         }
 
-        return array($redirect_uri, $result);
+        return array($params['redirect_uri'], $result);
     }
 
     public function verifyAccessTokenRequest(OAuth2_Request $request)
@@ -443,7 +441,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         /* TODO: Move this to the grant type */
         if (isset($this->grantTypes['refresh_token'])) {
             $token["refresh_token"] = $this->generateRefreshToken();
-            $this->grantTypes['refresh_token']->saveRefreshToken($token["refresh_token"], $client_id, $user_id, $scope);
+            $this->grantTypes['refresh_token']->createRefreshToken($token["refresh_token"], $client_id, $user_id, $scope);
         }
 
         return $token;
@@ -459,7 +457,6 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
      * An unique access token.
      *
      * @ingroup oauth2_section_4
-     * @see OAuth2::generateAuthorizationCode()
      */
     protected function generateAccessToken()
     {
@@ -470,23 +467,6 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
             $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
         }
         return substr(hash('sha512', $randomData), 0, $tokenLen);
-    }
-
-    /**
-     * Generates an unique auth code.
-     *
-     * Implementing classes may want to override this function to implement
-     * other auth code generation schemes.
-     *
-     * @return
-     * An unique auth code.
-     *
-     * @ingroup oauth2_section_4
-     * @see OAuth2::generateAccessToken()
-     */
-    protected function generateAuthorizationCode()
-    {
-        return $this->generateAccessToken(); // let's reuse the same scheme for token generation
     }
 
     /**
@@ -504,28 +484,6 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
     protected function generateRefreshToken()
     {
         return $this->generateAccessToken(); // let's reuse the same scheme for token generation
-    }
-
-    /**
-     * Handle the creation of auth code.
-     *
-     * This belongs in a separate factory, but to keep it simple, I'm just
-     * keeping it here.
-     *
-     * @param $client_id
-     * Client identifier related to the access token.
-     * @param $redirect_uri
-     * An absolute URI to which the authorization server will redirect the
-     * user-agent to when the end-user authorization step is completed.
-     * @param $scope
-     * (optional) Scopes to be stored in space-separated string.
-     *
-     * @ingroup oauth2_section_4
-     */
-    private function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null) {
-        $code = $this->generateAuthCode();
-        $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->config['auth_code_lifetime'], $scope);
-        return $code;
     }
 
     /**

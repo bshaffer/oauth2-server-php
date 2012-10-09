@@ -52,6 +52,7 @@ class OAuth2_AuthorizeRequestImplicitTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('http', $parts['scheme']); // same as passed in to redirect_uri
         $this->assertEquals('adobe.com', $parts['host']); // same as passed in to redirect_uri
         $this->assertArrayHasKey('fragment', $parts);
+        $this->assertFalse(isset($parts['query']));
 
         // assert fragment is in "application/x-www-form-urlencoded" format
         parse_str($parts['fragment'], $params);

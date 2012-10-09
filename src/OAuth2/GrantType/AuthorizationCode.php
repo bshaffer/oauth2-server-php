@@ -12,7 +12,8 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantType_Authorizati
     {
         $this->storage = $storage;
         $this->config = array_merge(array(
-            'enforce_redirect' => false
+            'enforce_redirect' => false,
+            'auth_code_lifetime' => 30,
         ), $config);
     }
 
@@ -71,6 +72,51 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantType_Authorizati
 
         // Scope is validated in the client class
         return true;
+    }
+
+    /**
+     * Handle the creation of auth code.
+     *
+     * This belongs in a separate factory, but to keep it simple, I'm just
+     * keeping it here.
+     *
+     * @param $client_id
+     * Client identifier related to the access token.
+     * @param $redirect_uri
+     * An absolute URI to which the authorization server will redirect the
+     * user-agent to when the end-user authorization step is completed.
+     * @param $scope
+     * (optional) Scopes to be stored in space-separated string.
+     *
+     * @ingroup oauth2_section_4
+     */
+    public function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null)
+    {
+        $code = $this->generateAuthorizationCode();
+        $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->config['auth_code_lifetime'], $scope);
+        return $code;
+    }
+
+    /**
+     * Generates an unique auth code.
+     *
+     * Implementing classes may want to override this function to implement
+     * other auth code generation schemes.
+     *
+     * @return
+     * An unique auth code.
+     *
+     * @ingroup oauth2_section_4
+     */
+    protected function generateAuthorizationCode()
+    {
+        $tokenLen = 40;
+        if (file_exists('/dev/urandom')) { // Get 100 bytes of random data
+            $randomData = file_get_contents('/dev/urandom', false, null, 0, 100) . uniqid(mt_rand(), true);
+        } else {
+            $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
+        }
+        return substr(hash('sha512', $randomData), 0, $tokenLen);
     }
 
     public function finishTokenGrant($token)

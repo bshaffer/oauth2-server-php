@@ -67,7 +67,7 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantType_RefreshTokenInte
         $this->storage->unsetRefreshToken($this->oldRefreshToken);
     }
 
-    public function saveRefreshToken($refresh_token, $client_id, $user_id, $scope = null)
+    public function createRefreshToken($refresh_token, $client_id, $user_id, $scope = null)
     {
         $this->storage->setRefreshToken($refresh_token, $client_id, $user_id, time() + $this->getRefreshTokenLifetime(), $scope);
     }
