@@ -113,7 +113,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
     {
         if (!$grantType instanceof OAuth2_GrantTypeInterface) {
             if (is_null($grantType)) {
-                if (!isset($request->query['grant_type']) || !$grantType = $request->query['grant_type']) {
+                if (!$grantType = $request->parameter('grant_type')) {
                     $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The grant type was not specified in the request');
                     return null;
                 }
@@ -129,7 +129,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         }
 
         if (!$clientData = $this->getClientCredentials($request)) {
-                return null;
+            return null;
         }
 
         if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
@@ -550,17 +550,17 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
      */
     public function getClientCredentials(OAuth2_Request $request)
     {
-        if (isset($request->headers['PHP_AUTH_USER'], $request->headers['PHP_AUTH_PW'])) {
-            return array('client_id' => $request->headers['PHP_AUTH_USER'], 'client_secret' => $request->headers['PHP_AUTH_PW']);
+        if (!is_null($request->headers('PHP_AUTH_USER')) && !is_null($request->headers('PHP_AUTH_PW'))) {
+            return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));
         }
 
         // This method is not recommended, but is supported by specification
-        if (isset($request->request['client_id'], $request->request['client_secret'])) {
-            return array('client_id' => $request->request['client_id'], 'client_secret' => $request->request['client_secret']);
+        if (!is_null($request->request('client_id')) && !is_null($request->request('client_secret'))) {
+            return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
         }
 
-        if (isset($request->query['client_id'], $request->query['client_secret'])) {
-            return array('client_id' => $request->query['client_id'], 'client_secret' => $request->query['client_secret']);
+        if (!is_null($request->query('client_id')) && !is_null($request->query('client_secret'))) {
+            return array('client_id' => $request->query('client_id'), 'client_secret' => $request->query('client_secret'));
         }
 
         $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'Client credentials were not found in the headers or body');

@@ -79,6 +79,11 @@ class OAuth2_Request implements OAuth2_RequestInterface
         return isset($this->headers[$name]) ? $this->headers[$name] : $default;
     }
 
+    public function parameter($name, $default = null)
+    {
+        return $this->query($name) ? $this->query($name) : $this->request($name, $default);
+    }
+
     /**
      * Returns the request body content.
      *
