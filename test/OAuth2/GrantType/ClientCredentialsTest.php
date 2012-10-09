@@ -94,7 +94,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['client_secret'] = 'TestSecret'; // valid client secret
         $token = $server->grantAccessToken($request);
-print_r($token);
+
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
         $this->assertNotNull($token['access_token']);
