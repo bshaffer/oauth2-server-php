@@ -142,6 +142,11 @@ class OAuth2_Response
         return $this->httpHeaders;
     }
 
+    public function getHttpHeader($name, $default = null)
+    {
+        return isset($this->httpHeaders[$name]) ? $this->httpHeaders[$name] : $default;
+    }
+
     public function getResponseBody($format = 'json')
     {
         switch ($format) {

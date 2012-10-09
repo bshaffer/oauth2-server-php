@@ -13,6 +13,11 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
         $this->storage = $storage;
     }
 
+    public function getIdentifier()
+    {
+        return 'password';
+    }
+
     public function validateRequest($request)
     {
         if (!isset($request->query["username"]) || !isset($request->query["password"]) || !$request->query["username"] || !$request->query["password"]) {
@@ -41,11 +46,6 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
 
     public function finishTokenGrant($token)
     {}
-
-    public function getIdentifier()
-    {
-        return 'password';
-    }
 
     public function getResponse()
     {

@@ -8,13 +8,22 @@
  */
 class OAuth2_Autoloader
 {
+    private $dir;
+
+    public function __construct($dir = null)
+    {
+        if (is_null($dir)) {
+            $dir = dirname(__FILE__).'/..';
+        }
+        $this->dir = $dir;
+    }
     /**
      * Registers AdobeDigitalMarketing_Autoloader as an SPL autoloader.
      */
-    static public function register()
+    static public function register($dir = null)
     {
         ini_set('unserialize_callback_func', 'spl_autoload_call');
-        spl_autoload_register(array(new self, 'autoload'));
+        spl_autoload_register(array(new self($dir), 'autoload'));
     }
 
     /**
@@ -24,13 +33,13 @@ class OAuth2_Autoloader
      *
      * @return boolean Returns true if the class has been loaded
      */
-    static public function autoload($class)
+    public function autoload($class)
     {
         if (0 !== strpos($class, 'OAuth2')) {
             return;
         }
 
-        if (file_exists($file = dirname(__FILE__).'/../'.str_replace('_', '/', $class).'.php')) {
+        if (file_exists($file = $this->dir.'/'.str_replace('_', '/', $class).'.php')) {
             require $file;
         }
     }

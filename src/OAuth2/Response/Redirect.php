@@ -31,7 +31,7 @@ class OAuth2_Response_Redirect extends OAuth2_Response
 
         parent::__construct($responseParameters, $statusCode, $httpHeaders);
 
-        if (!$this->isRedirect()) {
+        if (!$this->isRedirection()) {
             throw new InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $statusCode));
         }
     }

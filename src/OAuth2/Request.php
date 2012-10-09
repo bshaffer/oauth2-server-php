@@ -59,15 +59,14 @@ class OAuth2_Request implements OAuth2_RequestInterface
         $this->headers = $this->getHeadersFromServer($this->server);
     }
 
-    public function getOrPost($name, $default = null)
+    public function query($name, $default = null)
     {
-        if (isset($this->query[$name])) {
-            return $this->query[$name];
-        }
-        if (isset($this->request[$name])) {
-            return $this->request[$name];
-        }
-        return $default;
+        return isset($this->query[$name]) ? $this->query[$name] : $default;
+    }
+
+    public function request($name, $default = null)
+    {
+        return isset($this->request[$name]) ? $this->request[$name] : $default;
     }
 
     /**

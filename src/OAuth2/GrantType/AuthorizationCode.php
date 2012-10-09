@@ -3,7 +3,7 @@
 /**
 *
 */
-class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, OAuth2_Response_ProviderInterface
+class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantType_AuthorizationCodeInterface, OAuth2_Response_ProviderInterface
 {
     private $storage;
     private $response;
@@ -16,6 +16,16 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         ), $config);
     }
 
+    public function getIdentifier()
+    {
+        return 'code';
+    }
+
+    public function enforceRedirect()
+    {
+        return $this->config['enforce_redirect'];
+    }
+
     public function validateRequest($request)
     {
         if (!isset($request->query['code']) || !$request->query['code']) {
@@ -23,7 +33,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
             return false;
         }
 
-        if ($this->config['enforce_redirect'] && (!isset($request->query['redirect_uri']) || !$request->query['redirect_uri'])){
+        if ($this->enforceRedirect() && (!isset($request->query['redirect_uri']) || !$request->query['redirect_uri'])){
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', "The redirect URI parameter is required.");
             return false;
         }
@@ -65,11 +75,6 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
 
     public function finishTokenGrant($token)
     {}
-
-    public function getIdentifier()
-    {
-        return 'code';
-    }
 
     public function getResponse()
     {
