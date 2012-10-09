@@ -410,8 +410,6 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
             return false;
         }
 
-        /* TODO: Add CSRF Protection */
-
         // Return retrieved client details together with input
         return ($request->query + $clientData + array('state' => null));
     }
