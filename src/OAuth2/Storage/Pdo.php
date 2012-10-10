@@ -3,7 +3,8 @@
 /**
 *
 */
-class OAuth2_Storage_Pdo implements OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface
+class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
+    OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface
 {
     private $db;
     private $config;
@@ -32,6 +33,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AccessTokenInterface, OAuth2_
         $this->config = array_merge(array(
             'client_table_name' => 'oauth_clients',
             'token_table_name' => 'oauth_access_tokens',
+            'code_table_name' => 'oauth_authorization_codes',
         ), $config);
     }
 
@@ -74,14 +76,34 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AccessTokenInterface, OAuth2_
         return $stmt->fetch();
     }
 
-    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = NULL)
+    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
             $stmt = $this->db->prepare(sprintf('UPDATE %s SET client_id=:client_id, expires=:expires, user_id=:user_id, scope=:scope where access_token=:access_token', $this->config['token_table_name']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (client_id, expires, user_id, scope, access_token) VALUES (:client_id, :expires, :user_id, :scope, :access_token)', $this->config['token_table_name']));
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (access_token, client_id, expires, user_id, scope) VALUES (:access_token, :client_id, :expires, :user_id, :scope)', $this->config['token_table_name']));
         }
         return $stmt->execute(compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
+    }
+
+    /* AuthorizationCodeInterface */
+    public function getAuthorizationCode($code)
+    {
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = "%s"', $this->config['code_table_name'], $code));
+        $stmt->execute();
+
+        return $stmt->fetch();
+    }
+
+    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null)
+    {
+        // if it exists, update it.
+        if ($this->getAuthorizationCode($code)) {
+            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_id=:client_id, user_id=:user_id, redirect_uri=:redirect_uri, expires=:expires, scope=:scope where authorization_code=:code', $this->config['code_table_name']));
+        } else {
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope)', $this->config['code_table_name']));
+        }
+        return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
     }
 }

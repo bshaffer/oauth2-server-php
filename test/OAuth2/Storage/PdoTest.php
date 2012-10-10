@@ -48,6 +48,10 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
     /** @dataProvider provideStorage */
     public function testSetAccessToken($storage)
     {
+        // assert token we are about to add does not exist
+        $token = $storage->getAccessToken('newtoken');
+        $this->assertFalse($token);
+
         // add new token
         $success = $storage->setAccessToken('newtoken', 'client ID', 'SOMEUSERID', time() + 20);
         $this->assertTrue($success);
@@ -71,6 +75,50 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($token['user_id'], 'SOMEOTHERID');
     }
 
+    /** @dataProvider provideStorage */
+    public function testGetAuthorizationCode($storage)
+    {
+        // nonexistant client_id
+        $details = $storage->getAuthorizationCode('faketoken');
+        $this->assertFalse($details);
+
+        // valid client_id
+        $details = $storage->getAuthorizationCode('testtoken');
+        $this->assertNotNull($details);
+    }
+
+    /** @dataProvider provideStorage */
+    public function testSetAuthorizationCode($storage)
+    {
+        // assert code we are about to add does not exist
+        $code = $storage->getAuthorizationCode('newcode');
+        $this->assertFalse($code);
+
+        // add new code
+        $success = $storage->setAuthorizationCode('newcode', 'client ID', 'SOMEUSERID', 'http://adobe.com', time() + 20);
+        $this->assertTrue($success);
+
+        $code = $storage->getAuthorizationCode('newcode');
+        $this->assertNotNull($code);
+        $this->arrayHasKey('access_token', $code);
+        $this->arrayHasKey('client_id', $code);
+        $this->arrayHasKey('user_id', $code);
+        $this->assertEquals($code['user_id'], 'SOMEUSERID');
+        $this->arrayHasKey('redirect_uri', $code);
+
+        // change existing code
+        $success = $storage->setAuthorizationCode('newcode', 'client ID', 'SOMEOTHERID', 'http://adobe.com', time() + 20);
+        $this->assertTrue($success);
+
+        $code = $storage->getAuthorizationCode('newcode');
+        $this->assertNotNull($code);
+        $this->arrayHasKey('access_token', $code);
+        $this->arrayHasKey('client_id', $code);
+        $this->arrayHasKey('user_id', $code);
+        $this->assertEquals($code['user_id'], 'SOMEOTHERID');
+        $this->arrayHasKey('redirect_uri', $code);
+    }
+
     public function provideStorage()
     {
         $this->removeSqliteDb(); // remove db to be safe
@@ -92,10 +140,12 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $db->exec('CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT)');
         $db->exec('CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT)');
+        $db->exec('CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires TIMESTAMP, scope TEXT)');
 
         // test data
         $db->exec('INSERT INTO oauth_clients (client_id, client_secret) VALUES ("oauth_test_client", "testpass")');
         $db->exec('INSERT INTO oauth_access_tokens (access_token, client_id) VALUES ("testtoken", "Some Client")');
+        $db->exec('INSERT INTO oauth_authorization_codes (authorization_code, client_id) VALUES ("testcode", "Some Client")');
     }
 
     private function removeSqliteDb()

@@ -67,6 +67,6 @@ interface OAuth2_Storage_AuthorizationCodeInterface
      *
      * @ingroup oauth2_section_4
      */
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = NULL);
+    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null);
 
 }

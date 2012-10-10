@@ -44,5 +44,5 @@ interface OAuth2_Storage_AccessTokenInterface
      *
      * @ingroup oauth2_section_4
      */
-    public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = NULL);
+    public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null);
 }

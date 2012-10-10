@@ -40,7 +40,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         return null;
     }
 
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = NULL)
+    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null)
     {
         $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope');
     }
@@ -118,7 +118,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         return isset($this->accessTokens[$access_token]) ? $this->accessTokens[$access_token] : null;
     }
 
-    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = NULL)
+    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
         $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope');
     }

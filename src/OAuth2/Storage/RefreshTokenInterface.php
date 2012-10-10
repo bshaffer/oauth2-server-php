@@ -56,7 +56,7 @@ interface OAuth2_Storage_RefreshTokenInterface
      *
      * @ingroup oauth2_section_6
      */
-    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = NULL);
+    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null);
 
     /**
      * Expire a used refresh token.

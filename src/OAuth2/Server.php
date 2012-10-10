@@ -396,7 +396,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         }
         if ($response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
             if (!isset($this->grantTypes['code'])) {
-                $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unsupported_response_type', 'authorization code response type not supported', $state);
+                $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unsupported_response_type', 'authorization code grant type not supported', $state);
                 return false;
             }
             if ($this->grantTypes['code']->enforceRedirect() && !$redirect_uri) {
