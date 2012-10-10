@@ -264,6 +264,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
                 $result["query"]["state"] = $params['state'];
             }
         } elseif ($params['response_type'] == self::RESPONSE_TYPE_ACCESS_TOKEN) {
+            // should this call from a grant type?
             $result["fragment"] = $this->createAccessToken($params['client_id'], $user_id, $params['scope']);
 
             if (isset($params['state'])) {
@@ -376,9 +377,6 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
             return false;
         }
 
-        if (isset($this->grantTypes['authorization_code']) && $this->grantTypes['authorization_code']->enforceRedirect() && !$redirect_uri) {
-            throw new OAuth2ServerException(self::HTTP_BAD_REQUEST, self::ERROR_REDIRECT_URI_MISMATCH, 'The redirect URI is mandatory and was not supplied.');
-        }
         // Only need to validate if redirect_uri provided on input and clientData.
         if ($clientData["redirect_uri"] && $redirect_uri && !$this->validateRedirectUri($redirect_uri, $clientData["redirect_uri"])) {
             $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match');
@@ -395,6 +393,16 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
         if (!$response_type || !in_array($response_type, array(self::RESPONSE_TYPE_AUTHORIZATION_CODE, self::RESPONSE_TYPE_ACCESS_TOKEN))) {
             $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'invalid_request', 'Invalid or missing response type', $state);
             return false;
+        }
+        if ($response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
+            if (!isset($this->grantTypes['code'])) {
+                $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unsupported_response_type', 'authorization code response type not supported', $state);
+                return false;
+            }
+            if ($this->grantTypes['code']->enforceRedirect() && !$redirect_uri) {
+                $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', 'The redirect URI is mandatory and was not supplied.');
+                return false;
+            }
         }
 
         if ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN && $this->config['allow_implicit'] === false) {
