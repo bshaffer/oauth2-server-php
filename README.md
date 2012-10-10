@@ -5,9 +5,7 @@ oauth2-server-php
 
 A library for implementing an OAuth2 Server in php
 
-Largely inspired and modified from [Quizlet's OAuth2 PHP library](https://github.com/quizlet/oauth2-php)
-
-> THIS PROJECT IS STILL UNDER DEVELOPMENT
+[View the full working demo!](http://brentertainment.com/oauth2) ([code](https://github.com/bshaffer/oauth2-server-demo))
 
 Autoloading
 -----------
@@ -18,17 +16,28 @@ autoloaders exist which can autoload this library for that reason, but if you ar
     require_once('/path/to/oauth2-server-php/src/OAuth2/Autoloader.php');
     OAuth2_Autoloader::register();
 
+If you use a package library like [Composer](http://getcomposer.php), add the following to `composer.json`
+
+    {
+        "require": {
+            "bshaffer/oauth2-server-php": "dev-master",
+            ...
+        },
+        ...
+    }
+
+And then run `composer.phar install`
+
 Get Started
 -----------
 
 The quickest way to get started is to use the following code, plugging in your database information
-to the constructor of OAuth2_Storage_Pdo:
+to the constructor of `OAuth2_Storage_Pdo`:
 
     $storage = new OAuth2_Storage_Pdo($dsn, $username, $password);
     $server = new OAuth2_Server($storage);
     $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage)); // or some other grant type.  This is the simplest
-    $server->grantAccessToken();
-    $server->getResponse()->send();
+    $server->handleGrantRequest(OAuth2_Request::createFromGlobals())->send();
 
 Let's break this down line by line. The first line is how the OAuth2 data is stored.
 There are several built in storage types, for your convenience.  To use PDO Storage,
@@ -47,8 +56,10 @@ so pass the existing storage to the constructor:
 Call the `grantAccessToken` method to validate the request for the user credentials grant type.  This will return the token
 if successful.  Access the server's response object to send the successful response back, or the error response if applicable:
 
-    $token = $server->grantAccessToken();
-    $server->getResponse()->send();
+    $server->handleGrantRequest(OAuth2_Request::createFromGlobals())->send();
+
+This creates the `OAuth2_Request` object from PHP global variables (most common, you can override this if need be) and sends it to the server
+for assessment.  The response by default is in json format, and includes the access token if successful, and error codes if not.
 
 The Response Object
 -------------------
@@ -94,6 +105,11 @@ Supported grant types are as follows:
         The username and password are submitted as part of the request, and a token is issued upon successful authentication
 
 Create a custom grant type by implementing the `OAuth2_GrantTypeInterface` and adding it to the OAuth2 Server object.
+
+Acknowledgements
+----------------
+
+This library is largely inspired and modified from [Quizlet's OAuth2 PHP library](https://github.com/quizlet/oauth2-php)
 
 Contact
 -------
