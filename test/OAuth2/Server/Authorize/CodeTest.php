@@ -12,8 +12,12 @@ class OAuth2_Server_Authorize_CodeTest extends PHPUnit_Framework_TestCase
         $response = $server->handleAuthorizeRequest($request, false);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertEquals($response->getResponseParameter('error'), 'access_denied');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The user denied access to your application');
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
+
+        $this->assertEquals($query['error'], 'access_denied');
+        $this->assertEquals($query['error_description'], 'The user denied access to your application');
     }
 
     public function testCodeQueryParamIsSet()
@@ -26,8 +30,9 @@ class OAuth2_Server_Authorize_CodeTest extends PHPUnit_Framework_TestCase
         $response = $server->handleAuthorizeRequest($request, true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertNull($response->getResponseParameter('error'));
-        $this->assertNull($response->getResponseParameter('error_description'));
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
 
         $location = $response->getHttpHeader('Location');
         $parts = parse_url($location);
@@ -38,9 +43,13 @@ class OAuth2_Server_Authorize_CodeTest extends PHPUnit_Framework_TestCase
         $this->assertFalse(isset($parts['fragment']));
 
         // assert fragment is in "application/x-www-form-urlencoded" format
-        parse_str($parts['query'], $params);
-        $this->assertNotNull($params);
-        $this->assertArrayHasKey('code', $params);
+        parse_str($parts['query'], $query);
+        $this->assertNotNull($query);
+        $this->assertArrayHasKey('code', $query);
+
+        // ensure no error was returned
+        $this->assertFalse(isset($query['error']));
+        $this->assertFalse(isset($query['error_description']));
     }
 
     public function testSuccessfulRequestReturnsStateParameter()
@@ -54,15 +63,18 @@ class OAuth2_Server_Authorize_CodeTest extends PHPUnit_Framework_TestCase
         $response = $server->handleAuthorizeRequest($request, true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertNull($response->getResponseParameter('error'));
 
         $location = $response->getHttpHeader('Location');
         $parts = parse_url($location);
         $this->assertArrayHasKey('query', $parts);
-        parse_str($parts['query'], $params);
+        parse_str($parts['query'], $query);
 
-        $this->assertArrayHasKey('state', $params);
-        $this->assertEquals($params['state'], 'test');
+        $this->assertArrayHasKey('state', $query);
+        $this->assertEquals($query['state'], 'test');
+
+        // ensure no error was returned
+        $this->assertFalse(isset($query['error']));
+        $this->assertFalse(isset($query['error_description']));
     }
 
     public function testSuccessfulRequestStripsExtraParameters()
@@ -83,11 +95,11 @@ class OAuth2_Server_Authorize_CodeTest extends PHPUnit_Framework_TestCase
         $parts = parse_url($location);
         $this->assertFalse(isset($parts['fake']));
         $this->assertArrayHasKey('query', $parts);
-        parse_str($parts['query'], $params);
+        parse_str($parts['query'], $query);
 
         $this->assertFalse(isset($parmas['fake']));
-        $this->assertArrayHasKey('state', $params);
-        $this->assertEquals($params['state'], 'test');
+        $this->assertArrayHasKey('state', $query);
+        $this->assertEquals($query['state'], 'test');
     }
 
     private function getTestServer($config = array())

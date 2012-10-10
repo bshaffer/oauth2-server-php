@@ -34,8 +34,12 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
         $response = $server->handleAuthorizeRequest($request, false);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Invalid or missing response type');
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
+
+        $this->assertEquals($query['error'], 'invalid_request');
+        $this->assertEquals($query['error_description'], 'Invalid or missing response type');
     }
 
     public function testInvalidResponseTypeResponse()
@@ -48,8 +52,12 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
         $response = $server->handleAuthorizeRequest($request, false);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Invalid or missing response type');
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
+
+        $this->assertEquals($query['error'], 'invalid_request');
+        $this->assertEquals($query['error_description'], 'Invalid or missing response type');
     }
 
     public function testRedirectUriFragmentResponse()
@@ -76,8 +84,12 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
         $response = $server->handleAuthorizeRequest($request, true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The state parameter is required');
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
+
+        $this->assertEquals($query['error'], 'invalid_request');
+        $this->assertEquals($query['error_description'], 'The state parameter is required');
     }
 
     private function getTestServer($config = array())

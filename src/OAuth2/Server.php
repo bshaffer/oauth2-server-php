@@ -226,6 +226,10 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
      */
     public function handleAuthorizeRequest(OAuth2_Request $request, $is_authorized, $user_id = null)
     {
+        if (is_null($is_authorized)) {
+            throw new InvalidArgumentException('Argument "is_authorized" is required.  This method must know if the user has granted access to the client.');
+        }
+
         // We repeat this, because we need to re-validate. In theory, this could be POSTed
         // by a 3rd-party (because we are not internally enforcing NONCEs, etc)
         if (!$params = $this->validateAuthorizeRequest($request)) {

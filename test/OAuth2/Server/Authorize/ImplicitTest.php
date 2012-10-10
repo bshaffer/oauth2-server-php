@@ -12,8 +12,12 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $response = $server->handleAuthorizeRequest($request, false);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertEquals($response->getResponseParameter('error'), 'unsupported_response_type');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'implicit grant type not supported');
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
+
+        $this->assertEquals($query['error'], 'unsupported_response_type');
+        $this->assertEquals($query['error_description'], 'implicit grant type not supported');
     }
 
     public function testUserDeniesAccessResponse()
@@ -26,8 +30,12 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $response = $server->handleAuthorizeRequest($request, false);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertEquals($response->getResponseParameter('error'), 'access_denied');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The user denied access to your application');
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
+
+        $this->assertEquals($query['error'], 'access_denied');
+        $this->assertEquals($query['error_description'], 'The user denied access to your application');
     }
 
     public function testSuccessfulRequestFragmentParameter()

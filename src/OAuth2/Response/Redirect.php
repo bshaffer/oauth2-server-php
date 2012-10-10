@@ -11,25 +11,31 @@ class OAuth2_Response_Redirect extends OAuth2_Response
             throw new InvalidArgumentException('Cannot redirect to an empty URL.');
         }
 
+        $query = array();
+
+        if (!is_null($error)) {
+            $query['error'] = $error;
+        }
+
+        if (!is_null($errorDescription)) {
+            $query['error_description'] = $errorDescription;
+        }
+
+        if (!is_null($state)) {
+            $query['state'] = $state;
+        }
+
+        if (count($query) > 0) {
+            $parts = parse_url($url);
+            $sep = isset($parts['query']) && count($parts['query']) > 0 ? '&' : '?';
+            $url = $url . $sep . http_build_query($query);
+        }
+
         $httpHeaders = array(
             'Location' =>  $url,
         );
 
-        $responseParameters = array();
-
-        if (!is_null($error)) {
-            $responseParameters['error'] = $error;
-        }
-
-        if (!is_null($errorDescription)) {
-            $responseParameters['error_description'] = $errorDescription;
-        }
-
-        if (!is_null($state)) {
-            $responseParameters['state'] = $state;
-        }
-
-        parent::__construct($responseParameters, $statusCode, $httpHeaders);
+        parent::__construct(array(), $statusCode, $httpHeaders);
 
         if (!$this->isRedirection()) {
             throw new InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $statusCode));
