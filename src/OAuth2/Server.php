@@ -86,7 +86,9 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
 
     public function handleGrantRequest(OAuth2_Request $request, $grantType = null)
     {
-        $this->grantAccessToken($request, $grantType);
+        if ($token = $this->grantAccessToken($request, $grantType)) {
+            $this->response = new OAuth2_Response($token);
+        }
         return $this->response;
     }
 

@@ -60,7 +60,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantType_Authorizati
         }
 
         // Validate the redirect URI. If a redirect URI has been provided on input, it must be validated
-        if ($input["redirect_uri"] && !$this->validateRedirectUri($input["redirect_uri"], $tokenData["redirect_uri"])) {
+        if (isset($clientData['redirect_uri']) && $clientData['redirect_uri'] && !$this->validateRedirectUri($clientData['redirect_uri'], $tokenData['redirect_uri'])) {
             $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match");
             return false;
         }
