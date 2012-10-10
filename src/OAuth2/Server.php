@@ -228,7 +228,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
     {
         // We repeat this, because we need to re-validate. In theory, this could be POSTed
         // by a 3rd-party (because we are not internally enforcing NONCEs, etc)
-        if (!$params = $this->validateAuthorizeParams($request)) {
+        if (!$params = $this->validateAuthorizeRequest($request)) {
             return $this->response;
         }
 
@@ -340,7 +340,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
      *
      * @ingroup oauth2_section_3
      */
-    public function validateAuthorizeParams(OAuth2_Request $request)
+    public function validateAuthorizeRequest(OAuth2_Request $request)
     {
         // Make sure a valid client id was supplied (we can not redirect because we were unable to verify the URI)
         if (!$client_id = $request->query("client_id")) {
