@@ -76,6 +76,26 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getResponseParameter('error_description'), 'The client credentials are invalid');
     }
 
+    public function testValidTokenResponse()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer();
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['grant_type'] = 'code'; // valid grant type
+        $request->query['client_id'] = 'Test Client ID'; // valid client id
+        $request->query['client_secret'] = 'TestSecret'; // valid client secret
+        $request->query['code'] = 'testcode'; // valid authorization code
+        $response = $server->handleGrantRequest($request);
+
+        $this->assertTrue($response instanceof OAuth2_Response);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertNull($response->getResponseParameter('error'));
+        $this->assertNull($response->getResponseParameter('error_description'));
+        $this->assertNotNUll($response->getResponseParameter('access_token'));
+        $this->assertNotNUll($response->getResponseParameter('expires_in'));
+        $this->assertNotNUll($response->getResponseParameter('token_type'));
+    }
+
     private function getTestServer()
     {
         $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));

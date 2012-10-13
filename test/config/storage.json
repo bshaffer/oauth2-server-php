@@ -1,10 +1,10 @@
 {
     "authorization_codes": {
-        "randomcode": {
+        "testcode": {
             "client_id": "Test Client ID",
             "user_id": "",
             "redirect_uri": "",
-            "expires": "",
+            "expires": "9999999999",
             "scope": ""
         }
     },

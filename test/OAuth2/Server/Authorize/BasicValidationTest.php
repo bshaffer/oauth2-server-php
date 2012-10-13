@@ -13,6 +13,18 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
         $this->assertEquals($response->getResponseParameter('error_description'), 'No client id supplied');
     }
 
+    public function testInvalidClientIdResponse()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['client_id'] = 'Fake Client ID'; // invalid client id
+        $response = $server->handleAuthorizeRequest($request, false);
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
+        $this->assertEquals($response->getResponseParameter('error_description'), 'The client id supplied is invalid');
+    }
+
     public function testNoRedirectUriSuppliedOrStoredResponse()
     {
         $server = $this->getTestServer();
