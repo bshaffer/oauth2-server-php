@@ -5,7 +5,7 @@ oauth2-server-php
 
 A library for implementing an OAuth2 Server in php
 
-[View the full working demo!](http://brentertainment.com/oauth2) ([code](https://github.com/bshaffer/oauth2-server-demo))
+[View the Full Working Demo!](http://brentertainment.com/oauth2) ([code](https://github.com/bshaffer/oauth2-server-demo))
 
 Autoloading
 -----------
@@ -30,6 +30,8 @@ And then run `composer.phar install`
 
 Get Started
 -----------
+
+Before getting started, take a look at the [Oauth2 Demo Application](http://brentertainment.com/oauth2) and the [source code](https://github.com/bshaffer/oauth2-server-demo) for a concrete example of this library in action.
 
 The quickest way to get started is to use the following code, plugging in your database information
 to the constructor of `OAuth2_Storage_Pdo`:
