@@ -151,7 +151,7 @@ class OAuth2_Response
     {
         switch ($format) {
             case 'json':
-                return json_encode($this->responseParameters, true);
+                return json_encode($this->responseParameters);
             case 'xml':
                 // this only works for single-level arrays
                 $xml = new SimpleXMLElement('<response/>');
