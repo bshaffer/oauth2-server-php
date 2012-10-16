@@ -73,13 +73,21 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     public function getAccessToken($access_token)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = "%s"', $this->config['token_table_name'], $access_token));
-        $stmt->execute();
 
-        return $stmt->fetch();
+        $token = $stmt->execute();
+        if ($token = $stmt->fetch()) {
+            // convert date string back to timestamp
+            $token['expires'] = strtotime($token['expires']);
+        }
+
+        return $token;
     }
 
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
+        // convert expires to datestring
+        $expires = date('Y-m-d H:i:s', $expires);
+
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
             $stmt = $this->db->prepare(sprintf('UPDATE %s SET client_id=:client_id, expires=:expires, user_id=:user_id, scope=:scope where access_token=:access_token', $this->config['token_table_name']));
@@ -95,11 +103,19 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = "%s"', $this->config['code_table_name'], $code));
         $stmt->execute();
 
-        return $stmt->fetch();
+        if ($code = $stmt->fetch()) {
+            // convert date string back to timestamp
+            $code['expires'] = strtotime($code['expires']);
+        }
+
+        return $code;
     }
 
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null)
     {
+        // convert expires to datestring
+        $expires = date('Y-m-d H:i:s', $expires);
+
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
             $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_id=:client_id, user_id=:user_id, redirect_uri=:redirect_uri, expires=:expires, scope=:scope where authorization_code=:code', $this->config['code_table_name']));
