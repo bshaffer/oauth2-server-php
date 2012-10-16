@@ -4,7 +4,8 @@
 *
 */
 class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
-    OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface
+    OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface,
+    OAuth2_Storage_UserCredentialsInterface
 {
     private $db;
     private $config;
@@ -34,6 +35,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
             'client_table_name' => 'oauth_clients',
             'token_table_name' => 'oauth_access_tokens',
             'code_table_name' => 'oauth_authorization_codes',
+            'user_table_name' => 'oauth_users',
         ), $config);
     }
 
@@ -105,5 +107,38 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope)', $this->config['code_table_name']));
         }
         return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
+    }
+
+    /* UserCredentialsInterface */
+    public function checkUserCredentials($username, $password)
+    {
+        if ($user = $this->getUser($username)) {
+            return $this->checkPassword($user, $password);
+        }
+        return false;
+    }
+
+    // plaintext passwords are bad!  Override this for your application
+    protected function checkPassword($user, $password)
+    {
+        return $user['password'] == $password;
+    }
+
+    public function getUser($username)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table_name']));
+        $stmt->execute(array('username' => $username));
+        return $stmt->fetch();
+    }
+
+    public function setUser($username, $password, $firstName = null, $lastName = null)
+    {
+        // if it exists, update it.
+        if ($this->getUser($username)) {
+            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET username=:username, password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table_name']));
+        } else {
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table_name']));
+        }
+        return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }
 }
