@@ -45,7 +45,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
      *
      * @ingroup oauth2_section_7
      */
-    public function __construct($storage, array $config = array())
+    public function __construct($storage = array(), array $config = array())
     {
         $validStorage = array(
             'access_token' => 'OAuth2_Storage_AccessTokenInterface',
@@ -64,10 +64,6 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
                 }
             }
         }
-
-		if (!isset($this->storage['client_credentials']) || !isset($this->storage['access_token'])) {
-			throw new InvalidArgumentException('you must provide at least one storage implementing OAuth2_Server_AccessTokenInterface and one implementing OAuth2_Server_ClientCredentialsInterface');
-		}
 
         $this->config = array_merge(array(
             'token_type'               => 'bearer',
@@ -113,6 +109,10 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
      */
     public function grantAccessToken(OAuth2_Request $request, $grantType = null)
     {
+        if (!isset($this->storage['client_credentials'])) {
+            throw new LogicException('You must configure the server with client_credentials storage (setClientCredentialsStorage) in order to use this function');
+        }
+
         if (!$grantType instanceof OAuth2_GrantTypeInterface) {
             if (is_null($grantType)) {
                 if (!$grantType = $request->parameter('grant_type')) {
@@ -228,8 +228,8 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
      */
     public function handleAuthorizeRequest(OAuth2_Request $request, $is_authorized, $user_id = null)
     {
-        if (is_null($is_authorized)) {
-            throw new InvalidArgumentException('Argument "is_authorized" is required.  This method must know if the user has granted access to the client.');
+        if (!is_bool($is_authorized)) {
+            throw new InvalidArgumentException('Argument "is_authorized" must be a boolean.  This method must know if the user has granted access to the client.');
         }
 
         // We repeat this, because we need to re-validate. In theory, this could be POSTed
@@ -243,7 +243,7 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
             return $this->response;
         }
 
-        if (!$authResult = $this->grantAuthorizationCode($params, $is_authorized, $user_id)) {
+        if (!$authResult = $this->grantAuthorizationCode($params, $user_id)) {
             // an error has occurred along the way, return error response
             return $this->response;
         }
@@ -293,6 +293,10 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
 
     public function getAccessTokenData($token_param, $scope = null)
     {
+        if (!isset($this->storage['access_token'])) {
+            throw new LogicException('You must configure the server with access_token storage (setAccessTokenStorage) in order to use this function');
+        }
+
         if (!$token_param) { // Access token was not provided
             $this->response = new OAuth2_Response_AuthenticationError(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed', $this->config['token_type'], $this->config['www_realm'], $scope);
             return null;
@@ -348,6 +352,10 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
      */
     public function validateAuthorizeRequest(OAuth2_Request $request)
     {
+        if (!isset($this->storage['client_credentials'])) {
+            throw new LogicException('You must configure the server with client_credentials storage (setClientCredentialsStorage) in order to use this function');
+        }
+
         // Make sure a valid client id was supplied (we can not redirect because we were unable to verify the URI)
         if (!$client_id = $request->query("client_id")) {
             // We don't have a good URI to use
@@ -448,6 +456,10 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
      */
     protected function createAccessToken($client_id, $user_id, $scope = null)
     {
+        if (!isset($this->storage['access_token'])) {
+            throw new LogicException('You must configure the server with access_token storage (setAccessTokenStorage) in order to use this function');
+        }
+
         $token = array(
             "access_token" => $this->generateAccessToken(),
             "expires_in" => $this->config['access_lifetime'],
@@ -581,6 +593,16 @@ class OAuth2_Server implements OAuth2_Response_ProviderInterface
 
         $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'Client credentials were not found in the headers or body');
         return null;
+    }
+
+    public function setAccessTokenStorage(OAuth2_Storage_AccessTokenInterface $storage)
+    {
+        $this->storage['access_token'] = $storage;
+    }
+
+    public function setClientCredentialsStorage(OAuth2_Storage_ClientCredentialsInterface $storage)
+    {
+        $this->storage['client_credentials'] = $storage;
     }
 
     public function getGrantTypes()
