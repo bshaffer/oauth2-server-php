@@ -13,8 +13,8 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Missing parameter: "code" is required');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'Missing parameter: "code" is required');
     }
 
     public function testInvalidCode()
@@ -29,8 +29,8 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_grant');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Authorization code doesn\'t exist or is invalid for the client');
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'Authorization code doesn\'t exist or is invalid for the client');
     }
 
     private function getTestServer()

@@ -89,7 +89,7 @@ class OAuth2_Server_Authorize_CodeTest extends PHPUnit_Framework_TestCase
         $response = $server->handleAuthorizeRequest($request, true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertNull($response->getResponseParameter('error'));
+        $this->assertNull($response->getParameter('error'));
 
         $location = $response->getHttpHeader('Location');
         $parts = parse_url($location);

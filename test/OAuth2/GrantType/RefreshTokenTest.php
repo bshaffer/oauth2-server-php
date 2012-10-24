@@ -15,8 +15,8 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Missing parameter: "refresh_token" is required');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'Missing parameter: "refresh_token" is required');
     }
 
     public function testInvalidRefreshToken()
@@ -31,8 +31,8 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_grant');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Invalid refresh token');
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'Invalid refresh token');
     }
 
     public function testValidRefreshToken()

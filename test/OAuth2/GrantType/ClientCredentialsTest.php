@@ -13,8 +13,8 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The client credentials are invalid');
+        $this->assertEquals($response->getParameter('error'), 'invalid_client');
+        $this->assertEquals($response->getParameter('error_description'), 'The client credentials are invalid');
     }
 
     public function testValidCredentialsWithScope()
