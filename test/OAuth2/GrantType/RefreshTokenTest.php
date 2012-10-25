@@ -44,7 +44,6 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
         $request->query['client_secret'] = 'TestSecret'; // valid client secret
         $request->query['refresh_token'] = 'test-refreshtoken'; // valid client secret
         $token = $server->grantAccessToken($request);
-
         $this->assertTrue(isset($token['refresh_token']));
 
         $refresh_token = $this->storage->getRefreshToken($token['refresh_token']);
