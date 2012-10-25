@@ -87,7 +87,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
         $this->accessTokenResponseType = $accessTokenResponseType;
     }
 
-    public function getAccessServer()
+    public function getAccessController()
     {
         if (is_null($this->accessController)) {
             if (is_null($this->config['token_type'])) {
@@ -111,7 +111,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
         return $this->accessController;
     }
 
-    public function getAuthorizeServer()
+    public function getAuthorizeController()
     {
         if (is_null($this->authorizeController)) {
             if (!isset($this->storages['client'])) {
@@ -126,7 +126,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
         return $this->authorizeController;
     }
 
-    public function getGrantServer()
+    public function getGrantController()
     {
         if (is_null($this->grantController)) {
             if (!isset($this->storages['client_credentials'])) {
@@ -227,21 +227,21 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      */
     public function handleGrantRequest(OAuth2_Request $request, $grantType = null)
     {
-        $value = $this->getGrantServer()->handleGrantRequest($request, $grantType);
+        $value = $this->getGrantController()->handleGrantRequest($request, $grantType);
         $this->response = $this->grantController->getResponse();
         return $value;
     }
 
     public function grantAccessToken(OAuth2_Request $request, $grantType = null)
     {
-        $value = $this->getGrantServer()->grantAccessToken($request, $grantType);
+        $value = $this->getGrantController()->grantAccessToken($request, $grantType);
         $this->response = $this->grantController->getResponse();
         return $value;
     }
 
     public function getClientCredentials(OAuth2_Request $request)
     {
-        $value = $this->getGrantServer()->getClientCredentials($request);
+        $value = $this->getGrantController()->getClientCredentials($request);
         $this->response = $this->grantController->getResponse();
         return $value;
     }
@@ -276,7 +276,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      */
     public function handleAuthorizeRequest(OAuth2_Request $request, $is_authorized, $user_id = null)
     {
-        $value = $this->getAuthorizeServer()->handleAuthorizeRequest($request, $is_authorized, $user_id);
+        $value = $this->getAuthorizeController()->handleAuthorizeRequest($request, $is_authorized, $user_id);
         $this->response = $this->authorizeController->getResponse();
         return $value;
     }
@@ -302,28 +302,28 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      */
     public function validateAuthorizeRequest(OAuth2_Request $request)
     {
-        $value = $this->getAuthorizeServer()->validateAuthorizeRequest($request);
+        $value = $this->getAuthorizeController()->validateAuthorizeRequest($request);
         $this->response = $this->authorizeController->getResponse();
         return $value;
     }
 
     public function verifyAccessRequest(OAuth2_Request $request)
     {
-        $value = $this->getAccessServer()->verifyAccessRequest($request);
+        $value = $this->getAccessController()->verifyAccessRequest($request);
         $this->response = $this->accessController->getResponse();
         return $value;
     }
 
     public function getAccessTokenData($token_param, $scope = null)
     {
-        $value = $this->getAccessServer()->getAccessTokenData($token_param, $scope);
+        $value = $this->getAccessController()->getAccessTokenData($token_param, $scope);
         $this->response = $this->accessController->getResponse();
         return $value;
     }
 
     public function addGrantType(OAuth2_GrantTypeInterface $grantType)
     {
-        $this->getGrantServer()->addGrantType($grantType);
+        $this->getGrantController()->addGrantType($grantType);
     }
 
     public function getResponse()
