@@ -48,10 +48,11 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     {
         $validStorage = array(
             'access_token' => 'OAuth2_Storage_AccessTokenInterface',
-            'client' => 'OAuth2_Storage_ClientInterface',
+            'authorization_code' => 'OAuth2_Storage_AuthorizationCodeInterface',
             'client_credentials' => 'OAuth2_Storage_ClientCredentialsInterface',
+            'client' => 'OAuth2_Storage_ClientInterface',
             'refresh_token' => 'OAuth2_Storage_RefreshTokenInterface',
-            'authorization_code' => 'OAuth2_Storage_AuthorizationCodeInterface'
+            'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
         );
         $storage = is_array($storage) ? $storage : array($storage);
         $this->storages = array();
@@ -183,8 +184,8 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     {
         $grantTypes = array();
 
-        if (isset($this->storages['password'])) {
-            $grantTypes['password'] = new OAuth2_GrantType_UserCredentials($this->storages['password']);
+        if (isset($this->storages['user_credentials'])) {
+            $grantTypes['password'] = new OAuth2_GrantType_UserCredentials($this->storages['user_credentials']);
         }
 
         if (isset($this->storages['client_credentials'])) {

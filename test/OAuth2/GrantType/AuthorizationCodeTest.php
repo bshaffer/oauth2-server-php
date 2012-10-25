@@ -6,7 +6,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'code'; // valid grant type
+        $request->query['grant_type'] = 'authorization_code'; // valid grant type
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['client_secret'] = 'TestSecret'; // valid client secret
         $server->grantAccessToken($request);
@@ -21,7 +21,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'code'; // valid grant type
+        $request->query['grant_type'] = 'authorization_code'; // valid grant type
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['client_secret'] = 'TestSecret'; // valid client secret
         $request->query['code'] = 'InvalidCode'; // invalid authorization code
