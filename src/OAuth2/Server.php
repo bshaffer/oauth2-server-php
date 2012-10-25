@@ -44,7 +44,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @ingroup oauth2_section_7
      */
-    public function __construct($storage = array(), array $config = array(), array $responseTypes = array(), array $grantTypes = array(), OAuth2_ResponseType_AccessToken $accessTokenResponseType = null)
+    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_ResponseType_AccessToken $accessTokenResponseType = null)
     {
         $validStorage = array(
             'access_token' => 'OAuth2_Storage_AccessTokenInterface',
