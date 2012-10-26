@@ -64,6 +64,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
                 $this->storages[$type] = $service;
                 continue; // if explicitly set to a valid key, do not "magically" set below
             }
+            // set a storage object to each key for the interface it represents
+            // this means if an object represents more than one storage type, it will be referenced by multiple storage keys
+            // ex: OAuth2_Storage_Pdo will be set for all the $validStorage keys above
             foreach ($validStorage as $type => $interface) {
                 if ($service instanceof $interface) {
                     $this->storages[$type] = $service;
@@ -71,7 +74,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             }
         }
 
-        // merge all config values.  These get passed to our server objects
+        // merge all config values.  These get passed to our controller objects
         $this->config = array_merge(array(
             'token_type'               => 'bearer',
             'access_lifetime'          => 3600,

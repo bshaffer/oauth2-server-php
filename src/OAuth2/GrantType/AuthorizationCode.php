@@ -7,15 +7,10 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
 {
     private $storage;
     private $response;
-    private $util;
 
-    public function __construct(OAuth2_Storage_AuthorizationCodeInterface $storage, $util = null)
+    public function __construct(OAuth2_Storage_AuthorizationCodeInterface $storage)
     {
         $this->storage = $storage;
-        if (is_null($util)) {
-            $util = new OAuth2_Util();
-        }
-        $this->util = $util;
     }
 
     public function getIdentifier()
@@ -39,6 +34,18 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
             return null;
         }
+
+        /*
+         * 4.1.3 - ensure that the "redirect_uri" parameter is present if the "redirect_uri" parameter was included in the initial authorization request
+         * @uri - http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.1.3
+         */
+        if (isset($tokenData['redirect_uri']) && $tokenData['redirect_uri']) {
+            if (!$request->query('redirect_uri') || $request->query('redirect_uri') != $tokenData['redirect_uri']) {
+                $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match", "#section-4.1.3");
+                return false;
+            }
+        }
+
         return $tokenData;
     }
 
@@ -47,12 +54,6 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         // Check the code exists
         if ($tokenData === null || $clientData['client_id'] != $tokenData['client_id']) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
-            return false;
-        }
-
-        // Validate the redirect URI. If a redirect URI has been provided on input, it must be validated
-        if (isset($clientData['redirect_uri']) && $clientData['redirect_uri'] && !$this->util->validateRedirectUri($clientData['redirect_uri'], $tokenData['redirect_uri'])) {
-            $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match");
             return false;
         }
 

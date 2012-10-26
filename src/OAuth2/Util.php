@@ -1,7 +1,8 @@
 <?php
 
 /**
-*
+* Class for common functions used across the Controller classes
+* This may be better off in a "BaseController" class
 */
 class OAuth2_Util
 {
