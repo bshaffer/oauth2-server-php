@@ -102,9 +102,21 @@ Grant Types
 There are many supported grant types in the OAuth2 specification, and this library allows for the addition of custom grant types as well.
 Supported grant types are as follows:
 
-  1. Resource Owner Password Credentials
+  1. Authorization Code
+
+        An authorization code obtained by user authorization is exchanged for a token
+
+  2. Implicit
+
+        As part of user authorization, a token is retured to the client instead of an authorization code
+
+  3. Resource Owner Password Credentials
 
         The username and password are submitted as part of the request, and a token is issued upon successful authentication
+
+  4. Client Credentials
+
+        The client can use their credentials to retrieve an access token directly, which will allow access to resources under the client's control
 
 Create a custom grant type by implementing the `OAuth2_GrantTypeInterface` and adding it to the OAuth2 Server object.
 
