@@ -86,7 +86,7 @@ the response object can be used to display the information in any other format:
 
     if (!$token = $server->grantAccessToken()) {
         $response = $server->getResponse();
-        $parameters = $response->getResponseParameters();
+        $parameters = $response->getParameters();
 
         // format as XML
         header("HTTP/1.1 " . $response->getStatusCode());

@@ -48,8 +48,8 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $response = $server->handleAuthorizeRequest($request, true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertNull($response->getResponseParameter('error'));
-        $this->assertNull($response->getResponseParameter('error_description'));
+        $this->assertNull($response->getParameter('error'));
+        $this->assertNull($response->getParameter('error_description'));
 
         $location = $response->getHttpHeader('Location');
         $parts = parse_url($location);
@@ -78,8 +78,8 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $response = $server->handleAuthorizeRequest($request, true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertNull($response->getResponseParameter('error'));
-        $this->assertNull($response->getResponseParameter('error_description'));
+        $this->assertNull($response->getParameter('error'));
+        $this->assertNull($response->getParameter('error_description'));
 
         $location = $response->getHttpHeader('Location');
         $parts = parse_url($location);
@@ -102,8 +102,8 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $response = $server->handleAuthorizeRequest($request, true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertNull($response->getResponseParameter('error'));
-        $this->assertNull($response->getResponseParameter('error_description'));
+        $this->assertNull($response->getParameter('error'));
+        $this->assertNull($response->getParameter('error_description'));
 
         $location = $response->getHttpHeader('Location');
         $parts = parse_url($location);

@@ -6,22 +6,22 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'code'; // valid grant type
+        $request->query['grant_type'] = 'authorization_code'; // valid grant type
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['client_secret'] = 'TestSecret'; // valid client secret
         $server->grantAccessToken($request);
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Missing parameter: "code" is required');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'Missing parameter: "code" is required');
     }
 
     public function testInvalidCode()
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'code'; // valid grant type
+        $request->query['grant_type'] = 'authorization_code'; // valid grant type
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['client_secret'] = 'TestSecret'; // valid client secret
         $request->query['code'] = 'InvalidCode'; // invalid authorization code
@@ -29,8 +29,8 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_grant');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Authorization code doesn\'t exist or is invalid for the client');
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'Authorization code doesn\'t exist or is invalid for the client');
     }
 
     private function getTestServer()

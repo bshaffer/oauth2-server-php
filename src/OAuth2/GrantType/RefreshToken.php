@@ -3,20 +3,15 @@
 /**
 *
 */
-class OAuth2_GrantType_RefreshToken implements OAuth2_GrantType_RefreshTokenInterface, OAuth2_Response_ProviderInterface
+class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2_Response_ProviderInterface
 {
     private $storage;
     private $response;
     private $oldRefreshToken;
-    private $config;
 
-
-    public function __construct(OAuth2_Storage_RefreshTokenInterface $storage, $config = array())
+    public function __construct(OAuth2_Storage_RefreshTokenInterface $storage)
     {
         $this->storage = $storage;
-        $this->config = array_merge(array(
-            'refresh_token_lifetime' => 1209600,
-        ), $config);
     }
 
     public function getIdentifier()
@@ -65,16 +60,6 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantType_RefreshTokenInte
     public function finishGrantRequest($token)
     {
         $this->storage->unsetRefreshToken($this->oldRefreshToken);
-    }
-
-    public function createRefreshToken($refresh_token, $client_id, $user_id, $scope = null)
-    {
-        $this->storage->setRefreshToken($refresh_token, $client_id, $user_id, time() + $this->getRefreshTokenLifetime(), $scope);
-    }
-
-    public function getRefreshTokenLifetime()
-    {
-        return $this->config['refresh_token_lifetime'];
     }
 
     public function getResponse()

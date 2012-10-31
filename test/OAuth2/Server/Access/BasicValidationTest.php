@@ -11,8 +11,8 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
 
         $response = $server->getResponse();
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The access token was not found');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'The access token was not found');
     }
 
     public function testMalformedHeader()
@@ -25,8 +25,8 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
 
         $response = $server->getResponse();
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Malformed auth header');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'Malformed auth header');
     }
 
     public function testMultipleTokensSubmitted()
@@ -40,8 +40,8 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
 
         $response = $server->getResponse();
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Only one method may be used to authenticate at a time (Auth header, GET or POST)');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'Only one method may be used to authenticate at a time (Auth header, GET or POST)');
     }
 
     public function testInvalidRequestMethod()
@@ -55,8 +55,8 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
 
         $response = $server->getResponse();
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'When putting the token in the body, the method must be POST');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'When putting the token in the body, the method must be POST');
     }
 
     public function testInvalidContentType()
@@ -71,8 +71,8 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
 
         $response = $server->getResponse();
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The content type for POST requests must be "application/x-www-form-urlencoded"');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'The content type for POST requests must be "application/x-www-form-urlencoded"');
     }
 
     public function testInvalidToken()
@@ -85,8 +85,8 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
 
         $response = $server->getResponse();
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_grant');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The access token provided is invalid');
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'The access token provided is invalid');
     }
 
     public function testExpiredToken()
@@ -99,8 +99,8 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
 
         $response = $server->getResponse();
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_grant');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The access token provided has expired');
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'The access token provided has expired');
     }
 
     public function testOutOfScopeToken()
@@ -114,8 +114,8 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
 
         $response = $server->getResponse();
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getResponseParameter('error'), 'insufficient_scope');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The request requires higher privileges than provided by the access token');
+        $this->assertEquals($response->getParameter('error'), 'insufficient_scope');
+        $this->assertEquals($response->getParameter('error_description'), 'The request requires higher privileges than provided by the access token');
     }
 
     public function testMalformedToken()
@@ -128,8 +128,8 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
 
         $response = $server->getResponse();
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_grant');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Malformed token (missing "expires" or "client_id")');
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'Malformed token (missing "expires" or "client_id")');
     }
 
     public function testValidToken()

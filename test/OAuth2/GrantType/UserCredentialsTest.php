@@ -14,8 +14,8 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Missing parameters: "username" and "password" required');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'Missing parameters: "username" and "password" required');
     }
 
     public function testNoPassword()
@@ -30,8 +30,8 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Missing parameters: "username" and "password" required');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'Missing parameters: "username" and "password" required');
     }
 
     public function testInvalidUsername()
@@ -47,8 +47,8 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_grant');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Invalid username and password combination');
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'Invalid username and password combination');
     }
 
     public function testInvalidPassword()
@@ -64,8 +64,8 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_grant');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Invalid username and password combination');
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'Invalid username and password combination');
     }
 
     private function getTestServer()

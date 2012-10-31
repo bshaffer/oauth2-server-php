@@ -9,8 +9,8 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
         $response = $server->handleAuthorizeRequest($request, false);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'No client id supplied');
+        $this->assertEquals($response->getParameter('error'), 'invalid_client');
+        $this->assertEquals($response->getParameter('error_description'), 'No client id supplied');
     }
 
     public function testInvalidClientIdResponse()
@@ -21,8 +21,8 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
         $response = $server->handleAuthorizeRequest($request, false);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The client id supplied is invalid');
+        $this->assertEquals($response->getParameter('error'), 'invalid_client');
+        $this->assertEquals($response->getParameter('error_description'), 'The client id supplied is invalid');
     }
 
     public function testNoRedirectUriSuppliedOrStoredResponse()
@@ -33,8 +33,8 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
         $response = $server->handleAuthorizeRequest($request, false);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_uri');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'No redirect URI was supplied or stored');
+        $this->assertEquals($response->getParameter('error'), 'invalid_uri');
+        $this->assertEquals($response->getParameter('error_description'), 'No redirect URI was supplied or stored');
     }
 
     public function testNoResponseTypeResponse()
@@ -82,8 +82,8 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
         $response = $server->handleAuthorizeRequest($request, true);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_uri');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The redirect URI must not contain a fragment');
+        $this->assertEquals($response->getParameter('error'), 'invalid_uri');
+        $this->assertEquals($response->getParameter('error_description'), 'The redirect URI must not contain a fragment');
     }
 
     public function testEnforceState()

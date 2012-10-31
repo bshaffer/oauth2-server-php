@@ -7,7 +7,7 @@ class OAuth2_Response
 {
     public $version;
     protected $statusCode = 200;
-    protected $responseParameters = array();
+    protected $parameters = array();
     protected $httpHeaders = array();
 
     static public $statusTexts = array(
@@ -54,9 +54,9 @@ class OAuth2_Response
         505 => 'HTTP Version Not Supported',
     );
 
-    public function __construct($responseParameters = array(), $statusCode = 200, $headers = array())
+    public function __construct($parameters = array(), $statusCode = 200, $headers = array())
     {
-        $this->setResponseParameters($responseParameters);
+        $this->setParameters($parameters);
         $this->setStatusCode($statusCode);
         $this->setHttpHeaders($headers);
         $this->version = '1.1';
@@ -108,23 +108,23 @@ class OAuth2_Response
         $this->statusText = false === $text ? '' : (null === $text ? self::$statusTexts[$this->statusCode] : $text);
     }
 
-    public function getResponseParameters()
+    public function getParameters()
     {
-        return $this->responseParameters;
+        return $this->parameters;
     }
 
-    public function setResponseParameters($responseParameters)
+    public function setParameters($parameters)
     {
-        $this->responseParameters = $responseParameters;
+        $this->parameters = $parameters;
     }
-    public function getResponseParameter($name, $default = null)
+    public function getParameter($name, $default = null)
     {
-        return isset($this->responseParameters[$name]) ? $this->responseParameters[$name] : $default;
+        return isset($this->parameters[$name]) ? $this->parameters[$name] : $default;
     }
 
-    public function setResponseParameter($name, $value)
+    public function setParameter($name, $value)
     {
-        $this->responseParameters[$name] = $value;
+        $this->parameters[$name] = $value;
     }
 
     public function setHttpHeaders($httpHeaders)
@@ -151,11 +151,11 @@ class OAuth2_Response
     {
         switch ($format) {
             case 'json':
-                return json_encode($this->responseParameters);
+                return json_encode($this->parameters);
             case 'xml':
                 // this only works for single-level arrays
                 $xml = new SimpleXMLElement('<response/>');
-                array_walk($this->responseParameters, array($xml, 'addChild'));
+                array_walk($this->parameters, array($xml, 'addChild'));
                 return $xml->asXML();
         }
 

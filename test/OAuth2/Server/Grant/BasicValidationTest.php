@@ -9,8 +9,8 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
         $response = $server->handleGrantRequest(OAuth2_Request::createFromGlobals());
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The grant type was not specified in the request');
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'The grant type was not specified in the request');
     }
 
     public function testInvalidGrantType()
@@ -22,8 +22,8 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'unsupported_grant_type');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Grant type "invalid_grant_type" not supported');
+        $this->assertEquals($response->getParameter('error'), 'unsupported_grant_type');
+        $this->assertEquals($response->getParameter('error_description'), 'Grant type "invalid_grant_type" not supported');
     }
 
     public function testNoClientId()
@@ -31,12 +31,12 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
         // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'code'; // valid grant type
+        $request->query['grant_type'] = 'authorization_code'; // valid grant type
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Client credentials were not found in the headers or body');
+        $this->assertEquals($response->getParameter('error'), 'invalid_client');
+        $this->assertEquals($response->getParameter('error_description'), 'Client credentials were not found in the headers or body');
     }
 
     public function testNoClientSecret()
@@ -44,13 +44,13 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
         // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'code'; // valid grant type
+        $request->query['grant_type'] = 'authorization_code'; // valid grant type
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'Client credentials were not found in the headers or body');
+        $this->assertEquals($response->getParameter('error'), 'invalid_client');
+        $this->assertEquals($response->getParameter('error_description'), 'Client credentials were not found in the headers or body');
     }
 
     public function testInvalidClientCredentials()
@@ -58,22 +58,22 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
         // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'code'; // valid grant type
+        $request->query['grant_type'] = 'authorization_code'; // valid grant type
         $request->query['client_id'] = 'Fake Client ID'; // invalid client id
         $request->query['client_secret'] = 'Fake Client Secret'; // invalid client secret
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The client credentials are invalid');
+        $this->assertEquals($response->getParameter('error'), 'invalid_client');
+        $this->assertEquals($response->getParameter('error_description'), 'The client credentials are invalid');
 
         // try again with a real client ID, but an invalid secret
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getResponseParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getResponseParameter('error_description'), 'The client credentials are invalid');
+        $this->assertEquals($response->getParameter('error'), 'invalid_client');
+        $this->assertEquals($response->getParameter('error_description'), 'The client credentials are invalid');
     }
 
     public function testValidTokenResponse()
@@ -81,7 +81,7 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
         // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'code'; // valid grant type
+        $request->query['grant_type'] = 'authorization_code'; // valid grant type
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['client_secret'] = 'TestSecret'; // valid client secret
         $request->query['code'] = 'testcode'; // valid authorization code
@@ -89,11 +89,11 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
 
         $this->assertTrue($response instanceof OAuth2_Response);
         $this->assertEquals($response->getStatusCode(), 200);
-        $this->assertNull($response->getResponseParameter('error'));
-        $this->assertNull($response->getResponseParameter('error_description'));
-        $this->assertNotNUll($response->getResponseParameter('access_token'));
-        $this->assertNotNUll($response->getResponseParameter('expires_in'));
-        $this->assertNotNUll($response->getResponseParameter('token_type'));
+        $this->assertNull($response->getParameter('error'));
+        $this->assertNull($response->getParameter('error_description'));
+        $this->assertNotNUll($response->getParameter('access_token'));
+        $this->assertNotNUll($response->getParameter('expires_in'));
+        $this->assertNotNUll($response->getParameter('token_type'));
     }
 
     private function getTestServer()
