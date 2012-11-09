@@ -63,6 +63,62 @@ if successful.  Access the server's response object to send the successful respo
 This creates the `OAuth2_Request` object from PHP global variables (most common, you can override this if need be) and sends it to the server
 for assessment.  The response by default is in json format, and includes the access token if successful, and error codes if not.
 
+Server Methods
+--------------
+
+>   ...an end-user (resource owner) can grant a printing
+>   service (client) access to her protected photos stored at a photo
+>   sharing service (resource server), without sharing her username and
+>   password with the printing service.  Instead, she authenticates
+>   directly with a server trusted by the photo sharing service
+>   (authorization server), which issues the printing service delegation-
+>   specific credentials (access token).
+>         - OAuth2 draft #31
+
+Most OAuth2 APIs will have endpoints for **Authorize Requests**, **Grant Requests**, and **Access Requests**:
+
+ * **Authorize Requests** - An endpoint which will require the user to authenticate, and then redirect them back
+to the client with an `authorization code`
+ * **Grant Requests** - An endpoint which the client uses to exchange the `authorization code` for an `access token`
+ * **Access Requests** - Any API method requiring oauth2 authentication.  The server will validate the incomming request, and then allow
+the application to serve back the protected resource
+
+For these tyes of requests, this library provides the following methods:
+
+**Authorize Requests**
+
+`handleAuthorizeRequest`
+  * Receives a request object for an authorize request, returns a response object with the appropriate response
+
+`validateAuthorizeRequest`
+  * Receives a request object, returns a Boolean for whether the incoming request is valid.  Applications should
+  call this before displaying a login or authorization form to the user
+
+**Grant Requests**
+
+`grantAccessToken`
+
+  * Receives a request object for a grant request, returns a token if the request is valid.
+
+`handleGrantRequest`
+
+  * Receives a request object for a grant request, returns a response object for the appropriate response.
+
+`getClientCredentials`
+
+  * parses the client credentials from the request and determines if they are valid
+
+*Access Requests*
+
+`verifyAccessRequest`
+
+  * Receives a request object for an access request, finds the token if it exists, and returns a Boolean for whether
+the incomming request is valid
+
+`getAccessTokenData`
+
+  * Takes a token string as an argument and returns the token data if applicable, or null if the token is invalid
+
 The Response Object
 -------------------
 
