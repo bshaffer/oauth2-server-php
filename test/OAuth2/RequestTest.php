@@ -32,7 +32,7 @@ class OAuth2_RequestTest extends PHPUnit_Framework_TestCase
 
     private function getTestServer($config = array())
     {
-        $storage = OAuth2_Storage_Bootstrap::getMemoryStorage();
+        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
         $server = new OAuth2_Server($storage, $config);
 
         // Add the two types supported for authorization grant

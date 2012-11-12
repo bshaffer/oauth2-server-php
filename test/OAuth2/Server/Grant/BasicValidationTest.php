@@ -98,7 +98,7 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
 
     private function getTestServer()
     {
-        $storage = OAuth2_Storage_Bootstrap::getMemoryStorage();
+        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
         $server = new OAuth2_Server($storage);
         $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage)); // or some other grant type.  This is the simplest
 
