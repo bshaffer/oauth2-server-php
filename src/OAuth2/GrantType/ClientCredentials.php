@@ -2,7 +2,7 @@
 
 class OAuth2_GrantType_ClientCredentials implements OAuth2_GrantTypeInterface
 {
-    public function getIdentifier()
+    public function getQuerystringIdentifier()
     {
         return 'client_credentials';
     }

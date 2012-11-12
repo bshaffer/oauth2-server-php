@@ -217,8 +217,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @param $request - OAuth2_Request
      * Request object to grant access token
-     * @param $grantType - mixed
-     * OAuth2_GrantTypeInterface instance or one of the grant types configured in the constructor
+     *
+     * @return
+     * OAuth_Response
      *
      * @throws InvalidArgumentException
      * @throws LogicException
@@ -229,21 +230,21 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @ingroup oauth2_section_4
      */
-    public function handleGrantRequest(OAuth2_Request $request, $grantType = null)
+    public function handleGrantRequest(OAuth2_RequestInterface $request)
     {
-        $value = $this->getGrantController()->handleGrantRequest($request, $grantType);
+        $value = $this->getGrantController()->handleGrantRequest($request);
         $this->response = $this->grantController->getResponse();
         return $value;
     }
 
-    public function grantAccessToken(OAuth2_Request $request, $grantType = null)
+    public function grantAccessToken(OAuth2_RequestInterface $request)
     {
-        $value = $this->getGrantController()->grantAccessToken($request, $grantType);
+        $value = $this->getGrantController()->grantAccessToken($request);
         $this->response = $this->grantController->getResponse();
         return $value;
     }
 
-    public function getClientCredentials(OAuth2_Request $request)
+    public function getClientCredentials(OAuth2_RequestInterface $request)
     {
         $value = $this->getGrantController()->getClientCredentials($request);
         $this->response = $this->grantController->getResponse();
@@ -278,7 +279,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @ingroup oauth2_section_4
      */
-    public function handleAuthorizeRequest(OAuth2_Request $request, $is_authorized, $user_id = null)
+    public function handleAuthorizeRequest(OAuth2_RequestInterface $request, $is_authorized, $user_id = null)
     {
         $value = $this->getAuthorizeController()->handleAuthorizeRequest($request, $is_authorized, $user_id);
         $this->response = $this->authorizeController->getResponse();
@@ -304,14 +305,14 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @ingroup oauth2_section_3
      */
-    public function validateAuthorizeRequest(OAuth2_Request $request)
+    public function validateAuthorizeRequest(OAuth2_RequestInterface $request)
     {
         $value = $this->getAuthorizeController()->validateAuthorizeRequest($request);
         $this->response = $this->authorizeController->getResponse();
         return $value;
     }
 
-    public function verifyAccessRequest(OAuth2_Request $request)
+    public function verifyAccessRequest(OAuth2_RequestInterface $request)
     {
         $value = $this->getAccessController()->verifyAccessRequest($request);
         $this->response = $this->accessController->getResponse();

@@ -13,14 +13,14 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         $this->storage = $storage;
     }
 
-    public function getIdentifier()
+    public function getQuerystringIdentifier()
     {
         return 'authorization_code';
     }
 
     public function validateRequest($request)
     {
-        if (!isset($request->query['code']) || !$request->query['code']) {
+        if (!$request->query('code')) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameter: "code" is required');
             return false;
         }
@@ -30,7 +30,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
 
     public function getTokenDataFromRequest($request)
     {
-        if (!$tokenData = $this->storage->getAuthorizationCode($request->query['code'])) {
+        if (!$tokenData = $this->storage->getAuthorizationCode($request->query('code'))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
             return null;
         }

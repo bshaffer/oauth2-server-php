@@ -27,6 +27,11 @@ class OAuth2_Storage_Bootstrap
         return $this->sqlite;
     }
 
+    public function getMemoryStorage()
+    {
+        return new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));
+    }
+
     public function getMysqlPdo()
     {
         if (!$this->mysql) {
@@ -84,6 +89,6 @@ class OAuth2_Storage_Bootstrap
 
     private function getSqliteDir()
     {
-        return dirname(__FILE__).'/../../config/test.sqlite';
+        return dirname(__FILE__).'/../../../config/test.sqlite';
     }
 }

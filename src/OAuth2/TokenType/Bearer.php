@@ -42,14 +42,10 @@ class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface, OAuth2_Respo
      * Old Android version bug (at least with version 2.2)
      * @see http://code.google.com/p/android/issues/detail?id=6684
      *
-     * We don't want to test this functionality as it relies on superglobals and headers:
-     * @codeCoverageIgnoreStart
      */
-    public function getAccessTokenParameter(OAuth2_Request $request)
+    public function getAccessTokenParameter(OAuth2_RequestInterface $request)
     {
-        if (isset($request->server['AUTHORIZATION'])) {
-            $headers = $request->server['AUTHORIZATION'];
-        }
+        $headers = $request->server('AUTHORIZATION');
 
         // Check that exactly one method was used
         $methodsUsed = !empty($headers) + !is_null($request->query($this->config['token_param_name'])) + !is_null($request->request($this->config['token_param_name']));

@@ -106,7 +106,7 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
 
     private function getTestServer($config = array())
     {
-        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));
+        $storage = OAuth2_Storage_Bootstrap::getMemoryStorage();
         $server = new OAuth2_Server($storage, $config);
 
         // Add the two types supported for authorization grant

@@ -13,14 +13,14 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
         $this->storage = $storage;
     }
 
-    public function getIdentifier()
+    public function getQuerystringIdentifier()
     {
         return 'password';
     }
 
     public function validateRequest($request)
     {
-        if (!isset($request->query["username"]) || !isset($request->query["password"]) || !$request->query["username"] || !$request->query["password"]) {
+        if (!$request->query("password") || !$request->query("username")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
             return false;
         }
@@ -30,7 +30,7 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
 
     public function getTokenDataFromRequest($request)
     {
-        if (!$tokenData = $this->storage->checkUserCredentials($request->query["username"], $request->query["password"])) {
+        if (!$tokenData = $this->storage->checkUserCredentials($request->query("username"), $request->query("password"))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid username and password combination');
             return false;
         }
