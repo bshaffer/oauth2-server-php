@@ -134,6 +134,11 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return false;
     }
 
+    public function getUserDetails($username)
+    {
+        return $this->getUser($username);
+    }
+
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {

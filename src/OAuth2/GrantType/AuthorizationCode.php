@@ -49,7 +49,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         return $tokenData;
     }
 
-    public function validateTokenData(array $tokenData, array $clientData)
+    public function validateTokenData($tokenData, array $clientData)
     {
         // Check the code exists
         if ($tokenData === null || $clientData['client_id'] != $tokenData['client_id']) {

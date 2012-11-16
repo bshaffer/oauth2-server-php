@@ -58,7 +58,12 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
 
     public function setUserCredentials($user_credentials)
     {
-        $this->userCredentials = $user_credentials;
+        return isset($this->userCredentials[$username]) ? $this->userCredentials[$username] : null;
+    }
+
+    public function getUserDetails($username)
+    {
+        return $this->getUser($username);
     }
 
     /* ClientCredentialsInterface */

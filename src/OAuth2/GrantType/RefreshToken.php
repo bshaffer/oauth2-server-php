@@ -39,7 +39,7 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
         return $stored;
     }
 
-    public function validateTokenData(array $tokenData, array $clientData)
+    public function validateTokenData($tokenData, array $clientData)
     {
         if ($tokenData === null || $clientData['client_id'] != $tokenData["client_id"]) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid refresh token');

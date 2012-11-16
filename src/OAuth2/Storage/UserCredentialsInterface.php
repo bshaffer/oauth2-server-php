@@ -3,13 +3,13 @@
 /**
  * Storage engines that support the "Resource Owner Password Credentials"
  * grant type should implement this interface
- * 
+ *
  * @author Dave Rochwerger <catch.dave@gmail.com>
  * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.3
  */
 interface OAuth2_Storage_UserCredentialsInterface
 {
-    
+
     /**
      * Grant access tokens for basic user credentials.
      *
@@ -42,4 +42,12 @@ interface OAuth2_Storage_UserCredentialsInterface
      * @ingroup oauth2_section_4
      */
     public function checkUserCredentials($username, $password);
+
+    /**
+     * @return
+     * ARRAY the associated "scope" or "user_id" values if applicable, or an empty array
+     * if this does not apply
+     *
+     */
+    public function getUserDetails($username);
 }

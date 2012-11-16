@@ -22,7 +22,7 @@ class OAuth2_GrantType_ClientCredentials implements OAuth2_GrantTypeInterface
         );
     }
 
-    public function validateTokenData(array $tokenData, array $clientData)
+    public function validateTokenData($tokenData, array $clientData)
     {
         // Scope is validated in the client class
         return true;
