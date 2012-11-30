@@ -161,7 +161,9 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
 
     public function unsetRefreshToken($refresh_token)
     {
-        unset($this->refreshTokens[$refresh_token]);
+        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE refresh_token = "%s"', $this->config['refresh_token_table'], $refresh_token));
+
+        return $stmt->execute();
     }
 
     public function setRefreshTokens($refresh_tokens)
