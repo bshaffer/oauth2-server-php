@@ -17,7 +17,7 @@ class OAuth2_ResponseType_AccessToken implements OAuth2_ResponseType_AccessToken
             'token_type'             => 'bearer',
             'access_lifetime'        => 3600,
             'refresh_token_lifetime' => 1209600,
-        ));
+        ), $config);
     }
 
     // same params as above
