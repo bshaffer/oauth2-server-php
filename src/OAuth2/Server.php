@@ -147,7 +147,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
                     if (isset($this->storages['refresh_token'])) {
                         $refreshStorage = $this->storages['refresh_token'];
                     }
-                    $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime')));
+                    $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime refresh_token_lifetime')));
                     $this->accessTokenResponseType = new OAuth2_ResponseType_AccessToken($this->storages['access_token'], $refreshStorage, $config);
                 }
             }
@@ -167,7 +167,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             if (isset($this->storages['refresh_token'])) {
                 $refreshStorage = $this->storages['refresh_token'];
             }
-            $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime')));
+            $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime refresh_token_lifetime')));
             $responseTypes['token'] = new OAuth2_ResponseType_AccessToken($this->storages['access_token'], $refreshStorage, $config);
         }
 
