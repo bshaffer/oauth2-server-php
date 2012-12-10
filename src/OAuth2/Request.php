@@ -14,6 +14,7 @@ class OAuth2_Request implements OAuth2_RequestInterface
     public $files;
     public $cookies;
     public $headers;
+    public $content;
 
     /**
      * Constructor.
