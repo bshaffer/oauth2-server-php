@@ -157,10 +157,16 @@ class OAuth2_Request implements OAuth2_RequestInterface
             }
 
             // Decode AUTHORIZATION header into PHP_AUTH_USER and PHP_AUTH_PW when authorization header is basic
-            if ((null !== $authorizationHeader) && (0 === stripos($authorizationHeader, 'basic'))) {
-                $exploded = explode(':', base64_decode(substr($authorizationHeader, 6)));
-                if (count($exploded) == 2) {
-                    list($headers['PHP_AUTH_USER'], $headers['PHP_AUTH_PW']) = $exploded;
+            if (null !== $authorizationHeader) {
+                if (0 === stripos($authorizationHeader, 'basic')) {
+                    $exploded = explode(':', base64_decode(substr($authorizationHeader, 6)));
+                    if (count($exploded) == 2) {
+                        list($headers['PHP_AUTH_USER'], $headers['PHP_AUTH_PW']) = $exploded;
+                    }
+                }
+                // Store AUTHORIZATION header when authorization header is bearer
+                if (0 === stripos($authorizationHeader, 'bearer')) {
+                    $headers['AUTHORIZATION'] = $authorizationHeader;
                 }
             }
         }
