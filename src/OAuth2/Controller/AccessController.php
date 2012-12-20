@@ -25,7 +25,7 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
         $this->util = $util;
     }
 
-    public function verifyAccessRequest(OAuth2_Request $request)
+    public function verifyAccessRequest(OAuth2_RequestInterface $request)
     {
         $token = $this->tokenType->getAccessTokenParameter($request);
         $this->response = $this->tokenType->getResponse();

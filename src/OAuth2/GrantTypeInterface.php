@@ -2,9 +2,9 @@
 
 interface OAuth2_GrantTypeInterface
 {
-    public function getIdentifier();
+    public function getQuerystringIdentifier();
     public function validateRequest($request);
     public function getTokenDataFromRequest($request);
-    public function validateTokenData(array $tokenData, array $clientData);
-    public function finishGrantRequest($token);
+    public function validateTokenData($tokenData, array $clientData);
+    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData);
 }

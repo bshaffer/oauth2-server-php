@@ -5,7 +5,7 @@
 */
 class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface,
-    OAuth2_Storage_UserCredentialsInterface
+    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_RefreshTokenInterface
 {
     private $db;
     private $config;
@@ -32,17 +32,18 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->config = array_merge(array(
-            'client_table_name' => 'oauth_clients',
-            'token_table_name' => 'oauth_access_tokens',
-            'code_table_name' => 'oauth_authorization_codes',
-            'user_table_name' => 'oauth_users',
+            'client_table' => 'oauth_clients',
+            'access_token_table' => 'oauth_access_tokens',
+            'refresh_token_table' => 'oauth_refresh_tokens',
+            'code_table' => 'oauth_authorization_codes',
+            'user_table' => 'oauth_users',
         ), $config);
     }
 
     /* ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = "%s"', $this->config['client_table_name'], $client_id));
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = "%s"', $this->config['client_table'], $client_id));
         $stmt->execute();
         $result = $stmt->fetch();
 
@@ -52,7 +53,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
 
     public function getClientDetails($client_id)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = "%s"', $this->config['client_table_name'], $client_id));
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = "%s"', $this->config['client_table'], $client_id));
         $stmt->execute();
 
         return $stmt->fetch();
@@ -72,7 +73,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     /* AccessTokenInterface */
     public function getAccessToken($access_token)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = "%s"', $this->config['token_table_name'], $access_token));
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = "%s"', $this->config['access_token_table'], $access_token));
 
         $token = $stmt->execute();
         if ($token = $stmt->fetch()) {
@@ -90,9 +91,9 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
 
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
-            $stmt = $this->db->prepare(sprintf('UPDATE %s SET client_id=:client_id, expires=:expires, user_id=:user_id, scope=:scope where access_token=:access_token', $this->config['token_table_name']));
+            $stmt = $this->db->prepare(sprintf('UPDATE %s SET client_id=:client_id, expires=:expires, user_id=:user_id, scope=:scope where access_token=:access_token', $this->config['access_token_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (access_token, client_id, expires, user_id, scope) VALUES (:access_token, :client_id, :expires, :user_id, :scope)', $this->config['token_table_name']));
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (access_token, client_id, expires, user_id, scope) VALUES (:access_token, :client_id, :expires, :user_id, :scope)', $this->config['access_token_table']));
         }
         return $stmt->execute(compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
@@ -100,7 +101,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     /* AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = "%s"', $this->config['code_table_name'], $code));
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = "%s"', $this->config['code_table'], $code));
         $stmt->execute();
 
         if ($code = $stmt->fetch()) {
@@ -118,9 +119,9 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
 
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_id=:client_id, user_id=:user_id, redirect_uri=:redirect_uri, expires=:expires, scope=:scope where authorization_code=:code', $this->config['code_table_name']));
+            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_id=:client_id, user_id=:user_id, redirect_uri=:redirect_uri, expires=:expires, scope=:scope where authorization_code=:code', $this->config['code_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope)', $this->config['code_table_name']));
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope)', $this->config['code_table']));
         }
         return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
     }
@@ -134,6 +135,42 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return false;
     }
 
+    public function getUserDetails($username)
+    {
+        return $this->getUser($username);
+    }
+
+    /* RefreshTokenInterface */
+    public function getRefreshToken($refresh_token)
+    {
+        $stmt = $this->db->prepare(sprintf('SELECT * FROM %s WHERE refresh_token = "%s"', $this->config['refresh_token_table'], $refresh_token));
+
+        $token = $stmt->execute();
+        if ($token = $stmt->fetch()) {
+            // convert expires to epoch time
+            $token['expires'] = strtotime($token['expires']);
+        }
+
+        return $token;
+    }
+
+    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = NULL)
+    {
+        // convert expires to datestring
+        $expires = date('Y-m-d H:i:s', $expires);
+
+        $stmt = $this->db->prepare(sprintf('INSERT INTO %s (refresh_token, client_id, user_id, expires, scope) VALUES (:refresh_token, :client_id, :user_id, :expires, :scope)', $this->config['refresh_token_table']));
+
+        return $stmt->execute(compact('refresh_token', 'client_id', 'user_id', 'expires', 'scope'));
+    }
+
+    public function unsetRefreshToken($refresh_token)
+    {
+        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE refresh_token = "%s"', $this->config['refresh_token_table'], $refresh_token));
+
+        return $stmt->execute();
+    }
+
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {
@@ -142,7 +179,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
 
     public function getUser($username)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table_name']));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
         $stmt->execute(array('username' => $username));
         return $stmt->fetch();
     }
@@ -151,9 +188,9 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     {
         // if it exists, update it.
         if ($this->getUser($username)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET username=:username, password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table_name']));
+            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET username=:username, password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table_name']));
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
         }
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }

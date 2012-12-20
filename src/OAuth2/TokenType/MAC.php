@@ -10,7 +10,7 @@ class OAuth2_TokenType_MAC implements OAuth2_TokenTypeInterface
         return 'mac';
     }
 
-    public function getAccessTokenParameter(OAuth2_Request $request)
+    public function getAccessTokenParameter(OAuth2_RequestInterface $request)
     {
         throw new LogicException("Not supported");
 

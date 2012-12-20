@@ -36,7 +36,7 @@ Before getting started, take a look at the [Oauth2 Demo Application](http://bren
 The quickest way to get started is to use the following code, plugging in your database information
 to the constructor of `OAuth2_Storage_Pdo`:
 
-    $storage = new OAuth2_Storage_Pdo($dsn, $username, $password);
+    $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
     $server = new OAuth2_Server($storage);
     $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage)); // or some other grant type.  This is the simplest
     $server->handleGrantRequest(OAuth2_Request::createFromGlobals())->send();
@@ -45,7 +45,7 @@ Let's break this down line by line. The first line is how the OAuth2 data is sto
 There are several built in storage types, for your convenience.  To use PDO Storage,
 instantiate the `OAuth2_Storage_Pdo` class and provide the database connection arguments:
 
-    $storage = new OAuth2_Storage_Pdo($dsn, $username, $password);
+    $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
     $server = new OAuth2_Server($storage);
 
 The next step is to add a grant type.  This example uses the "User Credentials" grant type, which grants a token based on

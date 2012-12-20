@@ -35,8 +35,7 @@ interface OAuth2_Storage_ClientCredentialsInterface extends OAuth2_Storage_Clien
      * @param $client_id
      * Client identifier to be check with.
      * @param $grant_type
-     * Grant type to be check with, would be one of the values contained in
-     * OAuth2::GRANT_TYPE_REGEXP.
+     * Grant type to be check with
      *
      * @return
      * TRUE if the grant type is supported by this client identifier, and

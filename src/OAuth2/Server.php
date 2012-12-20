@@ -2,7 +2,10 @@
 
 /**
 * Service class for OAuth
-* Inspired by oauth2-php (https://github.com/quizlet/oauth2-php)
+* This class serves only to wrap the other Controller classes
+* @see OAuth2_Controller_AccessController
+* @see OAuth2_Controller_AuthorizeController
+* @see OAuth2_Controller_GrantController
 */
 class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     OAuth2_Controller_AuthorizeControllerInterface, OAuth2_Controller_GrantControllerInterface
@@ -27,14 +30,18 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * array - array of Objects to implement storage
      * OAuth2_Storage object implementing all required storage types (ClientCredentialsInterface and AccessTokenInterface as a minimum)
      *
-     * @param array $grantTypes
-     * An array of OAuth2_GrantTypeInterface to use for granting access tokens
-     *
      * @param array $config
      * specify a different token lifetime, token header name, etc
      *
-     * @param array $response
-     * Send in an instance of OAuth2_ResponseInterface to use a different response object
+     * @param array $grantTypes
+     * An array of OAuth2_GrantTypeInterface to use for granting access tokens
+     *
+     * @param array $responseTypes
+     * Response types to use.  array keys should be "code" and and "token" for
+     * Access Token and Authorization Code response types
+     *
+     * @param OAuth2_ResponseType_AccessTokenInterface $accessTokenResponseType
+     * Response type to use for access token
      *
      * @return
      * TRUE if everything in required scope is contained in available scope,
@@ -44,7 +51,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @ingroup oauth2_section_7
      */
-    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_ResponseType_AccessToken $accessTokenResponseType = null)
+    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_ResponseType_AccessTokenInterface $accessTokenResponseType = null)
     {
         $validStorage = array(
             'access_token' => 'OAuth2_Storage_AccessTokenInterface',
@@ -147,7 +154,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
                     if (isset($this->storages['refresh_token'])) {
                         $refreshStorage = $this->storages['refresh_token'];
                     }
-                    $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime')));
+                    $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime refresh_token_lifetime')));
                     $this->accessTokenResponseType = new OAuth2_ResponseType_AccessToken($this->storages['access_token'], $refreshStorage, $config);
                 }
             }
@@ -167,7 +174,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             if (isset($this->storages['refresh_token'])) {
                 $refreshStorage = $this->storages['refresh_token'];
             }
-            $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime')));
+            $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime refresh_token_lifetime')));
             $responseTypes['token'] = new OAuth2_ResponseType_AccessToken($this->storages['access_token'], $refreshStorage, $config);
         }
 
@@ -217,8 +224,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @param $request - OAuth2_Request
      * Request object to grant access token
-     * @param $grantType - mixed
-     * OAuth2_GrantTypeInterface instance or one of the grant types configured in the constructor
+     *
+     * @return
+     * OAuth_Response
      *
      * @throws InvalidArgumentException
      * @throws LogicException
@@ -229,21 +237,21 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @ingroup oauth2_section_4
      */
-    public function handleGrantRequest(OAuth2_Request $request, $grantType = null)
+    public function handleGrantRequest(OAuth2_RequestInterface $request)
     {
-        $value = $this->getGrantController()->handleGrantRequest($request, $grantType);
+        $value = $this->getGrantController()->handleGrantRequest($request);
         $this->response = $this->grantController->getResponse();
         return $value;
     }
 
-    public function grantAccessToken(OAuth2_Request $request, $grantType = null)
+    public function grantAccessToken(OAuth2_RequestInterface $request)
     {
-        $value = $this->getGrantController()->grantAccessToken($request, $grantType);
+        $value = $this->getGrantController()->grantAccessToken($request);
         $this->response = $this->grantController->getResponse();
         return $value;
     }
 
-    public function getClientCredentials(OAuth2_Request $request)
+    public function getClientCredentials(OAuth2_RequestInterface $request)
     {
         $value = $this->getGrantController()->getClientCredentials($request);
         $this->response = $this->grantController->getResponse();
@@ -269,8 +277,10 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * list of space-delimited strings.
      * - state: (optional) An opaque value used by the client to maintain
      * state between the request and callback.
+     *
      * @param $is_authorized
      * TRUE or FALSE depending on whether the user authorized the access.
+     *
      * @param $user_id
      * Identifier of user who authorized the client
      *
@@ -278,7 +288,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @ingroup oauth2_section_4
      */
-    public function handleAuthorizeRequest(OAuth2_Request $request, $is_authorized, $user_id = null)
+    public function handleAuthorizeRequest(OAuth2_RequestInterface $request, $is_authorized, $user_id = null)
     {
         $value = $this->getAuthorizeController()->handleAuthorizeRequest($request, $is_authorized, $user_id);
         $this->response = $this->authorizeController->getResponse();
@@ -304,14 +314,14 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @ingroup oauth2_section_3
      */
-    public function validateAuthorizeRequest(OAuth2_Request $request)
+    public function validateAuthorizeRequest(OAuth2_RequestInterface $request)
     {
         $value = $this->getAuthorizeController()->validateAuthorizeRequest($request);
         $this->response = $this->authorizeController->getResponse();
         return $value;
     }
 
-    public function verifyAccessRequest(OAuth2_Request $request)
+    public function verifyAccessRequest(OAuth2_RequestInterface $request)
     {
         $value = $this->getAccessController()->verifyAccessRequest($request);
         $this->response = $this->accessController->getResponse();

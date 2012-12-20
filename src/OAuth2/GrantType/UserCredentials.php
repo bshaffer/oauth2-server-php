@@ -13,14 +13,14 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
         $this->storage = $storage;
     }
 
-    public function getIdentifier()
+    public function getQuerystringIdentifier()
     {
         return 'password';
     }
 
     public function validateRequest($request)
     {
-        if (!isset($request->query["username"]) || !isset($request->query["password"]) || !$request->query["username"] || !$request->query["password"]) {
+        if (!$request->query("password") || !$request->query("username")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
             return false;
         }
@@ -30,22 +30,32 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
 
     public function getTokenDataFromRequest($request)
     {
-        if (!$tokenData = $this->storage->checkUserCredentials($request->query["username"], $request->query["password"])) {
+        if (!$this->storage->checkUserCredentials($request->query("username"), $request->query("password"))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid username and password combination');
+            return false;
+        }
+
+        $tokenData = $this->storage->getUserDetails($request->query("username"));
+
+        // tokenData can be an empty array
+        if (false === $tokenData || is_null($tokenData)) {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Unable to retrieve user information');
             return false;
         }
 
         return $tokenData;
     }
 
-    public function validateTokenData(array $tokenData, array $clientData)
+    public function validateTokenData($tokenData, array $clientData)
     {
         // Scope is validated in the client class
         return true;
     }
 
-    public function finishGrantRequest($token)
-    {}
+    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)
+    {
+        return $accessToken->createAccessToken($clientData['client_id'], $tokenData['user_id'], $tokenData['scope']);
+    }
 
     public function getResponse()
     {

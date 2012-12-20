@@ -27,7 +27,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         $this->util = $util;
     }
 
-    public function handleAuthorizeRequest(OAuth2_Request $request, $is_authorized, $user_id = null)
+    public function handleAuthorizeRequest(OAuth2_RequestInterface $request, $is_authorized, $user_id = null)
     {
         if (!is_bool($is_authorized)) {
             throw new InvalidArgumentException('Argument "is_authorized" must be a boolean.  This method must know if the user has granted access to the client.');
@@ -56,7 +56,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         return new OAuth2_Response_Redirect($uri);
     }
 
-    public function validateAuthorizeRequest(OAuth2_Request $request)
+    public function validateAuthorizeRequest(OAuth2_RequestInterface $request)
     {
         // Make sure a valid client id was supplied (we can not redirect because we were unable to verify the URI)
         if (!$client_id = $request->query("client_id")) {
@@ -139,7 +139,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         // Return retrieved client details together with input
-        return ($request->query + $clientData + array('state' => null));
+        return ((array)$request->getAllQueryParameters() + $clientData + array('state' => null));
     }
 
     public function getResponse()

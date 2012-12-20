@@ -14,7 +14,7 @@ interface OAuth2_Controller_AuthorizeControllerInterface extends OAuth2_Response
     const RESPONSE_TYPE_AUTHORIZATION_CODE = 'code';
     const RESPONSE_TYPE_ACCESS_TOKEN = 'token';
 
-    public function handleAuthorizeRequest(OAuth2_Request $request, $is_authorized, $user_id = null);
+    public function handleAuthorizeRequest(OAuth2_RequestInterface $request, $is_authorized, $user_id = null);
 
-    public function validateAuthorizeRequest(OAuth2_Request $request);
+    public function validateAuthorizeRequest(OAuth2_RequestInterface $request);
 }

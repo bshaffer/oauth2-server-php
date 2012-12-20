@@ -13,14 +13,14 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         $this->storage = $storage;
     }
 
-    public function getIdentifier()
+    public function getQuerystringIdentifier()
     {
         return 'authorization_code';
     }
 
     public function validateRequest($request)
     {
-        if (!isset($request->query['code']) || !$request->query['code']) {
+        if (!$request->query('code')) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameter: "code" is required');
             return false;
         }
@@ -30,7 +30,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
 
     public function getTokenDataFromRequest($request)
     {
-        if (!$tokenData = $this->storage->getAuthorizationCode($request->query['code'])) {
+        if (!$tokenData = $this->storage->getAuthorizationCode($request->query('code'))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
             return null;
         }
@@ -49,7 +49,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         return $tokenData;
     }
 
-    public function validateTokenData(array $tokenData, array $clientData)
+    public function validateTokenData($tokenData, array $clientData)
     {
         // Check the code exists
         if ($tokenData === null || $clientData['client_id'] != $tokenData['client_id']) {
@@ -66,8 +66,10 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         return true;
     }
 
-    public function finishGrantRequest($token)
-    {}
+    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)
+    {
+        return $accessToken->createAccessToken($clientData['client_id'], $tokenData['user_id'], $tokenData['scope']);
+    }
 
     public function getResponse()
     {

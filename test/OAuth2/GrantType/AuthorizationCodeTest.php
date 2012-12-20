@@ -9,8 +9,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
         $request->query['grant_type'] = 'authorization_code'; // valid grant type
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['client_secret'] = 'TestSecret'; // valid client secret
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -25,8 +24,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['client_secret'] = 'TestSecret'; // valid client secret
         $request->query['code'] = 'InvalidCode'; // invalid authorization code
-        $ret = $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
