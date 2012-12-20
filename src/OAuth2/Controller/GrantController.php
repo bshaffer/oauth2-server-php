@@ -15,6 +15,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         foreach ($grantTypes as $grantType) {
             $this->addGrantType($grantType);
         }
+
         if (is_null($util)) {
             $util = new OAuth2_Util();
         }
@@ -62,6 +63,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         }
         $grantType = $this->grantTypes[$grantType];
 
+        // get and validate client authorization from the request
         if (!$clientData = $this->getClientCredentials($request)) {
             return null;
         }
@@ -80,6 +82,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
             return null;
         }
 
+        // validate the request for the token
         if (!$grantType->validateRequest($request)) {
             if ($grantType instanceof OAuth2_Response_ProviderInterface && $response = $grantType->getResponse()) {
                 $this->response = $response;
@@ -120,13 +123,9 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
             return null;
         }
 
-        $user_id = isset($tokenData['user_id']) ? $tokenData['user_id'] : null;
-        $token = $this->accessToken->createAccessToken($clientData['client_id'], $user_id, $tokenData['scope']);
+        $tokenData['user_id'] = isset($tokenData['user_id']) ? $tokenData['user_id'] : null;
 
-        // TODO: Remove this
-        $grantType->finishGrantRequest($token);
-
-        return $token;
+        return $grantType->createAccessToken($this->accessToken, $clientData, $tokenData);
     }
 
     /**

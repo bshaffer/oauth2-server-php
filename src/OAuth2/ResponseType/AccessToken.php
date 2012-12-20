@@ -28,8 +28,13 @@ class OAuth2_ResponseType_AccessToken implements OAuth2_ResponseType_AccessToken
 
         $params += array('scope' => null, 'state' => null);
 
-        // should this call from a grant type?
-        $result["fragment"] = $this->createAccessToken($params['client_id'], $user_id, $params['scope']);
+        /*
+         * a refresh token MUST NOT be included in the fragment
+         *
+         * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.2.2
+         */
+        $includeRefreshToken = false;
+        $result["fragment"] = $this->createAccessToken($params['client_id'], $user_id, $params['scope'], $includeRefreshToken);
 
         if (isset($params['state'])) {
             $result["fragment"]["state"] = $params['state'];
@@ -48,11 +53,13 @@ class OAuth2_ResponseType_AccessToken implements OAuth2_ResponseType_AccessToken
      * Client identifier related to the access token.
      * @param $scope
      * (optional) Scopes to be stored in space-separated string.
+     * @param bool $excludeRefreshToken
+     * If true, the refresh_token will be omitted from the response
      *
      * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-5
      * @ingroup oauth2_section_5
      */
-    public function createAccessToken($client_id, $user_id, $scope = null)
+    public function createAccessToken($client_id, $user_id, $scope = null, $includeRefreshToken = true)
     {
         $token = array(
             "access_token" => $this->generateAccessToken(),
@@ -63,9 +70,13 @@ class OAuth2_ResponseType_AccessToken implements OAuth2_ResponseType_AccessToken
 
         $this->tokenStorage->setAccessToken($token["access_token"], $client_id, $user_id, $this->config['access_lifetime'] ? time() + $this->config['access_lifetime'] : null, $scope);
 
-        // Issue a refresh token also, if we support them
-        /* TODO: How do we handle this? */
-        if ($this->refreshStorage) {
+        /*
+         * Issue a refresh token also, if we support them
+         *
+         * Refresh Tokens are considered supported if an instance of OAuth2_Storage_RefreshTokenInterface
+         * is supplied in the constructor
+         */
+        if ($includeRefreshToken && $this->refreshStorage) {
             $token["refresh_token"] = $this->generateRefreshToken();
             $this->refreshStorage->setRefreshToken($token['refresh_token'], $client_id, $user_id, time() + $this->config['refresh_token_lifetime'], $scope);
         }
