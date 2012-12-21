@@ -158,19 +158,19 @@ Grant Types
 There are many supported grant types in the OAuth2 specification, and this library allows for the addition of custom grant types as well.
 Supported grant types are as follows:
 
-  1. Authorization Code
+  1. [Authorization Code](http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.1)
 
         An authorization code obtained by user authorization is exchanged for a token
 
-  2. Implicit
+  2. [Implicit](http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.2)
 
         As part of user authorization, a token is retured to the client instead of an authorization code
 
-  3. Resource Owner Password Credentials
+  3. [Resource Owner Password Credentials](http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.3)
 
         The username and password are submitted as part of the request, and a token is issued upon successful authentication
 
-  4. Client Credentials
+  4. [Client Credentials](http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.4)
 
         The client can use their credentials to retrieve an access token directly, which will allow access to resources under the client's control
 
@@ -184,7 +184,7 @@ This library is largely inspired and modified from [Quizlet's OAuth2 PHP library
 Contact
 -------
 
-The best way to contact me is to [file an issue](https://github.com/bshaffer/oauth2-server-php/issues/new), even for general
-questions about the library, so others may find the answer.
+The best way to get help and ask questions is to [file an issue](https://github.com/bshaffer/oauth2-server-php/issues/new).  This will
+help answer questions for others as well.
 
 If for whatever reason filing an issue does not make sense, contact Brent Shaffer (bshafs <at> gmail <dot> com)
