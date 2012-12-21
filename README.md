@@ -184,4 +184,7 @@ This library is largely inspired and modified from [Quizlet's OAuth2 PHP library
 Contact
 -------
 
-Please contact Brent Shaffer (bshafs <at> gmail <dot> com) for more information
+The best way to contact me is to [file an issue](https://github.com/bshaffer/oauth2-server-php/issues/new), even for general
+questions about the library, so others may find the answer.
+
+If for whatever reason filing an issue does not make sense, contact Brent Shaffer (bshafs <at> gmail <dot> com)
