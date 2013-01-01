@@ -45,7 +45,7 @@ class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface, OAuth2_Respo
      */
     public function getAccessTokenParameter(OAuth2_RequestInterface $request)
     {
-        $headers = $request->server('AUTHORIZATION');
+        $headers = $request->headers('AUTHORIZATION');
 
         // Check that exactly one method was used
         $methodsUsed = !empty($headers) + !is_null($request->query($this->config['token_param_name'])) + !is_null($request->request($this->config['token_param_name']));
