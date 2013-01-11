@@ -1,2 +1,5 @@
 .DS_Store
 test/config/test.sqlite
+composer.phar
+composer.lock
+vendor
