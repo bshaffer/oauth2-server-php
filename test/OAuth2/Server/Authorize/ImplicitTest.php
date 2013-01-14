@@ -26,7 +26,7 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
-        $request->query['response_type'] = 'token'; // invalid response type
+        $request->query['response_type'] = 'token'; // valid response type
         $response = $server->handleAuthorizeRequest($request, false);
 
         $this->assertEquals($response->getStatusCode(), 302);
@@ -44,7 +44,7 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
-        $request->query['response_type'] = 'token'; // invalid response type
+        $request->query['response_type'] = 'token'; // valid response type
         $response = $server->handleAuthorizeRequest($request, true);
 
         $this->assertEquals($response->getStatusCode(), 302);
@@ -73,7 +73,7 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
-        $request->query['response_type'] = 'token'; // invalid response type
+        $request->query['response_type'] = 'token'; // valid response type
         $request->query['state'] = 'test'; // valid state string (just needs to be passed back to us)
         $response = $server->handleAuthorizeRequest($request, true);
 
@@ -96,7 +96,7 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com?fake=something'; // valid redirect URI
-        $request->query['response_type'] = 'token'; // invalid response type
+        $request->query['response_type'] = 'token'; // valid response type
         $request->query['state'] = 'test'; // valid state string (just needs to be passed back to us)
         $request->query['fake'] = 'something'; // add extra param to querystring
         $response = $server->handleAuthorizeRequest($request, true);
