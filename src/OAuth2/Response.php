@@ -10,7 +10,7 @@ class OAuth2_Response
     protected $parameters = array();
     protected $httpHeaders = array();
 
-    static public $statusTexts = array(
+    public static $statusTexts = array(
         100 => 'Continue',
         101 => 'Switching Protocols',
         200 => 'OK',
@@ -156,6 +156,7 @@ class OAuth2_Response
                 // this only works for single-level arrays
                 $xml = new SimpleXMLElement('<response/>');
                 array_walk($this->parameters, array($xml, 'addChild'));
+
                 return $xml->asXML();
         }
 

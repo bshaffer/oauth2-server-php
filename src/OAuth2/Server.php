@@ -60,7 +60,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             'client' => 'OAuth2_Storage_ClientInterface',
             'refresh_token' => 'OAuth2_Storage_RefreshTokenInterface',
             'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
-        	'urn:ietf:params:oauth:grant-type:jwt-bearer' => 'OAuth2_Storage_JWTBearerInterface',
+            'urn:ietf:params:oauth:grant-type:jwt-bearer' => 'OAuth2_Storage_JWTBearerInterface',
         );
         $storage = is_array($storage) ? $storage : array($storage);
         $this->storages = array();
@@ -109,7 +109,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             if ($this->config['token_type'] == 'bearer') {
                 $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_param_name token_bearer_header_name')));
                 $tokenType = new OAuth2_TokenType_Bearer($config);
-            } else if ($this->config['token_type'] == 'mac') {
+            } elseif ($this->config['token_type'] == 'mac') {
                 $tokenType = new OAuth2_TokenType_MAC();
             } else {
                 throw new LogicException('unrecognized token type: '.$this->config['token_type']);
@@ -120,6 +120,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             $config = array_intersect_key($this->config, array('www_realm' => ''));
             $this->accessController = new OAuth2_Controller_AccessController($tokenType, $this->storages['access_token'], $config);
         }
+
         return $this->accessController;
     }
 
@@ -135,6 +136,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             $config = array_intersect_key($this->config, array_flip(explode(' ', 'supported_scopes allow_implicit enforce_state')));
             $this->authorizeController = new OAuth2_Controller_AuthorizeController($this->storages['client'], $this->responseTypes, $config);
         }
+
         return $this->authorizeController;
     }
 
@@ -164,6 +166,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             }
             $this->grantController = new OAuth2_Controller_GrantController($this->storages['client_credentials'], $this->accessTokenResponseType, $this->grantTypes);
         }
+
         return $this->grantController;
     }
 
@@ -242,6 +245,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     {
         $value = $this->getGrantController()->handleGrantRequest($request);
         $this->response = $this->grantController->getResponse();
+
         return $value;
     }
 
@@ -249,6 +253,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     {
         $value = $this->getGrantController()->grantAccessToken($request);
         $this->response = $this->grantController->getResponse();
+
         return $value;
     }
 
@@ -256,6 +261,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     {
         $value = $this->getGrantController()->getClientCredentials($request);
         $this->response = $this->grantController->getResponse();
+
         return $value;
     }
 
@@ -293,6 +299,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     {
         $value = $this->getAuthorizeController()->handleAuthorizeRequest($request, $is_authorized, $user_id);
         $this->response = $this->authorizeController->getResponse();
+
         return $value;
     }
 
@@ -319,6 +326,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     {
         $value = $this->getAuthorizeController()->validateAuthorizeRequest($request);
         $this->response = $this->authorizeController->getResponse();
+
         return $value;
     }
 
@@ -326,6 +334,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     {
         $value = $this->getAccessController()->verifyAccessRequest($request);
         $this->response = $this->accessController->getResponse();
+
         return $value;
     }
 
@@ -333,6 +342,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     {
         $value = $this->getAccessController()->getAccessTokenData($token_param, $scope);
         $this->response = $this->accessController->getResponse();
+
         return $value;
     }
 

@@ -11,6 +11,7 @@ class OAuth2_Storage_Bootstrap
         if (!self::$instance) {
             self::$instance = new self();
         }
+
         return self::$instance;
     }
 
@@ -24,6 +25,7 @@ class OAuth2_Storage_Bootstrap
 
             $this->sqlite = new OAuth2_Storage_Pdo($pdo);
         }
+
         return $this->sqlite;
     }
 
@@ -42,6 +44,7 @@ class OAuth2_Storage_Bootstrap
 
             $this->mysql = new OAuth2_Storage_Pdo($pdo);
         }
+
         return $this->mysql;
     }
 

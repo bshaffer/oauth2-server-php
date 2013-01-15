@@ -27,6 +27,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         if ($token = $this->grantAccessToken($request)) {
             $this->response = new OAuth2_Response($token);
         }
+
         return $this->response;
     }
 
@@ -54,51 +55,56 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         // Determine grant type from request
         if (!($grantType = $request->query('grant_type')) && !($grantType = $request->request('grant_type'))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The grant type was not specified in the request');
+
             return null;
         }
         if (!isset($this->grantTypes[$grantType])) {
             /* TODO: If this is an OAuth2 supported grant type that we have chosen not to implement, throw a 501 Not Implemented instead */
             $this->response = new OAuth2_Response_Error(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantType));
+
             return null;
         }
         $grantType = $this->grantTypes[$grantType];
 
         // get and validate client authorization from the request
         if (!($grantType instanceof OAuth2_ClientAssertionTypeInterface)) {
-        	
-	        if (!$clientData = $this->getClientCredentials($request)) {
-	            return null;
-	        }
-        
 
-	        if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
-	            throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
-	        }
-	
-	        if ($this->clientStorage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
-	            $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'The client credentials are invalid');
-	            return null;
-	        }
-	
-	        if (!$this->clientStorage->checkRestrictedGrantType($clientData['client_id'], $grantType->getQuerystringIdentifier())) {
-	            $this->response = new OAuth2_Response_Error(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
-	            return null;
-	        }
-        }else{
-        	
-        	$tokenData = $grantType->getTokenDataFromRequest($request);
-        	
-        	if(!$tokenData){
-        		$this->response = $grantType->getResponse();
-        		return null;
-        	}
-        	
-        	$clientData = $grantType->validateClientCredentials($tokenData);
-        	
-        	if(!$clientData){
-        		$this->response = $grantType->getResponse();
-        		return null;
-        	}
+            if (!$clientData = $this->getClientCredentials($request)) {
+                return null;
+            }
+
+            if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
+                throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
+            }
+
+            if ($this->clientStorage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'The client credentials are invalid');
+
+                return null;
+            }
+
+            if (!$this->clientStorage->checkRestrictedGrantType($clientData['client_id'], $grantType->getQuerystringIdentifier())) {
+                $this->response = new OAuth2_Response_Error(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
+
+                return null;
+            }
+        } else {
+
+            $tokenData = $grantType->getTokenDataFromRequest($request);
+
+            if (!$tokenData) {
+                $this->response = $grantType->getResponse();
+
+                return null;
+            }
+
+            $clientData = $grantType->validateClientCredentials($tokenData);
+
+            if (!$clientData) {
+                $this->response = $grantType->getResponse();
+
+                return null;
+            }
         }
 
         // validate the request for the token
@@ -109,6 +115,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
                 // create a default response
                 $this->response = new OAuth2_Response_Error(400, 'invalid_request', sprintf('Invalid request for "%s" grant type', $grantType->getIdentifier()));
             }
+
             return null;
         }
 
@@ -119,6 +126,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
                 // create a default response
                 $this->response = new OAuth2_Response_Error(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantType->getIdentifier()));
             }
+
             return null;
         }
 
@@ -129,6 +137,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
                 // create a default response
                 $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Token is no longer valid' );
             }
+
             return null;
         }
 
@@ -139,6 +148,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         // Check scope, if provided
         if (null != $request->query('scope') && (!is_array($tokenData) || !isset($tokenData["scope"]) || !$this->util->checkScope($request->query('scope'), $tokenData["scope"]))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
+
             return null;
         }
 
@@ -183,6 +193,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         }
 
         $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'Client credentials were not found in the headers or body');
+
         return null;
     }
 

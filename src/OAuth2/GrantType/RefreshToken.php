@@ -27,6 +27,7 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
     {
         if (!$request->query("refresh_token")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameter: "refresh_token" is required');
+
             return false;
         }
 
@@ -37,6 +38,7 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
     {
         if (!$stored = $this->storage->getRefreshToken($request->query("refresh_token"))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid refresh token');
+
             return false;
         }
 
@@ -47,11 +49,13 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
     {
         if ($tokenData === null || $clientData['client_id'] != $tokenData["client_id"]) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid refresh token');
+
             return false;
         }
 
         if ($tokenData["expires"] < time()) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Refresh token has expired');
+
             return false;
         }
 

@@ -37,7 +37,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
             'refresh_token_table' => 'oauth_refresh_tokens',
             'code_table' => 'oauth_authorization_codes',
             'user_table' => 'oauth_users',
-        	'jwt_table' => 'oauth_jwt',
+            'jwt_table' => 'oauth_jwt',
         ), $config);
     }
 
@@ -96,6 +96,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         } else {
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (access_token, client_id, expires, user_id, scope) VALUES (:access_token, :client_id, :expires, :user_id, :scope)', $this->config['access_token_table']));
         }
+
         return $stmt->execute(compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
@@ -124,6 +125,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         } else {
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope)', $this->config['code_table']));
         }
+
         return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
     }
 
@@ -133,6 +135,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         if ($user = $this->getUser($username)) {
             return $this->checkPassword($user, $password);
         }
+
         return false;
     }
 
@@ -182,6 +185,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     {
         $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
         $stmt->execute(array('username' => $username));
+
         return $stmt->fetch();
     }
 
@@ -193,13 +197,16 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         } else {
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
         }
+
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }
-    
-    public function getClientKey($client_id){
-    	$stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id', $this->config['jwt_table']));
-    	
-    	$stmt->execute(array('client_id' => $client_id));
-    	return $stmt->fetch();
+
+    public function getClientKey($client_id)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id', $this->config['jwt_table']));
+
+        $stmt->execute(array('client_id' => $client_id));
+
+        return $stmt->fetch();
     }
 }

@@ -22,7 +22,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
             'client_credentials' => array(),
             'refresh_tokens' => array(),
             'access_tokens' => array(),
-        	'jwt' => array()
+            'jwt' => array()
         ), $params);
 
         $this->authorizationCodes = $params['authorization_codes'];
@@ -130,9 +130,10 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     {
         $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope');
     }
-    
+
     /*JWTBearerInterface */
-    public function getClientKey($client_id){
-		return isset($this->jwt[$client_id]) ? $this->jwt[$client_id] : null;
+    public function getClientKey($client_id)
+    {
+        return isset($this->jwt[$client_id]) ? $this->jwt[$client_id] : null;
     }
 }

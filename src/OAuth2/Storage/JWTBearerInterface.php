@@ -13,7 +13,7 @@ interface OAuth2_Storage_JWTBearerInterface extends OAuth2_Storage_ClientInterfa
      *
      * @param $client_id
      * Client identifier to be check with.
-     * 
+     *
      * @return
      * STRING Return the public key for the client_id if it exists, and MUST return FALSE if it doesn't.
      * @endcode
