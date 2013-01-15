@@ -5,7 +5,7 @@
 */
 class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface,
-    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_RefreshTokenInterface, JWTBearerInterface
+    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_RefreshTokenInterface, OAuth2_Storage_JWTBearerInterface
 {
     private $db;
     private $config;
@@ -196,7 +196,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }
     
-    public function getClientPublicKey($client_id){
+    public function getClientKey($client_id){
     	$stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id', $this->config['jwt_table']));
     	
     	$stmt->execute(array('client_id' => $client_id));

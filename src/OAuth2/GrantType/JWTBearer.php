@@ -3,14 +3,14 @@
 /**
 *
 */
-class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Response_ProviderInterface
+class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Response_ProviderInterface, OAuth2_ClientAssertionTypeInterface
 {
     private $storage;
     private $response;
 	private $audience = NULL;
 	private $jwt = NULL;
     
-    public function __construct(OAuth2_Storage_UserCredentialsInterface $storage, $audience)
+    public function __construct(OAuth2_Storage_JWTBearerInterface $storage, $audience)
     {
         $this->storage = $storage;
         $this->audience = $audience;
@@ -35,32 +35,43 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     {
     	
     	//Decode the JWT
-    	$jwt = JWT::decode($request->query('assertion'), NULL, FALSE);
+    	try {
+    		$jwt = OAuth2_Util_JWT::decode($request->query('assertion'), NULL, FALSE);
+    	} catch (Exception $e) {
+    		$this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
+    		return null;
+    	}
+    	
     	
     	$this->setJWT($jwt);
     	
     	//Check the expiry time
-    	if($expiration = $this->getJWTParameter('exp')){
+    	$expiration = $this->getJWTParameter('exp');
 
-    		if(ctype_digit($expiration)){
-    			
-    			if($expiration > time()){
-    				$this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT has expired");
-    				return null;
-    			}
-    			
-    		}else{
-    			$this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Expiration (exp) time must be a unix time stamp");
+    	if(ctype_digit($expiration)){
+
+    		if($expiration <= time()){
+    			$this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT has expired");
     			return null;
     		}
+    		
+    	}elseif(!$expiration){
+    			
+    		$this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Expiration (exp) time must be present");
+    		return null;
+    			
+    	}else{
+    		$this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Expiration (exp) time must be a unix time stamp");
+    		return null;
     	}
+    	
     	
     	//Check the not before time
     	if($notBefore = $this->getJWTParameter('nbf')){
     	
     		if(ctype_digit($notBefore)){
     			 
-    			if($notBefore < time()){
+    			if($notBefore > time()){
     				$this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT cannot be used before the Not Before (nbf) time");
     				return null;
     			}
@@ -72,8 +83,9 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     	}
     	
     	//Check the audience if required to match
-    	if($this->audience && $this->getJWTParameter('aud') != $this->audience){
-    		$this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Ivalid audience (aud)");
+    	$aud = $this->getJWTParameter('aud');
+    	if(!isset($aud) || ($aud != $this->audience)){
+    		$this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid audience (aud)");
     		return null;
     	}
     	
@@ -83,7 +95,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     		return null;
     	}
 
-    	$publicKey = $this->_storage->getClientPublicKey($issuer);
+    	$publicKey = $this->storage->getClientKey($issuer);
     	
     	if(!$publicKey){
     		$this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) provided");
@@ -91,10 +103,11 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     	}
     	
     	//Verify the JWT
-    	if(JWT::decode($request->query('assertion', $publicKey, TRUE))){
+    	try {
+    		OAuth2_Util_JWT::decode($request->query('assertion', $publicKey, TRUE));
     		
     		$tokenData = array();
- 
+    		
     		$tokenData['scope'] = $this->getJWTParameter('scope');
     		$tokenData['iss'] = $this->getJWTParameter('iss');
     		$tokenData['sub'] = $this->getJWTParameter('sub');
@@ -114,7 +127,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     		
     		return $tokenData;
     		
-    	}else{
+    	} catch (Exception $e) {
     		$this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT failed signature verification");
     		return null;
     	}
