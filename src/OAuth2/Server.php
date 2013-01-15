@@ -60,6 +60,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             'client' => 'OAuth2_Storage_ClientInterface',
             'refresh_token' => 'OAuth2_Storage_RefreshTokenInterface',
             'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
+        	'urn:ietf:params:oauth:grant-type:jwt-bearer' => 'OAuth2_Storage_JWTBearerInterface',
         );
         $storage = is_array($storage) ? $storage : array($storage);
         $this->storages = array();

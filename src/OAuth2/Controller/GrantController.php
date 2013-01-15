@@ -64,22 +64,28 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         $grantType = $this->grantTypes[$grantType];
 
         // get and validate client authorization from the request
-        if (!$clientData = $this->getClientCredentials($request)) {
-            return null;
-        }
+        if (!($grantType instanceof OAuth2_ClientAssertionTypeInterface)) {
+        	
+	        if (!$clientData = $this->getClientCredentials($request)) {
+	            return null;
+	        }
+        
 
-        if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
-            throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
-        }
-
-        if ($this->clientStorage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'The client credentials are invalid');
-            return null;
-        }
-
-        if (!$this->clientStorage->checkRestrictedGrantType($clientData['client_id'], $grantType->getQuerystringIdentifier())) {
-            $this->response = new OAuth2_Response_Error(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
-            return null;
+	        if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
+	            throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
+	        }
+	
+	        if ($this->clientStorage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
+	            $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'The client credentials are invalid');
+	            return null;
+	        }
+	
+	        if (!$this->clientStorage->checkRestrictedGrantType($clientData['client_id'], $grantType->getQuerystringIdentifier())) {
+	            $this->response = new OAuth2_Response_Error(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
+	            return null;
+	        }
+        }else{
+        	$clientData = array();
         }
 
         // validate the request for the token
