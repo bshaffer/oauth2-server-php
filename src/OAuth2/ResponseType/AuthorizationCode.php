@@ -54,6 +54,7 @@ class OAuth2_ResponseType_AuthorizationCode implements OAuth2_ResponseTypeInterf
     {
         $code = $this->generateAuthorizationCode();
         $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->config['auth_code_lifetime'], $scope);
+
         return $code;
     }
 
@@ -81,6 +82,7 @@ class OAuth2_ResponseType_AuthorizationCode implements OAuth2_ResponseTypeInterf
         } else {
             $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
         }
+
         return substr(hash('sha512', $randomData), 0, $tokenLen);
     }
 }

@@ -46,4 +46,3 @@ class OAuth2_Response_Error extends OAuth2_Response
         return $this->parameters['error_uri'];
     }
 }
-

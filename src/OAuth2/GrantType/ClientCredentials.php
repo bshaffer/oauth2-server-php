@@ -17,6 +17,7 @@ class OAuth2_GrantType_ClientCredentials implements OAuth2_GrantTypeInterface
     {
         // the only piece to pull is the "scope" parameter
         $scope = $request->headers('REQUEST_METHOD') == 'POST' ? $request->request('scope') : $request->query('scope');
+
         return array(
             "scope" => $scope
         );
@@ -35,6 +36,7 @@ class OAuth2_GrantType_ClientCredentials implements OAuth2_GrantTypeInterface
          * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.4.3
          */
         $includeRefreshToken = false;
+
         return $accessToken->createAccessToken($clientData['client_id'], $tokenData['user_id'], $tokenData['scope'], $includeRefreshToken);
     }
 }
