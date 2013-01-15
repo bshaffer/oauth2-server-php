@@ -22,7 +22,7 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error_description'), 'JWT is malformed');
     }
 
-    /*public function testBrokenSignature()
+    public function testBrokenSignature()
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
@@ -156,7 +156,7 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
         $this->assertEquals($response->getParameter('error_description'), 'Invalid issuer (iss) provided');
-    }*/
+    }
 
     private function getJWT($exp = NULL, $nbf = NULL, $iss = 'Test Client ID')
     {

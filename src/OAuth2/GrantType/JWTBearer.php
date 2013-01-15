@@ -35,6 +35,12 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     public function getTokenDataFromRequest($request)
     {
 
+    	if (!$request->query("assertion")) {
+    		$this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
+    	
+    		return null;
+    	}
+    	
         //Decode the JWT
         try {
             $jwt = OAuth2_Util_JWT::decode($request->query('assertion'), NULL, FALSE);
