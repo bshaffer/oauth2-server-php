@@ -85,7 +85,20 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
 	            return null;
 	        }
         }else{
-        	$clientData = array();
+        	
+        	$tokenData = $grantType->getTokenDataFromRequest($request);
+        	
+        	if(!$tokenData){
+        		$this->response = $grantType->getResponse();
+        		return null;
+        	}
+        	
+        	$clientData = $grantType->validateClientCredentials($tokenData);
+        	
+        	if(!$clientData){
+        		$this->response = $grantType->getResponse();
+        		return null;
+        	}
         }
 
         // validate the request for the token
