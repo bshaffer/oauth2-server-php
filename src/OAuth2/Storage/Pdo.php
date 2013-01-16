@@ -5,7 +5,7 @@
 */
 class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface,
-    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_RefreshTokenInterface
+    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_RefreshTokenInterface, OAuth2_Storage_JWTBearerInterface
 {
     private $db;
     private $config;
@@ -37,6 +37,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
             'refresh_token_table' => 'oauth_refresh_tokens',
             'code_table' => 'oauth_authorization_codes',
             'user_table' => 'oauth_users',
+            'jwt_table' => 'oauth_jwt',
         ), $config);
     }
 
@@ -193,5 +194,13 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
         }
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
+    }
+
+    public function getClientKey($client_id)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id', $this->config['jwt_table']));
+
+        $stmt->execute(array('client_id' => $client_id));
+        return $stmt->fetch();
     }
 }
