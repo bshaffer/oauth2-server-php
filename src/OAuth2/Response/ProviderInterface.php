@@ -2,5 +2,5 @@
 
 interface OAuth2_Response_ProviderInterface
 {
-    function getResponse();
+    public function getResponse();
 }

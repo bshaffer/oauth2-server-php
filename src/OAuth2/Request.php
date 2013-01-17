@@ -180,7 +180,7 @@ class OAuth2_Request implements OAuth2_RequestInterface
      *
      * @api
      */
-    static public function createFromGlobals()
+    public static function createFromGlobals()
     {
         $class = __CLASS__;
         $request = new $class($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER);

@@ -39,7 +39,8 @@ class OAuth2_Util
      * @param string $inputUri
      * @param string $storedUri
      */
-    public function validateRedirectUri($inputUri, $storedUri) {
+    public function validateRedirectUri($inputUri, $storedUri)
+    {
         if (!$inputUri || !$storedUri) {
             return false; // if either one is missing, assume INVALID
         }
@@ -59,7 +60,8 @@ class OAuth2_Util
      *
      * @ingroup oauth2_section_4
      */
-    public function buildUri($uri, $params) {
+    public function buildUri($uri, $params)
+    {
         $parse_url = parse_url($uri);
 
         // Add our params to the parsed uri

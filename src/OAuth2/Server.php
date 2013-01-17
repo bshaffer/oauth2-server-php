@@ -108,7 +108,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             if ($this->config['token_type'] == 'bearer') {
                 $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_param_name token_bearer_header_name')));
                 $tokenType = new OAuth2_TokenType_Bearer($config);
-            } else if ($this->config['token_type'] == 'mac') {
+            } elseif ($this->config['token_type'] == 'mac') {
                 $tokenType = new OAuth2_TokenType_MAC();
             } else {
                 throw new LogicException('unrecognized token type: '.$this->config['token_type']);
