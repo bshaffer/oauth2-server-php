@@ -184,8 +184,10 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
         if ($nbf) {
             $params['nbf'] = $nbf;
         }
+        
+        $jwtUtil = new OAuth2_Util_JWT();
 
-        return OAuth2_Util_JWT::encode($params, $privateKey);
+        return $jwtUtil->encode($params, $privateKey);
     }
 
     private function getTestServer($audience = 'http://myapp.com/oauth/auth')
