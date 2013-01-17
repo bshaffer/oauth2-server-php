@@ -10,4 +10,3 @@ interface OAuth2_ResponseType_AuthorizationCodeInterface extends OAuth2_GrantTyp
 
     public function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null);
 }
-
