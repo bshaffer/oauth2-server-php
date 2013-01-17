@@ -1,6 +1,6 @@
 <?php
 
-interface OAuth2_ResponseType_AuthorizationCodeInterface extends OAuth2_GrantTypeInterface
+interface OAuth2_ResponseType_AuthorizationCodeInterface extends OAuth2_ResponseTypeInterface
 {
     /**
      * @return
