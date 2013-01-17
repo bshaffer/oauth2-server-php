@@ -5,13 +5,14 @@
 */
 class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface,
     OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_AccessTokenInterface,
-    OAuth2_Storage_ClientCredentialsInterface, OAuth2_Storage_RefreshTokenInterface
+    OAuth2_Storage_ClientCredentialsInterface, OAuth2_Storage_RefreshTokenInterface, OAuth2_Storage_JWTBearerInterface
 {
     private $authorizationCodes;
     private $userCredentials;
     private $clientCredentials;
     private $refreshTokens;
     private $accessTokens;
+    private $jwt;
 
     public function __construct($params = array())
     {
@@ -21,6 +22,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
             'client_credentials' => array(),
             'refresh_tokens' => array(),
             'access_tokens' => array(),
+            'jwt' => array()
         ), $params);
 
         $this->authorizationCodes = $params['authorization_codes'];
@@ -28,6 +30,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         $this->clientCredentials = $params['client_credentials'];
         $this->refreshTokens = $params['refresh_tokens'];
         $this->accessTokens = $params['access_tokens'];
+        $this->jwt = $params['jwt'];
     }
 
     /* AuthorizationCodeInterface */
@@ -126,5 +129,11 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
         $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope');
+    }
+
+    /*JWTBearerInterface */
+    public function getClientKey($client_id)
+    {
+        return isset($this->jwt[$client_id]) ? $this->jwt[$client_id] : null;
     }
 }
