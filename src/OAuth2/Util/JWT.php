@@ -6,7 +6,7 @@
 
 class OAuth2_Util_JWT
 {
-    public static function encode($payload, $key, $algo = 'HS256')
+    public function encode($payload, $key, $algo = 'HS256')
     {
         $header = array('typ' => 'JWT', 'alg' => $algo);
 
@@ -24,7 +24,7 @@ class OAuth2_Util_JWT
         return implode('.', $segments);
     }
 
-    public static function decode($jwt, $key = null, $verify = true)
+    public function decode($jwt, $key = null, $verify = true)
     {
         $tks = explode('.', $jwt);
 
@@ -57,7 +57,7 @@ class OAuth2_Util_JWT
         return $payload;
     }
 
-    private static function verifySignature($signature, $input, $key, $algo = 'HS256')
+    private function verifySignature($signature, $input, $key, $algo = 'HS256')
     {
         switch($algo){
             case'HS256':
@@ -70,7 +70,7 @@ class OAuth2_Util_JWT
         }
     }
 
-    private static function sign($input, $key, $algo = 'HS256')
+    private function sign($input, $key, $algo = 'HS256')
     {
         switch($algo){
 
@@ -95,7 +95,7 @@ class OAuth2_Util_JWT
         }
     }
 
-    private static function urlSafeB64Encode($data)
+    private function urlSafeB64Encode($data)
     {
         $b64 = base64_encode($data);
         $b64 = str_replace(array('+', '/', '\r', '\n', '='),
@@ -104,7 +104,7 @@ class OAuth2_Util_JWT
         return $b64;
     }
 
-    private static function urlSafeB64Decode($b64)
+    private function urlSafeB64Decode($b64)
     {
         $b64 = str_replace(array('-', '_'),
                 array('+', '/'),

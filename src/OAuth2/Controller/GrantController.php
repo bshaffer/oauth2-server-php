@@ -88,12 +88,12 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
 
             $clientData = $grantType->getClientDataFromRequest($request);
 
-            if(!$clientData){
+            if (!$clientData) {
                 $this->response = $grantType->getResponse();
                 return null;
             }
 
-            if(!$grantType->validateClientData($clientData)){
+            if (!$grantType->validateClientData($clientData)) {
                 $this->response = $grantType->getResponse();
                 return null;
             }

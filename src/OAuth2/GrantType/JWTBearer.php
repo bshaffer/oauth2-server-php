@@ -9,11 +9,18 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     private $response;
     private $audience = NULL;
     private $jwt = NULL;
+    private $jwtUtil;
 
-    public function __construct(OAuth2_Storage_JWTBearerInterface $storage, $audience)
+    public function __construct(OAuth2_Storage_JWTBearerInterface $storage, $audience,  OAuth2_Util_JWT $jwtUtil = null)
     {
         $this->storage = $storage;
         $this->audience = $audience;
+        
+        if (is_null($jwtUtil)) {
+        	$jwtUtil = new OAuth2_Util_JWT();
+        }
+        
+        $this->jwtUtil = $jwtUtil;
     }
 
     public function getQuerystringIdentifier()
@@ -43,7 +50,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 
         //Decode the JWT
         try {
-            $jwt = OAuth2_Util_JWT::decode($request->query('assertion'), NULL, FALSE);
+            $jwt = $this->jwtUtil->decode($request->query('assertion'), NULL, FALSE);
         } catch (Exception $e) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
 
@@ -170,7 +177,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 
         //Verify the JWT
         try {
-            OAuth2_Util_JWT::decode($this->jwt, $clientData['client_secret'], TRUE);
+            $this->jwtUtil->decode($this->jwt, $clientData['client_secret'], TRUE);
 
         } catch (Exception $e) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT failed signature verification");
