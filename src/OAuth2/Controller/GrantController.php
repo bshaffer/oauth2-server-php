@@ -84,7 +84,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
                 $this->response = new OAuth2_Response_Error(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
                 return null;
             }
-        }else{
+        } else {
 
             $clientData = $grantType->getClientDataFromRequest($request);
 
