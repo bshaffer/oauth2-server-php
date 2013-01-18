@@ -230,7 +230,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 
         //Verify the JWT
         try {
-            $this->jwtUtil->decode($this->jwt, $clientData['client_secret'], TRUE);
+            $this->jwtUtil->decode($this->jwt, $clientData['client_secret'], true);
 
         } catch (Exception $e) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT failed signature verification");
