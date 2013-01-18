@@ -53,6 +53,11 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         $this->authorizationCodes = $authorization_codes;
     }
 
+    public function expireAuthorizationCode($code)
+    {
+        unset($this->authorizationCodes[$code]);
+    }
+
     /* UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {

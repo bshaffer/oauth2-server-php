@@ -7,6 +7,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
 {
     private $storage;
     private $response;
+    private $code;
 
     public function __construct(OAuth2_Storage_AuthorizationCodeInterface $storage)
     {
@@ -30,7 +31,8 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
 
     public function getTokenDataFromRequest($request)
     {
-        if (!$tokenData = $this->storage->getAuthorizationCode($request->query('code'))) {
+        $this->code = $request->query('code');
+        if (!$tokenData = $this->storage->getAuthorizationCode($this->code)) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
             return null;
         }
@@ -68,7 +70,10 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
 
     public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)
     {
-        return $accessToken->createAccessToken($clientData['client_id'], $tokenData['user_id'], $tokenData['scope']);
+        $this->storage->expireAuthorizationCode($this->code);
+        $token = $accessToken->createAccessToken($clientData['client_id'], $tokenData['user_id'], $tokenData['scope']);
+
+        return $token;
     }
 
     public function getResponse()

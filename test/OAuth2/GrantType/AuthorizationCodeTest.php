@@ -31,6 +31,28 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error_description'), 'Authorization code doesn\'t exist or is invalid for the client');
     }
 
+    public function testCodeCannotBeUsedTwice()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['grant_type'] = 'authorization_code'; // valid grant type
+        $request->query['client_id'] = 'Test Client ID'; // valid client id
+        $request->query['client_secret'] = 'TestSecret'; // valid client secret
+        $request->query['code'] = 'testcode'; // valid code
+
+        $response = $server->handleGrantRequest($request);
+
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertNotNull($response->getParameter('access_token'));
+
+        // try to use the same code again
+        $response = $server->handleGrantRequest($request);
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'Authorization code doesn\'t exist or is invalid for the client');
+    }
+
     private function getTestServer()
     {
         $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../config/storage.json'), true));

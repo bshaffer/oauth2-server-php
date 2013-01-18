@@ -127,6 +127,13 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
     }
 
+    public function expireAuthorizationCode($code)
+    {
+        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE authorization_code = :authorization_code', $this->config['code_table']));
+
+        return $stmt->execute(compact('code'));
+    }
+
     /* UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {

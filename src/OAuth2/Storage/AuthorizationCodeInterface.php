@@ -69,4 +69,17 @@ interface OAuth2_Storage_AuthorizationCodeInterface
      */
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null);
 
+    /**
+     * once an Authorization Code is used, it must be exipired
+     *
+     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.1.2
+     *
+     *    The client MUST NOT use the authorization code
+     *    more than once.  If an authorization code is used more than
+     *    once, the authorization server MUST deny the request and SHOULD
+     *    revoke (when possible) all tokens previously issued based on
+     *    that authorization code
+     *
+     */
+    public function expireAuthorizationCode($code);
 }
