@@ -139,17 +139,18 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     /*JWTBearerInterface */
     public function getClientKey($client_id, $subject)
     {
-    	if (isset($this->jwt[$client_id])) {
-    		
-    		$jwt = $this->jwt[$client_id];
-    		
-	    	if ($jwt) {
-				
-	    		if ($jwt["subject"] == $subject) {
-	    			return $jwt["key"];
-	    		}
-	    	}
-    	}
-    	return null;
+        if (isset($this->jwt[$client_id])) {
+
+            $jwt = $this->jwt[$client_id];
+
+            if ($jwt) {
+
+                if ($jwt["subject"] == $subject) {
+                    return $jwt["key"];
+                }
+            }
+        }
+        
+        return null;
     }
 }

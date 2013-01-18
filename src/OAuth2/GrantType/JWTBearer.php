@@ -14,13 +14,13 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 
     /**
      * Creates an instance of the JWT bearer grant type.
-     * 
+     *
      * @param OAuth2_Storage_JWTBearerInterface $storage
      * A valid storage interface that implements storage hooks for the JWT bearer grant type.
-     * 
+     *
      * @param string $audience
      * The audience to validate the token against. This is usually the full URI of the OAuth grant requests endpoint.
-     * 
+     *
      * @param OAuth2_Util_JWT OPTIONAL $jwtUtil
      * The class used to decode, encode and verify JWTs.
      */
@@ -37,7 +37,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     }
 
     /**
-     * Returns the grant_type get parameter to identify the grant type request as JWT bearer authorization grant. 
+     * Returns the grant_type get parameter to identify the grant type request as JWT bearer authorization grant.
      * @return The string identifier for grant_type.
      * @see OAuth2_GrantTypeInterface::getQuerystringIdentifier()
      */
@@ -142,7 +142,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
             return array('client_id' => $tokenData['iss'], 'subject' => $tokenData['sub']);
         }
     }
-	
+
     /**
      * Validates the client data by checking if the client_id exists in storage. It also checks to see if the client_id is associated with a key to decode the JWT.
      * @see OAuth2_ClientAssertionTypeInterface::validateClientData()

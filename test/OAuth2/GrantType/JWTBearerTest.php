@@ -157,20 +157,20 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
         $this->assertEquals($response->getParameter('error_description'), 'Invalid issuer (iss) or subject (sub) provided');
     }
-    
+
     public function testBadSbuject()
     {
-    	$server = $this->getTestServer();
-    	$request = OAuth2_Request::createFromGlobals();
-    	$request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
-    	$request->query['assertion'] = $this->getJWT(NULL, NULL, 'anotheruser@ourdomain.com');
-    
-    	$server->grantAccessToken($request);
-    	$response = $server->getResponse();
-    
-    	$this->assertEquals($response->getStatusCode(), 400);
-    	$this->assertEquals($response->getParameter('error'), 'invalid_grant');
-    	$this->assertEquals($response->getParameter('error_description'), 'Invalid issuer (iss) or subject (sub) provided');
+        $server = $this->getTestServer();
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->query['assertion'] = $this->getJWT(NULL, NULL, 'anotheruser@ourdomain.com');
+
+        $server->grantAccessToken($request);
+        $response = $server->getResponse();
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'Invalid issuer (iss) or subject (sub) provided');
     }
 
     /**
@@ -187,16 +187,16 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
         if (!$exp) {
             $exp = time() + 1000;
         }
-        
+
         if(!$sub){
-        	$sub = "testuser@ourdomain.com";
+            $sub = "testuser@ourdomain.com";
         }
 
         $params = array(
                     'iss' => $iss,
                     'exp' => $exp,
                     'iat' => time(),
-        			'sub' => $sub,
+                    'sub' => $sub,
                     'aud' => 'http://myapp.com/oauth/auth',
                     'scope' => 'view_friends_list'
                 );
