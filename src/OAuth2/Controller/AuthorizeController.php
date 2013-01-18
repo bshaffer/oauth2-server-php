@@ -9,9 +9,9 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
     private $clientStorage;
     private $responseTypes;
     private $config;
-    private $util;
+    private $scopeUtil;
 
-    public function __construct(OAuth2_Storage_ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), $util = null)
+    public function __construct(OAuth2_Storage_ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), $scopeUtil = null)
     {
         $this->clientStorage = $clientStorage;
         $this->responseTypes = $responseTypes;
@@ -21,10 +21,10 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
             'enforce_state' => false,
         ), $config);
 
-        if (is_null($util)) {
-            $util = new OAuth2_Util();
+        if (is_null($scopeUtil)) {
+            $scopeUtil = new OAuth2_Util_Scope();
         }
-        $this->util = $util;
+        $this->scopeUtil = $scopeUtil;
     }
 
     public function handleAuthorizeRequest(OAuth2_RequestInterface $request, $is_authorized, $user_id = null)
@@ -50,7 +50,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         list($redirect_uri, $result) = $authResult;
-        $uri = $this->util->buildUri($redirect_uri, $result);
+        $uri = $this->buildUri($redirect_uri, $result);
 
         // return redirect response
         return new OAuth2_Response_Redirect($uri);
@@ -94,7 +94,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         // Only need to validate if redirect_uri provided on input and clientData.
-        if ($clientData["redirect_uri"] && $redirect_uri && !$this->util->validateRedirectUri($redirect_uri, $clientData["redirect_uri"])) {
+        if ($clientData["redirect_uri"] && $redirect_uri && !$this->scopeUtil->validateRedirectUri($redirect_uri, $clientData["redirect_uri"])) {
             $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match');
             return false;
         }
@@ -127,7 +127,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         // Validate that the requested scope is supported
-        if ($scope && !$this->util->checkScope($scope, $this->config['supported_scopes'])) {
+        if ($scope && !$this->scopeUtil->checkScope($scope, $this->config['supported_scopes'])) {
             $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'invalid_scope', 'An unsupported scope was requested', $state);
             return false;
         }
@@ -140,6 +140,58 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
 
         // Return retrieved client details together with input
         return ((array)$request->getAllQueryParameters() + $clientData + array('state' => null));
+    }    
+
+    /**
+     * Build the absolute URI based on supplied URI and parameters.
+     *
+     * @param $uri
+     * An absolute URI.
+     * @param $params
+     * Parameters to be append as GET.
+     *
+     * @return
+     * An absolute URI with supplied parameters.
+     *
+     * @ingroup oauth2_section_4
+     */
+    private function buildUri($uri, $params)
+    {
+        $parse_url = parse_url($uri);
+
+        // Add our params to the parsed uri
+        foreach ( $params as $k => $v ) {
+            if (isset($parse_url[$k])) {
+                $parse_url[$k] .= "&" . http_build_query($v);
+            } else {
+                $parse_url[$k] = http_build_query($v);
+            }
+        }
+
+        // Put humpty dumpty back together
+        return
+            ((isset($parse_url["scheme"])) ? $parse_url["scheme"] . "://" : "")
+            . ((isset($parse_url["user"])) ? $parse_url["user"]
+            . ((isset($parse_url["pass"])) ? ":" . $parse_url["pass"] : "") . "@" : "")
+            . ((isset($parse_url["host"])) ? $parse_url["host"] : "")
+            . ((isset($parse_url["port"])) ? ":" . $parse_url["port"] : "")
+            . ((isset($parse_url["path"])) ? $parse_url["path"] : "")
+            . ((isset($parse_url["query"])) ? "?" . $parse_url["query"] : "")
+            . ((isset($parse_url["fragment"])) ? "#" . $parse_url["fragment"] : "")
+        ;
+    }
+
+    /**
+     * Internal method for validating redirect URI supplied
+     * @param string $inputUri
+     * @param string $storedUri
+     */
+    private function validateRedirectUri($inputUri, $storedUri)
+    {
+        if (!$inputUri || !$storedUri) {
+            return false; // if either one is missing, assume INVALID
+        }
+        return strcasecmp(substr($inputUri, 0, strlen($storedUri)), $storedUri) === 0;
     }
 
     public function getResponse()
