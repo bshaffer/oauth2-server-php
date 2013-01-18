@@ -175,9 +175,10 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
 
     /**
      * Generates a JWT
-     * @param The expiration date. If the current time is greater than the exp, the JWT is invalid. $exp
-     * @param The "not before" time. If the current time is less than the nbf, the JWT is invalid. $nbf
-     * @param The issuer, usually the client_id. $iss
+     * @param $exp The expiration date. If the current time is greater than the exp, the JWT is invalid. 
+     * @param $nbf The "not before" time. If the current time is less than the nbf, the JWT is invalid. 
+     * @param $sub The subject we are acting on behalf of. This could be the email address of the user in the system.
+     * @param $iss The issuer, usually the client_id.
      * @return string
      */
     private function getJWT($exp = NULL, $nbf = NULL, $sub = NULL, $iss = 'Test Client ID')
