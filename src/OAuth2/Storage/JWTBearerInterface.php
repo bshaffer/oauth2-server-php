@@ -18,5 +18,5 @@ interface OAuth2_Storage_JWTBearerInterface extends OAuth2_Storage_ClientInterfa
      * STRING Return the public key for the client_id if it exists, and MUST return FALSE if it doesn't.
      * @endcode
      */
-    public function getClientKey($client_id);
+    public function getClientKey($client_id, $subject);
 }

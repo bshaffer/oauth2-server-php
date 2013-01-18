@@ -203,11 +203,11 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }
 
-    public function getClientKey($client_id)
+    public function getClientKey($client_id, $subject)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id', $this->config['jwt_table']));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));
 
-        $stmt->execute(array('client_id' => $client_id));
+        $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
         return $stmt->fetch();
     }
 }
