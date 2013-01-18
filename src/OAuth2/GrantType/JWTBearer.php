@@ -8,8 +8,8 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 {
     private $storage;
     private $response;
-    private $audience = NULL;
-    private $jwt = NULL;
+    private $audience = null;
+    private $jwt = null;
     private $jwtUtil;
 
     /**
@@ -76,7 +76,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 
         //Decode the JWT
         try {
-            $jwt = $this->jwtUtil->decode($request->query('assertion'), NULL, FALSE);
+            $jwt = $this->jwtUtil->decode($request->query('assertion'), null, false);
         } catch (Exception $e) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
 
@@ -125,9 +125,9 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      * @return mixed
      * The JWT parameter.
      */
-    private function getJWTParameter($parameter, $default = NULL)
+    private function getJWTParameter($parameter, $default = null)
     {
-        return isset($this->jwt->$parameter) ? $this->jwt->$parameter : NULL;
+        return isset($this->jwt->$parameter) ? $this->jwt->$parameter : null;
     }
 
     /**

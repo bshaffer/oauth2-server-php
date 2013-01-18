@@ -110,7 +110,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         return isset($this->refreshTokens[$refresh_token]) ? $this->refreshTokens[$refresh_token] : null;
     }
 
-    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = NULL)
+    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
     {
         $this->refreshTokens[$refresh_token] = compact('refresh_token', 'client_id', 'user_id', 'expires', 'scope');
     }

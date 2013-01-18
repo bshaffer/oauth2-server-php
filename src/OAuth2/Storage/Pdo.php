@@ -162,7 +162,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $token;
     }
 
-    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = NULL)
+    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
     {
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
