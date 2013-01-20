@@ -153,7 +153,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     {
         $stmt = $this->db->prepare(sprintf('SELECT * FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
 
-        $token = $stmt->execute('refresh_token');
+        $token = $stmt->execute(compact('refresh_token'));
         if ($token = $stmt->fetch()) {
             // convert expires to epoch time
             $token['expires'] = strtotime($token['expires']);
