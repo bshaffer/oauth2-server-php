@@ -1,9 +1,8 @@
 <?php
 
 /**
- * All storage engines need to implement this interface in order to use OAuth2 server
- *
- * @author David Rochwerger <catch.dave@gmail.com>
+ * All storage engines need to implement this interface in order to use the JWT Authorization Grant.
+ * @author F21
  */
 interface OAuth2_Storage_JWTBearerInterface
 {
