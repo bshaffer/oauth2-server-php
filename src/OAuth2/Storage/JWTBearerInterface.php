@@ -5,7 +5,7 @@
  *
  * @author David Rochwerger <catch.dave@gmail.com>
  */
-interface OAuth2_Storage_JWTBearerInterface extends OAuth2_Storage_ClientInterface
+interface OAuth2_Storage_JWTBearerInterface
 {
 
     /**
