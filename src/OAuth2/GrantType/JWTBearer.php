@@ -139,7 +139,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     {
         $tokenData = $this->getTokenDataFromRequest($request);
 
-        if (!$tokenData){
+        if (!$tokenData) {
             return null;
         }
 
