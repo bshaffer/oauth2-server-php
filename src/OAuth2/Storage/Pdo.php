@@ -129,7 +129,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
 
     public function expireAuthorizationCode($code)
     {
-        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE authorization_code = :authorization_code', $this->config['code_table']));
+        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE authorization_code = :code', $this->config['code_table']));
 
         return $stmt->execute(compact('code'));
     }
@@ -153,7 +153,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     {
         $stmt = $this->db->prepare(sprintf('SELECT * FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
 
-        $token = $stmt->execute('refresh_token');
+        $token = $stmt->execute(compact('refresh_token'));
         if ($token = $stmt->fetch()) {
             // convert expires to epoch time
             $token['expires'] = strtotime($token['expires']);
@@ -162,7 +162,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $token;
     }
 
-    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = NULL)
+    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
     {
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
@@ -203,11 +203,11 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }
 
-    public function getClientKey($client_id)
+    public function getClientKey($client_id, $subject)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id', $this->config['jwt_table']));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));
 
-        $stmt->execute(array('client_id' => $client_id));
+        $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
         return $stmt->fetch();
     }
 }

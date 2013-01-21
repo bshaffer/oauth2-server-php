@@ -174,6 +174,10 @@ Supported grant types are as follows:
 
         The client can use their credentials to retrieve an access token directly, which will allow access to resources under the client's control
 
+  4. [JWT Authorization Grant](http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4)
+
+        The client can submit a JWT (JSON Web Token) in a request to the token endpoint. An access token (without a refresh token) is then returned directly.
+
 Create a custom grant type by implementing the `OAuth2_GrantTypeInterface` and adding it to the OAuth2 Server object.
 
 Acknowledgements
