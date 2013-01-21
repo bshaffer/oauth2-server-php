@@ -104,6 +104,21 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
         $this->assertEquals($query['error_description'], 'The state parameter is required');
     }
 
+    public function testValidateRedirectUri()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['client_id'] = 'Test Client ID with Redirect Uri'; // valid client id
+        $request->query['redirect_uri'] = 'http://adobe.com'; // invalid redirect URI
+        $request->query['response_type'] = 'code';
+        $response = $server->handleAuthorizeRequest($request, true);
+
+        $this->assertEquals($response->getStatusCode(), 400);
+
+        $this->assertEquals($response->getParameter('error'), 'redirect_uri_mismatch');
+        $this->assertEquals($response->getParameter('error_description'), 'The redirect URI provided is missing or does not match');
+    }
+
     private function getTestServer($config = array())
     {
         $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
