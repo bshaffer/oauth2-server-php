@@ -175,7 +175,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 
         if (!empty($diff)) {
 
-            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) or subject (sub) provided");
+            throw new DomainException('The clientData array is missing one or more of the following: client_id, subject, client_secret');
 
             return false;
         }
@@ -185,7 +185,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
             if (in_array($key, array('client_id', 'client_secret'))) {
 
                 if (!isset($value)) {
-                    $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) or subject (sub) provided");
+                    throw new DomainException('client_id and client_secret in the clientData array may not be null');
 
                     return false;
                 }
