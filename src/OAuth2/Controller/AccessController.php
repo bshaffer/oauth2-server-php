@@ -31,7 +31,7 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
         $token = $this->tokenType->getAccessTokenParameter($request);
         $this->response = $this->tokenType->getResponse();
         if ($token) {
-            $access_token = $this->getAccessTokenData($token, $request->query('scope'));
+            $access_token = $this->getAccessTokenData($token, $this->scopeUtil->getScopeFromRequest($request));
             return (bool) $access_token;
         }
 

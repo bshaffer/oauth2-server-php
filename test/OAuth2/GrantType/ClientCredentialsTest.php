@@ -6,9 +6,9 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'client_credentials'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'FakeSecret'; // valid client secret
+        $request->request['grant_type'] = 'client_credentials'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'FakeSecret'; // valid client secret
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -20,10 +20,11 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'client_credentials'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'TestSecret'; // valid client secret
-        $request->query['scope'] = 'scope';
+        $request->server['REQUEST_METHOD'] = 'POST';
+        $request->request['grant_type'] = 'client_credentials'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'TestSecret'; // valid client secret
+        $request->request['scope'] = 'scope';
         $token = $server->grantAccessToken($request);
 
         $this->assertNotNull($token);
@@ -36,9 +37,9 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'client_credentials'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'TestSecret'; // valid client secret
+        $request->request['grant_type'] = 'client_credentials'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'TestSecret'; // valid client secret
         $token = $server->grantAccessToken($request);
 
         $this->assertNotNull($token);
@@ -51,8 +52,8 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
         // create with HTTP_AUTHORIZATION in header
         $server = $this->getTestServer();
         $headers = array('HTTP_AUTHORIZATION' => 'Basic '.base64_encode('Test Client ID:TestSecret'));
-        $query  = array('grant_type' => 'client_credentials');
-        $request = new OAuth2_Request($query, array(), array(), array(), array(), $headers);
+        $params  = array('grant_type' => 'client_credentials');
+        $request = new OAuth2_Request(array(), $params, array(), array(), array(), $headers);
         $token = $server->grantAccessToken($request);
 
         $this->assertNotNull($token);
@@ -61,8 +62,8 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
 
         // create using PHP Authorization Globals
         $headers = array('PHP_AUTH_USER' => 'Test Client ID', 'PHP_AUTH_PW' => 'TestSecret');
-        $query  = array('grant_type' => 'client_credentials');
-        $request = new OAuth2_Request($query, array(), array(), array(), array(), $headers);
+        $params  = array('grant_type' => 'client_credentials');
+        $request = new OAuth2_Request(array(), $params, array(), array(), array(), $headers);
         $token = $server->grantAccessToken($request);
 
         $this->assertNotNull($token);
@@ -75,7 +76,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->server['REQUEST_METHOD'] = 'POST';
-        $request->query['grant_type'] = 'client_credentials'; // valid grant type
+        $request->request['grant_type'] = 'client_credentials'; // valid grant type
         $request->request['client_id'] = 'Test Client ID'; // valid client id
         $request->request['client_secret'] = 'TestSecret'; // valid client secret
         $token = $server->grantAccessToken($request);
@@ -89,9 +90,9 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'client_credentials'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'TestSecret'; // valid client secret
+        $request->request['grant_type'] = 'client_credentials'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'TestSecret'; // valid client secret
         $token = $server->grantAccessToken($request);
 
         $this->assertNotNull($token);
