@@ -28,7 +28,9 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
     public function handleGrantRequest(OAuth2_RequestInterface $request)
     {
         if ($token = $this->grantAccessToken($request)) {
-            $this->response = new OAuth2_Response($token);
+            // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-5.1
+            // server MUST disable caching in headers when tokens are involved
+            $this->response = new OAuth2_Response($token, 200, array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
         }
         return $this->response;
     }
