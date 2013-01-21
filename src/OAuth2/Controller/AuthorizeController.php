@@ -94,7 +94,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         // Only need to validate if redirect_uri provided on input and clientData.
-        if ($clientData["redirect_uri"] && $redirect_uri && !$this->scopeUtil->validateRedirectUri($redirect_uri, $clientData["redirect_uri"])) {
+        if ($clientData["redirect_uri"] && $redirect_uri && !$this->validateRedirectUri($redirect_uri, $clientData["redirect_uri"])) {
             $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match');
             return false;
         }
