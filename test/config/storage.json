@@ -49,6 +49,11 @@
 	    "Test Client ID": {
 	        "key": "-----BEGIN PUBLIC KEY----- MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAstgzbq1Tyozg6Wn/ugyw ng4J2wPOaSJwPWlFFff92K60rQrrCDDUSVeuhC0+Tjn7Lq35gMZrsWazl3oj4KAH BBFZqBPejER0Z/t1wgZka97uooW2BclxUMjL6sFW92BLm2f2Po/SDjKdGRwt0+kd j2MgmdqIDu7KTNLPVS/3zk0Ln+Ett92pbODhUliYHkVFy/ZZtoX66lggLjZXGdBP 2pLx/cAR09B0m1QDBvkzGewmF6Hl0gXqKSBQel1vnR8Pp2c8Fjp3sDB65hiStXmf a6NpMZBAb4vBp39SyRrbXiNH7GbYoIiBBtgnhVg4zHAG6btsEyAtmVM0aMhn01TK HQIDAQAB -----END PUBLIC KEY----- ",
 	        "subject": "testuser@ourdomain.com"
+	    },
+	    
+	    "Missing Key Client": {
+	        "key": null,
+	        "subject": "testuser@ourdomain.com"
 	    }
     }
 }
