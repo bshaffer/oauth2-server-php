@@ -131,7 +131,8 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     }
 
     /**
-     * Return the data used to verify the request. For JWT bearer authorization grants, this is the 'iss' which is synonymous to the 'client_id'.
+     * Return the data used to verify the request. For JWT bearer authorization grants, the 'iss' is synonymous to the 'client_id'.
+     * The subject is 'sub' and the 'client_secret' is the key to decode the JWT.
      * @return array An array of the client data containing the client_id.
      * @see OAuth2_ClientAssertionTypeInterface::getClientDataFromRequest()
      */
@@ -143,7 +144,6 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
             return null;
         }
 
-        //Get the iss's public key (http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06#section-4.1.1)
         if (!isset($tokenData['iss'])) {
 
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) provided");
@@ -151,15 +151,16 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
             return null;
         }
 
-        $publicKey = $this->storage->getClientKey($tokenData['iss'], $tokenData['sub']);
+        //Get the iss's public key (http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06#section-4.1.1)
+        $key = $this->storage->getClientKey($tokenData['iss'], $tokenData['sub']);
 
-        if (!$publicKey) {
+        if (!$key) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) or subject (sub) provided");
 
             return null;
         }
 
-        return array('client_id' => $tokenData['iss'], 'subject' => $tokenData['sub'], 'client_secret' => $publicKey);
+        return array('client_id' => $tokenData['iss'], 'subject' => $tokenData['sub'], 'client_secret' => $key);
     }
 
     /**
