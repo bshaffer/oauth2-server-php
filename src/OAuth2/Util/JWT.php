@@ -11,15 +11,14 @@ class OAuth2_Util_JWT
         $header = array('typ' => 'JWT', 'alg' => $algo);
 
         $segments = array(
-            OAuth2_Util_JWT::urlsafeB64Encode(json_encode($header)),
-            OAuth2_Util_JWT::urlsafeB64Encode(json_encode($payload))
+            $this->urlsafeB64Encode(json_encode($header)),
+            $this->urlsafeB64Encode(json_encode($payload))
         );
 
         $signing_input = implode('.', $segments);
 
-
-        $signature = OAuth2_Util_JWT::sign($signing_input, $key, $algo);
-        $segments[] = OAuth2_Util_JWT::urlsafeB64Encode($signature);
+        $signature = $this->sign($signing_input, $key, $algo);
+        $segments[] = $this->urlsafeB64Encode($signature);
 
         return implode('.', $segments);
     }
@@ -34,22 +33,23 @@ class OAuth2_Util_JWT
 
         list($headb64, $payloadb64, $cryptob64) = $tks;
 
-        if (null === ($header = json_decode(OAuth2_Util_JWT::urlsafeB64Decode($headb64)))){
+        if (null === ($header = json_decode($this->urlsafeB64Decode($headb64)))){
             throw new Exception('Invalid segment encoding');
         }
 
-        if (null === $payload = json_decode(OAuth2_Util_JWT::urlsafeB64Decode($payloadb64))){
+        if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64))){
             throw new Exception('Invalid segment encoding');
         }
 
-        $sig = OAuth2_Util_JWT::urlsafeB64Decode($cryptob64);
+        $sig = $this->urlsafeB64Decode($cryptob64);
 
         if ($verify) {
+
             if (empty($header->alg)) {
                 throw new DomainException('Empty algorithm');
             }
 
-            if (!OAuth2_Util_JWT::verifySignature($sig, "$headb64.$payloadb64", $key, $header->alg)) {
+            if (!$this->verifySignature($sig, "$headb64.$payloadb64", $key, $header->alg)) {
                 throw new UnexpectedValueException('Signature verification failed');
             }
         }
@@ -63,10 +63,10 @@ class OAuth2_Util_JWT
             case'HS256':
             case'HS384':
             case'HS512':
-                return OAuth2_Util_JWT::sign($input, $key, $algo) === $signature;
+                return $this->sign($input, $key, $algo) === $signature;
 
             case 'RS256':
-                return (boolean)openssl_verify($input, $signature, $key, OPENSSL_ALGO_SHA256);
+                return openssl_verify($input, $signature, $key, OPENSSL_ALGO_SHA256) === 1;
         }
     }
 
