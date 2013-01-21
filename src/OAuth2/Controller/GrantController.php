@@ -1,5 +1,8 @@
 <?php
 
+/**
+ *  @see OAuth2_Controller_GrantControllerInterface
+ */
 class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantControllerInterface
 {
     private $response;

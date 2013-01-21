@@ -1,8 +1,8 @@
 <?php
 
 /**
-*
-*/
+ *  @see OAuth2_Controller_AccessControllerInterface
+ */
 class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessControllerInterface
 {
     private $response;

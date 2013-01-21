@@ -1,8 +1,8 @@
 <?php
 
 /**
-*
-*/
+ *  @see OAuth2_Controller_AuthorizeControllerInterface
+ */
 class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_AuthorizeControllerInterface
 {
     private $response;
@@ -140,7 +140,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
 
         // Return retrieved client details together with input
         return ((array)$request->getAllQueryParameters() + $clientData + array('state' => null));
-    }    
+    }
 
     /**
      * Build the absolute URI based on supplied URI and parameters.
