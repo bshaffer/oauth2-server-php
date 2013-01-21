@@ -6,9 +6,9 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'authorization_code'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'TestSecret'; // valid client secret
+        $request->request['grant_type'] = 'authorization_code'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'TestSecret'; // valid client secret
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -20,10 +20,10 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'authorization_code'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'TestSecret'; // valid client secret
-        $request->query['code'] = 'InvalidCode'; // invalid authorization code
+        $request->request['grant_type'] = 'authorization_code'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'TestSecret'; // valid client secret
+        $request->request['code'] = 'InvalidCode'; // invalid authorization code
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -35,10 +35,10 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'authorization_code'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'TestSecret'; // valid client secret
-        $request->query['code'] = 'testcode'; // valid code
+        $request->request['grant_type'] = 'authorization_code'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'TestSecret'; // valid client secret
+        $request->request['code'] = 'testcode'; // valid code
 
         $response = $server->handleGrantRequest($request);
 

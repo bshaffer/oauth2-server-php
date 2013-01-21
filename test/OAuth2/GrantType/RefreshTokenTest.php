@@ -10,9 +10,9 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
         $server->addGrantType(new OAuth2_GrantType_RefreshToken($this->storage));
 
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'refresh_token'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'TestSecret'; // valid client secret
+        $request->request['grant_type'] = 'refresh_token'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'TestSecret'; // valid client secret
         $server->grantAccessToken($request);
         $response = $server->getResponse();
 
@@ -27,10 +27,10 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
         $server->addGrantType(new OAuth2_GrantType_RefreshToken($this->storage));
 
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'refresh_token'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'TestSecret'; // valid client secret
-        $request->query['refresh_token'] = 'fake-token'; // valid client secret
+        $request->request['grant_type'] = 'refresh_token'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'TestSecret'; // valid client secret
+        $request->request['refresh_token'] = 'fake-token'; // valid client secret
         $server->grantAccessToken($request);
         $response = $server->getResponse();
 
@@ -45,17 +45,18 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
         $server->addGrantType(new OAuth2_GrantType_RefreshToken($this->storage, array('always_issue_new_refresh_token' => true)));
 
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'refresh_token'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'TestSecret'; // valid client secret
-        $request->query['refresh_token'] = 'test-refreshtoken'; // valid client secret
+        $request->server['HTTP_METHOD'] = 'POST';
+        $request->request['grant_type'] = 'refresh_token'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'TestSecret'; // valid client secret
+        $request->request['refresh_token'] = 'test-refreshtoken'; // valid client secret
         $token = $server->grantAccessToken($request);
         $this->assertTrue(isset($token['refresh_token']), 'refresh token should always refresh');
 
         $refresh_token = $this->storage->getRefreshToken($token['refresh_token']);
         $this->assertNotNull($refresh_token);
         $this->assertEquals($refresh_token['refresh_token'], $token['refresh_token']);
-        $this->assertEquals($refresh_token['client_id'], $request->query('client_id'));
+        $this->assertEquals($refresh_token['client_id'], $request->request('client_id'));
         $this->assertTrue($token['refresh_token'] != 'test-refreshtoken', 'the refresh token returned is not the one used');
         $used_token = $this->storage->getRefreshToken('test-refreshtoken');
         $this->assertNull($used_token, 'the refresh token used is no longer valid');
@@ -67,10 +68,10 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
         $server->addGrantType(new OAuth2_GrantType_RefreshToken($this->storage, array('always_issue_new_refresh_token' => false)));
 
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'refresh_token'; // valid grant type
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['client_secret'] = 'TestSecret'; // valid client secret
-        $request->query['refresh_token'] = 'test-refreshtoken'; // valid client secret
+        $request->request['grant_type'] = 'refresh_token'; // valid grant type
+        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request->request['client_secret'] = 'TestSecret'; // valid client secret
+        $request->request['refresh_token'] = 'test-refreshtoken'; // valid client secret
         $token = $server->grantAccessToken($request);
         $this->assertFalse(isset($token['refresh_token']), 'refresh token should not be returned');
 

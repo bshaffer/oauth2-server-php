@@ -18,7 +18,7 @@ class OAuth2_RequestTest extends PHPUnit_Framework_TestCase
         /*** make some valid requests ***/
 
         // Valid Grant Request
-        $request->setQuery(array(
+        $request->setPost(array(
             'grant_type' => 'authorization_code',
             'client_id'  => 'Test Client ID',
             'client_secret' => 'TestSecret',

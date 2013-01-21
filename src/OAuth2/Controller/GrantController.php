@@ -137,8 +137,10 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
             $tokenData["scope"] = null;
         }
 
+        $scope = $this->scopeUtil->getScopeFromRequest($request);
         // Check scope, if provided
-        if (null != $request->query('scope') && (!is_array($tokenData) || !isset($tokenData["scope"]) || !$this->scopeUtil->checkScope($request->query('scope'), $tokenData["scope"]))) {
+        // @TODO: ScopeStorage
+        if (null != $scope && (!is_array($tokenData) || !isset($tokenData["scope"]) || !$this->scopeUtil->checkScope($scope, $tokenData["scope"]))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
             return null;
         }

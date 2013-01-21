@@ -33,4 +33,9 @@ class OAuth2_Util_Scope
 
         return (count(array_diff($required_scope, $available_scope)) == 0);
     }
+
+    public function getScopeFromRequest(OAuth2_RequestInterface $request)
+    {
+        return $request->server('REQUEST_METHOD') == 'POST' ? $request->request('scope') : $request->query('scope');
+    }
 }
