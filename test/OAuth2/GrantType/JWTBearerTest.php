@@ -172,25 +172,26 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
         $this->assertEquals($response->getParameter('error_description'), 'Invalid issuer (iss) or subject (sub) provided');
     }
-    
-    public function testMissingKey(){
-    	$server = $this->getTestServer();
-    	$request = OAuth2_Request::createFromGlobals();
-    	$request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
-    	$request->query['assertion'] = $this->getJWT(null, null, null, 'Missing Key Client');
-    	
-    	$server->grantAccessToken($request);
-    	$response = $server->getResponse();
-    	
-    	$this->assertEquals($response->getStatusCode(), 400);
-    	$this->assertEquals($response->getParameter('error'), 'invalid_grant');
-    	$this->assertEquals($response->getParameter('error_description'), 'Invalid issuer (iss) or subject (sub) provided');
+
+    public function testMissingKey()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->query['assertion'] = $this->getJWT(null, null, null, 'Missing Key Client');
+
+        $server->grantAccessToken($request);
+        $response = $server->getResponse();
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'Invalid issuer (iss) or subject (sub) provided');
     }
 
     /**
      * Generates a JWT
-     * @param $exp The expiration date. If the current time is greater than the exp, the JWT is invalid. 
-     * @param $nbf The "not before" time. If the current time is less than the nbf, the JWT is invalid. 
+     * @param $exp The expiration date. If the current time is greater than the exp, the JWT is invalid.
+     * @param $nbf The "not before" time. If the current time is less than the nbf, the JWT is invalid.
      * @param $sub The subject we are acting on behalf of. This could be the email address of the user in the system.
      * @param $iss The issuer, usually the client_id.
      * @return string
