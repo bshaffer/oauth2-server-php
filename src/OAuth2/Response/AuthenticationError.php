@@ -15,4 +15,3 @@ class OAuth2_Response_AuthenticationError extends OAuth2_Response_Error
         $this->setHttpHeader('WWW-Authenticate', $authHeader);
     }
 }
-

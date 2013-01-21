@@ -42,4 +42,3 @@ class OAuth2_Response_Redirect extends OAuth2_Response
         }
     }
 }
-

@@ -43,4 +43,10 @@ class OAuth2_Request_TestRequest implements OAuth2_RequestInterface
     {
         $this->query = $query;
     }
+
+    public function setPost(array $post)
+    {
+        $this->server['HTTP_METHOD'] = 'POST';
+        $this->post = $post;
+    }
 }

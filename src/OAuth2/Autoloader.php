@@ -20,7 +20,7 @@ class OAuth2_Autoloader
     /**
      * Registers AdobeDigitalMarketing_Autoloader as an SPL autoloader.
      */
-    static public function register($dir = null)
+    public static function register($dir = null)
     {
         ini_set('unserialize_callback_func', 'spl_autoload_call');
         spl_autoload_register(array(new self($dir), 'autoload'));

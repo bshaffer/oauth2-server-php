@@ -1,14 +1,17 @@
 <?php
 
+/**
+ *  @see OAuth2_Controller_GrantControllerInterface
+ */
 class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantControllerInterface
 {
     private $response;
     private $clientStorage;
     private $accessToken;
     private $grantTypes;
-    private $util;
+    private $scopeUtil;
 
-    public function __construct(OAuth2_Storage_ClientCredentialsInterface $clientStorage, OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), $util = null)
+    public function __construct(OAuth2_Storage_ClientCredentialsInterface $clientStorage, OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), $scopeUtil = null)
     {
         $this->clientStorage = $clientStorage;
         $this->accessToken = $accessToken;
@@ -16,10 +19,10 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
             $this->addGrantType($grantType);
         }
 
-        if (is_null($util)) {
-            $util = new OAuth2_Util();
+        if (is_null($scopeUtil)) {
+            $scopeUtil = new OAuth2_Util_Scope();
         }
-        $this->util = $util;
+        $this->scopeUtil = $scopeUtil;
     }
 
     public function handleGrantRequest(OAuth2_RequestInterface $request)
@@ -134,8 +137,10 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
             $tokenData["scope"] = null;
         }
 
+        $scope = $this->scopeUtil->getScopeFromRequest($request);
         // Check scope, if provided
-        if (null != $request->query('scope') && (!is_array($tokenData) || !isset($tokenData["scope"]) || !$this->util->checkScope($request->query('scope'), $tokenData["scope"]))) {
+        // @TODO: ScopeStorage
+        if (null != $scope && (!is_array($tokenData) || !isset($tokenData["scope"]) || !$this->scopeUtil->checkScope($scope, $tokenData["scope"]))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
             return null;
         }

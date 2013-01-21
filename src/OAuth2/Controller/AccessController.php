@@ -1,16 +1,17 @@
 <?php
 
 /**
-*
-*/
+ *  @see OAuth2_Controller_AccessControllerInterface
+ */
 class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessControllerInterface
 {
     private $response;
     private $tokenType;
     private $tokenStorage;
     private $config;
+    private $scopeUtil;
 
-    public function __construct(OAuth2_TokenTypeInterface $tokenType, OAuth2_Storage_AccessTokenInterface $tokenStorage, $config = array(), $util = null)
+    public function __construct(OAuth2_TokenTypeInterface $tokenType, OAuth2_Storage_AccessTokenInterface $tokenStorage, $config = array(), $scopeUtil = null)
     {
         $this->tokenType = $tokenType;
         $this->tokenStorage = $tokenStorage;
@@ -19,10 +20,10 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
             'www_realm' => 'Service',
         ), $config);
 
-        if (is_null($util)) {
-            $util = new OAuth2_Util();
+        if (is_null($scopeUtil)) {
+            $scopeUtil = new OAuth2_Util_Scope();
         }
-        $this->util = $util;
+        $this->scopeUtil = $scopeUtil;
     }
 
     public function verifyAccessRequest(OAuth2_RequestInterface $request)
@@ -30,7 +31,7 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
         $token = $this->tokenType->getAccessTokenParameter($request);
         $this->response = $this->tokenType->getResponse();
         if ($token) {
-            $access_token = $this->getAccessTokenData($token, $request->query('scope'));
+            $access_token = $this->getAccessTokenData($token, $this->scopeUtil->getScopeFromRequest($request));
             return (bool) $access_token;
         }
 
@@ -65,7 +66,7 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
 
         // Check scope, if provided
         // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
-        if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->util->checkScope($scope, $token["scope"]))) {
+        if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->scopeUtil->checkScope($scope, $token["scope"]))) {
             $this->response = new OAuth2_Response_AuthenticationError(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope);
             return null;
         }

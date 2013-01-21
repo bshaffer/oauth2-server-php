@@ -44,8 +44,8 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     /* ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = "%s"', $this->config['client_table'], $client_id));
-        $stmt->execute();
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
+        $stmt->execute(compact('client_id'));
         $result = $stmt->fetch();
 
         // make this extensible
@@ -54,8 +54,8 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
 
     public function getClientDetails($client_id)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = "%s"', $this->config['client_table'], $client_id));
-        $stmt->execute();
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
+        $stmt->execute(compact('client_id'));
 
         return $stmt->fetch();
     }
@@ -74,9 +74,9 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     /* AccessTokenInterface */
     public function getAccessToken($access_token)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = "%s"', $this->config['access_token_table'], $access_token));
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = :access_token', $this->config['access_token_table']));
 
-        $token = $stmt->execute();
+        $token = $stmt->execute(compact('access_token'));
         if ($token = $stmt->fetch()) {
             // convert date string back to timestamp
             $token['expires'] = strtotime($token['expires']);
@@ -102,8 +102,8 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     /* AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = "%s"', $this->config['code_table'], $code));
-        $stmt->execute();
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = :code', $this->config['code_table']));
+        $stmt->execute(compact('code'));
 
         if ($code = $stmt->fetch()) {
             // convert date string back to timestamp
@@ -127,6 +127,13 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
     }
 
+    public function expireAuthorizationCode($code)
+    {
+        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE authorization_code = :code', $this->config['code_table']));
+
+        return $stmt->execute(compact('code'));
+    }
+
     /* UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
@@ -144,9 +151,9 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     /* RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * FROM %s WHERE refresh_token = "%s"', $this->config['refresh_token_table'], $refresh_token));
+        $stmt = $this->db->prepare(sprintf('SELECT * FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
 
-        $token = $stmt->execute();
+        $token = $stmt->execute(compact('refresh_token'));
         if ($token = $stmt->fetch()) {
             // convert expires to epoch time
             $token['expires'] = strtotime($token['expires']);
@@ -155,7 +162,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $token;
     }
 
-    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = NULL)
+    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
     {
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
@@ -167,9 +174,9 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
 
     public function unsetRefreshToken($refresh_token)
     {
-        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE refresh_token = "%s"', $this->config['refresh_token_table'], $refresh_token));
+        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
 
-        return $stmt->execute();
+        return $stmt->execute(compact('refresh_token'));
     }
 
     // plaintext passwords are bad!  Override this for your application
@@ -196,11 +203,11 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }
 
-    public function getClientKey($client_id)
+    public function getClientKey($client_id, $subject)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id', $this->config['jwt_table']));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));
 
-        $stmt->execute(array('client_id' => $client_id));
+        $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
         return $stmt->fetch();
     }
 }

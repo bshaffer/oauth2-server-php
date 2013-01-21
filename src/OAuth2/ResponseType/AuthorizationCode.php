@@ -3,7 +3,7 @@
 /**
 *
 */
-class OAuth2_ResponseType_AuthorizationCode implements OAuth2_ResponseTypeInterface
+class OAuth2_ResponseType_AuthorizationCode implements OAuth2_ResponseType_AuthorizationCodeInterface
 {
     private $storage;
     private $config;

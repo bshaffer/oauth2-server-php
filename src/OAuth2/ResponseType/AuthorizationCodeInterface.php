@@ -1,6 +1,6 @@
 <?php
 
-interface OAuth2_GrantType_AuthorizationCodeInterface extends OAuth2_GrantTypeInterface
+interface OAuth2_ResponseType_AuthorizationCodeInterface extends OAuth2_ResponseTypeInterface
 {
     /**
      * @return
@@ -10,4 +10,3 @@ interface OAuth2_GrantType_AuthorizationCodeInterface extends OAuth2_GrantTypeIn
 
     public function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null);
 }
-

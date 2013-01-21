@@ -1,5 +1,21 @@
 <?php
 
+/**
+ *  This controller is called when a user should be authorized
+ *  by an authorization server.  As OAuth2 does not handle
+ *  authorization directly, this controller ensures the request is valid, but
+ *  requires the application to determine the value of $is_authorized
+ *
+ *  ex:
+ *  > $user_id = $this->somehowDetermineUserId();
+ *  > $is_authorized = $this->somehowDetermineUserAuthorization();
+ *  > $response = $authorizeController->handleAuthorizeRequest(
+ *  >     OAuth2_Request::createFromGlobals(),
+ *  >     $is_authorized,
+ *  >     $user_id);
+ *  > $response->send();
+ *
+ */
 interface OAuth2_Controller_AuthorizeControllerInterface extends OAuth2_Response_ProviderInterface
 {
     /**
