@@ -139,9 +139,27 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     {
         $tokenData = $this->getTokenDataFromRequest($request);
 
-        if($tokenData){
-            return array('client_id' => $tokenData['iss'], 'subject' => $tokenData['sub']);
+        if (!$tokenData){
+            return null;
         }
+
+        //Get the iss's public key (http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06#section-4.1.1)
+        if (!isset($tokenData['iss'])) {
+
+            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) provided");
+
+            return null;
+        }
+
+        $publicKey = $this->storage->getClientKey($tokenData['iss'], $tokenData['sub']);
+
+        if (!$publicKey) {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) or subject (sub) provided");
+
+            return null;
+        }
+
+        return array('client_id' => $tokenData['iss'], 'subject' => $tokenData['sub'], 'client_secret' => $publicKey);
     }
 
     /**
@@ -150,20 +168,27 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      */
     public function validateClientData(array $clientData)
     {
-        //Get the iss's public key (http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06#section-4.1.1)
-        if (!isset($clientData['client_id'])) {
 
-            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) provided");
+        //Check that all array keys exist
+        $diff = array_diff(array_keys($clientData), array('client_id', 'subject', 'client_secret'));
 
-            return null;
-        }
+        if (!empty($diff)) {
 
-        $publicKey = $this->storage->getClientKey($clientData['client_id'], $clientData['subject']);
-
-        if (!$publicKey) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) or subject (sub) provided");
 
-            return null;
+            return false;
+        }
+
+        foreach ($clientData as $key => $value) {
+
+            if (in_array($key, array('client_id', 'client_secret'))) {
+
+                if (!isset($value)) {
+                    $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) or subject (sub) provided");
+
+                    return false;
+                }
+            }
         }
 
         return true;
@@ -230,9 +255,11 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 
         //Verify the JWT
         try {
+
             $this->jwtUtil->decode($this->jwt, $clientData['client_secret'], true);
 
         } catch (Exception $e) {
+
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT failed signature verification");
 
             return null;
