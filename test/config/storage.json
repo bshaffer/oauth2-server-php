@@ -51,7 +51,17 @@
 	        "subject": "testuser@ourdomain.com"
 	    },
 	    
+	    "Test Client ID PHP-5.2": {
+	        "key": "mysecretkey",
+	        "subject": "testuser@ourdomain.com"
+	    },
+	    
 	    "Missing Key Client": {
+	        "key": null,
+	        "subject": "testuser@ourdomain.com"
+	    },
+	    
+	    "Missing Key Client PHP-5.2": {
 	        "key": null,
 	        "subject": "testuser@ourdomain.com"
 	    }

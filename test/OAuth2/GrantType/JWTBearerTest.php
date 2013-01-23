@@ -229,6 +229,17 @@ Fnh+zeEVijg18pMvVScrBw==
 -----END PRIVATE KEY-----
 EOD;
 
+        //Since PHP 5.2 does not have OpenSSL support on Travis CI, we will test it using the HS256 algorithm
+        //We also provided PHP 5.2 specific data for it in storage.json
+        $newPHP = true;
+
+        if (version_compare(PHP_VERSION, '5.2', '<=')) {
+            $iss .= ' PHP-5.2';
+            $newPHP = false;
+            $privateKey = 'mysecretkey';
+        }
+
+
         if (!$exp) {
             $exp = time() + 1000;
         }
@@ -252,7 +263,12 @@ EOD;
 
         $jwtUtil = new OAuth2_Util_JWT();
 
-        return $jwtUtil->encode($params, $privateKey, 'RS256');
+        if ($newPHP){
+            return $jwtUtil->encode($params, $privateKey, 'RS256');
+        }else{
+            return $jwtUtil->encode($params, $privateKey, 'HS256');
+        }
+
     }
 
     private function getTestServer($audience = 'http://myapp.com/oauth/auth')
