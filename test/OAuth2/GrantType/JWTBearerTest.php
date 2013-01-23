@@ -6,13 +6,13 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
 
         //Get the jwt and break it
         $jwt = $this->getJWT();
         $jwt = substr_replace($jwt, 'broken', 3, 6);
 
-        $request->query['assertion'] = $jwt;
+        $request->request['assertion'] = $jwt;
 
         $server->grantAccessToken($request);
         $response = $server->getResponse();
@@ -26,11 +26,11 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
 
         //Get the jwt and break signature
         $jwt = $this->getJWT() . 'notSupposeToBeHere';
-        $request->query['assertion'] = $jwt;
+        $request->request['assertion'] = $jwt;
 
         $server->grantAccessToken($request);
         $response = $server->getResponse();
@@ -44,11 +44,11 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
 
         //Get an expired JWT
         $jwt = $this->getJWT(1234);
-        $request->query['assertion'] = $jwt;
+        $request->request['assertion'] = $jwt;
 
         $server->grantAccessToken($request);
         $response = $server->getResponse();
@@ -62,11 +62,11 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
 
         //Get an expired JWT
         $jwt = $this->getJWT('badtimestamp');
-        $request->query['assertion'] = $jwt;
+        $request->request['assertion'] = $jwt;
 
         $server->grantAccessToken($request);
         $response = $server->getResponse();
@@ -80,7 +80,7 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
 
         //Do not pass the assert (JWT)
 
@@ -96,11 +96,11 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
 
         //Get a future NBF
         $jwt = $this->getJWT(null, time() + 10000);
-        $request->query['assertion'] = $jwt;
+        $request->request['assertion'] = $jwt;
 
         $server->grantAccessToken($request);
         $response = $server->getResponse();
@@ -114,11 +114,11 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
 
         //Get a non timestamp nbf
         $jwt = $this->getJWT(null, 'notatimestamp');
-        $request->query['assertion'] = $jwt;
+        $request->request['assertion'] = $jwt;
 
         $server->grantAccessToken($request);
         $response = $server->getResponse();
@@ -132,8 +132,8 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer('http://google.com/oauth/o/auth');
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
-        $request->query['assertion'] = $this->getJWT();
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['assertion'] = $this->getJWT();
 
         $server->grantAccessToken($request);
         $response = $server->getResponse();
@@ -147,8 +147,8 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
-        $request->query['assertion'] = $this->getJWT(null, null, null, 'bad_client_id');
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['assertion'] = $this->getJWT(null, null, null, 'bad_client_id');
 
         $server->grantAccessToken($request);
         $response = $server->getResponse();
@@ -162,8 +162,8 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
-        $request->query['assertion'] = $this->getJWT(null, null, 'anotheruser@ourdomain.com');
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['assertion'] = $this->getJWT(null, null, 'anotheruser@ourdomain.com');
 
         $server->grantAccessToken($request);
         $response = $server->getResponse();
@@ -177,8 +177,8 @@ class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $request->query['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
-        $request->query['assertion'] = $this->getJWT(null, null, null, 'Missing Key Client');
+        $request->request['grant_type'] = 'urn:ietf:params:oauth:grant-type:jwt-bearer'; // valid grant type
+        $request->request['assertion'] = $this->getJWT(null, null, null, 'Missing Key Client');
 
         $server->grantAccessToken($request);
         $response = $server->getResponse();
