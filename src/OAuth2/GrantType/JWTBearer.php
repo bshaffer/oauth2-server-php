@@ -51,7 +51,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      */
     public function validateRequest($request)
     {
-        if (!$request->query("assertion")) {
+        if (!$request->request("assertion")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
 
             return false;
@@ -68,7 +68,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     public function getTokenDataFromRequest($request)
     {
 
-        if (!$request->query("assertion")) {
+        if (!$request->request("assertion")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
 
             return null;
@@ -76,7 +76,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 
         //Decode the JWT
         try {
-            $jwt = $this->jwtUtil->decode($request->query('assertion'), null, false);
+            $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
         } catch (Exception $e) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
 
