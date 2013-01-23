@@ -1,8 +1,8 @@
 <?php
 
 /**
-*
-*/
+ *  @see OAuth2_Controller_AuthorizeControllerInterface
+ */
 class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_AuthorizeControllerInterface
 {
     private $response;
@@ -94,7 +94,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         // Only need to validate if redirect_uri provided on input and clientData.
-        if ($clientData["redirect_uri"] && $redirect_uri && !$this->scopeUtil->validateRedirectUri($redirect_uri, $clientData["redirect_uri"])) {
+        if ($clientData["redirect_uri"] && $redirect_uri && !$this->validateRedirectUri($redirect_uri, $clientData["redirect_uri"])) {
             $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match');
             return false;
         }
@@ -103,7 +103,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         $redirect_uri = $redirect_uri ? $redirect_uri : $clientData["redirect_uri"];
         $response_type = $request->query('response_type');
         $state = $request->query('state');
-        $scope = $request->query('scope');
+        $scope = $this->scopeUtil->getScopeFromRequest($request);
 
         // type and client_id are required
         if (!$response_type || !in_array($response_type, array(self::RESPONSE_TYPE_AUTHORIZATION_CODE, self::RESPONSE_TYPE_ACCESS_TOKEN))) {
@@ -140,7 +140,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
 
         // Return retrieved client details together with input
         return ((array)$request->getAllQueryParameters() + $clientData + array('state' => null));
-    }    
+    }
 
     /**
      * Build the absolute URI based on supplied URI and parameters.

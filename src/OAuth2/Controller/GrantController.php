@@ -1,5 +1,8 @@
 <?php
 
+/**
+ *  @see OAuth2_Controller_GrantControllerInterface
+ */
 class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantControllerInterface
 {
     private $response;
@@ -25,7 +28,9 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
     public function handleGrantRequest(OAuth2_RequestInterface $request)
     {
         if ($token = $this->grantAccessToken($request)) {
-            $this->response = new OAuth2_Response($token);
+            // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-5.1
+            // server MUST disable caching in headers when tokens are involved
+            $this->response = new OAuth2_Response($token, 200, array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
         }
         return $this->response;
     }
@@ -133,8 +138,10 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
             $tokenData["scope"] = null;
         }
 
+        $scope = $this->scopeUtil->getScopeFromRequest($request);
         // Check scope, if provided
-        if (null != $request->query('scope') && (!is_array($tokenData) || !isset($tokenData["scope"]) || !$this->scopeUtil->checkScope($request->query('scope'), $tokenData["scope"]))) {
+        // @TODO: ScopeStorage
+        if (null != $scope && (!is_array($tokenData) || !isset($tokenData["scope"]) || !$this->scopeUtil->checkScope($scope, $tokenData["scope"]))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
             return null;
         }

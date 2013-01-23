@@ -11,6 +11,10 @@
     "client_credentials" : {
         "Test Client ID": {
             "secret": "TestSecret"
+        },
+        "Test Client ID with Redirect Uri": {
+            "secret": "TestSecret2",
+            "redirect_uri": "http://brentertainment.com"
         }
     },
     "user_credentials" : {

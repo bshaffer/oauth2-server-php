@@ -20,7 +20,7 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
 
     public function validateRequest($request)
     {
-        if (!$request->query("password") || !$request->query("username")) {
+        if (!$request->request("password") || !$request->request("username")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
             return false;
         }
@@ -30,12 +30,12 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
 
     public function getTokenDataFromRequest($request)
     {
-        if (!$this->storage->checkUserCredentials($request->query("username"), $request->query("password"))) {
+        if (!$this->storage->checkUserCredentials($request->request("username"), $request->request("password"))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid username and password combination');
             return false;
         }
 
-        $tokenData = $this->storage->getUserDetails($request->query("username"));
+        $tokenData = $this->storage->getUserDetails($request->request("username"));
 
         // tokenData can be an empty array
         if (false === $tokenData || is_null($tokenData)) {
