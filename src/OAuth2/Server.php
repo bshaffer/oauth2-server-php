@@ -140,9 +140,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     public function getGrantController()
     {
         if (is_null($this->grantController)) {
-            if (!isset($this->storages['client_credentials'])) {
-                throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientCredentialsInterface to use the grant server");
-            }
+
             if (is_null($this->accessTokenResponseType)) {
                 if (isset($this->responseTypes['access_token'])) {
                     $this->accessTokenResponseType = $this->responseTypes['access_token'];
