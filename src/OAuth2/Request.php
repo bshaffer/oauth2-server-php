@@ -192,6 +192,11 @@ class OAuth2_Request implements OAuth2_RequestInterface
         ) {
             parse_str($request->getContent(), $data);
             $request->request = $data;
+        } elseif (0 === strpos($contentType, 'application/json')
+            && in_array(strtoupper($requestMethod), array('POST', 'PUT', 'DELETE'))
+        ) {
+            $data = json_decode($request->getContent(), true);
+            $request->request = $data;
         }
 
         return $request;
