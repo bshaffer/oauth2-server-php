@@ -10,6 +10,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     private $response;
     private $audience = null;
     private $jwt = null;
+    private $undecodedJWT = null;
     private $jwtUtil;
 
     /**
@@ -74,6 +75,9 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
             return null;
         }
 
+        //Store the undecoded JWT for later use
+        $this->undecodedJWT = $request->request('assertion');
+        
         //Decode the JWT
         try {
             $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
@@ -83,7 +87,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
             return null;
         }
 
-        $this->setJWT($jwt);
+        $this->jwt = $jwt;
 
         $tokenData = array();
 
@@ -107,14 +111,6 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
         return $tokenData;
     }
 
-    /**
-     * Store a copy of the JWT
-     * @param string $jwt
-     */
-    private function setJWT($jwt)
-    {
-        $this->jwt = $jwt;
-    }
 
     /**
      * Helper function to make it easier to return a JWT parameter.
@@ -257,7 +253,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
         //Verify the JWT
         try {
 
-            $this->jwtUtil->decode($this->jwt, $clientData['client_secret'], true);
+            $this->jwtUtil->decode($this->undecodedJWT, $clientData['client_secret'], true);
 
         } catch (Exception $e) {
 
