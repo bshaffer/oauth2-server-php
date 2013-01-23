@@ -66,7 +66,7 @@ class OAuth2_Util_JWT
                 return $this->sign($input, $key, $algo) === $signature;
 
             case 'RS256':
-                return openssl_verify($input, $signature, $key, OPENSSL_ALGO_SHA256) === 1;
+                return openssl_verify($input, $signature, $key, 'sha256') === 1;
         }
     }
 
@@ -84,7 +84,7 @@ class OAuth2_Util_JWT
                 return hash_hmac('sha512', $input, $key, true);
 
             case 'RS256':
-                if (!openssl_sign($input, $signature, $key, OPENSSL_ALGO_SHA256)) {
+                if (!openssl_sign($input, $signature, $key, 'sha256')) {
                      throw new Exception("Unable to sign data.");
                 }
 
