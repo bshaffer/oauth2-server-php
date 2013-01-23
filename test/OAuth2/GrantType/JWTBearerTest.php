@@ -233,12 +233,11 @@ EOD;
         //We also provided PHP 5.2 specific data for it in storage.json
         $newPHP = true;
 
-        if (version_compare(PHP_VERSION, '5.2', '<=')) {
+        if (version_compare(PHP_VERSION, '5.2') <= 0) {
             $iss .= ' PHP-5.2';
             $newPHP = false;
             $privateKey = 'mysecretkey';
         }
-
 
         if (!$exp) {
             $exp = time() + 1000;
