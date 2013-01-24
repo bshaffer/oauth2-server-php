@@ -59,6 +59,10 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
 
         $token = $storage->getAccessToken('newtoken');
         $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+        $this->assertArrayHasKey('client_id', $token);
+        $this->assertArrayHasKey('user_id', $token);
+        $this->assertArrayHasKey('expires', $token);
         $this->assertEquals($token['access_token'], 'newtoken');
         $this->assertEquals($token['client_id'], 'client ID');
         $this->assertEquals($token['user_id'], 'SOMEUSERID');
@@ -71,6 +75,10 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
 
         $token = $storage->getAccessToken('newtoken');
         $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+        $this->assertArrayHasKey('client_id', $token);
+        $this->assertArrayHasKey('user_id', $token);
+        $this->assertArrayHasKey('expires', $token);
         $this->assertEquals($token['access_token'], 'newtoken');
         $this->assertEquals($token['client_id'], 'client ID2');
         $this->assertEquals($token['user_id'], 'SOMEOTHERID');
@@ -91,6 +99,10 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
 
         $token = $storage->getRefreshToken('refreshtoken');
         $this->assertNotNull($token);
+        $this->assertArrayHasKey('refresh_token', $token);
+        $this->assertArrayHasKey('client_id', $token);
+        $this->assertArrayHasKey('user_id', $token);
+        $this->assertArrayHasKey('expires', $token);
         $this->assertEquals($token['refresh_token'], 'refreshtoken');
         $this->assertEquals($token['client_id'], 'client ID');
         $this->assertEquals($token['user_id'], 'SOMEUSERID');
@@ -123,6 +135,11 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
 
         $code = $storage->getAuthorizationCode('newcode');
         $this->assertNotNull($code);
+        $this->assertArrayHasKey('authorization_code', $code);
+        $this->assertArrayHasKey('client_id', $code);
+        $this->assertArrayHasKey('user_id', $code);
+        $this->assertArrayHasKey('redirect_uri', $code);
+        $this->assertArrayHasKey('expires', $code);
         $this->assertEquals($code['authorization_code'], 'newcode');
         $this->assertEquals($code['client_id'], 'client ID');
         $this->assertEquals($code['user_id'], 'SOMEUSERID');
@@ -136,6 +153,11 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
 
         $code = $storage->getAuthorizationCode('newcode');
         $this->assertNotNull($code);
+        $this->assertArrayHasKey('authorization_code', $code);
+        $this->assertArrayHasKey('client_id', $code);
+        $this->assertArrayHasKey('user_id', $code);
+        $this->assertArrayHasKey('redirect_uri', $code);
+        $this->assertArrayHasKey('expires', $code);
         $this->assertEquals($code['authorization_code'], 'newcode');
         $this->assertEquals($code['client_id'], 'client ID2');
         $this->assertEquals($code['user_id'], 'SOMEOTHERID');
@@ -163,6 +185,9 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
         // ensure all properties are set
         $user = $storage->getUser('testusername');
         $this->assertTrue($user !== false);
+        $this->assertArrayHasKey('username', $user);
+        $this->assertArrayHasKey('first_name', $user);
+        $this->assertArrayHasKey('last_name', $user);
         $this->assertEquals($user['username'], 'testusername');
         $this->assertEquals($user['first_name'], 'Test');
         $this->assertEquals($user['last_name'], 'User');
