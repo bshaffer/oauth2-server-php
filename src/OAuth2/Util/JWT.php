@@ -67,6 +67,15 @@ class OAuth2_Util_JWT
 
             case 'RS256':
                 return openssl_verify($input, $signature, $key, 'sha256') === 1;
+
+            case 'RS384':
+                return openssl_verify($input, $signature, $key, 'sha384') === 1;
+
+            case 'RS512':
+                return openssl_verify($input, $signature, $key, 'sha512') === 1;
+
+            default:
+                throw new Exception("Unsupported or invalid signing algorithm.");
         }
     }
 
@@ -84,15 +93,26 @@ class OAuth2_Util_JWT
                 return hash_hmac('sha512', $input, $key, true);
 
             case 'RS256':
-                if (!openssl_sign($input, $signature, $key, 'sha256')) {
-                     throw new Exception("Unable to sign data.");
-                }
+                return $this->generateRSASignature($input, $key, 'sha256');
 
-                return $signature;
+            case 'RS384':
+                return $this->generateRSASignature($input, $key, 'sha384');
+
+            case 'RS512':
+                return $this->generateRSASignature($input, $key, 'sha512');
 
             default:
                 throw new Exception("Unsupported or invalid signing algorithm.");
         }
+    }
+
+    private function generateRSASignature($input, $key, $algo)
+    {
+        if (!openssl_sign($input, $signature, $key, $algo)) {
+            throw new Exception("Unable to sign data.");
+        }
+
+        return $signature;
     }
 
     private function urlSafeB64Encode($data)
