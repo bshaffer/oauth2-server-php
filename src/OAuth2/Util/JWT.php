@@ -66,13 +66,13 @@ class OAuth2_Util_JWT
                 return $this->sign($input, $key, $algo) === $signature;
 
             case 'RS256':
-                return openssl_verify($input, $signature, $key, 'sha256') === 1;
+                return @openssl_verify($input, $signature, $key, 'sha256') === 1;
 
             case 'RS384':
-                return openssl_verify($input, $signature, $key, 'sha384') === 1;
+                return @openssl_verify($input, $signature, $key, 'sha384') === 1;
 
             case 'RS512':
-                return openssl_verify($input, $signature, $key, 'sha512') === 1;
+                return @openssl_verify($input, $signature, $key, 'sha512') === 1;
 
             default:
                 throw new Exception("Unsupported or invalid signing algorithm.");
