@@ -28,18 +28,22 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
 
     public function verifyAccessRequest(OAuth2_RequestInterface $request)
     {
-        $token = $this->tokenType->getAccessTokenParameter($request);
-        $this->response = $this->tokenType->getResponse();
-        if ($token) {
-            $access_token = $this->getAccessTokenData($token, $this->scopeUtil->getScopeFromRequest($request));
-            return (bool) $access_token;
-        }
+        $token_data = $this->getAccessTokenData($request);
 
-        return false;
+        return (bool) $token_data;
     }
 
-    public function getAccessTokenData($token_param, $scope = null)
+    public function getAccessTokenData(OAuth2_RequestInterface $request)
     {
+        $token_param = $this->tokenType->getAccessTokenParameter($request);
+        $this->response = $this->tokenType->getResponse();
+
+        if(!$token_param){
+            return null;
+        }
+
+        $scope = $this->scopeUtil->getScopeFromRequest($request);
+
         if (!$token_param) { // Access token was not provided
             $this->response = new OAuth2_Response_AuthenticationError(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope);
             return null;
