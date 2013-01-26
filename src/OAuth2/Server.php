@@ -66,9 +66,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
         foreach ($storage as $key => $service) {
             if (isset($validStorage[$key])) {
                 if (!$service instanceof $validStorage[$key]) {
-                    throw new InvalidArgumentException(sprintf('storage of type "%s" must implement interface "%s"', $type, $interface));
+                    throw new InvalidArgumentException(sprintf('storage of type "%s" must implement interface "%s"', $key, $validStorage[$key]));
                 }
-                $this->storages[$type] = $service;
+                $this->storages[$key] = $service;
                 continue; // if explicitly set to a valid key, do not "magically" set below
             }
             // set a storage object to each key for the interface it represents
@@ -326,9 +326,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
         return $value;
     }
 
-    public function getAccessTokenData($token_param, $scope = null)
+    public function getAccessTokenData(OAuth2_RequestInterface $request)
     {
-        $value = $this->getAccessController()->getAccessTokenData($token_param, $scope);
+        $value = $this->getAccessController()->getAccessTokenData($request);
         $this->response = $this->accessController->getResponse();
         return $value;
     }
