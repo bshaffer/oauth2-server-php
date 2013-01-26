@@ -56,8 +56,13 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
      */
     public function grantAccessToken(OAuth2_RequestInterface $request)
     {
+        if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The request method must be POST when requesting an access token', 'http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-3.2');
+            return null;
+        }
+
         // Determine grant type from request
-        if (!($grantType = $request->query('grant_type')) && !($grantType = $request->request('grant_type'))) {
+        if (!$grantType = $request->request('grant_type')) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The grant type was not specified in the request');
             return null;
         }

@@ -16,7 +16,7 @@ class OAuth2_GrantType_ClientCredentials implements OAuth2_GrantTypeInterface
     public function getTokenDataFromRequest($request)
     {
         // the only piece to pull is the "scope" parameter
-        $scope = $request->server('REQUEST_METHOD') == 'POST' ? $request->request('scope') : $request->query('scope');
+        $scope = $request->request('scope');
         return array(
             "scope" => $scope
         );

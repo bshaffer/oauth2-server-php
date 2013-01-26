@@ -6,7 +6,7 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
-        $response = $server->handleGrantRequest(OAuth2_Request::createFromGlobals());
+        $response = $server->handleGrantRequest(OAuth2_Request_TestRequest::createPost());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -17,8 +17,9 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
-        $request->request['grant_type'] = 'invalid_grant_type'; // invalid grant type
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'invalid_grant_type', // invalid grant type
+        ));
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -30,8 +31,9 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
-        $request->request['grant_type'] = 'authorization_code'; // valid grant type
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code', // valid grant type
+        ));
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -43,9 +45,10 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
-        $request->request['grant_type'] = 'authorization_code'; // valid grant type
-        $request->request['client_id'] = 'Test Client ID'; // valid client id
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code', // valid grant type
+            'client_id' => 'Test Client ID', // valid client id
+        ));
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -57,10 +60,11 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
-        $request->request['grant_type'] = 'authorization_code'; // valid grant type
-        $request->request['client_id'] = 'Fake Client ID'; // invalid client id
-        $request->request['client_secret'] = 'Fake Client Secret'; // invalid client secret
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code', // valid grant type
+            'client_id' => 'Fake Client ID', // invalid client id
+            'client_secret' => 'Fake Client Secret', // invalid client secret
+        ));
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -80,11 +84,12 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
-        $request->request['grant_type'] = 'authorization_code'; // valid grant type
-        $request->request['client_id'] = 'Test Client ID'; // valid client id
-        $request->request['client_secret'] = 'TestSecret'; // valid client secret
-        $request->request['code'] = 'testcode'; // valid authorization code
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code', // valid grant type
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code' => 'testcode', // valid authorization code
+        ));
         $response = $server->handleGrantRequest($request);
 
         $this->assertTrue($response instanceof OAuth2_Response);
