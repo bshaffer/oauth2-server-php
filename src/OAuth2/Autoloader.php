@@ -18,7 +18,7 @@ class OAuth2_Autoloader
         $this->dir = $dir;
     }
     /**
-     * Registers AdobeDigitalMarketing_Autoloader as an SPL autoloader.
+     * Registers OAuth2_Autoloader as an SPL autoloader.
      */
     public static function register($dir = null)
     {
