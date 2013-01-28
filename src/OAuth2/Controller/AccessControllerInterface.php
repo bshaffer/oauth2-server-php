@@ -15,7 +15,7 @@
  */
 interface OAuth2_Controller_AccessControllerInterface extends OAuth2_Response_ProviderInterface
 {
-    public function verifyAccessRequest(OAuth2_RequestInterface $request);
+    public function verifyAccessRequest(OAuth2_RequestInterface $request, $scope = null);
 
     public function getAccessTokenData(OAuth2_RequestInterface $request);
 }

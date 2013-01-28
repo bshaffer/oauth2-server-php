@@ -11,7 +11,7 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
     private $config;
     private $scopeUtil;
 
-    public function __construct(OAuth2_TokenTypeInterface $tokenType, OAuth2_Storage_AccessTokenInterface $tokenStorage, $config = array(), $scopeUtil = null)
+    public function __construct(OAuth2_TokenTypeInterface $tokenType, OAuth2_Storage_AccessTokenInterface $tokenStorage, $config = array(), OAuth2_ScopeInterface $scopeUtil = null)
     {
         $this->tokenType = $tokenType;
         $this->tokenStorage = $tokenStorage;
@@ -21,19 +21,19 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
         ), $config);
 
         if (is_null($scopeUtil)) {
-            $scopeUtil = new OAuth2_Util_Scope();
+            $scopeUtil = new OAuth2_Scope();
         }
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function verifyAccessRequest(OAuth2_RequestInterface $request)
+    public function verifyAccessRequest(OAuth2_RequestInterface $request, $scope = null)
     {
-        $token_data = $this->getAccessTokenData($request);
+        $token_data = $this->getAccessTokenData($request, $scope);
 
         return (bool) $token_data;
     }
 
-    public function getAccessTokenData(OAuth2_RequestInterface $request)
+    public function getAccessTokenData(OAuth2_RequestInterface $request, $scope = null)
     {
         $token_param = $this->tokenType->getAccessTokenParameter($request);
         $this->response = $this->tokenType->getResponse();
@@ -41,8 +41,6 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
         if(!$token_param){
             return null;
         }
-
-        $scope = $this->scopeUtil->getScopeFromRequest($request);
 
         if (!$token_param) { // Access token was not provided
             $this->response = new OAuth2_Response_AuthenticationError(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope);

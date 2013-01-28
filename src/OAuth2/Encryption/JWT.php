@@ -4,7 +4,7 @@
  * @author F21
  */
 
-class OAuth2_Util_JWT
+class OAuth2_Encryption_JWT
 {
     public function encode($payload, $key, $algo = 'HS256')
     {
