@@ -21,7 +21,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         ), $config);
 
         if (is_null($scopeUtil)) {
-            $scopeUtil = new OAuth2_Util_Scope();
+            $scopeUtil = new OAuth2_Scope();
         }
         $this->scopeUtil = $scopeUtil;
     }

@@ -20,7 +20,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         }
 
         if (is_null($scopeUtil)) {
-            $scopeUtil = new OAuth2_Util_Scope();
+            $scopeUtil = new OAuth2_Scope();
         }
         $this->scopeUtil = $scopeUtil;
     }

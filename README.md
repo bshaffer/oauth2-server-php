@@ -218,7 +218,7 @@ implementation, or by taking advantage of the existing `OAuth2_Storage_Memory` c
       'default_scope' => $defaultScope,
       'supported_scopes => $supportedScoes'
     ));
-    $scopeUtil = new OAuth2_Util_Scope($memory);
+    $scopeUtil = new OAuth2_Scope($memory);
 
     $server->setScopeUtil($scopeUtil);
 
@@ -226,7 +226,7 @@ This is the simplest way, but scope can by dynamically configured as well:
 
     // configure your available scopes
     $doctrine = Doctrine_Core::getTable('OAuth2Scope');
-    $scopeUtil = new OAuth2_Util_Scope($doctrine);
+    $scopeUtil = new OAuth2_Scope($doctrine);
 
     $server->setScopeUtil($scopeUtil);
 
@@ -249,7 +249,7 @@ access it:
 ####Customizing your scope
 
 As the implementation of "scope" can be significantly different for each application, providing a different class other than
-OAuth2_Util_Scope can be beneficial.  Implement `OAuth2_ScopeInterface` in a custom class to fully customize.
+OAuth2_Scope can be beneficial.  Implement `OAuth2_ScopeInterface` in a custom class to fully customize.
 
 Acknowledgements
 ----------------

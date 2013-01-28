@@ -3,7 +3,7 @@
 /**
 * @see OAuth2_ScopeInterface
 */
-class OAuth2_Util_Scope implements OAuth2_ScopeInterface
+class OAuth2_Scope implements OAuth2_ScopeInterface
 {
     private $storage;
 
@@ -14,7 +14,7 @@ class OAuth2_Util_Scope implements OAuth2_ScopeInterface
         }
 
         if (!$storage instanceof OAuth2_Storage_ScopeInterface) {
-            throw new InvalidArgumentException("Argument 1 to OAuth2_Util_Scope must be null, an array, or instance of OAuth2_Storage_ScopeInterface");
+            throw new InvalidArgumentException("Argument 1 to OAuth2_Scope must be null, an array, or instance of OAuth2_Storage_ScopeInterface");
         }
 
         $this->storage = $storage;
