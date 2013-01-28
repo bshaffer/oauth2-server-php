@@ -1,11 +1,25 @@
 <?php
 
 /**
-* Class for common functions used across the Controller classes
-* This may be better off in a "BaseController" class
+* @see OAuth2_ScopeInterface
 */
-class OAuth2_Util_Scope
+class OAuth2_Util_Scope implements OAuth2_ScopeInterface
 {
+    private $storage;
+
+    public function __construct($storage = null)
+    {
+        if (is_null($storage) || is_array($storage)) {
+            $storage = new OAuth2_Storage_Memory((array) $storage);
+        }
+
+        if (!$storage instanceof OAuth2_Storage_ScopeInterface) {
+            throw new InvalidArgumentException("Argument 1 to OAuth2_Util_Scope must be null, an array, or instance of OAuth2_Storage_ScopeInterface");
+        }
+
+        $this->storage = $storage;
+    }
+
     /**
      * Check if everything in required scope is contained in available scope.
      *
@@ -36,6 +50,16 @@ class OAuth2_Util_Scope
 
     public function getScopeFromRequest(OAuth2_RequestInterface $request)
     {
-        return $request->server('REQUEST_METHOD') == 'POST' ? $request->request('scope') : $request->query('scope');
+        return strtoupper($request->server('REQUEST_METHOD')) == 'POST' ? $request->request('scope') : $request->query('scope');
+    }
+
+    public function getDefaultScope()
+    {
+        return $this->storage->getDefaultScope();
+    }
+
+    public function getSupportedScopes()
+    {
+        return $this->storage->getSupportedScopes();
     }
 }

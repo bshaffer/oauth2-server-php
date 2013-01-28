@@ -10,7 +10,8 @@
  */
 class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface,
     OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_AccessTokenInterface,
-    OAuth2_Storage_ClientCredentialsInterface, OAuth2_Storage_RefreshTokenInterface, OAuth2_Storage_JWTBearerInterface
+    OAuth2_Storage_ClientCredentialsInterface, OAuth2_Storage_RefreshTokenInterface,
+    OAuth2_Storage_JWTBearerInterface, OAuth2_Storage_ScopeInterface
 {
     private $authorizationCodes;
     private $userCredentials;
@@ -18,6 +19,8 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     private $refreshTokens;
     private $accessTokens;
     private $jwt;
+    private $supportedScopes;
+    private $defaultScope;
 
     public function __construct($params = array())
     {
@@ -27,7 +30,9 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
             'client_credentials' => array(),
             'refresh_tokens' => array(),
             'access_tokens' => array(),
-            'jwt' => array()
+            'jwt' => array(),
+            'default_scope' => 'all',
+            'supported_scopes' => array('all'), // must support default scope by default
         ), $params);
 
         $this->authorizationCodes = $params['authorization_codes'];
@@ -36,6 +41,8 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         $this->refreshTokens = $params['refresh_tokens'];
         $this->accessTokens = $params['access_tokens'];
         $this->jwt = $params['jwt'];
+        $this->supportedScopes = $params['supported_scopes'];
+        $this->defaultScope = $params['default_scope'];
     }
 
     /* AuthorizationCodeInterface */
@@ -139,6 +146,16 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
         $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope');
+    }
+
+    public function getSupportedScopes()
+    {
+        return $this->supportedScopes;
+    }
+
+    public function getDefaultScope()
+    {
+        return $this->defaultScope;
     }
 
     /*JWTBearerInterface */
