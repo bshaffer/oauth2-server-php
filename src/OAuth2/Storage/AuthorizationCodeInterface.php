@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Storage engines that support the "Authorization Code"
- * grant type should implement this interface
+ * Implement this interface to specify where the OAuth2 Server
+ * should get/save authorization codes for the "Authorization Code"
+ * grant type
  *
- * @author Dave Rochwerger <catch.dave@gmail.com>
- * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1
+ * @author Brent Shaffer <bshafs@gmail.com>
  */
 interface OAuth2_Storage_AuthorizationCodeInterface
 {

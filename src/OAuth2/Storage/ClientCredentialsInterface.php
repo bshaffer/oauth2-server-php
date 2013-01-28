@@ -1,9 +1,10 @@
 <?php
 
 /**
- * All storage engines need to implement this interface in order to use OAuth2 server
+ * Implement this interface to specify how the OAuth2 Server
+ * should verify client credentials
  *
- * @author David Rochwerger <catch.dave@gmail.com>
+ * @author Brent Shaffer <bshafs@gmail.com>
  */
 interface OAuth2_Storage_ClientCredentialsInterface extends OAuth2_Storage_ClientInterface
 {

@@ -1,8 +1,14 @@
 <?php
 
 /**
- * All storage engines need to implement this interface in order to use the JWT Authorization Grant.
+ * Implement this interface to specify where the OAuth2 Server
+ * should get the JWT key for clients
+ *
+ * @TODO consider extending ClientInterface, as this will almost always
+ * be the same storage as retrieving clientData
+ *
  * @author F21
+ * @author Brent Shaffer <bshafs@gmail.com>
  */
 interface OAuth2_Storage_JWTBearerInterface
 {

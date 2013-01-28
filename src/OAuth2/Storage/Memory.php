@@ -1,8 +1,13 @@
 <?php
 
 /**
-*
-*/
+ * Simple in-memory storage for all storage types
+ *
+ * NOTE: This class should never be used in production, and is
+ * a stub class for example use only
+ *
+ * @author Brent Shaffer <bshafs@gmail.com>
+ */
 class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface,
     OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_AccessTokenInterface,
     OAuth2_Storage_ClientCredentialsInterface, OAuth2_Storage_RefreshTokenInterface, OAuth2_Storage_JWTBearerInterface
@@ -150,7 +155,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
                 }
             }
         }
-        
+
         return null;
     }
 }
