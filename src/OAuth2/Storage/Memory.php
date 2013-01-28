@@ -31,8 +31,8 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
             'refresh_tokens' => array(),
             'access_tokens' => array(),
             'jwt' => array(),
-            'default_scope' => 'all',
-            'supported_scopes' => array('all'), // must support default scope by default
+            'default_scope' => null,
+            'supported_scopes' => array(),
         ), $params);
 
         $this->authorizationCodes = $params['authorization_codes'];

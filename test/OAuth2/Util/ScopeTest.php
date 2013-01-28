@@ -26,8 +26,8 @@ class OAuth2_ScopeTest extends PHPUnit_Framework_TestCase
     {
         $scopeUtil = new OAuth2_Scope();
 
-        $this->assertEquals($scopeUtil->getDefaultScope(), 'all');
-        $this->assertEquals($scopeUtil->getSupportedScopes(), array('all'));
+        $this->assertEquals($scopeUtil->getDefaultScope(), null);
+        $this->assertEquals($scopeUtil->getSupportedScopes(), array());
 
         $scopeUtil = new OAuth2_Scope(array(
             'default_scope' => 'default',
