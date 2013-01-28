@@ -77,13 +77,13 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 
         //Store the undecoded JWT for later use
         $this->undecodedJWT = $request->request('assertion');
-        
-        //Decode the JWT
-        try {
-            $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
-        } catch (Exception $e) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
 
+        //Decode the JWT
+        $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
+
+        if (!$jwt) {
+
+            $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
             return null;
         }
 
@@ -251,14 +251,11 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
         }
 
         //Verify the JWT
-        try {
+        $jwt = $this->jwtUtil->decode($this->undecodedJWT, $clientData['client_secret'], true);
 
-            $this->jwtUtil->decode($this->undecodedJWT, $clientData['client_secret'], true);
-
-        } catch (Exception $e) {
+        if (!$jwt) {
 
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT failed signature verification");
-
             return null;
         }
 

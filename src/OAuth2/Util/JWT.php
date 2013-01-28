@@ -28,17 +28,17 @@ class OAuth2_Util_JWT
         $tks = explode('.', $jwt);
 
         if (count($tks) != 3) {
-            throw new Exception('Wrong number of segments');
+            return false;
         }
 
         list($headb64, $payloadb64, $cryptob64) = $tks;
 
         if (null === ($header = json_decode($this->urlsafeB64Decode($headb64)))){
-            throw new Exception('Invalid segment encoding');
+            return false;
         }
 
         if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64))){
-            throw new Exception('Invalid segment encoding');
+            return false;
         }
 
         $sig = $this->urlsafeB64Decode($cryptob64);
@@ -46,11 +46,11 @@ class OAuth2_Util_JWT
         if ($verify) {
 
             if (empty($header->alg)) {
-                throw new DomainException('Empty algorithm');
+                return false;
             }
 
             if (!$this->verifySignature($sig, "$headb64.$payloadb64", $key, $header->alg)) {
-                throw new UnexpectedValueException('Signature verification failed');
+                return false;
             }
         }
 
