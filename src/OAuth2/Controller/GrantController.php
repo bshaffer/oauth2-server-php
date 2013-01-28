@@ -11,7 +11,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
     private $grantTypes;
     private $scopeUtil;
 
-    public function __construct($clientStorage, OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), $scopeUtil = null)
+    public function __construct(OAuth2_Storage_ClientCredentialsInterface $clientStorage, OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), $scopeUtil = null)
     {
         $this->clientStorage = $clientStorage;
         $this->accessToken = $accessToken;
