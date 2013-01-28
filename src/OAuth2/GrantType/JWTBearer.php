@@ -20,16 +20,16 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      * A valid storage interface that implements storage hooks for the JWT bearer grant type.
      * @param string $audience
      * The audience to validate the token against. This is usually the full URI of the OAuth grant requests endpoint.
-     * @param OAuth2_Util_JWT OPTIONAL $jwtUtil
+     * @param OAuth2_Encryption_JWT OPTIONAL $jwtUtil
      * The class used to decode, encode and verify JWTs.
      */
-    public function __construct(OAuth2_Storage_JWTBearerInterface $storage, $audience,  OAuth2_Util_JWT $jwtUtil = null)
+    public function __construct(OAuth2_Storage_JWTBearerInterface $storage, $audience,  OAuth2_Encryption_JWT $jwtUtil = null)
     {
         $this->storage = $storage;
         $this->audience = $audience;
 
         if (is_null($jwtUtil)) {
-            $jwtUtil = new OAuth2_Util_JWT();
+            $jwtUtil = new OAuth2_Encryption_JWT();
         }
 
         $this->jwtUtil = $jwtUtil;
@@ -77,7 +77,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
 
         //Store the undecoded JWT for later use
         $this->undecodedJWT = $request->request('assertion');
-        
+
         //Decode the JWT
         try {
             $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);

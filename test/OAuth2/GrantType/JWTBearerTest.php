@@ -271,7 +271,7 @@ EOD;
             $params['nbf'] = $nbf;
         }
 
-        $jwtUtil = new OAuth2_Util_JWT();
+        $jwtUtil = new OAuth2_Encryption_JWT();
 
         if ($newPHP){
             return $jwtUtil->encode($params, $privateKey, 'RS256');
