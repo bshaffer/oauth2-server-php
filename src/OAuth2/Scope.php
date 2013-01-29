@@ -50,7 +50,8 @@ class OAuth2_Scope implements OAuth2_ScopeInterface
 
     public function getScopeFromRequest(OAuth2_RequestInterface $request)
     {
-        return strtoupper($request->server('REQUEST_METHOD')) == 'POST' ? $request->request('scope') : $request->query('scope');
+        // "scope" is valid if passed in either POST or QUERY
+        return $request->request('scope', $request->query('scope'));
     }
 
     public function getDefaultScope()
