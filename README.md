@@ -230,6 +230,21 @@ This is the simplest way, but scope can by dynamically configured as well:
 
     $server->setScopeUtil($scopeUtil);
 
+This example assumes the class being used implements `OAuth2_Storage_ScopeInterface`:
+
+    class OAuth2ScopeTable extends Doctrine_Table implements OAuth2_Storage_ScopeInterface
+    {
+      public function getDefaultScope()
+      {
+        //...
+      }
+
+      public function getAvailableScopes()
+      {
+        //...
+      }
+    }
+
 ####Validate your scope
 
 Configuring your scope in the server class will ensure requested scopes by the client are valid.  However, there are two
