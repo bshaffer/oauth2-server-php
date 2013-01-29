@@ -344,7 +344,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
                 throw new InvalidArgumentException(sprintf('storage of type "%s" must implement interface "%s"', $key, $this->storageMap[$key]));
             }
             $this->storages[$key] = $storage;
-            continue; // if explicitly set to a valid key, do not "magically" set below
+            // if explicitly set to a valid key, do not "magically" set below
         }
         // set a storage object to each key for the interface it represents
         // this means if an object represents more than one storage type, it will be referenced by multiple storage keys
