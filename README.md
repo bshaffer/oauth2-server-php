@@ -238,13 +238,13 @@ owner upon authorization.  In this library, this is left 100% to the implementat
 the scope of the authorization being granted.  Second, the resource request itself must specify what scope is required to
 access it:
 
-  // https://api.example.com/resource-requiring-postonwall-scope
-  $request = OAuth2_Request::createFromGlobals();
-  $scopeRequired = 'postonwall'; // this resource requires "postonwall" scope
-  if (!$server->verifyAccessRequest($request, $scopeRequired)) {
-    // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
-    $server->getRequest()->send();
-  }
+    // https://api.example.com/resource-requiring-postonwall-scope
+    $request = OAuth2_Request::createFromGlobals();
+    $scopeRequired = 'postonwall'; // this resource requires "postonwall" scope
+    if (!$server->verifyAccessRequest($request, $scopeRequired)) {
+      // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
+      $server->getRequest()->send();
+    }
 
 ####Customizing your scope
 
