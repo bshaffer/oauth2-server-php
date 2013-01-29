@@ -114,4 +114,47 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $server->addStorage($this->getMock('OAuth2_Storage_AccessTokenInterface'));
         $server->getAccessController();
     }
+
+    /**
+     * @expectedException InvalidArgumentException OAuth2_Storage_AccessTokenInterface
+     **/
+    public function testAddingStorageWithInvalidClass()
+    {
+        $server = new OAuth2_Server();
+        $server->addStorage($this->getMock('OAuth2_ScopeInterface'));
+    }
+
+    /**
+     * @expectedException InvalidArgumentException access_token
+     **/
+    public function testAddingStorageWithInvalidKey()
+    {
+        $server = new OAuth2_Server();
+        $server->addStorage($this->getMock('OAuth2_Storage_AccessTokenInterface'), 'nonexistant_storage');
+    }
+
+    /**
+     * @expectedException InvalidArgumentException OAuth2_Storage_AuthorizationCodeInterface
+     **/
+    public function testAddingStorageWithInvalidKeyStorageCombination()
+    {
+        $server = new OAuth2_Server();
+        $server->addStorage($this->getMock('OAuth2_Storage_AccessTokenInterface'), 'authorization_code');
+    }
+
+    public function testAddingStorageWithValidKeyOnlySetsThatKey()
+    {
+        $server = new OAuth2_Server();
+        $server->addStorage($this->getMock('OAuth2_Storage_Memory'), 'access_token');
+
+        $reflection = new ReflectionClass($server);
+        $prop = $reflection->getProperty('storages');
+        $prop->setAccessible(true);
+
+        $storages = $prop->getValue($server); // get the private "storages" property
+
+        $this->assertEquals(1, count($storages));
+        $this->assertTrue(isset($storages['access_token']));
+        $this->assertFalse(isset($storages['authorization_code']));
+    }
 }

@@ -339,19 +339,28 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
 
     public function addStorage($storage, $key = null)
     {
+        // if explicitly set to a valid key, do not "magically" set below
         if (isset($this->storageMap[$key])) {
             if (!$storage instanceof $this->storageMap[$key]) {
                 throw new InvalidArgumentException(sprintf('storage of type "%s" must implement interface "%s"', $key, $this->storageMap[$key]));
             }
             $this->storages[$key] = $storage;
-            // if explicitly set to a valid key, do not "magically" set below
-        }
-        // set a storage object to each key for the interface it represents
-        // this means if an object represents more than one storage type, it will be referenced by multiple storage keys
-        // ex: OAuth2_Storage_Pdo will be set for all the $storageMap keys
-        foreach ($this->storageMap as $type => $interface) {
-            if ($storage instanceof $interface) {
-                $this->storages[$type] = $storage;
+        } elseif (!is_null($key) && !is_numeric($key)) {
+            throw new InvalidArgumentException(sprintf('unknown storage key "%s", must be one of [%s]', $key, implode(', ', array_keys($this->storageMap))));
+        } else {
+            $set = false;
+            // set a storage object to each key for the interface it represents
+            // this means if an object represents more than one storage type, it will be referenced by multiple storage keys
+            // ex: OAuth2_Storage_Pdo will be set for all the $storageMap keys
+            foreach ($this->storageMap as $type => $interface) {
+                if ($storage instanceof $interface) {
+                    $this->storages[$type] = $storage;
+                    $set = true;
+                }
+            }
+
+            if (!$set) {
+                throw new InvalidArgumentException(sprintf('storage of class "%s" must implement one of [%s]', get_class($storage), implode(', ', $this->storageMap)));
             }
         }
     }
