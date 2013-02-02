@@ -21,7 +21,7 @@ interface OAuth2_Storage_ClientCredentialsInterface extends OAuth2_Storage_Clien
      * TRUE if the client credentials are valid, and MUST return FALSE if it isn't.
      * @endcode
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-3.1
+     * @see http://tools.ietf.org/html/rfc6749#section-3.1
      *
      * @ingroup oauth2_section_3
      */

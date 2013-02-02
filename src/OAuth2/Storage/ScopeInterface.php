@@ -14,7 +14,7 @@ interface OAuth2_Storage_ScopeInterface
      * Scope names must follow the format specified in the
      * oauth2 spec
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-3.3
+     * @see http://tools.ietf.org/html/rfc6749#section-3.3
      *
      * @return
      * array or space-delimited string of supported scopes

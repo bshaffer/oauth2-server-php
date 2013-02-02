@@ -57,7 +57,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * TRUE if everything in required scope is contained in available scope,
      * and FALSE if it isn't.
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-7
+     * @see http://tools.ietf.org/html/rfc6749#section-7
      *
      * @ingroup oauth2_section_7
      */
@@ -223,9 +223,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * @throws InvalidArgumentException
      * @throws LogicException
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-10.6
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-4.1.3
+     * @see http://tools.ietf.org/html/rfc6749#section-4
+     * @see http://tools.ietf.org/html/rfc6749#section-10.6
+     * @see http://tools.ietf.org/html/rfc6749#section-4.1.3
      *
      * @ingroup oauth2_section_4
      */
@@ -276,7 +276,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * @param $user_id
      * Identifier of user who authorized the client
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4
+     * @see http://tools.ietf.org/html/rfc6749#section-4
      *
      * @ingroup oauth2_section_4
      */
@@ -301,8 +301,8 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * The authorization parameters so the authorization server can prompt
      * the user for approval if valid.
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1.1
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-10.12
+     * @see http://tools.ietf.org/html/rfc6749#section-4.1.1
+     * @see http://tools.ietf.org/html/rfc6749#section-10.12
      *
      * @ingroup oauth2_section_3
      */

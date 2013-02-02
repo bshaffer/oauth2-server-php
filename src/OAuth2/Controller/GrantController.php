@@ -28,7 +28,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
     public function handleGrantRequest(OAuth2_RequestInterface $request)
     {
         if ($token = $this->grantAccessToken($request)) {
-            // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-5.1
+            // @see http://tools.ietf.org/html/rfc6749#section-5.1
             // server MUST disable caching in headers when tokens are involved
             $this->response = new OAuth2_Response($token, 200, array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
         }
@@ -48,16 +48,16 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
      * @throws InvalidArgumentException
      * @throws LogicException
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-10.6
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-4.1.3
+     * @see http://tools.ietf.org/html/rfc6749#section-4
+     * @see http://tools.ietf.org/html/rfc6749#section-10.6
+     * @see http://tools.ietf.org/html/rfc6749#section-4.1.3
      *
      * @ingroup oauth2_section_4
      */
     public function grantAccessToken(OAuth2_RequestInterface $request)
     {
         if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The request method must be POST when requesting an access token', 'http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-3.2');
+            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The request method must be POST when requesting an access token', 'http://tools.ietf.org/html/rfc6749#section-3.2');
             return null;
         }
 
@@ -172,7 +172,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
      * );
      * @endcode
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-2.4.1
+     * @see http://tools.ietf.org/html/rfc6749#section-2.4.1
      *
      * @ingroup oauth2_section_2
      */

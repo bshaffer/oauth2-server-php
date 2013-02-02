@@ -15,7 +15,7 @@ class OAuth2_Response_Error extends OAuth2_Response
         if (!is_null($errorUri)) {
             if (strlen($errorUri) > 0 && $errorUri[0] == '#') {
                 // we are referencing an oauth bookmark (for brevity)
-                $errorUri = 'http://tools.ietf.org/html/draft-ietf-oauth-v2-31' . $errorUri;
+                $errorUri = 'http://tools.ietf.org/html/rfc6749' . $errorUri;
             }
             $parameters['error_uri'] = $errorUri;
         }

@@ -37,7 +37,7 @@ interface OAuth2_Storage_UserCredentialsInterface
      * );
      * @endcode
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.3
+     * @see http://tools.ietf.org/html/rfc6749#section-4.3
      *
      * @ingroup oauth2_section_4
      */

@@ -31,7 +31,7 @@ class OAuth2_ResponseType_AccessToken implements OAuth2_ResponseType_AccessToken
         /*
          * a refresh token MUST NOT be included in the fragment
          *
-         * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.2.2
+         * @see http://tools.ietf.org/html/rfc6749#section-4.2.2
          */
         $includeRefreshToken = false;
         $result["fragment"] = $this->createAccessToken($params['client_id'], $user_id, $params['scope'], $includeRefreshToken);
@@ -56,7 +56,7 @@ class OAuth2_ResponseType_AccessToken implements OAuth2_ResponseType_AccessToken
      * @param bool $excludeRefreshToken
      * If true, the refresh_token will be omitted from the response
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-5
+     * @see http://tools.ietf.org/html/rfc6749#section-5
      * @ingroup oauth2_section_5
      */
     public function createAccessToken($client_id, $user_id, $scope = null, $includeRefreshToken = true)

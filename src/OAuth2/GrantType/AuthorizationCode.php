@@ -39,7 +39,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
 
         /*
          * 4.1.3 - ensure that the "redirect_uri" parameter is present if the "redirect_uri" parameter was included in the initial authorization request
-         * @uri - http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.1.3
+         * @uri - http://tools.ietf.org/html/rfc6749#section-4.1.3
          */
         if (isset($tokenData['redirect_uri']) && $tokenData['redirect_uri']) {
             if (!$request->request('redirect_uri') || urldecode($request->request('redirect_uri')) != $tokenData['redirect_uri']) {

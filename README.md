@@ -59,7 +59,7 @@ $server = new OAuth2_Server($storage);
 
 The next step is to add a grant type.  This example uses the "User Credentials" grant type, which grants a token based on
 explicit user credentials passed to the request. Read more on [supported grant types](https://github.com/bshaffer/oauth2-server-php#the-response-object)
-below, or in the [OAuth2 spec](http://tools.ietf.org/html/draft-ietf-oauth-v2-20). Each grant type also requires storage,
+below, or in the [OAuth2 spec](http://tools.ietf.org/html/rfc6749). Each grant type also requires storage,
 so pass the existing storage to the constructor:
 
 ```php
@@ -87,7 +87,7 @@ Server Methods
 > (authorization server), which issues the printing service delegation-
 > specific credentials (access token).
 >
->   ~ OAuth2 ([draft #31](http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-1))
+>   ~ OAuth2 ([draft #31](http://tools.ietf.org/html/rfc6749#section-1))
 
 Most OAuth2 APIs will have endpoints for `Authorize Requests`, `Grant Requests`, and `Access Requests`:
 
@@ -176,19 +176,19 @@ Grant Types
 There are many supported grant types in the OAuth2 specification, and this library allows for the addition of custom grant types as well.
 Supported grant types are as follows:
 
-  1. [Authorization Code](http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.1)
+  1. [Authorization Code](http://tools.ietf.org/html/rfc6749#section-4.1)
 
         An authorization code obtained by user authorization is exchanged for a token
 
-  2. [Implicit](http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.2)
+  2. [Implicit](http://tools.ietf.org/html/rfc6749#section-4.2)
 
         As part of user authorization, a token is retured to the client instead of an authorization code
 
-  3. [Resource Owner Password Credentials](http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.3)
+  3. [Resource Owner Password Credentials](http://tools.ietf.org/html/rfc6749#section-4.3)
 
         The username and password are submitted as part of the request, and a token is issued upon successful authentication
 
-  4. [Client Credentials](http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.4)
+  4. [Client Credentials](http://tools.ietf.org/html/rfc6749#section-4.4)
 
         The client can use their credentials to retrieve an access token directly, which will allow access to resources under the client's control
 

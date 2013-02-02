@@ -77,9 +77,9 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         // Make sure a valid redirect_uri was supplied. If specified, it must match the clientData URI.
-        // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-3.1.2
-        // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1.2.1
-        // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.2.2.1
+        // @see http://tools.ietf.org/html/rfc6749#section-3.1.2
+        // @see http://tools.ietf.org/html/rfc6749#section-4.1.2.1
+        // @see http://tools.ietf.org/html/rfc6749#section-4.2.2.1
         if (!($redirect_uri = $request->query('redirect_uri')) && !($redirect_uri = $clientData['redirect_uri'])) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_uri', 'No redirect URI was supplied or stored');
             return false;
