@@ -163,7 +163,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      * Validates the client data by checking if the client_id exists in storage. It also checks to see if the client_id is associated with a key to decode the JWT.
      * @see OAuth2_ClientAssertionTypeInterface::validateClientData()
      */
-    public function validateClientData(array $clientData)
+    public function validateClientData(array $clientData, $grantTypeIdentifier)
     {
 
         //Check that all array keys exist
