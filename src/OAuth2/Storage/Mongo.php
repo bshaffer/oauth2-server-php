@@ -38,7 +38,7 @@ class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
 	}
 	
 	// Helper function to access a MongoDB collection by `type`:
-	public function collection($name)
+	protected function collection($name)
 	{
 		return $this->db->{$this->config[$name]};
 	}
