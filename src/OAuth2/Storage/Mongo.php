@@ -17,11 +17,17 @@ class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
 	
 	public function __construct($connection, $config = array())
 	{
-		$server = 'mongo://'.$connection['host'].':'$connection['port'];
-		
-		$m = new MongoClient($server);
-		
-		$this->db = $m->{$connection['database']};
+		if ($connection instanceof MongoDB) {
+			$this->db = $connection;
+		}
+		else {
+            if (!is_array($connection)) {
+                throw new InvalidArgumentException('First argument to OAuth2_Storage_Mongo must be an instance of MongoDB or a configuration array');
+            }
+			$server = 'mongo://'.$connection['host'].':'.$connection['port'];
+			$m = new MongoClient($server);
+			$this->db = $m->{$connection['database']};
+		}
 		
 		// Unix timestamps might get larger than 32 bits,
 		// so let's add native support for 64 bit ints.

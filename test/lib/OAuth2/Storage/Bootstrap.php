@@ -5,6 +5,7 @@ class OAuth2_Storage_Bootstrap
     protected static $instance;
     private $mysql;
     private $sqlite;
+    private $mongo;
 
     public static function getInstance()
     {
@@ -43,6 +44,19 @@ class OAuth2_Storage_Bootstrap
             $this->mysql = new OAuth2_Storage_Pdo($pdo);
         }
         return $this->mysql;
+    }
+    
+    public function getMongo()
+    {
+        if (!$this->mongo) {
+            $m = new MongoClient();
+            $db = $m->oauth2_server_php;
+            $this->removeMongoDb($db);
+            $this->createMongoDb($db);
+            
+            $this->mongo = new OAuth2_Storage_Mongo($db);
+        }
+        return $this->mongo;
     }
 
     private function createSqliteDb(PDO $pdo)
@@ -92,5 +106,18 @@ class OAuth2_Storage_Bootstrap
     private function getSqliteDir()
     {
         return dirname(__FILE__).'/../../../config/test.sqlite';
+    }
+    
+    private function createMongoDb(MongoDB $db)
+    {
+        $db->oauth_clients->insert(array('client_id' => "oauth_test_client", 'client_secret' => "testpass"));
+        $db->oauth_access_tokens->insert(array('access_token' => "testtoken", 'client_id' => "Some Client"));
+        $db->oauth_authorization_codes->insert(array('authorization_code' => "testcode", 'client_id' => "Some Client"));
+        $db->oauth_users->insert(array('username' => "testuser", 'password' => "password"));
+    }
+
+    public function removeMongoDb(MongoDB $db)
+    {
+        $db->drop();
     }
 }
