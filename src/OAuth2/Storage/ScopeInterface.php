@@ -16,6 +16,9 @@ interface OAuth2_Storage_ScopeInterface
      *
      * @see http://tools.ietf.org/html/rfc6749#section-3.3
      *
+     * @param $client_id
+     * The requesting client
+     *
      * @return
      * array or space-delimited string of supported scopes
      *
@@ -30,7 +33,7 @@ interface OAuth2_Storage_ScopeInterface
      *     'one-scope two-scope red-scope blue-scope'
      *
      */
-    public function getSupportedScopes();
+    public function getSupportedScopes($client_id);
 
     /**
      * The default scope to use in the event the client
