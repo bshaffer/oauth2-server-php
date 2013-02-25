@@ -59,8 +59,8 @@ class OAuth2_Scope implements OAuth2_ScopeInterface
         return $this->storage->getDefaultScope();
     }
 
-    public function getSupportedScopes()
+    public function getSupportedScopes($client_id)
     {
-        return $this->storage->getSupportedScopes();
+        return $this->storage->getSupportedScopes($client_id);
     }
 }
