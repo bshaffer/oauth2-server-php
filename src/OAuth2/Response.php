@@ -137,14 +137,23 @@ class OAuth2_Response
         $this->httpHeaders[$name] = $value;
     }
 
-    public function getHttpHeaders()
+    public function getHttpHeaders($format = 'json')
     {
+        switch ($format) {
+            case 'json':
+                $this->setHttpHeader('Content-Type', 'application/json');
+                break;
+            case 'xml':
+                $this->setHttpHeader('Content-Type', 'text/xml');
+                break;
+        }
         return $this->httpHeaders;
     }
 
-    public function getHttpHeader($name, $default = null)
+    public function getHttpHeader($name, $default = null, $format = 'json')
     {
-        return isset($this->httpHeaders[$name]) ? $this->httpHeaders[$name] : $default;
+        $httpHeaders = $this->getHttpHeaders($format);
+        return isset($httpHeaders[$name]) ? $httpHeaders[$name] : $default;
     }
 
     public function getResponseBody($format = 'json')
@@ -170,18 +179,10 @@ class OAuth2_Response
             return;
         }
 
-        switch ($format) {
-            case 'json':
-                $this->setHttpHeader('Content-Type', 'application/json');
-                break;
-            case 'xml':
-                $this->setHttpHeader('Content-Type', 'text/xml');
-                break;
-        }
         // status
         header(sprintf('HTTP/%s %s %s', $this->version, $this->statusCode, $this->statusText));
 
-        foreach ($this->getHttpHeaders() as $name => $header) {
+        foreach ($this->getHttpHeaders($format) as $name => $header) {
             header(sprintf('%s: %s', $name, $header));
         }
         echo $this->getResponseBody($format);
