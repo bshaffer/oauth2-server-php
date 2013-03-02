@@ -27,7 +27,7 @@ class OAuth2_ScopeTest extends PHPUnit_Framework_TestCase
         $scopeUtil = new OAuth2_Scope();
 
         $this->assertEquals($scopeUtil->getDefaultScope(), null);
-        $this->assertEquals($scopeUtil->getSupportedScopes(), array());
+        $this->assertEquals($scopeUtil->getSupportedScopes('client_id'), array());
 
         $scopeUtil = new OAuth2_Scope(array(
             'default_scope' => 'default',
@@ -35,7 +35,7 @@ class OAuth2_ScopeTest extends PHPUnit_Framework_TestCase
         ));
 
         $this->assertEquals($scopeUtil->getDefaultScope(), 'default');
-        $this->assertEquals($scopeUtil->getSupportedScopes(), array('this', 'that', 'another'));
+        $this->assertEquals($scopeUtil->getSupportedScopes('client_id'), array('this', 'that', 'another'));
 
         $memoryStorage = new OAuth2_Storage_Memory(array(
             'default_scope' => 'base',
@@ -44,6 +44,6 @@ class OAuth2_ScopeTest extends PHPUnit_Framework_TestCase
         $scopeUtil = new OAuth2_Scope($memoryStorage);
 
         $this->assertEquals($scopeUtil->getDefaultScope(), 'base');
-        $this->assertEquals($scopeUtil->getSupportedScopes(), 'only-this-one');
+        $this->assertEquals($scopeUtil->getSupportedScopes('client_id'), 'only-this-one');
     }
 }

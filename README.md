@@ -242,7 +242,7 @@ This example assumes the class being used implements `OAuth2_Storage_ScopeInterf
         //...
       }
 
-      public function getAvailableScopes()
+      public function getSupportedScopes($client_id)
       {
         //...
       }
