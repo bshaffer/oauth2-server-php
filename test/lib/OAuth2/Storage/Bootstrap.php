@@ -45,16 +45,18 @@ class OAuth2_Storage_Bootstrap
         }
         return $this->mysql;
     }
-    
+
     public function getMongo()
     {
         if (!$this->mongo) {
-            $m = new MongoClient();
-            $db = $m->oauth2_server_php;
-            $this->removeMongoDb($db);
-            $this->createMongoDb($db);
-            
-            $this->mongo = new OAuth2_Storage_Mongo($db);
+            if (class_exists('Mongo_Client')) {
+                $m = new MongoClient();
+                $db = $m->oauth2_server_php;
+                $this->removeMongoDb($db);
+                $this->createMongoDb($db);
+
+                $this->mongo = new OAuth2_Storage_Mongo($db);
+            }
         }
         return $this->mongo;
     }
@@ -107,7 +109,7 @@ class OAuth2_Storage_Bootstrap
     {
         return dirname(__FILE__).'/../../../config/test.sqlite';
     }
-    
+
     private function createMongoDb(MongoDB $db)
     {
         $db->oauth_clients->insert(array('client_id' => "oauth_test_client", 'client_secret' => "testpass"));
