@@ -49,7 +49,7 @@ class OAuth2_Storage_Bootstrap
     public function getMongo()
     {
         if (!$this->mongo) {
-            if (class_exists('Mongo_Client')) {
+            if (class_exists('MongoClient')) {
                 $m = new MongoClient();
                 $db = $m->oauth2_server_php;
                 $this->removeMongoDb($db);
@@ -112,7 +112,7 @@ class OAuth2_Storage_Bootstrap
 
     private function createMongoDb(MongoDB $db)
     {
-        $db->oauth_clients->insert(array('client_id' => "oauth_test_client", 'client_secret' => "testpass"));
+        $db->oauth_clients->insert(array('client_id' => "oauth_test_client", 'client_secret' => "testpass", 'redirect_uri' => "http://example.com"));
         $db->oauth_access_tokens->insert(array('access_token' => "testtoken", 'client_id' => "Some Client"));
         $db->oauth_authorization_codes->insert(array('authorization_code' => "testcode", 'client_id' => "Some Client"));
         $db->oauth_users->insert(array('username' => "testuser", 'password' => "password"));

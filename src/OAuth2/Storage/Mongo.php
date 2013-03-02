@@ -61,7 +61,7 @@ class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
 	{
 		$result = $this->collection('client_table')->findOne(array('client_id' => $client_id));
 
-		return $result;
+		return is_null($result) ? false : $result;
 	}
 
 	public function checkRestrictedGrantType($client_id, $grant_type)
@@ -80,7 +80,7 @@ class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
 	{
 		$token = $this->collection('access_token_table')->findOne(array('access_token' => $access_token));
 
-		return $token;
+		return is_null($token) ? false : $token;
 	}
 
 	public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
@@ -117,7 +117,7 @@ class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
 	{
 		$code = $this->collection('code_table')->findOne(array('authorization_code' => $code));
 
-		return $code;
+		return is_null($code) ? false : $code;
 	}
 
 	public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null)
@@ -177,7 +177,7 @@ class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
 	{
 		$token = $this->collection('refresh_token_table')->findOne(array('refresh_token' => $refresh_token));
 
-		return $token;
+		return is_null($token) ? false : $token;
 	}
 
 	public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
