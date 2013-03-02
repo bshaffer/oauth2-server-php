@@ -58,7 +58,7 @@ $server = new OAuth2_Server($storage);
 ```
 
 The next step is to add a grant type.  This example uses the "User Credentials" grant type, which grants a token based on
-explicit user credentials passed to the request. Read more on [supported grant types](https://github.com/bshaffer/oauth2-server-php#the-response-object)
+explicit user credentials passed to the request. Read more on [supported grant types](https://github.com/bshaffer/oauth2-server-php#grant-types)
 below, or in the [OAuth2 spec](http://tools.ietf.org/html/rfc6749). Each grant type also requires storage,
 so pass the existing storage to the constructor:
 
