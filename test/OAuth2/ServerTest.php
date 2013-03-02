@@ -69,7 +69,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
     public function testGetGrantServerWithNoClientCredentialsStorageThrowsException()
     {
         $server = new OAuth2_Server();
-        $server->getGrantController();
+        $server->getTokenController();
     }
 
     /**
@@ -79,7 +79,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
     {
         $server = new OAuth2_Server();
         $server->addStorage($this->getMock('OAuth2_Storage_ClientCredentialsInterface'));
-        $server->getGrantController();
+        $server->getTokenController();
     }
 
     public function testGetGrantServerWithAccessTokenAndClientCredentialsStorage()
@@ -87,7 +87,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $server = new OAuth2_Server();
         $server->addStorage($this->getMock('OAuth2_Storage_AccessTokenInterface'));
         $server->addStorage($this->getMock('OAuth2_Storage_ClientCredentialsInterface'));
-        $server->getGrantController();
+        $server->getTokenController();
     }
 
     public function testGetGrantServerAccessTokenStorageAndClientCredentialsStorageAndGrantTypes()
@@ -96,7 +96,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $server->addStorage($this->getMock('OAuth2_Storage_AccessTokenInterface'));
         $server->addStorage($this->getMock('OAuth2_Storage_ClientCredentialsInterface'));
         $server->addGrantType($this->getMockBuilder('OAuth2_GrantType_AuthorizationCode')->disableOriginalConstructor()->getMock());
-        $server->getGrantController();
+        $server->getTokenController();
     }
 
     /**
@@ -105,14 +105,14 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
     public function testGetAccessServerWithNoAccessTokenStorageThrowsException()
     {
         $server = new OAuth2_Server();
-        $server->getAccessController();
+        $server->getResourceController();
     }
 
     public function testGetAccessServerWithAccessTokenStorage()
     {
         $server = new OAuth2_Server();
         $server->addStorage($this->getMock('OAuth2_Storage_AccessTokenInterface'));
-        $server->getAccessController();
+        $server->getResourceController();
     }
 
     /**

@@ -3,12 +3,12 @@
 /**
 * Service class for OAuth
 * This class serves only to wrap the other Controller classes
-* @see OAuth2_Controller_AccessController
+* @see OAuth2_Controller_ResourceController
 * @see OAuth2_Controller_AuthorizeController
-* @see OAuth2_Controller_GrantController
+* @see OAuth2_Controller_TokenController
 */
-class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
-    OAuth2_Controller_AuthorizeControllerInterface, OAuth2_Controller_GrantControllerInterface
+class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
+    OAuth2_Controller_AuthorizeControllerInterface, OAuth2_Controller_TokenControllerInterface
 {
     // misc properties
     protected $response;
@@ -16,9 +16,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     protected $storages;
 
     // servers
-    protected $accessController;
+    protected $resourceController;
     protected $authorizeController;
-    protected $grantController;
+    protected $tokenController;
 
     // config classes
     protected $responseTypes;
@@ -90,9 +90,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function getAccessController()
+    public function getResourceController()
     {
-        if (is_null($this->accessController)) {
+        if (is_null($this->resourceController)) {
             if (is_null($this->config['token_type'])) {
                 $this->config['token_type'] = 'bearer';
             }
@@ -109,9 +109,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
                 throw new LogicException("You must supply a storage object implementing OAuth2_Storage_AccessTokenInterface to use the access server");
             }
             $config = array_intersect_key($this->config, array('www_realm' => ''));
-            $this->accessController = new OAuth2_Controller_AccessController($tokenType, $this->storages['access_token'], $config, $this->scopeUtil);
+            $this->resourceController = new OAuth2_Controller_ResourceController($tokenType, $this->storages['access_token'], $config, $this->scopeUtil);
         }
-        return $this->accessController;
+        return $this->resourceController;
     }
 
     public function getAuthorizeController()
@@ -129,9 +129,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
         return $this->authorizeController;
     }
 
-    public function getGrantController()
+    public function getTokenController()
     {
-        if (is_null($this->grantController)) {
+        if (is_null($this->tokenController)) {
             if (!isset($this->storages['client_credentials'])) {
                 throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientCredentialsInterface to use the grant server");
             }
@@ -153,9 +153,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             if (0 == count($this->grantTypes)) {
                 $this->grantTypes = $this->getDefaultGrantTypes();
             }
-            $this->grantController = new OAuth2_Controller_GrantController($this->storages['client_credentials'], $this->accessTokenResponseType, $this->grantTypes, $this->scopeUtil);
+            $this->tokenController = new OAuth2_Controller_TokenController($this->storages['client_credentials'], $this->accessTokenResponseType, $this->grantTypes, $this->scopeUtil);
         }
-        return $this->grantController;
+        return $this->tokenController;
     }
 
     protected function getDefaultResponseTypes()
@@ -229,31 +229,31 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      *
      * @ingroup oauth2_section_4
      */
-    public function handleGrantRequest(OAuth2_RequestInterface $request)
+    public function handleTokenRequest(OAuth2_RequestInterface $request)
     {
-        $value = $this->getGrantController()->handleGrantRequest($request);
-        $this->response = $this->grantController->getResponse();
+        $value = $this->getTokenController()->handleTokenRequest($request);
+        $this->response = $this->tokenController->getResponse();
         return $value;
     }
 
     public function grantAccessToken(OAuth2_RequestInterface $request)
     {
-        $value = $this->getGrantController()->grantAccessToken($request);
-        $this->response = $this->grantController->getResponse();
+        $value = $this->getTokenController()->grantAccessToken($request);
+        $this->response = $this->tokenController->getResponse();
         return $value;
     }
 
     public function getClientCredentials(OAuth2_RequestInterface $request)
     {
-        $value = $this->getGrantController()->getClientCredentials($request);
-        $this->response = $this->grantController->getResponse();
+        $value = $this->getTokenController()->getClientCredentials($request);
+        $this->response = $this->tokenController->getResponse();
         return $value;
     }
 
     /**
      * Redirect the user appropriately after approval.
      *
-     * After the user has approved or denied the access request the
+     * After the user has approved or denied the resource request the
      * authorization server should call this function to redirect the user
      * appropriately.
      *
@@ -265,7 +265,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * - redirect_uri: An absolute URI to which the authorization server
      * will redirect the user-agent to when the end-user authorization
      * step is completed.
-     * - scope: (optional) The scope of the access request expressed as a
+     * - scope: (optional) The scope of the resource request expressed as a
      * list of space-delimited strings.
      * - state: (optional) An opaque value used by the client to maintain
      * state between the request and callback.
@@ -313,17 +313,17 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
         return $value;
     }
 
-    public function verifyAccessRequest(OAuth2_RequestInterface $request, $scope = null)
+    public function verifyResourceRequest(OAuth2_RequestInterface $request, $scope = null)
     {
-        $value = $this->getAccessController()->verifyAccessRequest($request, $scope);
-        $this->response = $this->accessController->getResponse();
+        $value = $this->getResourceController()->verifyResourceRequest($request, $scope);
+        $this->response = $this->resourceController->getResponse();
         return $value;
     }
 
     public function getAccessTokenData(OAuth2_RequestInterface $request)
     {
-        $value = $this->getAccessController()->getAccessTokenData($request);
-        $this->response = $this->accessController->getResponse();
+        $value = $this->getResourceController()->getAccessTokenData($request);
+        $this->response = $this->resourceController->getResponse();
         return $value;
     }
 
@@ -331,9 +331,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     {
         $this->grantTypes[] = $grantType;
 
-        // persist added grant type down to GrantController
-        if (!is_null($this->grantController)) {
-            $this->getGrantController()->addGrantType($grantType);
+        // persist added grant type down to TokenController
+        if (!is_null($this->tokenController)) {
+            $this->getTokenController()->addGrantType($grantType);
         }
     }
 

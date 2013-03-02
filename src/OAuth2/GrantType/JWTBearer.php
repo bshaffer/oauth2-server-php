@@ -19,7 +19,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      * @param OAuth2_Storage_JWTBearerInterface $storage
      * A valid storage interface that implements storage hooks for the JWT bearer grant type.
      * @param string $audience
-     * The audience to validate the token against. This is usually the full URI of the OAuth grant requests endpoint.
+     * The audience to validate the token against. This is usually the full URI of the OAuth token requests endpoint.
      * @param OAuth2_Encryption_JWT OPTIONAL $jwtUtil
      * The class used to decode, encode and verify JWTs.
      */

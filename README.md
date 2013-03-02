@@ -45,7 +45,7 @@ to the constructor of `OAuth2_Storage_Pdo`:
 $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
 $server = new OAuth2_Server($storage);
 $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage)); // or some other grant type.  This is the simplest
-$server->handleGrantRequest(OAuth2_Request::createFromGlobals())->send();
+$server->handleTokenRequest(OAuth2_Request::createFromGlobals())->send();
 ```
 
 Let's break this down line by line. The first line is how the OAuth2 data is stored.
@@ -70,7 +70,7 @@ Call the `grantAccessToken` method to validate the request for the user credenti
 if successful.  Access the server's response object to send the successful response back, or the error response if applicable:
 
 ```php
-$server->handleGrantRequest(OAuth2_Request::createFromGlobals())->send();
+$server->handleTokenRequest(OAuth2_Request::createFromGlobals())->send();
 ```
 
 This creates the `OAuth2_Request` object from PHP global variables (most common, you can override this if need be) and sends it to the server
@@ -89,11 +89,11 @@ Server Methods
 >
 >   ~ OAuth2 ([draft #31](http://tools.ietf.org/html/rfc6749#section-1))
 
-Most OAuth2 APIs will have endpoints for `Authorize Requests`, `Grant Requests`, and `Access Requests`:
+Most OAuth2 APIs will have endpoints for `Authorize Requests`, `Token Requests`, and `Resource Requests`:
 
  * **Authorize Requests** - An endpoint requiring the user to authenticate, which redirects back to the client with an `authorization code`
- * **Grant Requests** - An endpoint which the client uses to exchange the `authorization code` for an `access token`
- * **Access Requests** - Any API method requiring oauth2 authentication.  The server will validate the incomming request, and then allow
+ * **Token Requests** - An endpoint which the client uses to exchange the `authorization code` for an `access token`
+ * **Resource Requests** - Any API method requiring oauth2 authentication.  The server will validate the incomming request, and then allow
 the application to serve back the protected resource
 
 For these tyes of requests, this library provides the following methods:
@@ -107,25 +107,25 @@ For these tyes of requests, this library provides the following methods:
   * Receives a request object, returns a Boolean for whether the incoming request is a valid Authorize Request.
 Applications should call this before displaying a login or authorization form to the user
 
-**Grant Requests**
+**Token Requests**
 
 `grantAccessToken`
 
-  * Receives a request object for a grant request, returns a token if the request is valid.
+  * Receives a request object for a token request, returns a token if the request is valid.
 
-`handleGrantRequest`
+`handleTokenRequest`
 
-  * Receives a request object for a grant request, returns a response object for the appropriate response.
+  * Receives a request object for a token request, returns a response object for the appropriate response.
 
 `getClientCredentials`
 
   * parses the client credentials from the request and determines if they are valid
 
-**Access Requests**
+**Resource Requests**
 
-`verifyAccessRequest`
+`verifyResourceRequest`
 
-  * Receives a request object for an access request, finds the token if it exists, and returns a Boolean for whether
+  * Receives a request object for a resource request, finds the token if it exists, and returns a Boolean for whether
 the incomming request is valid
 
 `getAccessTokenData`
@@ -259,7 +259,7 @@ access it:
     // https://api.example.com/resource-requiring-postonwall-scope
     $request = OAuth2_Request::createFromGlobals();
     $scopeRequired = 'postonwall'; // this resource requires "postonwall" scope
-    if (!$server->verifyAccessRequest($request, $scopeRequired)) {
+    if (!$server->verifyResourceRequest($request, $scopeRequired)) {
       // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
       $server->getRequest()->send();
     }
