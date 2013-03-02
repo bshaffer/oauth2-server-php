@@ -1,6 +1,6 @@
 <?php
 
-class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
+class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
 {
     /** @dataProvider provideStorage */
     public function testCheckClientCredentials(OAuth2_Storage_ClientCredentialsInterface $storage = null)
