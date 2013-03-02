@@ -33,7 +33,7 @@ interface OAuth2_Storage_ScopeInterface
      *     'one-scope two-scope red-scope blue-scope'
      *
      */
-    public function getSupportedScopes($client_id);
+    public function getSupportedScopes($client_id = null);
 
     /**
      * The default scope to use in the event the client
