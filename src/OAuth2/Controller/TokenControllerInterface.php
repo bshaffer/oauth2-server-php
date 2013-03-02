@@ -6,20 +6,20 @@
  *  It also validates the client's credentials
  *
  *  ex:
- *  > $response = $grantController->handleGrantRequest(OAuth2_Request::createFromGlobals());
+ *  > $response = $tokenController->handleTokenRequest(OAuth2_Request::createFromGlobals());
  *  > $response->send();
  *
  */
-interface OAuth2_Controller_GrantControllerInterface extends OAuth2_Response_ProviderInterface
+interface OAuth2_Controller_TokenControllerInterface extends OAuth2_Response_ProviderInterface
 {
     /**
-     * handleGrantRequest
+     * handleTokenRequest
      *
      * @param $request
      * OAuth2_RequestInterface - The current http request
      *
      **/
-    public function handleGrantRequest(OAuth2_RequestInterface $request);
+    public function handleTokenRequest(OAuth2_RequestInterface $request);
 
     public function grantAccessToken(OAuth2_RequestInterface $request);
 }

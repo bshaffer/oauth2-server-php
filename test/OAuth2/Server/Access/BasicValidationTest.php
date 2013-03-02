@@ -6,7 +6,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
-        $allow = $server->verifyAccessRequest($request);
+        $allow = $server->verifyResourceRequest($request);
         $this->assertFalse($allow);
 
         $response = $server->getResponse();
@@ -20,7 +20,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'tH1s i5 B0gU5';
-        $allow = $server->verifyAccessRequest($request);
+        $allow = $server->verifyResourceRequest($request);
         $this->assertFalse($allow);
 
         $response = $server->getResponse();
@@ -35,7 +35,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $request = OAuth2_Request::createFromGlobals();
         $request->request['access_token'] = 'TEST';
         $request->query['access_token'] = 'TEST';
-        $allow = $server->verifyAccessRequest($request);
+        $allow = $server->verifyResourceRequest($request);
         $this->assertFalse($allow);
 
         $response = $server->getResponse();
@@ -50,7 +50,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $request = OAuth2_Request::createFromGlobals();
         $request->server['REQUEST_METHOD'] = 'GET';
         $request->request['access_token'] = 'TEST';
-        $allow = $server->verifyAccessRequest($request);
+        $allow = $server->verifyResourceRequest($request);
         $this->assertFalse($allow);
 
         $response = $server->getResponse();
@@ -66,7 +66,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $request->server['REQUEST_METHOD'] = 'POST';
         $request->server['CONTENT_TYPE'] = 'application/json';
         $request->request['access_token'] = 'TEST';
-        $allow = $server->verifyAccessRequest($request);
+        $allow = $server->verifyResourceRequest($request);
         $this->assertFalse($allow);
 
         $response = $server->getResponse();
@@ -80,7 +80,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer TESTTOKEN';
-        $allow = $server->verifyAccessRequest($request);
+        $allow = $server->verifyResourceRequest($request);
         $this->assertFalse($allow);
 
         $response = $server->getResponse();
@@ -94,7 +94,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-expired';
-        $allow = $server->verifyAccessRequest($request);
+        $allow = $server->verifyResourceRequest($request);
         $this->assertFalse($allow);
 
         $response = $server->getResponse();
@@ -109,7 +109,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $request = OAuth2_Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-scope';
         $scope = 'outofscope';
-        $allow = $server->verifyAccessRequest($request, $scope);
+        $allow = $server->verifyResourceRequest($request, $scope);
         $this->assertFalse($allow);
 
         $response = $server->getResponse();
@@ -123,7 +123,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-malformed';
-        $allow = $server->verifyAccessRequest($request);
+        $allow = $server->verifyResourceRequest($request);
         $this->assertFalse($allow);
 
         $response = $server->getResponse();
@@ -137,7 +137,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-scope';
-        $allow = $server->verifyAccessRequest($request);
+        $allow = $server->verifyResourceRequest($request);
         $this->assertTrue($allow);
     }
 
@@ -147,7 +147,7 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $request = OAuth2_Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-scope';
         $request->query['scope'] = 'testscope';
-        $allow = $server->verifyAccessRequest($request);
+        $allow = $server->verifyResourceRequest($request);
         $this->assertTrue($allow);
     }
 

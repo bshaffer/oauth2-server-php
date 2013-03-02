@@ -1,9 +1,9 @@
 <?php
 
 /**
- *  @see OAuth2_Controller_GrantControllerInterface
+ *  @see OAuth2_Controller_TokenControllerInterface
  */
-class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantControllerInterface
+class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenControllerInterface
 {
     private $response;
     private $clientAssertionType;
@@ -31,7 +31,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function handleGrantRequest(OAuth2_RequestInterface $request)
+    public function handleTokenRequest(OAuth2_RequestInterface $request)
     {
         if ($token = $this->grantAccessToken($request)) {
             // @see http://tools.ietf.org/html/rfc6749#section-5.1
