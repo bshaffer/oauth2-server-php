@@ -1,10 +1,14 @@
 <?php
 
-class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
+class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
 {
     /** @dataProvider provideStorage */
-    public function testCheckClientCredentials(OAuth2_Storage_ClientCredentialsInterface $storage)
+    public function testCheckClientCredentials(OAuth2_Storage_ClientCredentialsInterface $storage = null)
     {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
         // nonexistant client_id
         $pass = $storage->checkClientCredentials('fakeclient', 'testpass');
         $this->assertFalse($pass);
@@ -19,8 +23,12 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testGetClientDetails(OAuth2_Storage_ClientInterface $storage)
+    public function testGetClientDetails(OAuth2_Storage_ClientInterface $storage = null)
     {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
         // nonexistant client_id
         $details = $storage->getClientDetails('fakeclient');
         $this->assertFalse($details);
@@ -34,8 +42,12 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testGetAccessToken(OAuth2_Storage_AccessTokenInterface $storage)
+    public function testGetAccessToken(OAuth2_Storage_AccessTokenInterface $storage = null)
     {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
         // nonexistant client_id
         $details = $storage->getAccessToken('faketoken');
         $this->assertFalse($details);
@@ -46,8 +58,12 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testSetAccessToken(OAuth2_Storage_AccessTokenInterface $storage)
+    public function testSetAccessToken(OAuth2_Storage_AccessTokenInterface $storage = null)
     {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
         // assert token we are about to add does not exist
         $token = $storage->getAccessToken('newtoken');
         $this->assertFalse($token);
@@ -86,8 +102,12 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testSetRefreshToken(OAuth2_Storage_RefreshTokenInterface $storage)
+    public function testSetRefreshToken(OAuth2_Storage_RefreshTokenInterface $storage = null)
     {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
         // assert token we are about to add does not exist
         $token = $storage->getRefreshToken('refreshtoken');
         $this->assertFalse($token);
@@ -110,8 +130,12 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testGetAuthorizationCode(OAuth2_Storage_AuthorizationCodeInterface $storage)
+    public function testGetAuthorizationCode(OAuth2_Storage_AuthorizationCodeInterface $storage = null)
     {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
         // nonexistant client_id
         $details = $storage->getAuthorizationCode('faketoken');
         $this->assertFalse($details);
@@ -122,8 +146,12 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testSetAuthorizationCode(OAuth2_Storage_AuthorizationCodeInterface $storage)
+    public function testSetAuthorizationCode(OAuth2_Storage_AuthorizationCodeInterface $storage = null)
     {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
         // assert code we are about to add does not exist
         $code = $storage->getAuthorizationCode('newcode');
         $this->assertFalse($code);
@@ -168,6 +196,10 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
     /** @dataProvider provideStorage */
     public function testCheckUserCredentials($storage)
     {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
         // create a new user for testing
         $success = $storage->setUser('testusername', 'testpass', 'Test', 'User');
         $this->assertTrue($success);
@@ -197,11 +229,13 @@ class OAuth2_Storage_PdoTest extends PHPUnit_Framework_TestCase
     {
         $mysql = OAuth2_Storage_Bootstrap::getInstance()->getMysqlPdo();
         $sqlite = OAuth2_Storage_Bootstrap::getInstance()->getSqlitePdo();
+        $mongo = OAuth2_Storage_Bootstrap::getInstance()->getMongo();
 
         // will add multiple storage types later
         return array(
             array($sqlite),
             array($mysql),
+            array($mongo)
         );
     }
 }
