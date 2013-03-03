@@ -1,12 +1,11 @@
 <?php
 
 /**
- * Storage engines that want to support refresh tokens should
- * implement this interface.
+ * Implement this interface to specify where the OAuth2 Server
+ * should get/save refresh tokens for the "Refresh Token"
+ * grant type
  *
- * @author Dave Rochwerger <catch.dave@gmail.com>
- * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-6
- * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-1.5
+ * @author Brent Shaffer <bshafs@gmail.com>
  */
 interface OAuth2_Storage_RefreshTokenInterface
 {
@@ -28,7 +27,7 @@ interface OAuth2_Storage_RefreshTokenInterface
      * - expires: Stored expiration unix timestamp.
      * - scope: (optional) Stored scope values in space-separated string.
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-6
+     * @see http://tools.ietf.org/html/rfc6749#section-6
      *
      * @ingroup oauth2_section_6
      */

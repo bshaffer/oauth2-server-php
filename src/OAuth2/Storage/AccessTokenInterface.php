@@ -1,9 +1,10 @@
 <?php
 
 /**
- * All storage engines need to implement this interface in order to use OAuth2 server
+ * Implement this interface to specify where the OAuth2 Server
+ * should get/save access tokens
  *
- * @author David Rochwerger <catch.dave@gmail.com>
+ * @author Brent Shaffer <bshafs@gmail.com>
  */
 interface OAuth2_Storage_AccessTokenInterface
 {

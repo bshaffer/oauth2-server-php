@@ -5,12 +5,12 @@
 */
 class OAuth2_Request_TestRequest implements OAuth2_RequestInterface
 {
-    private $query, $post, $server;
+    public $query, $request, $server;
 
     public function __construct()
     {
         $this->query = $_GET;
-        $this->post = $_POST;
+        $this->request = $_POST;
         $this->server  = $_SERVER;
     }
 
@@ -21,7 +21,7 @@ class OAuth2_Request_TestRequest implements OAuth2_RequestInterface
 
     public function request($name, $default = null)
     {
-        return isset($this->post[$name]) ? $this->post[$name] : $default;
+        return isset($this->request[$name]) ? $this->request[$name] : $default;
     }
 
     public function server($name, $default = null)
@@ -44,9 +44,16 @@ class OAuth2_Request_TestRequest implements OAuth2_RequestInterface
         $this->query = $query;
     }
 
-    public function setPost(array $post)
+    public function setPost(array $params)
     {
-        $this->server['HTTP_METHOD'] = 'POST';
-        $this->post = $post;
+        $this->server['REQUEST_METHOD'] = 'POST';
+        $this->request = $params;
+    }
+
+    public static function createPost(array $params = array())
+    {
+        $request = new self();
+        $request->setPost($params);
+        return $request;
     }
 }

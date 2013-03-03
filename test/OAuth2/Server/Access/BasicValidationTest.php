@@ -108,8 +108,8 @@ class OAuth2_Server_Access_BasicValidationTest extends PHPUnit_Framework_TestCas
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-scope';
-        $request->query['scope'] = 'outofscope';
-        $allow = $server->verifyAccessRequest($request);
+        $scope = 'outofscope';
+        $allow = $server->verifyAccessRequest($request, $scope);
         $this->assertFalse($allow);
 
         $response = $server->getResponse();

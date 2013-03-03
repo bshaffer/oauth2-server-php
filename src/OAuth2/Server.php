@@ -24,6 +24,16 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
     protected $responseTypes;
     protected $grantTypes;
     protected $accessTokenResponseType;
+    protected $scopeUtil;
+
+    private $storageMap = array(
+        'access_token' => 'OAuth2_Storage_AccessTokenInterface',
+        'authorization_code' => 'OAuth2_Storage_AuthorizationCodeInterface',
+        'client_credentials' => 'OAuth2_Storage_ClientCredentialsInterface',
+        'client' => 'OAuth2_Storage_ClientInterface',
+        'refresh_token' => 'OAuth2_Storage_RefreshTokenInterface',
+        'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
+    );
 
     /**
      * @param mixed $storage
@@ -47,38 +57,16 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * TRUE if everything in required scope is contained in available scope,
      * and FALSE if it isn't.
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-7
+     * @see http://tools.ietf.org/html/rfc6749#section-7
      *
      * @ingroup oauth2_section_7
      */
-    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_ResponseType_AccessTokenInterface $accessTokenResponseType = null)
+    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_ResponseType_AccessTokenInterface $accessTokenResponseType = null, OAuth2_ScopeInterface $scopeUtil = null)
     {
-        $validStorage = array(
-            'access_token' => 'OAuth2_Storage_AccessTokenInterface',
-            'authorization_code' => 'OAuth2_Storage_AuthorizationCodeInterface',
-            'client_credentials' => 'OAuth2_Storage_ClientCredentialsInterface',
-            'client' => 'OAuth2_Storage_ClientInterface',
-            'refresh_token' => 'OAuth2_Storage_RefreshTokenInterface',
-            'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
-        );
         $storage = is_array($storage) ? $storage : array($storage);
         $this->storages = array();
         foreach ($storage as $key => $service) {
-            if (isset($validStorage[$key])) {
-                if (!$service instanceof $validStorage[$key]) {
-                    throw new InvalidArgumentException(sprintf('storage of type "%s" must implement interface "%s"', $type, $interface));
-                }
-                $this->storages[$type] = $service;
-                continue; // if explicitly set to a valid key, do not "magically" set below
-            }
-            // set a storage object to each key for the interface it represents
-            // this means if an object represents more than one storage type, it will be referenced by multiple storage keys
-            // ex: OAuth2_Storage_Pdo will be set for all the $validStorage keys above
-            foreach ($validStorage as $type => $interface) {
-                if ($service instanceof $interface) {
-                    $this->storages[$type] = $service;
-                }
-            }
+            $this->addStorage($service, $key);
         }
 
         // merge all config values.  These get passed to our controller objects
@@ -88,14 +76,18 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             'www_realm'                => 'Service',
             'token_param_name'         => 'access_token',
             'token_bearer_header_name' => 'Bearer',
-            'supported_scopes'         => array(),
             'enforce_state'            => false,
             'allow_implicit'           => false,
         ), $config);
 
-        $this->responseTypes = $responseTypes;
-        $this->grantTypes = $grantTypes;
+        foreach ($responseTypes as $responseType) {
+            $this->addResponseType($responseType);
+        }
+        foreach ($grantTypes as $grantType) {
+            $this->addGrantType($grantType);
+        }
         $this->accessTokenResponseType = $accessTokenResponseType;
+        $this->scopeUtil = $scopeUtil;
     }
 
     public function getAccessController()
@@ -117,7 +109,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
                 throw new LogicException("You must supply a storage object implementing OAuth2_Storage_AccessTokenInterface to use the access server");
             }
             $config = array_intersect_key($this->config, array('www_realm' => ''));
-            $this->accessController = new OAuth2_Controller_AccessController($tokenType, $this->storages['access_token'], $config);
+            $this->accessController = new OAuth2_Controller_AccessController($tokenType, $this->storages['access_token'], $config, $this->scopeUtil);
         }
         return $this->accessController;
     }
@@ -131,8 +123,8 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             if (0 == count($this->responseTypes)) {
                 $this->responseTypes = $this->getDefaultResponseTypes();
             }
-            $config = array_intersect_key($this->config, array_flip(explode(' ', 'supported_scopes allow_implicit enforce_state')));
-            $this->authorizeController = new OAuth2_Controller_AuthorizeController($this->storages['client'], $this->responseTypes, $config);
+            $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state')));
+            $this->authorizeController = new OAuth2_Controller_AuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->scopeUtil);
         }
         return $this->authorizeController;
     }
@@ -161,7 +153,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
             if (0 == count($this->grantTypes)) {
                 $this->grantTypes = $this->getDefaultGrantTypes();
             }
-            $this->grantController = new OAuth2_Controller_GrantController($this->storages['client_credentials'], $this->accessTokenResponseType, $this->grantTypes);
+            $this->grantController = new OAuth2_Controller_GrantController($this->storages['client_credentials'], $this->accessTokenResponseType, $this->grantTypes, $this->scopeUtil);
         }
         return $this->grantController;
     }
@@ -231,9 +223,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * @throws InvalidArgumentException
      * @throws LogicException
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-10.6
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-4.1.3
+     * @see http://tools.ietf.org/html/rfc6749#section-4
+     * @see http://tools.ietf.org/html/rfc6749#section-10.6
+     * @see http://tools.ietf.org/html/rfc6749#section-4.1.3
      *
      * @ingroup oauth2_section_4
      */
@@ -284,7 +276,7 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * @param $user_id
      * Identifier of user who authorized the client
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4
+     * @see http://tools.ietf.org/html/rfc6749#section-4
      *
      * @ingroup oauth2_section_4
      */
@@ -309,8 +301,8 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
      * The authorization parameters so the authorization server can prompt
      * the user for approval if valid.
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1.1
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-10.12
+     * @see http://tools.ietf.org/html/rfc6749#section-4.1.1
+     * @see http://tools.ietf.org/html/rfc6749#section-10.12
      *
      * @ingroup oauth2_section_3
      */
@@ -321,23 +313,66 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
         return $value;
     }
 
-    public function verifyAccessRequest(OAuth2_RequestInterface $request)
+    public function verifyAccessRequest(OAuth2_RequestInterface $request, $scope = null)
     {
-        $value = $this->getAccessController()->verifyAccessRequest($request);
+        $value = $this->getAccessController()->verifyAccessRequest($request, $scope);
         $this->response = $this->accessController->getResponse();
         return $value;
     }
 
-    public function getAccessTokenData($token_param, $scope = null)
+    public function getAccessTokenData(OAuth2_RequestInterface $request)
     {
-        $value = $this->getAccessController()->getAccessTokenData($token_param, $scope);
+        $value = $this->getAccessController()->getAccessTokenData($request);
         $this->response = $this->accessController->getResponse();
         return $value;
     }
 
     public function addGrantType(OAuth2_GrantTypeInterface $grantType)
     {
-        $this->getGrantController()->addGrantType($grantType);
+        $this->grantTypes[] = $grantType;
+
+        // persist added grant type down to GrantController
+        if (!is_null($this->grantController)) {
+            $this->getGrantController()->addGrantType($grantType);
+        }
+    }
+
+    public function addStorage($storage, $key = null)
+    {
+        // if explicitly set to a valid key, do not "magically" set below
+        if (isset($this->storageMap[$key])) {
+            if (!$storage instanceof $this->storageMap[$key]) {
+                throw new InvalidArgumentException(sprintf('storage of type "%s" must implement interface "%s"', $key, $this->storageMap[$key]));
+            }
+            $this->storages[$key] = $storage;
+        } elseif (!is_null($key) && !is_numeric($key)) {
+            throw new InvalidArgumentException(sprintf('unknown storage key "%s", must be one of [%s]', $key, implode(', ', array_keys($this->storageMap))));
+        } else {
+            $set = false;
+            // set a storage object to each key for the interface it represents
+            // this means if an object represents more than one storage type, it will be referenced by multiple storage keys
+            // ex: OAuth2_Storage_Pdo will be set for all the $storageMap keys
+            foreach ($this->storageMap as $type => $interface) {
+                if ($storage instanceof $interface) {
+                    $this->storages[$type] = $storage;
+                    $set = true;
+                }
+            }
+
+            if (!$set) {
+                throw new InvalidArgumentException(sprintf('storage of class "%s" must implement one of [%s]', get_class($storage), implode(', ', $this->storageMap)));
+            }
+        }
+    }
+
+    public function addResponseType(OAuth2_ResponseTypeInterface $responseType)
+    {
+        $this->responseTypes[] = $responseType;
+    }
+
+    public function setScopeUtil($scopeUtil)
+    {
+        $this->scopeUtil = $scopeUtil;
     }
 
     public function getResponse()

@@ -4,22 +4,21 @@
  * @author F21
  */
 
-class OAuth2_Util_JWT
+class OAuth2_Encryption_JWT
 {
     public function encode($payload, $key, $algo = 'HS256')
     {
         $header = array('typ' => 'JWT', 'alg' => $algo);
 
         $segments = array(
-            OAuth2_Util_JWT::urlsafeB64Encode(json_encode($header)),
-            OAuth2_Util_JWT::urlsafeB64Encode(json_encode($payload))
+            $this->urlsafeB64Encode(json_encode($header)),
+            $this->urlsafeB64Encode(json_encode($payload))
         );
 
         $signing_input = implode('.', $segments);
 
-
-        $signature = OAuth2_Util_JWT::sign($signing_input, $key, $algo);
-        $segments[] = OAuth2_Util_JWT::urlsafeB64Encode($signature);
+        $signature = $this->sign($signing_input, $key, $algo);
+        $segments[] = $this->urlsafeB64Encode($signature);
 
         return implode('.', $segments);
     }
@@ -29,28 +28,29 @@ class OAuth2_Util_JWT
         $tks = explode('.', $jwt);
 
         if (count($tks) != 3) {
-            throw new Exception('Wrong number of segments');
+            return false;
         }
 
         list($headb64, $payloadb64, $cryptob64) = $tks;
 
-        if (null === ($header = json_decode(OAuth2_Util_JWT::urlsafeB64Decode($headb64)))){
-            throw new Exception('Invalid segment encoding');
+        if (null === ($header = json_decode($this->urlsafeB64Decode($headb64)))){
+            return false;
         }
 
-        if (null === $payload = json_decode(OAuth2_Util_JWT::urlsafeB64Decode($payloadb64))){
-            throw new Exception('Invalid segment encoding');
+        if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64))){
+            return false;
         }
 
-        $sig = OAuth2_Util_JWT::urlsafeB64Decode($cryptob64);
+        $sig = $this->urlsafeB64Decode($cryptob64);
 
         if ($verify) {
+
             if (empty($header->alg)) {
-                throw new DomainException('Empty algorithm');
+                return false;
             }
 
-            if (!OAuth2_Util_JWT::verifySignature($sig, "$headb64.$payloadb64", $key, $header->alg)) {
-                throw new UnexpectedValueException('Signature verification failed');
+            if (!$this->verifySignature($sig, "$headb64.$payloadb64", $key, $header->alg)) {
+                return false;
             }
         }
 
@@ -63,10 +63,19 @@ class OAuth2_Util_JWT
             case'HS256':
             case'HS384':
             case'HS512':
-                return OAuth2_Util_JWT::sign($input, $key, $algo) === $signature;
+                return $this->sign($input, $key, $algo) === $signature;
 
             case 'RS256':
-                return (boolean)openssl_verify($input, $signature, $key, OPENSSL_ALGO_SHA256);
+                return @openssl_verify($input, $signature, $key, 'sha256') === 1;
+
+            case 'RS384':
+                return @openssl_verify($input, $signature, $key, 'sha384') === 1;
+
+            case 'RS512':
+                return @openssl_verify($input, $signature, $key, 'sha512') === 1;
+
+            default:
+                throw new Exception("Unsupported or invalid signing algorithm.");
         }
     }
 
@@ -84,15 +93,26 @@ class OAuth2_Util_JWT
                 return hash_hmac('sha512', $input, $key, true);
 
             case 'RS256':
-                if (!openssl_sign($input, $signature, $key, OPENSSL_ALGO_SHA256)) {
-                     throw new Exception("Unable to sign data.");
-                }
+                return $this->generateRSASignature($input, $key, 'sha256');
 
-                return $signature;
+            case 'RS384':
+                return $this->generateRSASignature($input, $key, 'sha384');
+
+            case 'RS512':
+                return $this->generateRSASignature($input, $key, 'sha512');
 
             default:
                 throw new Exception("Unsupported or invalid signing algorithm.");
         }
+    }
+
+    private function generateRSASignature($input, $key, $algo)
+    {
+        if (!openssl_sign($input, $signature, $key, $algo)) {
+            throw new Exception("Unable to sign data.");
+        }
+
+        return $signature;
     }
 
     private function urlSafeB64Encode($data)

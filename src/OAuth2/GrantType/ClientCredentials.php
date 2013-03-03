@@ -16,7 +16,7 @@ class OAuth2_GrantType_ClientCredentials implements OAuth2_GrantTypeInterface
     public function getTokenDataFromRequest($request)
     {
         // the only piece to pull is the "scope" parameter
-        $scope = $request->server('REQUEST_METHOD') == 'POST' ? $request->request('scope') : $request->query('scope');
+        $scope = $request->request('scope');
         return array(
             "scope" => $scope
         );
@@ -32,7 +32,7 @@ class OAuth2_GrantType_ClientCredentials implements OAuth2_GrantTypeInterface
     {
         /*
          * Client Credentials Grant does NOT include a refresh token
-         * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.4.3
+         * @see http://tools.ietf.org/html/rfc6749#section-4.4.3
          */
         $includeRefreshToken = false;
         return $accessToken->createAccessToken($clientData['client_id'], $tokenData['user_id'], $tokenData['scope'], $includeRefreshToken);

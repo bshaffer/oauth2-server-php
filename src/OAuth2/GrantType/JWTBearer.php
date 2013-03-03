@@ -10,6 +10,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     private $response;
     private $audience = null;
     private $jwt = null;
+    private $undecodedJWT = null;
     private $jwtUtil;
 
     /**
@@ -19,16 +20,16 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      * A valid storage interface that implements storage hooks for the JWT bearer grant type.
      * @param string $audience
      * The audience to validate the token against. This is usually the full URI of the OAuth grant requests endpoint.
-     * @param OAuth2_Util_JWT OPTIONAL $jwtUtil
+     * @param OAuth2_Encryption_JWT OPTIONAL $jwtUtil
      * The class used to decode, encode and verify JWTs.
      */
-    public function __construct(OAuth2_Storage_JWTBearerInterface $storage, $audience,  OAuth2_Util_JWT $jwtUtil = null)
+    public function __construct(OAuth2_Storage_JWTBearerInterface $storage, $audience,  OAuth2_Encryption_JWT $jwtUtil = null)
     {
         $this->storage = $storage;
         $this->audience = $audience;
 
         if (is_null($jwtUtil)) {
-            $jwtUtil = new OAuth2_Util_JWT();
+            $jwtUtil = new OAuth2_Encryption_JWT();
         }
 
         $this->jwtUtil = $jwtUtil;
@@ -51,7 +52,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      */
     public function validateRequest($request)
     {
-        if (!$request->query("assertion")) {
+        if (!$request->request("assertion")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
 
             return false;
@@ -68,22 +69,25 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     public function getTokenDataFromRequest($request)
     {
 
-        if (!$request->query("assertion")) {
+        if (!$request->request("assertion")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
 
             return null;
         }
 
-        //Decode the JWT
-        try {
-            $jwt = $this->jwtUtil->decode($request->query('assertion'), null, false);
-        } catch (Exception $e) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
+        //Store the undecoded JWT for later use
+        $this->undecodedJWT = $request->request('assertion');
 
+        //Decode the JWT
+        $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
+
+        if (!$jwt) {
+
+            $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
             return null;
         }
 
-        $this->setJWT($jwt);
+        $this->jwt = $jwt;
 
         $tokenData = array();
 
@@ -107,14 +111,6 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
         return $tokenData;
     }
 
-    /**
-     * Store a copy of the JWT
-     * @param string $jwt
-     */
-    private function setJWT($jwt)
-    {
-        $this->jwt = $jwt;
-    }
 
     /**
      * Helper function to make it easier to return a JWT parameter.
@@ -131,7 +127,8 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     }
 
     /**
-     * Return the data used to verify the request. For JWT bearer authorization grants, this is the 'iss' which is synonymous to the 'client_id'.
+     * Return the data used to verify the request. For JWT bearer authorization grants, the 'iss' is synonymous to the 'client_id'.
+     * The subject is 'sub' and the 'client_secret' is the key to decode the JWT.
      * @return array An array of the client data containing the client_id.
      * @see OAuth2_ClientAssertionTypeInterface::getClientDataFromRequest()
      */
@@ -139,31 +136,56 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     {
         $tokenData = $this->getTokenDataFromRequest($request);
 
-        if($tokenData){
-            return array('client_id' => $tokenData['iss'], 'subject' => $tokenData['sub']);
+        if (!$tokenData) {
+            return null;
         }
-    }
 
-    /**
-     * Validates the client data by checking if the client_id exists in storage. It also checks to see if the client_id is associated with a key to decode the JWT.
-     * @see OAuth2_ClientAssertionTypeInterface::validateClientData()
-     */
-    public function validateClientData(array $clientData)
-    {
-        //Get the iss's public key (http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06#section-4.1.1)
-        if (!isset($clientData['client_id'])) {
+        if (!isset($tokenData['iss'])) {
 
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) provided");
 
             return null;
         }
 
-        $publicKey = $this->storage->getClientKey($clientData['client_id'], $clientData['subject']);
+        //Get the iss's public key (http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06#section-4.1.1)
+        $key = $this->storage->getClientKey($tokenData['iss'], $tokenData['sub']);
 
-        if (!$publicKey) {
+        if (!$key) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) or subject (sub) provided");
 
             return null;
+        }
+
+        return array('client_id' => $tokenData['iss'], 'subject' => $tokenData['sub'], 'client_secret' => $key);
+    }
+
+    /**
+     * Validates the client data by checking if the client_id exists in storage. It also checks to see if the client_id is associated with a key to decode the JWT.
+     * @see OAuth2_ClientAssertionTypeInterface::validateClientData()
+     */
+    public function validateClientData(array $clientData, $grantTypeIdentifier)
+    {
+
+        //Check that all array keys exist
+        $diff = array_diff(array_keys($clientData), array('client_id', 'subject', 'client_secret'));
+
+        if (!empty($diff)) {
+
+            throw new DomainException('The clientData array is missing one or more of the following: client_id, subject, client_secret');
+
+            return false;
+        }
+
+        foreach ($clientData as $key => $value) {
+
+            if (in_array($key, array('client_id', 'client_secret'))) {
+
+                if (!isset($value)) {
+                    throw new LogicException('client_id and client_secret in the clientData array may not be null');
+
+                    return false;
+                }
+            }
         }
 
         return true;
@@ -229,12 +251,11 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
         }
 
         //Verify the JWT
-        try {
-            $this->jwtUtil->decode($this->jwt, $clientData['client_secret'], true);
+        $jwt = $this->jwtUtil->decode($this->undecodedJWT, $clientData['client_secret'], true);
 
-        } catch (Exception $e) {
+        if (!$jwt) {
+
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT failed signature verification");
-
             return null;
         }
 

@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Storage engines that support the "Authorization Code"
- * grant type should implement this interface
+ * Implement this interface to specify where the OAuth2 Server
+ * should get/save authorization codes for the "Authorization Code"
+ * grant type
  *
- * @author Dave Rochwerger <catch.dave@gmail.com>
- * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1
+ * @author Brent Shaffer <bshafs@gmail.com>
  */
 interface OAuth2_Storage_AuthorizationCodeInterface
 {
@@ -13,8 +13,8 @@ interface OAuth2_Storage_AuthorizationCodeInterface
      * The Authorization Code grant type supports a response type of "code".
      *
      * @var string
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-1.4.1
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.2
+     * @see http://tools.ietf.org/html/rfc6749#section-1.4.1
+     * @see http://tools.ietf.org/html/rfc6749#section-4.2
      */
     const RESPONSE_TYPE_CODE = "code";
 
@@ -35,7 +35,7 @@ interface OAuth2_Storage_AuthorizationCodeInterface
      * - expires: Stored expiration in unix timestamp.
      * - scope: (optional) Stored scope values in space-separated string.
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1
+     * @see http://tools.ietf.org/html/rfc6749#section-4.1
      *
      * @ingroup oauth2_section_4
      */
@@ -72,7 +72,7 @@ interface OAuth2_Storage_AuthorizationCodeInterface
     /**
      * once an Authorization Code is used, it must be exipired
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-31#section-4.1.2
+     * @see http://tools.ietf.org/html/rfc6749#section-4.1.2
      *
      *    The client MUST NOT use the authorization code
      *    more than once.  If an authorization code is used more than

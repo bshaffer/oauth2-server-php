@@ -11,18 +11,17 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
     private $config;
     private $scopeUtil;
 
-    public function __construct(OAuth2_Storage_ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), $scopeUtil = null)
+    public function __construct(OAuth2_Storage_ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), OAuth2_ScopeInterface $scopeUtil = null)
     {
         $this->clientStorage = $clientStorage;
         $this->responseTypes = $responseTypes;
         $this->config = array_merge(array(
-            'supported_scopes' => array(),
             'allow_implicit' => false,
             'enforce_state' => false,
         ), $config);
 
         if (is_null($scopeUtil)) {
-            $scopeUtil = new OAuth2_Util_Scope();
+            $scopeUtil = new OAuth2_Scope();
         }
         $this->scopeUtil = $scopeUtil;
     }
@@ -78,9 +77,9 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         // Make sure a valid redirect_uri was supplied. If specified, it must match the clientData URI.
-        // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-3.1.2
-        // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.1.2.1
-        // @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4.2.2.1
+        // @see http://tools.ietf.org/html/rfc6749#section-3.1.2
+        // @see http://tools.ietf.org/html/rfc6749#section-4.1.2.1
+        // @see http://tools.ietf.org/html/rfc6749#section-4.2.2.1
         if (!($redirect_uri = $request->query('redirect_uri')) && !($redirect_uri = $clientData['redirect_uri'])) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_uri', 'No redirect URI was supplied or stored');
             return false;
@@ -103,7 +102,9 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         $redirect_uri = $redirect_uri ? $redirect_uri : $clientData["redirect_uri"];
         $response_type = $request->query('response_type');
         $state = $request->query('state');
-        $scope = $this->scopeUtil->getScopeFromRequest($request);
+        if (!$scope = $this->scopeUtil->getScopeFromRequest($request)) {
+            $scope = $this->scopeUtil->getDefaultScope();
+        }
 
         // type and client_id are required
         if (!$response_type || !in_array($response_type, array(self::RESPONSE_TYPE_AUTHORIZATION_CODE, self::RESPONSE_TYPE_ACCESS_TOKEN))) {
@@ -127,7 +128,12 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         // Validate that the requested scope is supported
-        if ($scope && !$this->scopeUtil->checkScope($scope, $this->config['supported_scopes'])) {
+        if (false === $scope) {
+            $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'invalid_client', 'This application requires you specify a scope parameter', $state);
+            return false;
+        }
+
+        if (!is_null($scope) && !$this->scopeUtil->checkScope($scope, $this->scopeUtil->getSupportedScopes($client_id))) {
             $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'invalid_scope', 'An unsupported scope was requested', $state);
             return false;
         }

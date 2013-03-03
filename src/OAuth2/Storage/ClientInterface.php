@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Implement this interface to specify where the OAuth2 Server
+ * should retrieve client information
+ *
+ * @author Brent Shaffer <bshafs@gmail.com>
+ */
 interface OAuth2_Storage_ClientInterface
 {
     /**

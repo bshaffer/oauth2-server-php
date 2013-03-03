@@ -5,10 +5,11 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testNoCode()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
-        $request->request['grant_type'] = 'authorization_code'; // valid grant type
-        $request->request['client_id'] = 'Test Client ID'; // valid client id
-        $request->request['client_secret'] = 'TestSecret'; // valid client secret
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code', // valid grant type
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+        ));
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -19,11 +20,12 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testInvalidCode()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
-        $request->request['grant_type'] = 'authorization_code'; // valid grant type
-        $request->request['client_id'] = 'Test Client ID'; // valid client id
-        $request->request['client_secret'] = 'TestSecret'; // valid client secret
-        $request->request['code'] = 'InvalidCode'; // invalid authorization code
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code', // valid grant type
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code' => 'InvalidCode', // invalid authorization code
+        ));
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -34,12 +36,12 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testCodeCannotBeUsedTwice()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
-        $request->request['grant_type'] = 'authorization_code'; // valid grant type
-        $request->request['client_id'] = 'Test Client ID'; // valid client id
-        $request->request['client_secret'] = 'TestSecret'; // valid client secret
-        $request->request['code'] = 'testcode'; // valid code
-
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code', // valid grant type
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code' => 'testcode', // valid code
+        ));
         $response = $server->handleGrantRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 200);

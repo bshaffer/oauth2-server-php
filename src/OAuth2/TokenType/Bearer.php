@@ -31,13 +31,13 @@ class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface, OAuth2_Respo
      * POST and GET.
      *
      * NB: Resource servers MUST accept tokens via the Authorization scheme
-     * (http://tools.ietf.org/html/draft-ietf-oauth-v2-bearer-08#section-2).
+     * (http://tools.ietf.org/html/rfc6750#section-2).
      *
      * @todo Should we enforce TLS/SSL in this function?
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-bearer-08#section-2.1
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-bearer-08#section-2.2
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-bearer-08#section-2.3
+     * @see http://tools.ietf.org/html/rfc6750#section-2.1
+     * @see http://tools.ietf.org/html/rfc6750#section-2.2
+     * @see http://tools.ietf.org/html/rfc6750#section-2.3
      *
      * Old Android version bug (at least with version 2.2)
      * @see http://code.google.com/p/android/issues/detail?id=6684

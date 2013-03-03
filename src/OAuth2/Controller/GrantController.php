@@ -6,21 +6,27 @@
 class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantControllerInterface
 {
     private $response;
-    private $clientStorage;
+    private $clientAssertionType;
     private $accessToken;
     private $grantTypes;
     private $scopeUtil;
 
-    public function __construct(OAuth2_Storage_ClientCredentialsInterface $clientStorage, OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), $scopeUtil = null)
+    public function __construct($clientAssertionType = null, OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), OAuth2_ScopeInterface $scopeUtil = null)
     {
-        $this->clientStorage = $clientStorage;
+        if ($clientAssertionType instanceof OAuth2_Storage_ClientCredentialsInterface) {
+            $clientAssertionType = new OAuth2_ClientAssertionType_HttpBasic($clientAssertionType);
+        }
+        if (!is_null($clientAssertionType) && !$clientAssertionType instanceof OAuth2_ClientAssertionTypeInterface) {
+            throw new LogicException('$clientAssertionType must be an instance of OAuth2_Storage_ClientCredentialsInterface, OAuth2_ClientAssertionTypeInterface, or null');
+        }
+        $this->clientAssertionType = $clientAssertionType;
         $this->accessToken = $accessToken;
         foreach ($grantTypes as $grantType) {
             $this->addGrantType($grantType);
         }
 
         if (is_null($scopeUtil)) {
-            $scopeUtil = new OAuth2_Util_Scope();
+            $scopeUtil = new OAuth2_Scope();
         }
         $this->scopeUtil = $scopeUtil;
     }
@@ -28,7 +34,9 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
     public function handleGrantRequest(OAuth2_RequestInterface $request)
     {
         if ($token = $this->grantAccessToken($request)) {
-            $this->response = new OAuth2_Response($token);
+            // @see http://tools.ietf.org/html/rfc6749#section-5.1
+            // server MUST disable caching in headers when tokens are involved
+            $this->response = new OAuth2_Response($token, 200, array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
         }
         return $this->response;
     }
@@ -46,16 +54,21 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
      * @throws InvalidArgumentException
      * @throws LogicException
      *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-4
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-10.6
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-21#section-4.1.3
+     * @see http://tools.ietf.org/html/rfc6749#section-4
+     * @see http://tools.ietf.org/html/rfc6749#section-10.6
+     * @see http://tools.ietf.org/html/rfc6749#section-4.1.3
      *
      * @ingroup oauth2_section_4
      */
     public function grantAccessToken(OAuth2_RequestInterface $request)
     {
+        if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The request method must be POST when requesting an access token', 'http://tools.ietf.org/html/rfc6749#section-3.2');
+            return null;
+        }
+
         // Determine grant type from request
-        if (!($grantType = $request->query('grant_type')) && !($grantType = $request->request('grant_type'))) {
+        if (!$grantType = $request->request('grant_type')) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The grant type was not specified in the request');
             return null;
         }
@@ -66,70 +79,30 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         }
         $grantType = $this->grantTypes[$grantType];
 
-        // get and validate client authorization from the request
-        if (!($grantType instanceof OAuth2_ClientAssertionTypeInterface)) {
+        // Hack to see if clientAssertionType is part of the grant type
+        // this should change, but right now changing it will break BC
+        $clientAssertionType = $grantType instanceof OAuth2_ClientAssertionTypeInterface ? $grantType : $this->clientAssertionType;
 
-            if (!$clientData = $this->getClientCredentials($request)) {
-                return null;
-            }
+        $clientData = $clientAssertionType->getClientDataFromRequest($request);
 
-
-            if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
-                throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
-            }
-
-            if ($this->clientStorage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
-                $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'The client credentials are invalid');
-                return null;
-            }
-
-            if (!$this->clientStorage->checkRestrictedGrantType($clientData['client_id'], $grantType->getQuerystringIdentifier())) {
-                $this->response = new OAuth2_Response_Error(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
-                return null;
-            }
-        } else {
-
-            $clientData = $grantType->getClientDataFromRequest($request);
-
-            if (!$clientData) {
-                $this->response = $grantType->getResponse();
-                return null;
-            }
-
-            if (!$grantType->validateClientData($clientData)) {
-                $this->response = $grantType->getResponse();
-                return null;
-            }
+        if (!$clientData || !$clientAssertionType->validateClientData($clientData, $grantType->getQuerystringIdentifier())) {
+            $this->response = $this->getObjectResponse($clientAssertionType, new OAuth2_Response_Error(400, 'invalid_request', 'Unable to verify client'));
+            return null;
         }
 
         // validate the request for the token
         if (!$grantType->validateRequest($request)) {
-            if ($grantType instanceof OAuth2_Response_ProviderInterface && $response = $grantType->getResponse()) {
-                $this->response = $response;
-            } else {
-                // create a default response
-                $this->response = new OAuth2_Response_Error(400, 'invalid_request', sprintf('Invalid request for "%s" grant type', $grantType->getIdentifier()));
-            }
+            $this->response = $this->getObjectResponse($grantType, new OAuth2_Response_Error(400, 'invalid_request', sprintf('Invalid request for "%s" grant type', $grantType->getQuerystringIdentifier())));
             return null;
         }
 
         if (!$tokenData = $grantType->getTokenDataFromRequest($request)) {
-            if ($grantType instanceof OAuth2_Response_ProviderInterface && $response = $grantType->getResponse()) {
-                $this->response = $response;
-            } else {
-                // create a default response
-                $this->response = new OAuth2_Response_Error(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantType->getIdentifier()));
-            }
+            $this->response = $this->getObjectResponse($grantType, new OAuth2_Response_Error(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantType->getQuerystringIdentifier())));
             return null;
         }
 
         if (!$grantType->validateTokenData($tokenData, $clientData)) {
-            if ($grantType instanceof OAuth2_Response_ProviderInterface && $response = $grantType->getResponse()) {
-                $this->response = $response;
-            } else {
-                // create a default response
-                $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Token is no longer valid' );
-            }
+            $this->response = $this->getObjectResponse($grantType, new OAuth2_Response_Error(400, 'invalid_grant', 'Token is no longer valid'));
             return null;
         }
 
@@ -148,45 +121,6 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         $tokenData['user_id'] = isset($tokenData['user_id']) ? $tokenData['user_id'] : null;
 
         return $grantType->createAccessToken($this->accessToken, $clientData, $tokenData);
-    }
-
-    /**
-     * Internal function used to get the client credentials from HTTP basic
-     * auth or POST data.
-     *
-     * According to the spec (draft 20), the client_id can be provided in
-     * the Basic Authorization header (recommended) or via GET/POST.
-     *
-     * @return
-     * A list containing the client identifier and password, for example
-     * @code
-     * return array(
-     * CLIENT_ID,
-     * CLIENT_SECRET
-     * );
-     * @endcode
-     *
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-20#section-2.4.1
-     *
-     * @ingroup oauth2_section_2
-     */
-    public function getClientCredentials(OAuth2_RequestInterface $request)
-    {
-        if (!is_null($request->headers('PHP_AUTH_USER')) && !is_null($request->headers('PHP_AUTH_PW'))) {
-            return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));
-        }
-
-        // This method is not recommended, but is supported by specification
-        if (!is_null($request->request('client_id')) && !is_null($request->request('client_secret'))) {
-            return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
-        }
-
-        if (!is_null($request->query('client_id')) && !is_null($request->query('client_secret'))) {
-            return array('client_id' => $request->query('client_id'), 'client_secret' => $request->query('client_secret'));
-        }
-
-        $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'Client credentials were not found in the headers or body');
-        return null;
     }
 
     /**
@@ -209,5 +143,13 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
     public function getResponse()
     {
         return $this->response;
+    }
+
+    public function getObjectResponse($object, OAuth2_Response $defaultResponse = null)
+    {
+        if ($object instanceof OAuth2_Response_ProviderInterface && $response = $object->getResponse()) {
+            return $response;
+        }
+        return $defaultResponse;
     }
 }

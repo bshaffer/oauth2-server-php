@@ -104,6 +104,36 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
         $this->assertEquals($query['error_description'], 'The state parameter is required');
     }
 
+    public function testEnforceScope()
+    {
+        $server = $this->getTestServer();
+        $scopeStorage = new OAuth2_Storage_Memory(array('default_scope' => false, 'supported_scopes' => 'testscope'));
+        $server->setScopeUtil(new OAuth2_Scope($scopeStorage));
+
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['client_id'] = 'Test Client ID'; // valid client id
+        $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
+        $request->query['response_type'] = 'code';
+        $response = $server->handleAuthorizeRequest($request, true);
+
+        $this->assertEquals($response->getStatusCode(), 302);
+        $parts = parse_url($response->getHttpHeader('Location'));
+        parse_str($parts['query'], $query);
+
+        $this->assertEquals($query['error'], 'invalid_client');
+        $this->assertEquals($query['error_description'], 'This application requires you specify a scope parameter');
+
+        $request->query['scope'] = 'testscope';
+        $response = $server->handleAuthorizeRequest($request, true);
+
+        $this->assertEquals($response->getStatusCode(), 302);
+        $parts = parse_url($response->getHttpHeader('Location'));
+        parse_str($parts['query'], $query);
+
+        // success!
+        $this->assertFalse(isset($query['error']));
+    }
+
     public function testValidateRedirectUri()
     {
         $server = $this->getTestServer();
