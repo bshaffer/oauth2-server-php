@@ -7,6 +7,7 @@ class OAuth2_Response
 {
     public $version;
     protected $statusCode = 200;
+    protected $statusText;
     protected $parameters = array();
     protected $httpHeaders = array();
 
@@ -106,6 +107,11 @@ class OAuth2_Response
         }
 
         $this->statusText = false === $text ? '' : (null === $text ? self::$statusTexts[$this->statusCode] : $text);
+    }
+
+    public function getStatusText()
+    {
+        return $this->statusText;
     }
 
     public function getParameters()

@@ -122,7 +122,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
             }
         }
 
-        if ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN && $this->config['allow_implicit'] === false) {
+        if ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN && !$this->config['allow_implicit']) {
             $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unsupported_response_type', 'implicit grant type not supported', $state);
             return false;
         }
