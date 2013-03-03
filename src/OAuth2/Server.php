@@ -320,9 +320,9 @@ class OAuth2_Server implements OAuth2_Controller_AccessControllerInterface,
         return $value;
     }
 
-    public function getAccessTokenData(OAuth2_RequestInterface $request)
+    public function getAccessTokenData(OAuth2_RequestInterface $request, $scope = null)
     {
-        $value = $this->getAccessController()->getAccessTokenData($request);
+        $value = $this->getAccessController()->getAccessTokenData($request, $scope);
         $this->response = $this->accessController->getResponse();
         return $value;
     }
