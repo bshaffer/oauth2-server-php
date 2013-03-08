@@ -145,7 +145,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         // Return retrieved client details together with input
-        return ((array)$request->getAllQueryParameters() + $clientData + array('state' => null));
+        return ((array)$request->getAllQueryParameters() + $clientData + array('scope' => $scope, 'state' => null));
     }
 
     /**
