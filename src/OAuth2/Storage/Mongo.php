@@ -169,7 +169,10 @@ class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
 
     public function getUserDetails($username)
     {
-        return $this->getUser($username);
+        $user = $this->getUser($username);
+        // User details must have a 'user_id' field, to store in token data for example:
+        $user['user_id'] = $user['username'];
+        return $user;
     }
 
     /* RefreshTokenInterface */
