@@ -12,8 +12,8 @@ class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
 	OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface,
 	OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_RefreshTokenInterface, OAuth2_Storage_JWTBearerInterface
 {
-	private $db;
-	private $config;
+	protected $db;
+	protected $config;
 
 	public function __construct($connection, $config = array())
 	{
