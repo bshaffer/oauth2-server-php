@@ -1,2 +1,15 @@
-.DS_Store
+# Test Files #
 test/config/test.sqlite
+
+# Editor Files #
+*.komodoproject
+
+# OS generated files #
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
