@@ -9,3 +9,5 @@ services: mongodb
 
 before_script:
   - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+
+after_failure: ps ax | grep mongo
