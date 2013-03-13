@@ -104,7 +104,8 @@ For these tyes of requests, this library provides the following methods:
   * Receives a request object for an authorize request, returns a response object with the appropriate response
 
 `validateAuthorizeRequest`
-  * Receives a request object, returns a Boolean for whether the incoming request is a valid Authorize Request.
+  * Receives a request object, returns false if the incoming request is not a valid Authorize Request. If the request 
+is valid, returns an array of retrieved client details together with input.
 Applications should call this before displaying a login or authorization form to the user
 
 **Grant Requests**
