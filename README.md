@@ -57,10 +57,11 @@ $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 
 $server = new OAuth2_Server($storage);
 ```
 
-The next step is to add a grant type.  This example uses the "User Credentials" grant type, which grants a token based on
-explicit user credentials passed to the request. Read more on [supported grant types](https://github.com/bshaffer/oauth2-server-php#grant-types)
-below, or in the [OAuth2 spec](http://tools.ietf.org/html/rfc6749). Each grant type also requires storage,
-so pass the existing storage to the constructor:
+The next step is to add a grant type. This example uses the "User Credentials" grant type, which grants a token based on
+explicit user credentials passed to the request. The [OAuth2 spec](http://tools.ietf.org/html/rfc6749) has no
+restrictions on the number of grant types your server can support and therefore you can add more than one grant type to
+your $server ... read about this [below](https://github.com/bshaffer/oauth2-server-php#grant-types). Each grant type
+also requires storage, so pass the existing storage to the constructor:
 
 ```php
 $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage));
@@ -104,7 +105,8 @@ For these tyes of requests, this library provides the following methods:
   * Receives a request object for an authorize request, returns a response object with the appropriate response
 
 `validateAuthorizeRequest`
-  * Receives a request object, returns a Boolean for whether the incoming request is a valid Authorize Request.
+  * Receives a request object, returns false if the incoming request is not a valid Authorize Request. If the request 
+is valid, returns an array of retrieved client details together with input.
 Applications should call this before displaying a login or authorization form to the user
 
 **Grant Requests**
@@ -192,9 +194,31 @@ Supported grant types are as follows:
 
         The client can use their credentials to retrieve an access token directly, which will allow access to resources under the client's control
 
-  4. [JWT Authorization Grant](http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4)
+  5. [JWT Authorization Grant](http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4)
 
         The client can submit a JWT (JSON Web Token) in a request to the token endpoint. An access token (without a refresh token) is then returned directly.
+        
+  6. [Refresh Token](http://tools.ietf.org/html/rfc6749#section-6)
+
+        The client can submit refresh token and recieve a new access token e.g. it may be necessary to do this if the access_token had expired.
+
+When submitting a request for an access_token using either the 'Authorization Code' or 'Resource Owner Password
+Credential' grant, a refresh_token is provided. However, When using the refresh_token from above to request a new
+access_token, a new refresh_token is not provided. The spec does not strictly require a refresh_token be granted but it
+is [still possible to do it](http://tools.ietf.org/html/rfc6749#section-6).
+
+As a result, the option always_issue_new_refresh_token was added (defaults to FALSE) in the
+[OAuth2_GrantType_RefreshToken](src/OAuth2/GrantType/RefreshToken.php) class. So, by default a new refresh token is not
+issued, but you can easily configure this to do so by setting `'always_issue_new_refresh_token' => true`
+
+If you want to support more than one grant type it is possible to add more than 1 type to the $server as you
+initialize, see below.
+
+```php
+$server->addGrantType(new OAuth2_GrantType_UserCredentials($storage));
+$server->addGrantType(new OAuth2_GrantType_RefreshToken($storage));
+$server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
+```
 
 Create a custom grant type by implementing the `OAuth2_GrantTypeInterface` and adding it to the OAuth2 Server object.
 
@@ -210,6 +234,7 @@ a variety of different functions to the client ("access basic information", "pos
 In this library, scope is handled by implementing `OAuth2_Storage_ScopeInterface`. This can be done using your own
 implementation, or by taking advantage of the existing `OAuth2_Storage_Memory` class:
 
+```php
     // configure your available scopes
     $defaultScope = 'basic';
     $supportedScopes = array(
@@ -224,17 +249,21 @@ implementation, or by taking advantage of the existing `OAuth2_Storage_Memory` c
     $scopeUtil = new OAuth2_Scope($memory);
 
     $server->setScopeUtil($scopeUtil);
+```
 
 This is the simplest way, but scope can by dynamically configured as well:
 
+```php
     // configure your available scopes
     $doctrine = Doctrine_Core::getTable('OAuth2Scope');
     $scopeUtil = new OAuth2_Scope($doctrine);
 
     $server->setScopeUtil($scopeUtil);
+```
 
 This example assumes the class being used implements `OAuth2_Storage_ScopeInterface`:
 
+```php
     class OAuth2ScopeTable extends Doctrine_Table implements OAuth2_Storage_ScopeInterface
     {
       public function getDefaultScope()
@@ -247,6 +276,7 @@ This example assumes the class being used implements `OAuth2_Storage_ScopeInterf
         //...
       }
     }
+```
 
 ####Validate your scope
 
@@ -256,6 +286,7 @@ owner upon authorization.  In this library, this is left 100% to the implementat
 the scope of the authorization being granted.  Second, the resource request itself must specify what scope is required to
 access it:
 
+```php
     // https://api.example.com/resource-requiring-postonwall-scope
     $request = OAuth2_Request::createFromGlobals();
     $scopeRequired = 'postonwall'; // this resource requires "postonwall" scope
@@ -263,6 +294,7 @@ access it:
       // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
       $server->getRequest()->send();
     }
+```
 
 ####Customizing your scope
 
