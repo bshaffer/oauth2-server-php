@@ -1,9 +1,9 @@
 <?php
 
 /**
- *  @see OAuth2_Controller_AccessControllerInterface
+ *  @see OAuth2_Controller_ResourceControllerInterface
  */
-class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessControllerInterface
+class OAuth2_Controller_ResourceController implements OAuth2_Controller_ResourceControllerInterface
 {
     private $response;
     private $tokenType;
@@ -26,7 +26,7 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function verifyAccessRequest(OAuth2_RequestInterface $request, $scope = null)
+    public function verifyResourceRequest(OAuth2_RequestInterface $request, $scope = null)
     {
         $token_data = $this->getAccessTokenData($request, $scope);
 
