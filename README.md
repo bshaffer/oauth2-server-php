@@ -22,7 +22,7 @@ If you use a package library like [Composer](http://getcomposer.php), add the fo
 
     {
         "require": {
-            "bshaffer/oauth2-server-php": "v0.4",
+            "bshaffer/oauth2-server-php": "v0.5",
             ...
         },
         ...
@@ -30,7 +30,7 @@ If you use a package library like [Composer](http://getcomposer.php), add the fo
 
 And then run `composer.phar install`
 
-> Checkout out the tag `v0.4` will ensure your application doesn't break from backwards-compatibility issues, but also this means you
+> Checkout out the tag `v0.5` will ensure your application doesn't break from backwards-compatibility issues, but also this means you
 > will not receive the latest changes.  To ride the bleeding edge of development, use `dev-develop` instead.
 
 Get Started
