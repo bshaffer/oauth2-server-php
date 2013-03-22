@@ -6,7 +6,7 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
-        $response = $server->handleGrantRequest(OAuth2_Request_TestRequest::createPost());
+        $response = $server->handleTokenRequest(OAuth2_Request_TestRequest::createPost());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -20,7 +20,7 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
         $request = OAuth2_Request_TestRequest::createPost(array(
             'grant_type' => 'invalid_grant_type', // invalid grant type
         ));
-        $response = $server->handleGrantRequest($request);
+        $response = $server->handleTokenRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'unsupported_grant_type');
@@ -34,7 +34,7 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
         $request = OAuth2_Request_TestRequest::createPost(array(
             'grant_type' => 'authorization_code', // valid grant type
         ));
-        $response = $server->handleGrantRequest($request);
+        $response = $server->handleTokenRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_client');
@@ -49,7 +49,7 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
             'grant_type' => 'authorization_code', // valid grant type
             'client_id' => 'Test Client ID', // valid client id
         ));
-        $response = $server->handleGrantRequest($request);
+        $response = $server->handleTokenRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_client');
@@ -65,7 +65,7 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
             'client_id' => 'Fake Client ID', // invalid client id
             'client_secret' => 'Fake Client Secret', // invalid client secret
         ));
-        $response = $server->handleGrantRequest($request);
+        $response = $server->handleTokenRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_client');
@@ -73,7 +73,7 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
 
         // try again with a real client ID, but an invalid secret
         $request->request['client_id'] = 'Test Client ID'; // valid client id
-        $response = $server->handleGrantRequest($request);
+        $response = $server->handleTokenRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_client');
@@ -90,7 +90,7 @@ class OAuth2_Server_Grant_BasicValidationTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'code' => 'testcode', // valid authorization code
         ));
-        $response = $server->handleGrantRequest($request);
+        $response = $server->handleTokenRequest($request);
 
         $this->assertTrue($response instanceof OAuth2_Response);
         $this->assertEquals($response->getStatusCode(), 200);
