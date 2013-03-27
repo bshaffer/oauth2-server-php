@@ -34,6 +34,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         'refresh_token' => 'OAuth2_Storage_RefreshTokenInterface',
         'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
         'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
+        'jwt_bearer' => 'OAuth2_Storage_JWTBearerInterface',
     );
     protected $responseTypeMap = array(
         'token' => 'OAuth2_ResponseType_AccessTokenInterface',
@@ -205,6 +206,10 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
 
         if (isset($this->storages['authorization_code'])) {
             $grantTypes['authorization_code'] = new OAuth2_GrantType_AuthorizationCode($this->storages['authorization_code']);
+        }
+
+        if (isset($this->storages['jwt_bearer'])) {
+            $grantTypes['jwt_bearer'] = new OAuth2_GrantType_JWTBearer($this->storages['jwt_bearer']);
         }
 
         if (count($grantTypes) == 0) {
