@@ -162,4 +162,51 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $this->assertTrue(isset($storages['access_token']));
         $this->assertFalse(isset($storages['authorization_code']));
     }
+
+    public function testAddingResponseType()
+    {
+        $storage = $this->getMock('OAuth2_Storage_Memory');
+        $storage
+          ->expects($this->any())
+          ->method('getClientDetails')
+          ->will($this->returnValue(array('client_id' => 'some_client')));
+
+        // add with the "code" key explicitly set
+        $codeType = new OAuth2_ResponseType_AuthorizationCode($storage);
+        $server = new OAuth2_Server();
+        $server->addStorage($storage);
+        $server->addResponseType($codeType);
+        $request = new OAuth2_Request(array('response_type' => 'code', 'client_id' => 'some_client', 'redirect_uri' => 'http://example.com'));
+        $response = $server->handleAuthorizeRequest($request, true);
+
+        // the response is successful
+        $this->assertEquals($response->getStatusCode(), 302);
+        $parts = parse_url($response->getHttpHeader('Location'));
+        parse_str($parts['query'], $query);
+        $this->assertTrue(isset($query['code']));
+        $this->assertFalse(isset($query['error']));
+
+        // add with the "code" key not set
+        $codeType = new OAuth2_ResponseType_AuthorizationCode($storage);
+        $server = new OAuth2_Server(array($storage), array(), array(), array($codeType));
+        $request = new OAuth2_Request(array('response_type' => 'code', 'client_id' => 'some_client', 'redirect_uri' => 'http://example.com'));
+        $response = $server->handleAuthorizeRequest($request, true);
+
+        // the response is successful
+        $this->assertEquals($response->getStatusCode(), 302);
+        $parts = parse_url($response->getHttpHeader('Location'));
+        parse_str($parts['query'], $query);
+        $this->assertTrue(isset($query['code']));
+        $this->assertFalse(isset($query['error']));
+    }
+
+    /**
+     * @expectedException InvalidArgumentException OAuth2_ResponseType_AuthorizationCodeInterface
+     **/
+    public function testAddingUnknownResponseTypeThrowsException()
+    {
+        $server = new OAuth2_Server();
+        $server->addResponseType($this->getMock('OAuth2_ResponseTypeInterface'));
+    }
+
 }

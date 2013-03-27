@@ -26,13 +26,18 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     protected $accessTokenResponseType;
     protected $scopeUtil;
 
-    private $storageMap = array(
+    protected $storageMap = array(
         'access_token' => 'OAuth2_Storage_AccessTokenInterface',
         'authorization_code' => 'OAuth2_Storage_AuthorizationCodeInterface',
         'client_credentials' => 'OAuth2_Storage_ClientCredentialsInterface',
         'client' => 'OAuth2_Storage_ClientInterface',
         'refresh_token' => 'OAuth2_Storage_RefreshTokenInterface',
         'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
+        'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
+    );
+    protected $responseTypeMap = array(
+        'token' => 'OAuth2_ResponseType_AccessTokenInterface',
+        'code' => 'OAuth2_ResponseType_AuthorizationCodeInterface',
     );
 
     /**
@@ -80,11 +85,11 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             'allow_implicit'           => false,
         ), $config);
 
-        foreach ($responseTypes as $responseType) {
-            $this->addResponseType($responseType);
+        foreach ($responseTypes as $key => $responseType) {
+            $this->addResponseType($responseType, $key);
         }
-        foreach ($grantTypes as $grantType) {
-            $this->addGrantType($grantType);
+        foreach ($grantTypes as $key => $grantType) {
+            $this->addGrantType($grantType, $key);
         }
         $this->accessTokenResponseType = $accessTokenResponseType;
         $this->scopeUtil = $scopeUtil;
@@ -327,9 +332,13 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         return $value;
     }
 
-    public function addGrantType(OAuth2_GrantTypeInterface $grantType)
+    public function addGrantType(OAuth2_GrantTypeInterface $grantType, $key = null)
     {
-        $this->grantTypes[] = $grantType;
+        if (is_string($key)) {
+            $this->grantTypes[$key] = $grantType;
+        } else {
+            $this->grantTypes[] = $grantType;
+        }
 
         // persist added grant type down to TokenController
         if (!is_null($this->tokenController)) {
@@ -365,9 +374,28 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         }
     }
 
-    public function addResponseType(OAuth2_ResponseTypeInterface $responseType)
+    public function addResponseType(OAuth2_ResponseTypeInterface $responseType, $key = null)
     {
-        $this->responseTypes[] = $responseType;
+        if (isset($this->responseTypeMap[$key])) {
+            if (!$responseType instanceof $this->responseTypeMap[$key]) {
+                throw new InvalidArgumentException(sprintf('responseType of type "%s" must implement interface "%s"', $key, $this->responseTypeMap[$key]));
+            }
+            $this->responseTypes[$key] = $responseType;
+        } elseif (!is_null($key) && !is_numeric($key)) {
+            throw new InvalidArgumentException(sprintf('unknown responseType key "%s", must be one of [%s]', $key, implode(', ', array_keys($this->responseTypeMap))));
+        } else {
+            $set = false;
+            foreach ($this->responseTypeMap as $type => $interface) {
+                if ($responseType instanceof $interface) {
+                    $this->responseTypes[$type] = $responseType;
+                    $set = true;
+                }
+            }
+
+            if (!$set) {
+                throw new InvalidArgumentException(sprintf('Unknown response type %s.  Please implement one of [%s]', get_class($responseType), implode(', ', $this->responseTypeMap)));
+            }
+        }
     }
 
     public function setScopeUtil($scopeUtil)
