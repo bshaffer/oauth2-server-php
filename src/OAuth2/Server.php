@@ -33,7 +33,6 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         'client' => 'OAuth2_Storage_ClientInterface',
         'refresh_token' => 'OAuth2_Storage_RefreshTokenInterface',
         'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
-        'user_credentials' => 'OAuth2_Storage_UserCredentialsInterface',
         'jwt_bearer' => 'OAuth2_Storage_JWTBearerInterface',
     );
     protected $responseTypeMap = array(
