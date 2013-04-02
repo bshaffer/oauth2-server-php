@@ -52,7 +52,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         $uri = $this->buildUri($redirect_uri, $result);
 
         // return redirect response
-        return new OAuth2_Response_Redirect($uri);
+        return $this->response = new OAuth2_Response_Redirect($uri);
     }
 
     public function validateAuthorizeRequest(OAuth2_RequestInterface $request)
