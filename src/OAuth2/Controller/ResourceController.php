@@ -37,7 +37,7 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
     {
         // Get the token parameter
         $token_param = $this->tokenType->getAccessTokenParameter($request);
-        if ($token_param === null) {
+        if (is_null($token_param)) {
             $this->response = $this->tokenType->getResponse();
             return null;
         }
