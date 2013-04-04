@@ -5,6 +5,9 @@ php:
   - 5.3
   - 5.4
 
+env:
+  - SKIP_MONGO_TESTS=1
+
 services: mongodb
 
 before_script:
