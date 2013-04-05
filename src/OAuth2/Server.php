@@ -299,9 +299,9 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     /**
      * Pull the authorization request data out of the HTTP request.
      * - The redirect_uri is OPTIONAL as per draft 20. But your implementation can enforce it
-     * by setting CONFIG_ENFORCE_INPUT_REDIRECT to true.
+     * by setting $config['enforce_redirect'] to true.
      * - The state is OPTIONAL but recommended to enforce CSRF. Draft 21 states, however, that
-     * CSRF protection is MANDATORY. You can enforce this by setting the CONFIG_ENFORCE_STATE to true.
+     * CSRF protection is MANDATORY. You can enforce this by setting the $config['enforce_state'] to true.
      *
      * The draft specifies that the parameters should be retrieved from GET, override the Response
      * object to change this
