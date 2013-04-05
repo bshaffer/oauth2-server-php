@@ -83,6 +83,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             'token_bearer_header_name' => 'Bearer',
             'enforce_state'            => false,
             'allow_implicit'           => false,
+            'implicit_pass_scope'      => true,
         ), $config);
 
         foreach ($responseTypes as $key => $responseType) {
@@ -171,7 +172,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             if (isset($this->storages['refresh_token'])) {
                 $refreshStorage = $this->storages['refresh_token'];
             }
-            $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime refresh_token_lifetime')));
+            $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime refresh_token_lifetime implicit_pass_scope')));
             $responseTypes['token'] = new OAuth2_ResponseType_AccessToken($this->storages['access_token'], $refreshStorage, $config);
         }
 

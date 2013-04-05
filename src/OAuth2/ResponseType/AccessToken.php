@@ -17,6 +17,7 @@ class OAuth2_ResponseType_AccessToken implements OAuth2_ResponseType_AccessToken
             'token_type'             => 'bearer',
             'access_lifetime'        => 3600,
             'refresh_token_lifetime' => 1209600,
+            'implicit_pass_scope'    => true,
         ), $config);
     }
 
@@ -36,6 +37,11 @@ class OAuth2_ResponseType_AccessToken implements OAuth2_ResponseType_AccessToken
         $includeRefreshToken = false;
         $result["fragment"] = $this->createAccessToken($params['client_id'], $user_id, $params['scope'], $includeRefreshToken);
 
+        // Unset scope if spacified, for cases where passing it would breach
+        // the maximum URL length.
+        if (!$this->config['implicit_pass_scope']) {
+            unset($result['fragment']['scope']);
+        }
         if (isset($params['state'])) {
             $result["fragment"]["state"] = $params['state'];
         }
