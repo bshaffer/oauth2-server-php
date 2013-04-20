@@ -244,7 +244,7 @@ implementation, or by taking advantage of the existing `OAuth2_Storage_Memory` c
     );
     $memory = new OAuth2_Storage_Memory(array(
       'default_scope' => $defaultScope,
-      'supported_scopes => $supportedScoes'
+      'supported_scopes' => $supportedScoes
     ));
     $scopeUtil = new OAuth2_Scope($memory);
 
