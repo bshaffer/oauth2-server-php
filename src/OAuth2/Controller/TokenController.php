@@ -14,6 +14,7 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
     public function __construct($clientAssertionType = null, OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), OAuth2_ScopeInterface $scopeUtil = null)
     {
         if ($clientAssertionType instanceof OAuth2_Storage_ClientCredentialsInterface) {
+            // this is for backwards compatibility
             $clientAssertionType = new OAuth2_ClientAssertionType_HttpBasic($clientAssertionType);
         }
         if (!is_null($clientAssertionType) && !$clientAssertionType instanceof OAuth2_ClientAssertionTypeInterface) {
