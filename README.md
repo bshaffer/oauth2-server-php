@@ -22,7 +22,7 @@ If you use a package library like [Composer](http://getcomposer.php), add the fo
 
     {
         "require": {
-            "bshaffer/oauth2-server-php": "v0.5",
+            "bshaffer/oauth2-server-php": "v0.6",
             ...
         },
         ...
@@ -30,7 +30,7 @@ If you use a package library like [Composer](http://getcomposer.php), add the fo
 
 And then run `composer.phar install`
 
-> Checkout out the tag `v0.5` will ensure your application doesn't break from backwards-compatibility issues, but also this means you
+> Checkout out the tag `v0.6` will ensure your application doesn't break from backwards-compatibility issues, but also this means you
 > will not receive the latest changes.  To ride the bleeding edge of development, use `dev-develop` instead.
 
 Get Started
@@ -105,7 +105,7 @@ For these tyes of requests, this library provides the following methods:
   * Receives a request object for an authorize request, returns a response object with the appropriate response
 
 `validateAuthorizeRequest`
-  * Receives a request object, returns false if the incoming request is not a valid Authorize Request. If the request 
+  * Receives a request object, returns false if the incoming request is not a valid Authorize Request. If the request
 is valid, returns an array of retrieved client details together with input.
 Applications should call this before displaying a login or authorization form to the user
 
@@ -197,7 +197,7 @@ Supported grant types are as follows:
   5. [JWT Authorization Grant](http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4)
 
         The client can submit a JWT (JSON Web Token) in a request to the token endpoint. An access token (without a refresh token) is then returned directly.
-        
+
   6. [Refresh Token](http://tools.ietf.org/html/rfc6749#section-6)
 
         The client can submit refresh token and recieve a new access token e.g. it may be necessary to do this if the access_token had expired.
