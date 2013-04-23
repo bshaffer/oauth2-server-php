@@ -10,7 +10,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
         ));
-        $response = $server->handleGrantRequest($request);
+        $response = $server->handleTokenRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -26,7 +26,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'code' => 'InvalidCode', // invalid authorization code
         ));
-        $response = $server->handleGrantRequest($request);
+        $response = $server->handleTokenRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -42,13 +42,13 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'code' => 'testcode', // valid code
         ));
-        $response = $server->handleGrantRequest($request);
+        $response = $server->handleTokenRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 200);
         $this->assertNotNull($response->getParameter('access_token'));
 
         // try to use the same code again
-        $response = $server->handleGrantRequest($request);
+        $response = $server->handleTokenRequest($request);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');

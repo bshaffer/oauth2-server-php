@@ -49,7 +49,8 @@ class OAuth2_Storage_Bootstrap
     public function getMongo()
     {
         if (!$this->mongo) {
-            if (class_exists('MongoClient')) {
+            $skipMongo = isset($_SERVER['SKIP_MONGO_TESTS']) && $_SERVER['SKIP_MONGO_TESTS'];
+            if (!$skipMongo && class_exists('MongoClient')) {
                 $m = new MongoClient();
                 $db = $m->oauth2_server_php;
                 $this->removeMongoDb($db);

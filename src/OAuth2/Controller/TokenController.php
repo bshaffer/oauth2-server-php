@@ -1,9 +1,9 @@
 <?php
 
 /**
- *  @see OAuth2_Controller_GrantControllerInterface
+ *  @see OAuth2_Controller_TokenControllerInterface
  */
-class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantControllerInterface
+class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenControllerInterface
 {
     private $response;
     private $clientAssertionType;
@@ -14,6 +14,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
     public function __construct($clientAssertionType = null, OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), OAuth2_ScopeInterface $scopeUtil = null)
     {
         if ($clientAssertionType instanceof OAuth2_Storage_ClientCredentialsInterface) {
+            // this is for backwards compatibility
             $clientAssertionType = new OAuth2_ClientAssertionType_HttpBasic($clientAssertionType);
         }
         if (!is_null($clientAssertionType) && !$clientAssertionType instanceof OAuth2_ClientAssertionTypeInterface) {
@@ -31,7 +32,7 @@ class OAuth2_Controller_GrantController implements OAuth2_Controller_GrantContro
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function handleGrantRequest(OAuth2_RequestInterface $request)
+    public function handleTokenRequest(OAuth2_RequestInterface $request)
     {
         if ($token = $this->grantAccessToken($request)) {
             // @see http://tools.ietf.org/html/rfc6749#section-5.1

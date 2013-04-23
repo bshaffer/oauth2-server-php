@@ -1,9 +1,9 @@
 <?php
 
 /**
- *  @see OAuth2_Controller_AccessControllerInterface
+ *  @see OAuth2_Controller_ResourceControllerInterface
  */
-class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessControllerInterface
+class OAuth2_Controller_ResourceController implements OAuth2_Controller_ResourceControllerInterface
 {
     private $response;
     private $tokenType;
@@ -26,7 +26,7 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function verifyAccessRequest(OAuth2_RequestInterface $request, $scope = null)
+    public function verifyResourceRequest(OAuth2_RequestInterface $request, $scope = null)
     {
         $token_data = $this->getAccessTokenData($request, $scope);
 
@@ -35,21 +35,15 @@ class OAuth2_Controller_AccessController implements OAuth2_Controller_AccessCont
 
     public function getAccessTokenData(OAuth2_RequestInterface $request, $scope = null)
     {
+        // Get the token parameter
         $token_param = $this->tokenType->getAccessTokenParameter($request);
-        $this->response = $this->tokenType->getResponse();
-
-        if(!$token_param){
-            return null;
-        }
-
-        if (!$token_param) { // Access token was not provided
-            $this->response = new OAuth2_Response_AuthenticationError(400, 'invalid_request', 'The request is missing a required parameter, includes an unsupported parameter or parameter value, repeats the same parameter, uses more than one method for including an access token, or is otherwise malformed', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope);
+        if (is_null($token_param)) {
+            $this->response = $this->tokenType->getResponse();
             return null;
         }
 
         // Get the stored token data (from the implementing subclass)
-        $token = $this->tokenStorage->getAccessToken($token_param);
-        if ($token === null) {
+        if (!$token = $this->tokenStorage->getAccessToken($token_param)) {
             $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'The access token provided is invalid', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope);
             return null;
         }
