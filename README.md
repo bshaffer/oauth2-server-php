@@ -152,44 +152,6 @@ the incomming request is valid
 
   * Takes a token string as an argument and returns the token data if applicable, or null if the token is invalid
 
-The Response Object
--------------------
-
-The response object serves the purpose of making your server OAuth2 compliant.  It will set the appropriate status codes, headers,
-and response body for a valid or invalid oauth request.  To use it as it's simplest level, just send the output and exit:
-
-```php
-// will set headers, status code, and json response appropriately for success or failure
-$server->grantAccessToken();
-$server->getResponse()->send();
-```
-
-The response object can also be used to customize output. Below, if the request is NOT valid, the error is sent to the browser:
-
-```php
-if (!$token = $server->grantAccessToken()) {
-    $server->getResponse()->send();
-    die();
-}
-echo sprintf('Your token is %s!!', $token);
-```
-
-This will populate the appropriate error headers, and return a json error response.  If you do not want to send a JSON response,
-the response object can be used to display the information in any other format:
-
-```php
-if (!$token = $server->grantAccessToken()) {
-    $response = $server->getResponse();
-    $parameters = $response->getParameters();
-    // format as XML
-    header("HTTP/1.1 " . $response->getStatusCode());
-    header("Content-Type: text/xml");
-    echo "<error><name>".$parameters['error']."</name><message>".$parameters['error_description']."</message></error>";
-}
-```
-
-This is very useful when working in a framework or existing codebase, where this library will not have full control of the response.
-
 Grant Types
 -----------
 
@@ -239,6 +201,44 @@ $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
 ```
 
 Create a custom grant type by implementing the `OAuth2_GrantTypeInterface` and adding it to the OAuth2 Server object.
+
+The Response Object
+-------------------
+
+The response object serves the purpose of making your server OAuth2 compliant.  It will set the appropriate status codes, headers,
+and response body for a valid or invalid oauth request.  To use it as it's simplest level, just send the output and exit:
+
+```php
+// will set headers, status code, and json response appropriately for success or failure
+$server->grantAccessToken();
+$server->getResponse()->send();
+```
+
+The response object can also be used to customize output. Below, if the request is NOT valid, the error is sent to the browser:
+
+```php
+if (!$token = $server->grantAccessToken()) {
+    $server->getResponse()->send();
+    die();
+}
+echo sprintf('Your token is %s!!', $token);
+```
+
+This will populate the appropriate error headers, and return a json error response.  If you do not want to send a JSON response,
+the response object can be used to display the information in any other format:
+
+```php
+if (!$token = $server->grantAccessToken()) {
+    $response = $server->getResponse();
+    $parameters = $response->getParameters();
+    // format as XML
+    header("HTTP/1.1 " . $response->getStatusCode());
+    header("Content-Type: text/xml");
+    echo "<error><name>".$parameters['error']."</name><message>".$parameters['error_description']."</message></error>";
+}
+```
+
+This is very useful when working in a framework or existing codebase, where this library will not have full control of the response.
 
 Scope
 -----
