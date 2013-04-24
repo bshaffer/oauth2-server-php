@@ -20,13 +20,15 @@ OAuth2_Autoloader::register();
 
 If you use a package library like [Composer](http://getcomposer.php), add the following to `composer.json`
 
-    {
-        "require": {
-            "bshaffer/oauth2-server-php": "v0.6",
-            ...
-        },
+```json
+{
+    "require": {
+        "bshaffer/oauth2-server-php": "v0.6",
         ...
-    }
+    },
+    ...
+}
+```
 
 And then run `composer.phar install`
 
@@ -253,47 +255,47 @@ In this library, scope is handled by implementing `OAuth2_Storage_ScopeInterface
 implementation, or by taking advantage of the existing `OAuth2_Storage_Memory` class:
 
 ```php
-    // configure your available scopes
-    $defaultScope = 'basic';
-    $supportedScopes = array(
-      'basic',
-      'postonwall',
-      'accessphonenumber'
-    );
-    $memory = new OAuth2_Storage_Memory(array(
-      'default_scope' => $defaultScope,
-      'supported_scopes' => $supportedScoes
-    ));
-    $scopeUtil = new OAuth2_Scope($memory);
+// configure your available scopes
+$defaultScope = 'basic';
+$supportedScopes = array(
+  'basic',
+  'postonwall',
+  'accessphonenumber'
+);
+$memory = new OAuth2_Storage_Memory(array(
+  'default_scope' => $defaultScope,
+  'supported_scopes' => $supportedScoes
+));
+$scopeUtil = new OAuth2_Scope($memory);
 
-    $server->setScopeUtil($scopeUtil);
+$server->setScopeUtil($scopeUtil);
 ```
 
 This is the simplest way, but scope can by dynamically configured as well:
 
 ```php
-    // configure your available scopes
-    $doctrine = Doctrine_Core::getTable('OAuth2Scope');
-    $scopeUtil = new OAuth2_Scope($doctrine);
+// configure your available scopes
+$doctrine = Doctrine_Core::getTable('OAuth2Scope');
+$scopeUtil = new OAuth2_Scope($doctrine);
 
-    $server->setScopeUtil($scopeUtil);
+$server->setScopeUtil($scopeUtil);
 ```
 
 This example assumes the class being used implements `OAuth2_Storage_ScopeInterface`:
 
 ```php
-    class OAuth2ScopeTable extends Doctrine_Table implements OAuth2_Storage_ScopeInterface
+class OAuth2ScopeTable extends Doctrine_Table implements OAuth2_Storage_ScopeInterface
+{
+    public function getDefaultScope()
     {
-      public function getDefaultScope()
-      {
         //...
-      }
-
-      public function getSupportedScopes($client_id = null)
-      {
-        //...
-      }
     }
+
+    public function getSupportedScopes($client_id = null)
+    {
+        //...
+    }
+}
 ```
 
 ####Validate your scope
@@ -305,13 +307,13 @@ the scope of the authorization being granted.  Second, the resource request itse
 access it:
 
 ```php
-    // https://api.example.com/resource-requiring-postonwall-scope
-    $request = OAuth2_Request::createFromGlobals();
-    $scopeRequired = 'postonwall'; // this resource requires "postonwall" scope
-    if (!$server->verifyResourceRequest($request, $scopeRequired)) {
-      // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
-      $server->getRequest()->send();
-    }
+// https://api.example.com/resource-requiring-postonwall-scope
+$request = OAuth2_Request::createFromGlobals();
+$scopeRequired = 'postonwall'; // this resource requires "postonwall" scope
+if (!$server->verifyResourceRequest($request, $scopeRequired)) {
+  // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
+  $server->getRequest()->send();
+}
 ```
 
 ####Customizing your scope
