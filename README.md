@@ -102,16 +102,13 @@ Server Methods
 >
 >   ~ OAuth2 ([draft #31](http://tools.ietf.org/html/rfc6749#section-1))
 
-Most OAuth2 APIs will have endpoints for `Authorize Requests`, `Token Requests`, and `Resource Requests`:
+Most OAuth2 APIs will have endpoints for `Authorize Requests`, `Token Requests`, and `Resource Requests`.  The `OAuth2_Server` object has methods to handle each of these requests.
 
- * **Authorize Requests** - An endpoint requiring the user to authenticate, which redirects back to the client with an `authorization code`
- * **Token Requests** - An endpoint which the client uses to exchange the `authorization code` for an `access token`
- * **Resource Requests** - Any API method requiring oauth2 authentication.  The server will validate the incomming request, and then allow
-the application to serve back the protected resource
+### Authorize Requests
 
-For these tyes of requests, this library provides the following methods:
+An endpoint requiring the user to authenticate, which redirects back to the client with an `authorization code`.
 
-**Authorize Requests**
+**methods**:
 
 `handleAuthorizeRequest`
   * Receives a request object for an authorize request, returns a response object with the appropriate response
@@ -121,7 +118,11 @@ For these tyes of requests, this library provides the following methods:
 is valid, returns an array of retrieved client details together with input.
 Applications should call this before displaying a login or authorization form to the user
 
-**Token Requests**
+### Token Requests
+
+An endpoint which the client uses to exchange the `authorization code` for an `access token`.
+
+**methods**:
 
 `grantAccessToken`
 
@@ -135,7 +136,12 @@ Applications should call this before displaying a login or authorization form to
 
   * parses the client credentials from the request and determines if they are valid
 
-**Resource Requests**
+### Resource Requests
+
+Any API method requiring oauth2 authentication.  The server will validate the incomming request, and then allow
+the application to serve back the protected resource.
+
+**methods**:
 
 `verifyResourceRequest`
 
