@@ -3,8 +3,9 @@
 /**
  * Simple PDO storage for all storage types
  *
- * NOTE: This class should never be used in production, and is
- * a stub class for example use only
+ * NOTE: This class is meant to get users started 
+ * quickly. If your application requires further 
+ * customization, extend this class or create your own.
  *
  * @author Brent Shaffer <bshafs@gmail.com>
  */
