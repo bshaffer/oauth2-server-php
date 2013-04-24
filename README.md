@@ -57,6 +57,10 @@ $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 
 $server = new OAuth2_Server($storage);
 ```
 
+> Note: `$dsn` is the Data Source Name for your database.  For example, if you are using MySQL your dsn will
+> look something like `mysql:dbname=my_database;host=locahost`. If you are using sqlite, your dsn will look
+> something like `sqlite://path/to/my/file.sqlite`.
+
 The next step is to add a grant type. This example uses the "User Credentials" grant type, which grants a token based on
 explicit user credentials passed to the request. The [OAuth2 spec](http://tools.ietf.org/html/rfc6749) has no
 restrictions on the number of grant types your server can support and therefore you can add more than one grant type to
@@ -76,6 +80,14 @@ $server->handleTokenRequest(OAuth2_Request::createFromGlobals())->send();
 
 This creates the `OAuth2_Request` object from PHP global variables (most common, you can override this if need be) and sends it to the server
 for assessment.  The response by default is in json format, and includes the access token if successful, and error codes if not.
+
+> If you are just getting started, use the SQL below to create the database tables for the default MySQL setup
+> ```sql
+> CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT);
+> CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
+> CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires TIMESTAMP, scope TEXT);
+> CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
+> ```
 
 Server Methods
 --------------
