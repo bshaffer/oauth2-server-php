@@ -20,7 +20,7 @@ OAuth2_Autoloader::register();
 
 If you use a package library like [Composer](http://getcomposer.php), add the following to `composer.json`
 
-```json
+```
 {
     "require": {
         "bshaffer/oauth2-server-php": "v0.6",
