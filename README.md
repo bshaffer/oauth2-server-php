@@ -264,7 +264,7 @@ $supportedScopes = array(
 );
 $memory = new OAuth2_Storage_Memory(array(
   'default_scope' => $defaultScope,
-  'supported_scopes' => $supportedScoes
+  'supported_scopes' => $supportedScopes
 ));
 $scopeUtil = new OAuth2_Scope($memory);
 
@@ -291,7 +291,7 @@ class OAuth2ScopeTable extends Doctrine_Table implements OAuth2_Storage_ScopeInt
         //...
     }
 
-    public function getSupportedScopes($client_id = null)
+    public function scopeExists($scope, $client_id = null)
     {
         //...
     }
