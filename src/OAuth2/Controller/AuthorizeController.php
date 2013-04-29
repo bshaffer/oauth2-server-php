@@ -133,7 +133,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
             return false;
         }
 
-        if (!is_null($scope) && !$this->scopeUtil->checkScope($scope, $this->scopeUtil->getSupportedScopes($client_id))) {
+        if (!is_null($scope) && !$this->scopeUtil->scopeExists($scope, $client_id)) {
             $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'invalid_scope', 'An unsupported scope was requested', $state);
             return false;
         }

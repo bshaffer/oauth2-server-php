@@ -107,7 +107,7 @@ class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_Test
     public function testEnforceScope()
     {
         $server = $this->getTestServer();
-        $scopeStorage = new OAuth2_Storage_Memory(array('default_scope' => false, 'supported_scopes' => 'testscope'));
+        $scopeStorage = new OAuth2_Storage_Memory(array('default_scope' => false, 'supported_scopes' => array('testscope')));
         $server->setScopeUtil(new OAuth2_Scope($scopeStorage));
 
         $request = OAuth2_Request::createFromGlobals();
