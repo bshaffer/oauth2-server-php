@@ -11,7 +11,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
     private $config;
     private $scopeUtil;
 
-    public function __construct(OAuth2_Storage_ClientCredentialsInterface $clientStorage, array $responseTypes = array(), array $config = array(), OAuth2_ScopeInterface $scopeUtil = null)
+    public function __construct(OAuth2_Storage_ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), OAuth2_ScopeInterface $scopeUtil = null)
     {
         $this->clientStorage = $clientStorage;
         $this->responseTypes = $responseTypes;
