@@ -24,7 +24,7 @@ class OAuth2_Scope implements OAuth2_ScopeInterface
      * Check if everything in required scope is contained in available scope.
      *
      * @param $required_scope
-     * Required scope to be check with.
+     * A space-separated string of scopes.
      *
      * @return
      * TRUE if everything in required scope is contained in available scope,
@@ -36,16 +36,25 @@ class OAuth2_Scope implements OAuth2_ScopeInterface
      */
     public function checkScope($required_scope, $available_scope)
     {
-        // The required scope should match or be a subset of the available scope
-        if (!is_array($required_scope)) {
-            $required_scope = explode(' ', trim($required_scope));
-        }
-
-        if (!is_array($available_scope)) {
-            $available_scope = explode(' ', trim($available_scope));
-        }
-
+        $required_scope = explode(' ', trim($required_scope));
+        $available_scope = explode(' ', trim($available_scope));
         return (count(array_diff($required_scope, $available_scope)) == 0);
+    }
+
+    /**
+     * Check if the provided scope exists in storage.
+     *
+     * @param $scope
+     *   A space-separated string of scopes.
+     * @param $client_id
+     *   The requesting client.
+     *
+     * @return
+     *   TRUE if it exists, FALSE otherwise.
+     */
+    public function scopeExists($scope, $client_id = null)
+    {
+        return $this->storage->scopeExists($scope, $client_id);
     }
 
     public function getScopeFromRequest(OAuth2_RequestInterface $request)
@@ -57,10 +66,5 @@ class OAuth2_Scope implements OAuth2_ScopeInterface
     public function getDefaultScope()
     {
         return $this->storage->getDefaultScope();
-    }
-
-    public function getSupportedScopes($client_id = null)
-    {
-        return $this->storage->getSupportedScopes($client_id);
     }
 }
