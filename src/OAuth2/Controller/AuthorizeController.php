@@ -116,7 +116,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
                 $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unsupported_response_type', 'authorization code grant type not supported', $state);
                 return false;
             }
-            if (!$this->clientStorage->checkRestrictedGrantType($clientData['client_id'], 'authorization_code')) {
+            if (!$this->clientStorage->checkRestrictedGrantType($client_id, 'authorization_code')) {
                 $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unauthorized_client', 'The grant type is unauthorized for this client_id', $state);
                 return false;
             }
@@ -131,7 +131,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
                 $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unsupported_response_type', 'implicit grant type not supported', $state);
                 return false;
             }
-            if (!$this->clientStorage->checkRestrictedGrantType($clientData['client_id'], 'implicit')) {
+            if (!$this->clientStorage->checkRestrictedGrantType($client_id, 'implicit')) {
                 $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unauthorized_client', 'The grant type is unauthorized for this client_id', $state);
                 return false;
             }
