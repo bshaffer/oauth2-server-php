@@ -86,7 +86,6 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         $clientAssertionType = $grantType instanceof OAuth2_ClientAssertionTypeInterface ? $grantType : $this->clientAssertionType;
 
         $clientData = $clientAssertionType->getClientDataFromRequest($request);
-
         if (!$clientData || !$clientAssertionType->validateClientData($clientData, $grantType->getQuerystringIdentifier())) {
             $this->response = $this->getObjectResponse($clientAssertionType, new OAuth2_Response_Error(400, 'invalid_request', 'Unable to verify client'));
             return null;
@@ -98,30 +97,12 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
             return null;
         }
 
-        if (!$tokenData = $grantType->getTokenDataFromRequest($request)) {
-            $this->response = $this->getObjectResponse($grantType, new OAuth2_Response_Error(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantType->getQuerystringIdentifier())));
-            return null;
-        }
-
-        if (!$grantType->validateTokenData($tokenData, $clientData)) {
+        if (!$accessToken = $grantType->grantAccessToken($this->accessToken, $this->scopeUtil, $request, $clientData)) {
             $this->response = $this->getObjectResponse($grantType, new OAuth2_Response_Error(400, 'invalid_grant', 'Token is no longer valid'));
             return null;
         }
 
-        if (!isset($tokenData["scope"])) {
-            $tokenData["scope"] = $this->scopeUtil->getDefaultScope();
-        }
-
-        $scope = $this->scopeUtil->getScopeFromRequest($request);
-        // Check scope, if provided
-        if (!is_null($scope) && !$this->scopeUtil->checkScope($scope, $tokenData["scope"])) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
-            return null;
-        }
-
-        $tokenData['user_id'] = isset($tokenData['user_id']) ? $tokenData['user_id'] : null;
-
-        return $grantType->createAccessToken($this->accessToken, $clientData, $tokenData);
+        return $accessToken;
     }
 
     /**
