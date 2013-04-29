@@ -8,7 +8,6 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
     private $storage;
     private $response;
     private $config;
-    private $oldRefreshToken;
 
     public function __construct(OAuth2_Storage_RefreshTokenInterface $storage, $config = array())
     {
@@ -33,46 +32,43 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
         return true;
     }
 
-    public function getTokenDataFromRequest($request)
+    public function grantAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $scopeUtil, $request, array $clientData)
     {
-        if (!$stored = $this->storage->getRefreshToken($request->request("refresh_token"))) {
+        $refreshToken = $this->storage->getRefreshToken($request->request("refresh_token"));
+        if ($refreshToken === null || $clientData['client_id'] != $refreshToken["client_id"]) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid refresh token');
-            return false;
+            return null;
         }
 
-        return $stored;
-    }
-
-    public function validateTokenData($tokenData, array $clientData)
-    {
-        if ($tokenData === null || $clientData['client_id'] != $tokenData["client_id"]) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid refresh token');
-            return false;
-        }
-
-        if ($tokenData["expires"] < time()) {
+        // Validate expiration.
+        if ($refreshToken["expires"] < time()) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Refresh token has expired');
-            return false;
+            return null;
         }
 
-        // store the refresh token locally so we can delete it when a new refresh token is generated
-        $this->oldRefreshToken = $tokenData["refresh_token"];
+        // Validate scope.
+        // "The requested scope MUST NOT include any scope not originally
+        // granted by the resource owner, and if omitted is treated as equal to
+        // the scope originally granted by the resource owner."
+        $scope = $scopeUtil->getScopeFromRequest($request);
+        if (!is_null($scope) && !$scopeUtil->checkScope($scope, $refreshToken["scope"])) {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
+            return null;
+        }
+        if (empty($scope)) {
+            $scope = $refreshToken['scope'];
+        }
 
-        return true;
-    }
-
-    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)
-    {
         /*
          * It is optional to force a new refresh token when a refresh token is used.
          * However, if a new refresh token is issued, the old one MUST be expired
          * @see http://tools.ietf.org/html/rfc6749#section-6
          */
         $issueNewRefreshToken = $this->config['always_issue_new_refresh_token'];
-        $token = $accessToken->createAccessToken($clientData['client_id'], $tokenData['user_id'], $tokenData['scope'], $issueNewRefreshToken);
-
+        $token = $accessToken->createAccessToken($clientData['client_id'], $refreshToken['user_id'], $refreshToken['scope'], $issueNewRefreshToken);
+        // A new refresh token was issued. Remove the old one.
         if ($issueNewRefreshToken) {
-            $this->storage->unsetRefreshToken($this->oldRefreshToken);
+            $this->storage->unsetRefreshToken($refreshToken["refresh_token"]);
         }
 
         return $token;

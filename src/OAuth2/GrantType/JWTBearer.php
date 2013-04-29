@@ -2,7 +2,7 @@
 
 /**
 * The JWT bearer authorization grant implements JWT (JSON Web Tokens) as a grant type per the IETF draft.
-* @see http:// tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4
+* @see http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4
 */
 class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Response_ProviderInterface, OAuth2_ClientAssertionTypeInterface
 {
@@ -61,7 +61,6 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     /**
      * Gets the data from the decoded JWT.
      * @return Array containing the token data if the JWT can be decoded. Otherwise, NULL is returned.
-     * @see OAuth2_GrantTypeInterface::getTokenDataFromRequest()
      */
     public function getTokenDataFromRequest($request)
     {
@@ -135,7 +134,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
         }
 
         // Get the iss's public key.
-        // @see http:// tools.ietf.org/html/draft-ietf-oauth-json-web-token-06#section-4.1.1
+        // @see http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06#section-4.1.1
         $key = $this->storage->getClientKey($tokenData['iss'], $tokenData['sub']);
         if (!$key) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) or subject (sub) provided");
@@ -171,14 +170,18 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     }
 
     /**
-     * Validates the token data using the rules in the IETF draft.
-     * @see http:// tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-3
-     * @see OAuth2_GrantTypeInterface::validateTokenData()
+     * Creates an access token that is NOT associated with a refresh token.
+     * @see OAuth2_GrantTypeInterface::grantAccessToken()
      */
-    public function validateTokenData($tokenData, array $clientData)
+    public function grantAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $scopeUtil, $request, array $clientData)
     {
-        //  Note: Scope is validated in the client class.
+        $tokenData = $this->getTokenDataFromRequest($request);
+        if (!$tokenData) {
+            return null;
+        }
 
+        // Validate the token data using the rules in the IETF draft.
+        // @see http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-3
         // Check the expiry time.
         $expiration = $tokenData['exp'];
         if (ctype_digit($expiration)) {
@@ -221,18 +224,24 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
             return null;
         }
 
-        return true;
-    }
+        $scope = $tokenData['scope'];
+        // A scope was provided. Validate that it exists.
+        if ($scope && !$scopeUtil->scopeExists($scope, $clientData['client_id'])) {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
+            return null;
+        }
+        // No scope provided. Fallback to a default.
+        if (!$scope) {
+            $scope = $scopeUtil->getDefaultScope();
+            // No default scope found. Fail the request, per spec.
+            if (!$scope) {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
+                return null;
+            }
+        }
 
-    /**
-     * Creates an access token that is NOT associated with a refresh token.
-     * If a subject (sub) the name of the user/account we are accessing data on behalf of.
-     * @see OAuth2_GrantTypeInterface::createAccessToken()
-     */
-    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)
-    {
         $includeRefreshToken = false;
-        return $accessToken->createAccessToken($clientData['client_id'], $tokenData['sub'], $tokenData['scope'], $includeRefreshToken);
+        return $accessToken->createAccessToken($clientData['client_id'], $tokenData['sub'], $scope, $includeRefreshToken);
     }
 
     /**
