@@ -60,7 +60,7 @@ $server = new OAuth2_Server($storage);
 ```
 
 > Note: `$dsn` is the Data Source Name for your database.  For example, if you are using MySQL your dsn will
-> look something like `mysql:dbname=my_database;host=locahost`. If you are using sqlite, your dsn will look
+> look something like `mysql:dbname=my_database;host=localhost`. If you are using sqlite, your dsn will look
 > something like `sqlite://path/to/my/file.sqlite`.
 
 The next step is to add a grant type. This example uses the "User Credentials" grant type, which grants a token based on
@@ -264,7 +264,7 @@ $supportedScopes = array(
 );
 $memory = new OAuth2_Storage_Memory(array(
   'default_scope' => $defaultScope,
-  'supported_scopes' => $supportedScoes
+  'supported_scopes' => $supportedScopes
 ));
 $scopeUtil = new OAuth2_Scope($memory);
 
@@ -291,7 +291,7 @@ class OAuth2ScopeTable extends Doctrine_Table implements OAuth2_Storage_ScopeInt
         //...
     }
 
-    public function getSupportedScopes($client_id = null)
+    public function scopeExists($scope, $client_id = null)
     {
         //...
     }

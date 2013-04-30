@@ -9,7 +9,7 @@ interface OAuth2_ScopeInterface extends OAuth2_Storage_ScopeInterface
      * Check if everything in required scope is contained in available scope.
      *
      * @param $required_scope
-     * Required scope to be check with.
+     * A space-separated string of scopes.
      *
      * @return
      * TRUE if everything in required scope is contained in available scope,

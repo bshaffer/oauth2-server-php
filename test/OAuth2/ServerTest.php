@@ -170,6 +170,10 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
           ->expects($this->any())
           ->method('getClientDetails')
           ->will($this->returnValue(array('client_id' => 'some_client')));
+        $storage
+          ->expects($this->any())
+          ->method('checkRestrictedGrantType')
+          ->will($this->returnValue(TRUE));
 
         // add with the "code" key explicitly set
         $codeType = new OAuth2_ResponseType_AuthorizationCode($storage);
