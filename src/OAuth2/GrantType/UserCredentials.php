@@ -18,21 +18,16 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
         return 'password';
     }
 
-    public function validateRequest($request)
+    public function getTokenDataFromRequest(OAuth2_RequestInterface $request, array $clientData)
     {
         if (!$request->request("password") || !$request->request("username")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
-            return false;
+            return null;
         }
 
-        return true;
-    }
-
-    public function getTokenDataFromRequest($request)
-    {
         if (!$this->storage->checkUserCredentials($request->request("username"), $request->request("password"))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid username and password combination');
-            return false;
+            return null;
         }
 
         $tokenData = $this->storage->getUserDetails($request->request("username"));
@@ -40,16 +35,10 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
         // tokenData can be an empty array
         if (false === $tokenData || is_null($tokenData)) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Unable to retrieve user information');
-            return false;
+            return null;
         }
 
         return $tokenData;
-    }
-
-    public function validateTokenData($tokenData, array $clientData)
-    {
-        // Scope is validated in the client class
-        return true;
     }
 
     public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)

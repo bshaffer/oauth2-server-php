@@ -45,20 +45,48 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
         return 'urn:ietf:params:oauth:grant-type:jwt-bearer';
     }
 
-    /**
-     * Validates the request by making share all GET parameters exists.
-     * @return TRUE if the request is valid, otherwise FALSE.
-     * @see OAuth2_GrantTypeInterface::validateRequest()
-     */
-    public function validateRequest($request)
+    private function getJWTDataFromRequest($request)
     {
-        if (!$request->request("assertion")) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
+        if (!$this->jwt) {
+            if (!$request->request("assertion")) {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
+                return null;
+            }
 
-            return false;
+            if (!$request->request("assertion")) {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
+                return null;
+            }
+
+            //Store the undecoded JWT for later use
+            $this->undecodedJWT = $request->request('assertion');
+
+            //Decode the JWT
+            $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
+
+            if (!$jwt) {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
+                return null;
+            }
+
+            // ensure these properties contain a value
+            // @todo: throw malformed error for missing properties
+            $jwt = array_merge(array(
+                'scope' => null,
+                'iss' => null,
+                'sub' => null,
+                'aud' => null,
+                'exp' => null,
+                'nbf' => null,
+                'iat' => null,
+                'jti' => null,
+                'typ' => null,
+            ), $jwt);
+
+            $this->jwt = $jwt;
         }
 
-        return true;
+        return $this->jwt;
     }
 
     /**
@@ -66,64 +94,55 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      * @return Array containing the token data if the JWT can be decoded. Otherwise, NULL is returned.
      * @see OAuth2_GrantTypeInterface::getTokenDataFromRequest()
      */
-    public function getTokenDataFromRequest($request)
+    public function getTokenDataFromRequest(OAuth2_RequestInterface $request, array $clientData)
     {
-
-        if (!$request->request("assertion")) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
-
+        if (!$jwt = $this->getJWTDataFromRequest($request)) {
             return null;
         }
 
-        //Store the undecoded JWT for later use
-        $this->undecodedJWT = $request->request('assertion');
+        //Check the expiry time
+        $expiration = $jwt['exp'];
 
-        //Decode the JWT
-        $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
-
-        if (!$jwt) {
-
-            $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
+        if (ctype_digit($expiration)) {
+            if ($expiration <= time()) {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT has expired");
+                return null;
+            }
+        } elseif (!$expiration) {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Expiration (exp) time must be present");
+            return null;
+        } else {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Expiration (exp) time must be a unix time stamp");
             return null;
         }
 
-        $this->jwt = $jwt;
-
-        $tokenData = array();
-
-        $tokenData['scope'] = $this->getJWTParameter('scope');
-        $tokenData['iss'] = $this->getJWTParameter('iss');
-        $tokenData['sub'] = $this->getJWTParameter('sub');
-        $tokenData['aud'] = $this->getJWTParameter('aud');
-        $tokenData['exp'] = $this->getJWTParameter('exp');
-        $tokenData['nbf'] = $this->getJWTParameter('nbf');
-        $tokenData['iat'] = $this->getJWTParameter('iat');
-        $tokenData['jti'] = $this->getJWTParameter('jti');
-        $tokenData['typ'] = $this->getJWTParameter('typ');
-
-        //Other token data in the claim
-        foreach ($this->jwt as $key => $value) {
-            if (!array_key_exists($key, $tokenData)) {
-                $tokenData[$key] = $value;
+        //Check the not before time
+        if ($notBefore = $jwt['nbf']) {
+            if (ctype_digit($notBefore)) {
+                if ($notBefore > time()) {
+                    $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT cannot be used before the Not Before (nbf) time");
+                    return null;
+                }
+            } else {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Not Before (nbf) time must be a unix time stamp");
+                return null;
             }
         }
 
-        return $tokenData;
-    }
+        //Check the audience if required to match
+        $audience = $jwt['aud'];
+        if (!isset($audience) || ($audience != $this->audience)) {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid audience (aud)");
+            return null;
+        }
 
+        //Verify the JWT
+        if (!$this->jwtUtil->decode($this->undecodedJWT, $clientData['client_secret'], true)) {
+            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT failed signature verification");
+            return null;
+        }
 
-    /**
-     * Helper function to make it easier to return a JWT parameter.
-     * @param string $parameter
-     * The JWT parameter to get.
-     * @param mixed $default
-     * The value to return if the JWT parameter does not exist.
-     * @return mixed
-     * The JWT parameter.
-     */
-    private function getJWTParameter($parameter, $default = null)
-    {
-        return isset($this->jwt->$parameter) ? $this->jwt->$parameter : null;
+        return $jwt;
     }
 
     /**
@@ -134,29 +153,24 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      */
     public function getClientDataFromRequest(OAuth2_RequestInterface $request)
     {
-        $tokenData = $this->getTokenDataFromRequest($request);
-
-        if (!$tokenData) {
+        if (!$jwt = $this->getJWTDataFromRequest($request)) {
             return null;
         }
 
-        if (!isset($tokenData['iss'])) {
-
+        if (!isset($jwt['iss'])) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) provided");
-
             return null;
         }
 
         //Get the iss's public key (http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06#section-4.1.1)
-        $key = $this->storage->getClientKey($tokenData['iss'], $tokenData['sub']);
+        $key = $this->storage->getClientKey($jwt['iss'], $jwt['sub']);
 
         if (!$key) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid issuer (iss) or subject (sub) provided");
-
             return null;
         }
 
-        return array('client_id' => $tokenData['iss'], 'subject' => $tokenData['sub'], 'client_secret' => $key);
+        return array('client_id' => $jwt['iss'], 'subject' => $jwt['sub'], 'client_secret' => $key);
     }
 
     /**
@@ -165,98 +179,19 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      */
     public function validateClientData(array $clientData, $grantTypeIdentifier)
     {
-
         //Check that all array keys exist
         $diff = array_diff(array_keys($clientData), array('client_id', 'subject', 'client_secret'));
 
         if (!empty($diff)) {
-
             throw new DomainException('The clientData array is missing one or more of the following: client_id, subject, client_secret');
-
-            return false;
         }
 
         foreach ($clientData as $key => $value) {
-
             if (in_array($key, array('client_id', 'client_secret'))) {
-
                 if (!isset($value)) {
                     throw new LogicException('client_id and client_secret in the clientData array may not be null');
-
-                    return false;
                 }
             }
-        }
-
-        return true;
-    }
-
-    /**
-     * Validates the token data using the rules in the IETF draft.
-     * @see http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-3
-     * @see OAuth2_GrantTypeInterface::validateTokenData()
-     */
-    public function validateTokenData($tokenData, array $clientData)
-    {
-        // Note: Scope is validated in the client class
-
-        //Check the expiry time
-        $expiration = $tokenData['exp'];
-
-        if (ctype_digit($expiration)) {
-
-            if ($expiration <= time()) {
-                $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT has expired");
-
-                return false;
-            }
-
-        } elseif (!$expiration) {
-
-            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Expiration (exp) time must be present");
-
-            return false;
-
-        } else {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Expiration (exp) time must be a unix time stamp");
-
-            return false;
-        }
-
-
-        //Check the not before time
-        if ($notBefore = $tokenData['nbf']) {
-
-            if (ctype_digit($notBefore)) {
-
-                if ($notBefore > time()) {
-                    $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT cannot be used before the Not Before (nbf) time");
-
-                    return false;
-                }
-
-            } else {
-                $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Not Before (nbf) time must be a unix time stamp");
-
-                return false;
-            }
-        }
-
-        //Check the audience if required to match
-        $aud = $tokenData['aud'];
-        if (!isset($aud) || ($aud != $this->audience)) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Invalid audience (aud)");
-
-            return false;
-        }
-
-        //Verify the JWT
-        $jwt = $this->jwtUtil->decode($this->undecodedJWT, $clientData['client_secret'], true);
-
-        if (!$jwt) {
-
-            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "JWT failed signature verification");
-            return null;
         }
 
         return true;
@@ -270,7 +205,6 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)
     {
         $includeRefreshToken = false;
-
         return $accessToken->createAccessToken($clientData['client_id'], $tokenData['sub'], $tokenData['scope'], $includeRefreshToken);
     }
 
