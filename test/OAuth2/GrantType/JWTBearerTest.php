@@ -2,7 +2,11 @@
 
 class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
 {
-    private $privateKey = <<<EOD
+    private $privateKey;
+
+    public function setUp()
+    {
+        $this->privateKey = <<<EOD
 -----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQC5/SxVlE8gnpFqCxgl2wjhzY7ucEi00s0kUg3xp7lVEvgLgYcA
 nHiWp+gtSjOFfH2zsvpiWm6Lz5f743j/FEzHIO1owR0p4d9pOaJK07d01+RzoQLO
@@ -19,6 +23,7 @@ niisp/b/ZDGidkTMXQJBALeRsH1I+LmICAvWXpLKa9Gv0zGCwkuIJLiUbV9c6CVh
 suocCAteQwL5iW2gA4AnYr5OGeHFsEl7NCQcwfPZpJ0=
 -----END RSA PRIVATE KEY-----
 EOD;
+    }
 
     public function testMalformedJWT()
     {
