@@ -19,7 +19,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         return 'authorization_code';
     }
 
-    public function getTokenDataFromRequest(OAuth2_RequestInterface $request, array $clientData)
+    public function getTokenData(OAuth2_RequestInterface $request, array $clientData)
     {
         if (!$request->request('code')) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameter: "code" is required');

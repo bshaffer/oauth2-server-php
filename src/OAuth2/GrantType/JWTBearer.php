@@ -92,9 +92,9 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     /**
      * Gets the data from the decoded JWT.
      * @return Array containing the token data if the JWT can be decoded. Otherwise, NULL is returned.
-     * @see OAuth2_GrantTypeInterface::getTokenDataFromRequest()
+     * @see OAuth2_GrantTypeInterface::getTokenData()
      */
-    public function getTokenDataFromRequest(OAuth2_RequestInterface $request, array $clientData)
+    public function getTokenData(OAuth2_RequestInterface $request, array $clientData)
     {
         if (!$jwt = $this->getJWTDataFromRequest($request)) {
             return null;
@@ -149,9 +149,9 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      * Return the data used to verify the request. For JWT bearer authorization grants, the 'iss' is synonymous to the 'client_id'.
      * The subject is 'sub' and the 'client_secret' is the key to decode the JWT.
      * @return array An array of the client data containing the client_id.
-     * @see OAuth2_ClientAssertionTypeInterface::getClientDataFromRequest()
+     * @see OAuth2_ClientAssertionTypeInterface::getClientData()
      */
-    public function getClientDataFromRequest(OAuth2_RequestInterface $request)
+    public function getClientData(OAuth2_RequestInterface $request)
     {
         if (!$jwt = $this->getJWTDataFromRequest($request)) {
             return null;
