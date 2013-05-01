@@ -70,33 +70,43 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         }
 
         // Determine grant type from request
-        if (!$grantType = $request->request('grant_type')) {
+        if (!$grantTypeIdentifier = $request->request('grant_type')) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The grant type was not specified in the request');
             return null;
         }
-        if (!isset($this->grantTypes[$grantType])) {
+        if (!isset($this->grantTypes[$grantTypeIdentifier])) {
             /* TODO: If this is an OAuth2 supported grant type that we have chosen not to implement, throw a 501 Not Implemented instead */
-            $this->response = new OAuth2_Response_Error(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantType));
+            $this->response = new OAuth2_Response_Error(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantTypeIdentifier));
             return null;
         }
-        $grantType = $this->grantTypes[$grantType];
+        $grantType = $this->grantTypes[$grantTypeIdentifier];
 
         // Hack to see if clientAssertionType is part of the grant type
         // this should change, but right now changing it will break BC
         $clientAssertionType = $grantType instanceof OAuth2_ClientAssertionTypeInterface ? $grantType : $this->clientAssertionType;
-
         $clientData = $clientAssertionType->getClientDataFromRequest($request);
 
-        if (!$clientData || !$clientAssertionType->validateClientData($clientData, $grantType->getQuerystringIdentifier())) {
-            $this->response = $this->getObjectResponse($clientAssertionType, new OAuth2_Response_Error(400, 'invalid_request', 'Unable to verify client'));
+        /* Retrieve the client information from the request */
+        if (!$clientData || !$clientAssertionType->validateClientData($clientData, $grantTypeIdentifier)) {
+            if ($clientAssertionType instanceof OAuth2_Response_ProviderInterface && $response = $clientAssertionType->getResponse()) {
+                $this->response = $response;
+            } else {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Unable to verify client');
+            }
             return null;
         }
 
+        /* Retrieve the token information from the request */
         if (!$tokenData = $grantType->getTokenDataFromRequest($request, $clientData)) {
-            $this->response = $this->getObjectResponse($grantType, new OAuth2_Response_Error(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantType->getQuerystringIdentifier())));
+            if ($grantType instanceof OAuth2_Response_ProviderInterface && $response = $grantType->getResponse()) {
+                $this->response = $response;
+            } else {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantTypeIdentifier));
+            }
             return null;
         }
 
+        /* Validate the scope of the token */
         if (!isset($tokenData["scope"])) {
             $tokenData["scope"] = $this->scopeUtil->getDefaultScope();
         }
@@ -133,13 +143,5 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
     public function getResponse()
     {
         return $this->response;
-    }
-
-    public function getObjectResponse($object, OAuth2_Response $defaultResponse = null)
-    {
-        if ($object instanceof OAuth2_Response_ProviderInterface && $response = $object->getResponse()) {
-            return $response;
-        }
-        return $defaultResponse;
     }
 }

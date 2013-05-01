@@ -21,15 +21,15 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
 
     public function getClientDataFromRequest(OAuth2_RequestInterface $request)
     {
-            if (!$clientData = $this->getClientCredentials($request)) {
-                return null;
-            }
+        if (!$clientData = $this->getClientCredentials($request)) {
+            return null;
+        }
 
-            if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
-                throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
-            }
+        if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
+            throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
+        }
 
-            return $clientData;
+        return $clientData;
     }
 
     public function validateClientData(array $clientData, $grantTypeIdentifier)
