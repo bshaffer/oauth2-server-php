@@ -17,24 +17,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error_description'), 'The client credentials are invalid');
     }
 
-    public function testValidCredentialsWithScope()
-    {
-        $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
-            'grant_type' => 'client_credentials', // valid grant type
-            'client_id' => 'Test Client ID', // valid client id
-            'client_secret' => 'TestSecret', // valid client secret
-            'scope' => 'scope',
-        ));
-        $token = $server->grantAccessToken($request);
-
-        $this->assertNotNull($token);
-        $this->assertArrayHasKey('access_token', $token);
-        $this->assertArrayHasKey('scope', $token);
-        $this->assertEquals($token['scope'], 'scope');
-    }
-
-    public function testValidCredentialsNoScope()
+    public function testValidCredentials()
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request_TestRequest::createPost(array(
@@ -47,6 +30,40 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
         $this->assertNotNull($token);
         $this->assertArrayHasKey('scope', $token);
         $this->assertNull($token['scope']);
+    }
+
+    public function testValidCredentialsWithScope()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'client_credentials', // valid grant type
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'scope' => 'scope1',
+        ));
+        $token = $server->grantAccessToken($request);
+
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+        $this->assertArrayHasKey('scope', $token);
+        $this->assertEquals($token['scope'], 'scope1');
+    }
+
+    public function testValidCredentialsInvalidScope()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'client_credentials', // valid grant type
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'scope' => 'invalid-scope',
+        ));
+        $token = $server->grantAccessToken($request);
+        $response = $server->getResponse();
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_scope');
+        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
     }
 
     public function testValidCredentialsInHeader()
@@ -105,7 +122,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
 
     private function getTestServer()
     {
-        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../config/storage.json'), true));
+        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
         $server = new OAuth2_Server($storage);
         $server->addGrantType(new OAuth2_GrantType_ClientCredentials($storage));
 

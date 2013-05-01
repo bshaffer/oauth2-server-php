@@ -33,11 +33,11 @@ class OAuth2_Encryption_JWT
 
         list($headb64, $payloadb64, $cryptob64) = $tks;
 
-        if (null === ($header = json_decode($this->urlsafeB64Decode($headb64), true))){
+        if (null === ($header = json_decode($this->urlsafeB64Decode($headb64), true))) {
             return false;
         }
 
-        if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64), true)){
+        if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64), true)) {
             return false;
         }
 
@@ -65,7 +65,7 @@ class OAuth2_Encryption_JWT
                 return $this->sign($input, $key, $algo) === $signature;
 
             case 'RS256':
-                return @openssl_verify($input, $signature, $key, 'sha256') === 1;
+                return openssl_verify($input, $signature, $key, 'sha256') === 1;
 
             case 'RS384':
                 return @openssl_verify($input, $signature, $key, 'sha384') === 1;
