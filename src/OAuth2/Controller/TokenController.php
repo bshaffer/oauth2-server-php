@@ -81,12 +81,11 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         }
         $grantType = $this->grantTypes[$grantTypeIdentifier];
 
-        // Hack to see if clientAssertionType is part of the grant type
-        // this should change, but right now changing it will break BC
-        $clientAssertionType = $grantType instanceof OAuth2_ClientAssertionTypeInterface ? $grantType : $this->clientAssertionType;
-        $clientData = $clientAssertionType->getClientData($request);
-
         /* Retrieve the client information from the request */
+        // ClientAssertionTypes allow for grant types which also assert the client data (see JWTBearer)
+        $clientAssertionType = $grantType instanceof OAuth2_ClientAssertionTypeInterface ? $grantType : $this->clientAssertionType;
+
+        $clientData = $clientAssertionType->getClientData($request);
         if (!$clientData || !$clientAssertionType->validateClientData($clientData, $grantTypeIdentifier)) {
             if ($clientAssertionType instanceof OAuth2_Response_ProviderInterface && $response = $clientAssertionType->getResponse()) {
                 $this->response = $response;
@@ -107,18 +106,20 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         }
 
         /* Validate the scope of the token */
-        if (!isset($tokenData["scope"])) {
-            $tokenData["scope"] = $this->scopeUtil->getDefaultScope();
+        // if this is set, we are dealing with an authorization code or refresh token
+        $availableScope = isset($tokenData['scope']) ? $tokenData['scope'] : null;
+
+        if (!$requestedScope = $this->scopeUtil->getScopeFromRequest($request)) {
+            $requestedScope = $availableScope ? $availableScope : $this->scopeUtil->getDefaultScope();
         }
 
-        $scope = $this->scopeUtil->getScopeFromRequest($request);
-        // Check scope, if provided
-        if (!is_null($scope) && !$this->scopeUtil->checkScope($scope, $tokenData["scope"])) {
+        if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope))
+            || ($availableScope && !$this->scopeUtil->checkScope($requestedScope, $availableScope))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
             return null;
         }
 
-        $tokenData['user_id'] = isset($tokenData['user_id']) ? $tokenData['user_id'] : null;
+        $tokenData['scope'] = $requestedScope;
 
         return $grantType->createAccessToken($this->accessToken, $clientData, $tokenData);
     }

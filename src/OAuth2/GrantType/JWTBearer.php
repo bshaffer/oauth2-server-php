@@ -45,7 +45,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
         return 'urn:ietf:params:oauth:grant-type:jwt-bearer';
     }
 
-    private function getJWTDataFromRequest($request)
+    private function getJWTData($request)
     {
         if (!$this->jwt) {
             if (!$request->request("assertion")) {
@@ -96,7 +96,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      */
     public function getTokenData(OAuth2_RequestInterface $request, array $clientData)
     {
-        if (!$jwt = $this->getJWTDataFromRequest($request)) {
+        if (!$jwt = $this->getJWTData($request)) {
             return null;
         }
 
@@ -153,7 +153,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
      */
     public function getClientData(OAuth2_RequestInterface $request)
     {
-        if (!$jwt = $this->getJWTDataFromRequest($request)) {
+        if (!$jwt = $this->getJWTData($request)) {
             return null;
         }
 

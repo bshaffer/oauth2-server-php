@@ -121,7 +121,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
     public function testAddingStorageWithInvalidClass()
     {
         $server = new OAuth2_Server();
-        $server->addStorage($this->getMock('OAuth2_ScopeInterface'));
+        $server->addStorage(new StdClass());
     }
 
     /**

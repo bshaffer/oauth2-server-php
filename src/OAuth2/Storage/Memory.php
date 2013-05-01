@@ -76,14 +76,16 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         return isset($this->userCredentials[$username]) && $this->userCredentials[$username] === $password;
     }
 
-    public function setUserCredentials($user_credentials)
-    {
-        return isset($this->userCredentials[$username]) ? $this->userCredentials[$username] : null;
-    }
-
     public function getUserDetails($username)
     {
-        return $this->getUser($username);
+        if (!isset($this->userCredentials[$username])) {
+            return null;
+        }
+
+        return array(
+            'user_id'  => $username,
+            'password' => $this->userCredentials[$username],
+        );
     }
 
     /* ClientCredentialsInterface */
@@ -163,11 +165,8 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     public function getClientKey($client_id, $subject)
     {
         if (isset($this->jwt[$client_id])) {
-
             $jwt = $this->jwt[$client_id];
-
             if ($jwt) {
-
                 if ($jwt["subject"] == $subject) {
                     return $jwt["key"];
                 }
