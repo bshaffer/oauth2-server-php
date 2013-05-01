@@ -23,42 +23,32 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
         return 'refresh_token';
     }
 
-    public function validateRequest($request)
+    public function getTokenDataFromRequest(OAuth2_RequestInterface $request, array $clientData)
     {
         if (!$request->request("refresh_token")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameter: "refresh_token" is required');
-            return false;
+            return null;
         }
 
-        return true;
-    }
-
-    public function getTokenDataFromRequest($request)
-    {
-        if (!$stored = $this->storage->getRefreshToken($request->request("refresh_token"))) {
+        if (!$tokenData = $this->storage->getRefreshToken($request->request("refresh_token"))) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid refresh token');
-            return false;
+            return null;
         }
 
-        return $stored;
-    }
-
-    public function validateTokenData($tokenData, array $clientData)
-    {
         if ($tokenData === null || $clientData['client_id'] != $tokenData["client_id"]) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Invalid refresh token');
-            return false;
+            return null;
         }
 
         if ($tokenData["expires"] < time()) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', 'Refresh token has expired');
-            return false;
+            return null;
         }
 
         // store the refresh token locally so we can delete it when a new refresh token is generated
         $this->oldRefreshToken = $tokenData["refresh_token"];
 
-        return true;
+        return $tokenData;
     }
 
     public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)

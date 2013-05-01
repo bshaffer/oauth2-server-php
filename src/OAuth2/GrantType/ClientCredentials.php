@@ -7,25 +7,13 @@ class OAuth2_GrantType_ClientCredentials implements OAuth2_GrantTypeInterface
         return 'client_credentials';
     }
 
-    public function validateRequest($request)
-    {
-        // This has been done in the server class
-        return true;
-    }
-
-    public function getTokenDataFromRequest($request)
+    public function getTokenDataFromRequest(OAuth2_RequestInterface $request, array $clientData)
     {
         // the only piece to pull is the "scope" parameter
         $scope = $request->request('scope');
         return array(
             "scope" => $scope
         );
-    }
-
-    public function validateTokenData($tokenData, array $clientData)
-    {
-        // Scope is validated in the client class
-        return true;
     }
 
     public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)

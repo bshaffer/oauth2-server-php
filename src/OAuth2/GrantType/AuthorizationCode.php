@@ -19,18 +19,13 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         return 'authorization_code';
     }
 
-    public function validateRequest($request)
+    public function getTokenDataFromRequest(OAuth2_RequestInterface $request, array $clientData)
     {
         if (!$request->request('code')) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameter: "code" is required');
-            return false;
+            return null;
         }
 
-        return true;
-    }
-
-    public function getTokenDataFromRequest($request)
-    {
         $this->code = $request->request('code');
         if (!$tokenData = $this->storage->getAuthorizationCode($this->code)) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
@@ -44,28 +39,22 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         if (isset($tokenData['redirect_uri']) && $tokenData['redirect_uri']) {
             if (!$request->request('redirect_uri') || urldecode($request->request('redirect_uri')) != $tokenData['redirect_uri']) {
                 $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match", "#section-4.1.3");
-                return false;
+                return null;
             }
         }
 
-        return $tokenData;
-    }
-
-    public function validateTokenData($tokenData, array $clientData)
-    {
         // Check the code exists
         if ($tokenData === null || $clientData['client_id'] != $tokenData['client_id']) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
-            return false;
+            return null;
         }
 
         if ($tokenData["expires"] < time()) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "The authorization code has expired");
-            return false;
+            return null;
         }
 
-        // Scope is validated in the client class
-        return true;
+        return $tokenData;
     }
 
     public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)

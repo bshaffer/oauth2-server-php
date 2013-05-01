@@ -92,19 +92,8 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
             return null;
         }
 
-        // validate the request for the token
-        if (!$grantType->validateRequest($request)) {
-            $this->response = $this->getObjectResponse($grantType, new OAuth2_Response_Error(400, 'invalid_request', sprintf('Invalid request for "%s" grant type', $grantType->getQuerystringIdentifier())));
-            return null;
-        }
-
-        if (!$tokenData = $grantType->getTokenDataFromRequest($request)) {
+        if (!$tokenData = $grantType->getTokenDataFromRequest($request, $clientData)) {
             $this->response = $this->getObjectResponse($grantType, new OAuth2_Response_Error(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantType->getQuerystringIdentifier())));
-            return null;
-        }
-
-        if (!$grantType->validateTokenData($tokenData, $clientData)) {
-            $this->response = $this->getObjectResponse($grantType, new OAuth2_Response_Error(400, 'invalid_grant', 'Token is no longer valid'));
             return null;
         }
 

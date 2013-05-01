@@ -33,23 +33,22 @@ class OAuth2_Encryption_JWT
 
         list($headb64, $payloadb64, $cryptob64) = $tks;
 
-        if (null === ($header = json_decode($this->urlsafeB64Decode($headb64)))){
+        if (null === ($header = json_decode($this->urlsafeB64Decode($headb64), true))){
             return false;
         }
 
-        if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64))){
+        if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64), true)){
             return false;
         }
 
         $sig = $this->urlsafeB64Decode($cryptob64);
 
         if ($verify) {
-
-            if (empty($header->alg)) {
+            if (!isset($header['alg'])) {
                 return false;
             }
 
-            if (!$this->verifySignature($sig, "$headb64.$payloadb64", $key, $header->alg)) {
+            if (!$this->verifySignature($sig, "$headb64.$payloadb64", $key, $header['alg'])) {
                 return false;
             }
         }
@@ -82,7 +81,6 @@ class OAuth2_Encryption_JWT
     private function sign($input, $key, $algo = 'HS256')
     {
         switch($algo){
-
             case 'HS256':
                 return hash_hmac('sha256', $input, $key, true);
 
