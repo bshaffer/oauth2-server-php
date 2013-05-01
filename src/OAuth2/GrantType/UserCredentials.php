@@ -18,7 +18,7 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface, OAu
         return 'password';
     }
 
-    public function getTokenDataFromRequest(OAuth2_RequestInterface $request, array $clientData)
+    public function getTokenData(OAuth2_RequestInterface $request, array $clientData)
     {
         if (!$request->request("password") || !$request->request("username")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "username" and "password" required');

@@ -23,7 +23,7 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface, OAuth2
         return 'refresh_token';
     }
 
-    public function getTokenDataFromRequest(OAuth2_RequestInterface $request, array $clientData)
+    public function getTokenData(OAuth2_RequestInterface $request, array $clientData)
     {
         if (!$request->request("refresh_token")) {
             $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameter: "refresh_token" is required');

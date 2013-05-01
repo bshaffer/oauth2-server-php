@@ -19,7 +19,7 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
         $this->storage = $storage;
     }
 
-    public function getClientDataFromRequest(OAuth2_RequestInterface $request)
+    public function getClientData(OAuth2_RequestInterface $request)
     {
         if (!$clientData = $this->getClientCredentials($request)) {
             return null;

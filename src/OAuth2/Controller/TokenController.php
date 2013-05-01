@@ -84,7 +84,7 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         // Hack to see if clientAssertionType is part of the grant type
         // this should change, but right now changing it will break BC
         $clientAssertionType = $grantType instanceof OAuth2_ClientAssertionTypeInterface ? $grantType : $this->clientAssertionType;
-        $clientData = $clientAssertionType->getClientDataFromRequest($request);
+        $clientData = $clientAssertionType->getClientData($request);
 
         /* Retrieve the client information from the request */
         if (!$clientData || !$clientAssertionType->validateClientData($clientData, $grantTypeIdentifier)) {
@@ -97,7 +97,7 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         }
 
         /* Retrieve the token information from the request */
-        if (!$tokenData = $grantType->getTokenDataFromRequest($request, $clientData)) {
+        if (!$tokenData = $grantType->getTokenData($request, $clientData)) {
             if ($grantType instanceof OAuth2_Response_ProviderInterface && $response = $grantType->getResponse()) {
                 $this->response = $response;
             } else {
