@@ -120,6 +120,9 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         }
 
         $tokenData['user_id'] = isset($tokenData['user_id']) ? $tokenData['user_id'] : null;
+        
+        // Set scope to requested scope, even if the user has access to other scopes too
+        $tokenData['scope'] = $scope;
 
         return $grantType->createAccessToken($this->accessToken, $clientData, $tokenData);
     }
