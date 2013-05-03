@@ -45,50 +45,6 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
         return 'urn:ietf:params:oauth:grant-type:jwt-bearer';
     }
 
-    private function getJWTData(OAuth2_RequestInterface $request)
-    {
-        if (!$this->jwt) {
-            if (!$request->request("assertion")) {
-                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
-                return null;
-            }
-
-            if (!$request->request("assertion")) {
-                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
-                return null;
-            }
-
-            //Store the undecoded JWT for later use
-            $this->undecodedJWT = $request->request('assertion');
-
-            //Decode the JWT
-            $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
-
-            if (!$jwt) {
-                $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
-                return null;
-            }
-
-            // ensure these properties contain a value
-            // @todo: throw malformed error for missing properties
-            $jwt = array_merge(array(
-                'scope' => null,
-                'iss' => null,
-                'sub' => null,
-                'aud' => null,
-                'exp' => null,
-                'nbf' => null,
-                'iat' => null,
-                'jti' => null,
-                'typ' => null,
-            ), $jwt);
-
-            $this->jwt = $jwt;
-        }
-
-        return $this->jwt;
-    }
-
     /**
      * Gets the data from the decoded JWT.
      * @return Array containing the token data if the JWT can be decoded. Otherwise, NULL is returned.
@@ -206,6 +162,50 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
     {
         $includeRefreshToken = false;
         return $accessToken->createAccessToken($clientData['client_id'], $tokenData['sub'], $tokenData['scope'], $includeRefreshToken);
+    }
+
+    private function getJWTData(OAuth2_RequestInterface $request)
+    {
+        if (!$this->jwt) {
+            if (!$request->request("assertion")) {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
+                return null;
+            }
+
+            if (!$request->request("assertion")) {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameters: "assertion" required');
+                return null;
+            }
+
+            //Store the undecoded JWT for later use
+            $this->undecodedJWT = $request->request('assertion');
+
+            //Decode the JWT
+            $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
+
+            if (!$jwt) {
+                $this->response = new OAuth2_Response_Error(400, 'invalid_request', "JWT is malformed");
+                return null;
+            }
+
+            // ensure these properties contain a value
+            // @todo: throw malformed error for missing properties
+            $jwt = array_merge(array(
+                'scope' => null,
+                'iss' => null,
+                'sub' => null,
+                'aud' => null,
+                'exp' => null,
+                'nbf' => null,
+                'iat' => null,
+                'jti' => null,
+                'typ' => null,
+            ), $jwt);
+
+            $this->jwt = $jwt;
+        }
+
+        return $this->jwt;
     }
 
     /**
