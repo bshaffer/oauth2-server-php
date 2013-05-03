@@ -45,7 +45,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Re
         return 'urn:ietf:params:oauth:grant-type:jwt-bearer';
     }
 
-    private function getJWTData($request)
+    private function getJWTData(OAuth2_RequestInterface $request)
     {
         if (!$this->jwt) {
             if (!$request->request("assertion")) {
