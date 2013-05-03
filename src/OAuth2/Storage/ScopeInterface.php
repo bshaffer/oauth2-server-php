@@ -10,30 +10,17 @@
 interface OAuth2_Storage_ScopeInterface
 {
     /**
-     * What scopes are supported by the oauth2 server
-     * Scope names must follow the format specified in the
-     * oauth2 spec
+     * Check if the provided scope exists.
      *
-     * @see http://tools.ietf.org/html/rfc6749#section-3.3
-     *
+     * @param $scope
+     * A space-separated string of scopes.
      * @param $client_id
-     * The requesting client
+     * The requesting client.
      *
      * @return
-     * array or space-delimited string of supported scopes
-     *
-     * ex:
-     *     array(
-     *         'one-scope',
-     *         'two-scope',
-     *         'red-scope',
-     *         'blue-scope',
-     *     );
-     * ex:
-     *     'one-scope two-scope red-scope blue-scope'
-     *
+     * TRUE if it exists, FALSE otherwise.
      */
-    public function getSupportedScopes($client_id = null);
+    public function scopeExists($scope, $client_id = null);
 
     /**
      * The default scope to use in the event the client

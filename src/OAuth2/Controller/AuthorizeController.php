@@ -116,15 +116,25 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
                 $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unsupported_response_type', 'authorization code grant type not supported', $state);
                 return false;
             }
+            if (!$this->clientStorage->checkRestrictedGrantType($client_id, 'authorization_code')) {
+                $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unauthorized_client', 'The grant type is unauthorized for this client_id', $state);
+                return false;
+            }
             if ($this->responseTypes['code']->enforceRedirect() && !$redirect_uri) {
                 $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', 'The redirect URI is mandatory and was not supplied.');
                 return false;
             }
         }
 
-        if ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN && !$this->config['allow_implicit']) {
-            $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unsupported_response_type', 'implicit grant type not supported', $state);
-            return false;
+        if ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN) {
+            if (!$this->config['allow_implicit']) {
+                $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unsupported_response_type', 'implicit grant type not supported', $state);
+                return false;
+            }
+            if (!$this->clientStorage->checkRestrictedGrantType($client_id, 'implicit')) {
+                $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'unauthorized_client', 'The grant type is unauthorized for this client_id', $state);
+                return false;
+            }
         }
 
         // Validate that the requested scope is supported
@@ -133,7 +143,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
             return false;
         }
 
-        if (!is_null($scope) && !$this->scopeUtil->checkScope($scope, $this->scopeUtil->getSupportedScopes($client_id))) {
+        if (!is_null($scope) && !$this->scopeUtil->scopeExists($scope, $client_id)) {
             $this->response = new OAuth2_Response_Redirect($redirect_uri, 302, 'invalid_scope', 'An unsupported scope was requested', $state);
             return false;
         }

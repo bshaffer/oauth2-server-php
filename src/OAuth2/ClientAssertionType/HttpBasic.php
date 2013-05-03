@@ -1,15 +1,21 @@
 <?php
 
 /**
-*
-*/
+ * Validate a client via Http Basic authentication
+ *
+ * @author    Brent Shaffer <bshafs at gmail dot com>
+ */
 class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionTypeInterface, OAuth2_Response_ProviderInterface
 {
     private $response;
     private $storage;
+    private $config;
 
-    public function __construct(OAuth2_Storage_ClientCredentialsInterface $storage)
+    public function __construct(OAuth2_Storage_ClientCredentialsInterface $storage, array $config = array())
     {
+        $this->config = array_merge(array(
+            'allow_credentials_in_request_body' => true
+        ), $config);
         $this->storage = $storage;
     }
 
@@ -57,7 +63,7 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
      * );
      * @endcode
      *
-     * @see http://tools.ietf.org/html/rfc6749#section-2.4.1
+     * @see http://tools.ietf.org/html/rfc6749#section-2.3.1
      *
      * @ingroup oauth2_section_2
      */
@@ -67,13 +73,11 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
             return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));
         }
 
-        // This method is not recommended, but is supported by specification
-        if (!is_null($request->request('client_id')) && !is_null($request->request('client_secret'))) {
-            return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
-        }
-
-        if (!is_null($request->query('client_id')) && !is_null($request->query('client_secret'))) {
-            return array('client_id' => $request->query('client_id'), 'client_secret' => $request->query('client_secret'));
+        if ($this->config['allow_credentials_in_request_body']) {
+            // Using POST for HttpBasic authorization is not recommended, but is supported by specification
+            if (!is_null($request->request('client_id')) && !is_null($request->request('client_secret'))) {
+                return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
+            }
         }
 
         $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'Client credentials were not found in the headers or body');

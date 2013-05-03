@@ -148,9 +148,10 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope');
     }
 
-    public function getSupportedScopes($client_id = null)
+    public function scopeExists($scope, $client_id = null)
     {
-        return $this->supportedScopes;
+        $scope = explode(' ', trim($scope));
+        return (count(array_diff($scope, $this->supportedScopes)) == 0);
     }
 
     public function getDefaultScope()

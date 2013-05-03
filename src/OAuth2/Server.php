@@ -207,10 +207,6 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             $grantTypes['authorization_code'] = new OAuth2_GrantType_AuthorizationCode($this->storages['authorization_code']);
         }
 
-        if (isset($this->storages['jwt_bearer'])) {
-            $grantTypes['jwt_bearer'] = new OAuth2_GrantType_JWTBearer($this->storages['jwt_bearer']);
-        }
-
         if (count($grantTypes) == 0) {
             throw new LogicException("Unable to build default grant types - You must supply an array of grant_types in the constructor");
         }
