@@ -10,7 +10,7 @@
  *  > $response->send();
  *
  */
-interface OAuth2_Controller_TokenControllerInterface extends OAuth2_Response_ProviderInterface
+interface OAuth2_Controller_TokenControllerInterface
 {
     /**
      * handleTokenRequest
@@ -19,7 +19,7 @@ interface OAuth2_Controller_TokenControllerInterface extends OAuth2_Response_Pro
      * OAuth2_RequestInterface - The current http request
      *
      **/
-    public function handleTokenRequest(OAuth2_RequestInterface $request);
+    public function handleTokenRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response);
 
-    public function grantAccessToken(OAuth2_RequestInterface $request);
+    public function grantAccessToken(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response);
 }
