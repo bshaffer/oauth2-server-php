@@ -1,6 +1,6 @@
 <?php
 
-class OAuth2_Server_Authorize_BasicValidationTest extends PHPUnit_Framework_TestCase
+class OAuth2_Controller_Authorize_BasicValidationTest extends PHPUnit_Framework_TestCase
 {
     public function testNoClientIdResponse()
     {
