@@ -30,12 +30,12 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
         }
 
         if ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
-            $response->setResponse(400, 'invalid_client', 'The client credentials are invalid');
+            $response->setError(400, 'invalid_client', 'The client credentials are invalid');
             return false;
         }
 
         if (!$this->storage->checkRestrictedGrantType($clientData['client_id'], $request->request('grant_type'))) {
-            $response->setResponse(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
+            $response->setError(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
             return false;
         }
 
@@ -83,7 +83,7 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
         }
 
         if ($response) {
-            $response->setResponse(400, 'invalid_client', 'Client credentials were not found in the headers or body');
+            $response->setError(400, 'invalid_client', 'Client credentials were not found in the headers or body');
         }
         return null;
     }

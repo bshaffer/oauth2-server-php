@@ -64,7 +64,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode', // valid code
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -79,7 +79,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode-with-scope', // valid code
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -97,7 +97,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'code'          => 'testcode-with-scope', // valid code
             'scope'         => 'scope2 scope1',
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -115,7 +115,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'code'          => 'testcode-with-scope', // valid code
             'scope'         => 'scope1',
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -134,7 +134,6 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'scope'         => 'scope3',
         ));
         $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
-        $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
@@ -152,7 +151,6 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'scope'         => 'invalid-scope',
         ));
         $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
-        $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');

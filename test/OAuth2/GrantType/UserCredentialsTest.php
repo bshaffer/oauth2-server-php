@@ -11,8 +11,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'password' => 'testpass', // valid password
         ));
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -28,8 +27,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'username' => 'test-username', // valid username
         ));
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -46,8 +44,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
             'username' => 'fake-username', // valid username
             'password' => 'testpass', // valid password
         ));
-        $ret = $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -64,8 +61,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
             'username' => 'test-username', // valid username
             'password' => 'fakepass', // invalid password
         ));
-        $ret = $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -82,7 +78,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
             'username' => 'test-username', // valid username
             'password' => 'testpass', // valid password
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -99,7 +95,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
             'password' => 'testpass', // valid password
             'scope'    => 'scope1', // valid scope
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -118,8 +114,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
             'password' => 'testpass', // valid password
             'scope'         => 'invalid-scope',
         ));
-        $token = $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');

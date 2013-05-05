@@ -219,7 +219,7 @@ EOD;
             'assertion' => $this->getJWT(), // valid assertion
         ));
 
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
     }
@@ -231,7 +231,7 @@ EOD;
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
             'assertion' => $this->getJWT(null, null, null, 'Test Client ID', 'scope1'), // valid assertion
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);

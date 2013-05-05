@@ -14,8 +14,7 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
             'client_id'  => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret',  // valid client secret
         ));
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -33,8 +32,7 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'refresh_token' => 'fake-token', // invalid refresh token
         ));
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -52,7 +50,7 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'refresh_token' => 'test-refreshtoken', // valid refresh token
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
         $this->assertTrue(isset($token['refresh_token']), 'refresh token should always refresh');
 
         $refresh_token = $this->storage->getRefreshToken($token['refresh_token']);
@@ -75,7 +73,7 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'refresh_token' => 'test-refreshtoken', // valid refresh token
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
         $this->assertFalse(isset($token['refresh_token']), 'refresh token should not be returned');
 
         $used_token = $this->storage->getRefreshToken('test-refreshtoken');
@@ -92,7 +90,7 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
             'refresh_token' => 'test-refreshtoken-with-scope', // valid refresh token (with scope)
             'scope'         => 'scope2 scope1',
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -110,7 +108,7 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
             'refresh_token' => 'test-refreshtoken-with-scope', // valid refresh token (with scope)
             'scope'         => 'scope1',
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -128,8 +126,7 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
             'refresh_token' => 'test-refreshtoken-with-scope', // valid refresh token (with scope)
             'scope'         => 'scope3',
         ));
-        $token = $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
@@ -146,8 +143,7 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
             'refresh_token' => 'test-refreshtoken-with-scope', // valid refresh token (with scope)
             'scope'         => 'invalid-scope',
         ));
-        $token = $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');

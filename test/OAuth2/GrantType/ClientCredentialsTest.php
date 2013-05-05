@@ -10,7 +10,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'FakeSecret', // valid client secret
         ));
-        $response = $server->handleTokenRequest($request);
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_client');
@@ -25,7 +25,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('scope', $token);
@@ -41,7 +41,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'scope' => 'scope1',
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -58,8 +58,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'scope' => 'invalid-scope',
         ));
-        $token = $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
@@ -73,7 +72,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
         $headers = array('HTTP_AUTHORIZATION' => 'Basic '.base64_encode('Test Client ID:TestSecret'), 'REQUEST_METHOD' => 'POST');
         $params  = array('grant_type' => 'client_credentials');
         $request = new OAuth2_Request(array(), $params, array(), array(), array(), $headers);
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -83,7 +82,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
         $headers = array('PHP_AUTH_USER' => 'Test Client ID', 'PHP_AUTH_PW' => 'TestSecret', 'REQUEST_METHOD' => 'POST');
         $params  = array('grant_type' => 'client_credentials');
         $request = new OAuth2_Request(array(), $params, array(), array(), array(), $headers);
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -98,7 +97,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -113,7 +112,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
