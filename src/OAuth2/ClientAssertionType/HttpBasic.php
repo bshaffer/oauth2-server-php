@@ -5,7 +5,7 @@
  *
  * @author    Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionTypeInterface, OAuth2_Response_ProviderInterface
+class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionTypeInterface
 {
     private $storage;
     private $config;
@@ -86,10 +86,5 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
             $response->setError(400, 'invalid_client', 'Client credentials were not found in the headers or body');
         }
         return null;
-    }
-
-    public function getResponse()
-    {
-        return $this->response;
     }
 }

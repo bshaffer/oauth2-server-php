@@ -9,4 +9,5 @@ interface OAuth2_ResponseInterface
     public function addHttpHeaders(array $httpHeaders);
     public function setStatusCode($statusCode);
     public function setError($statusCode, $name, $description = null, $uri = null);
+    public function setRedirect($statusCode = 302, $url, $error = null, $errorDescription = null, $errorUri = null, $state = null);
 }

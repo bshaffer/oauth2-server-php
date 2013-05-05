@@ -3,9 +3,8 @@
 /**
 *
 */
-class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface, OAuth2_Response_ProviderInterface
+class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface
 {
-    private $response;
     private $config;
 
     public function __construct(array $config = array())
@@ -86,10 +85,5 @@ class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface, OAuth2_Respo
 
         // GET method
         return $request->query($this->config['token_param_name']);
-    }
-
-    public function getResponse()
-    {
-        return $this->response;
     }
 }

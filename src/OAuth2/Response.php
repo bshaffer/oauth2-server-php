@@ -244,14 +244,20 @@ class OAuth2_Response implements OAuth2_ResponseInterface
             $parameters['state'] = $state;
         }
 
-        $httpHeaders = array(
-            'Location' =>  $url,
-        );
-
-        $this->setError(400, $error, $errorDescription, $errorUri);
-        $this->addStatusCode($statusCode);
-        $this->addHttpHeaders($httpHeaders);
+        if (!is_null($error)) {
+            $this->setError(400, $error, $errorDescription, $errorUri);
+        }
+        $this->setStatusCode($statusCode);
         $this->addParameters($parameters);
+
+        if (count($this->parameters) > 0) {
+            // add parameters to URL redirection
+            $parts = parse_url($url);
+            $sep = isset($parts['query']) && count($parts['query']) > 0 ? '&' : '?';
+            $url .= $sep . http_build_query($this->parameters);
+        }
+
+        $this->addHttpHeaders(array('Location' =>  $url));
 
         if (!$this->isRedirection()) {
             throw new InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $statusCode));
@@ -326,14 +332,6 @@ class OAuth2_Response implements OAuth2_ResponseInterface
     {
         if (count($headers) == 0) {
             return '';
-        }
-
-        if ($this->isRedirection() && count($this->parameters) > 0) {
-            // add parameters to URL redirection
-            $location = $this->getHttpHeader('Location');
-            $parts = parse_url($location);
-            $sep = isset($parts['query']) && count($parts['query']) > 0 ? '&' : '?';
-            $this->setHttpHeader('Location', $url . $sep . http_build_query($this->parameters));
         }
 
         $max = max(array_map('strlen', array_keys($headers))) + 1;
