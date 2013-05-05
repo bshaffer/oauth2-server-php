@@ -85,6 +85,7 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
         if ($response) {
             $response->setError(400, 'invalid_client', 'Client credentials were not found in the headers or body');
         }
+
         return null;
     }
 }

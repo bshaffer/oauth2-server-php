@@ -38,7 +38,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         if ($is_authorized === false) {
-            $response->setRedirect(302, $params['redirect_uri'], 'access_denied', "The user denied access to your application", null, $params['state']);
+            $response->setRedirect(302, $params['redirect_uri'], $params['state'], 'access_denied', "The user denied access to your application");
             return null;
         }
 
@@ -104,16 +104,16 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
 
         // type and client_id are required
         if (!$response_type || !in_array($response_type, array(self::RESPONSE_TYPE_AUTHORIZATION_CODE, self::RESPONSE_TYPE_ACCESS_TOKEN))) {
-            $response->setRedirect(302, $redirect_uri, 'invalid_request', 'Invalid or missing response type', null, $state);
+            $response->setRedirect(302, $redirect_uri, $state, 'invalid_request', 'Invalid or missing response type', null);
             return false;
         }
         if ($response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
             if (!isset($this->responseTypes['code'])) {
-                $response->setRedirect(302, $redirect_uri, 'unsupported_response_type', 'authorization code grant type not supported', null, $state);
+                $response->setRedirect(302, $redirect_uri, $state, 'unsupported_response_type', 'authorization code grant type not supported', null);
                 return false;
             }
             if (!$this->clientStorage->checkRestrictedGrantType($client_id, 'authorization_code')) {
-                $response->setRedirect(302, $redirect_uri, 'unauthorized_client', 'The grant type is unauthorized for this client_id', null, $state);
+                $response->setRedirect(302, $redirect_uri, $state, 'unauthorized_client', 'The grant type is unauthorized for this client_id', null);
                 return false;
             }
             if ($this->responseTypes['code']->enforceRedirect() && !$redirect_uri) {
@@ -124,29 +124,29 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
 
         if ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN) {
             if (!$this->config['allow_implicit']) {
-                $response->setRedirect(302, $redirect_uri, 'unsupported_response_type', 'implicit grant type not supported', null, $state);
+                $response->setRedirect(302, $redirect_uri, $state, 'unsupported_response_type', 'implicit grant type not supported', null);
                 return false;
             }
             if (!$this->clientStorage->checkRestrictedGrantType($client_id, 'implicit')) {
-                $response->setRedirect(302, $redirect_uri, 'unauthorized_client', 'The grant type is unauthorized for this client_id', null, $state);
+                $response->setRedirect(302, $redirect_uri, $state, 'unauthorized_client', 'The grant type is unauthorized for this client_id', null);
                 return false;
             }
         }
 
         // Validate that the requested scope is supported
         if (false === $scope) {
-            $response->setRedirect(302, $redirect_uri, 'invalid_client', 'This application requires you specify a scope parameter', null, $state);
+            $response->setRedirect(302, $redirect_uri, $state, 'invalid_client', 'This application requires you specify a scope parameter', null);
             return false;
         }
 
         if (!is_null($scope) && !$this->scopeUtil->scopeExists($scope, $client_id)) {
-            $response->setRedirect(302, $redirect_uri, 'invalid_scope', 'An unsupported scope was requested', null, $state);
+            $response->setRedirect(302, $redirect_uri, $state, 'invalid_scope', 'An unsupported scope was requested', null);
             return false;
         }
 
         // Validate state parameter exists (if configured to enforce this)
         if ($this->config['enforce_state'] && !$state) {
-            $response->setRedirect(302, $redirect_uri, 'invalid_request', 'The state parameter is required');
+            $response->setRedirect(302, $redirect_uri, null, 'invalid_request', 'The state parameter is required');
             return false;
         }
 

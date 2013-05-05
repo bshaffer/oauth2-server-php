@@ -232,7 +232,7 @@ class OAuth2_Response implements OAuth2_ResponseInterface
         }
     }
 
-    public function setRedirect($statusCode = 302, $url, $error = null, $errorDescription = null, $errorUri = null, $state = null)
+    public function setRedirect($statusCode = 302, $url, $state = null, $error = null, $errorDescription = null, $errorUri = null)
     {
         if (empty($url)) {
             throw new InvalidArgumentException('Cannot redirect to an empty URL.');
