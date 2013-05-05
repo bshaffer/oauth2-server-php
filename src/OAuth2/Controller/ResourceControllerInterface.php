@@ -13,9 +13,9 @@
  *  > return json_encode($resource); // valid token!  Send the stuff!
  *
  */
-interface OAuth2_Controller_ResourceControllerInterface extends OAuth2_Response_ProviderInterface
+interface OAuth2_Controller_ResourceControllerInterface
 {
-    public function verifyResourceRequest(OAuth2_RequestInterface $request, $scope = null);
+    public function verifyResourceRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response, $scope = null);
 
-    public function getAccessTokenData(OAuth2_RequestInterface $request);
+    public function getAccessTokenData(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response);
 }

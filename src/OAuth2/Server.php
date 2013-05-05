@@ -312,17 +312,17 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         return $value;
     }
 
-    public function verifyResourceRequest(OAuth2_RequestInterface $request, $scope = null)
+    public function verifyResourceRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response, $scope = null)
     {
-        $value = $this->getResourceController()->verifyResourceRequest($request, $scope);
-        $this->response = $this->resourceController->getResponse();
+        $value = $this->getResourceController()->verifyResourceRequest($request, $response, $scope);
+        $this->response = $response;
         return $value;
     }
 
-    public function getAccessTokenData(OAuth2_RequestInterface $request, $scope = null)
+    public function getAccessTokenData(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
     {
-        $value = $this->getResourceController()->getAccessTokenData($request, $scope);
-        $this->response = $this->resourceController->getResponse();
+        $value = $this->getResourceController()->getAccessTokenData($request, $response);
+        $this->response = $response;
         return $value;
     }
 
@@ -404,10 +404,5 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             $this->scopeUtil = new OAuth2_Scope($storage);
         }
         return $this->scopeUtil;
-    }
-
-    public function getResponse()
-    {
-        return $this->response;
     }
 }

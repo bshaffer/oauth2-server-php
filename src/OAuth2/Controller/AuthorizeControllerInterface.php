@@ -16,7 +16,7 @@
  *  > $response->send();
  *
  */
-interface OAuth2_Controller_AuthorizeControllerInterface extends OAuth2_Response_ProviderInterface
+interface OAuth2_Controller_AuthorizeControllerInterface
 {
     /**
      * List of possible authentication response types.
