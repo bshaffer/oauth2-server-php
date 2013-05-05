@@ -1,10 +1,13 @@
 <?php
 
-interface OAuth2_GrantTypeInterface
+/**
+ * Interface for all OAuth2 Grant Types
+ *
+ * @see OAuth2_CompatibilityInterface
+ **/
+interface OAuth2_GrantTypeInterface extends OAuth2_CompatibilityInterface
 {
-    public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response);
     public function getUserId();
     public function getScope();
-    public function getClientId();
     public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $client_id, $user_id, $scope);
 }
