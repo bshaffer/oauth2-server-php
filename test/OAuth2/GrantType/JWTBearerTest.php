@@ -38,8 +38,7 @@ EOD;
 
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -57,8 +56,7 @@ EOD;
         $jwt = $this->getJWT() . 'notSupposeToBeHere';
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -76,8 +74,7 @@ EOD;
         $jwt = $this->getJWT(1234);
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -95,8 +92,7 @@ EOD;
         $jwt = $this->getJWT('badtimestamp');
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -112,8 +108,7 @@ EOD;
 
         //Do not pass the assert (JWT)
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -131,8 +126,7 @@ EOD;
         $jwt = $this->getJWT(null, time() + 10000);
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -150,8 +144,7 @@ EOD;
         $jwt = $this->getJWT(null, 'notatimestamp');
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -166,8 +159,7 @@ EOD;
             'assertion' => $this->getJWT(),
         ));
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -182,8 +174,7 @@ EOD;
             'assertion' => $this->getJWT(null, null, null, 'bad_client_id'),
         ));
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -198,8 +189,7 @@ EOD;
             'assertion' => $this->getJWT(null, null, 'anotheruser@ourdomain,com'),
         ));
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -214,12 +204,53 @@ EOD;
             'assertion' => $this->getJWT(null, null, null, 'Missing Key Cli,nt'),
         ));
 
-        $server->grantAccessToken($request);
-        $response = $server->getResponse();
+        $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
         $this->assertEquals($response->getParameter('error_description'), 'Invalid issuer (iss) or subject (sub) provided');
+    }
+
+    public function testValidJwt()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
+            'assertion' => $this->getJWT(), // valid assertion
+        ));
+
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+    }
+
+    public function testValidJwtWithScope()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
+            'assertion' => $this->getJWT(null, null, null, 'Test Client ID', 'scope1'), // valid assertion
+        ));
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+        $this->assertArrayHasKey('scope', $token);
+        $this->assertEquals($token['scope'], 'scope1');
+    }
+
+    public function testValidJwtInvalidScope()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
+            'assertion' => $this->getJWT(null, null, null, 'Test Client ID', 'invalid-scope'), // valid assertion with invalid scope
+        ));
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_scope');
+        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
     }
 
     public function testJwtUtil()
@@ -241,50 +272,6 @@ EOD;
 
         $this->assertEquals($params, $payload);
     }
-
-    public function testValidJwt()
-    {
-        $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
-            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
-            'assertion' => $this->getJWT(), // valid assertion
-        ));
-
-        $token = $server->grantAccessToken($request);
-        $this->assertNotNull($token);
-        $this->assertArrayHasKey('access_token', $token);
-    }
-
-    public function testValidJwtWithScope()
-    {
-        $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
-            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
-            'assertion' => $this->getJWT(null, null, null, 'Test Client ID', 'scope1'), // valid assertion
-        ));
-        $token = $server->grantAccessToken($request);
-
-        $this->assertNotNull($token);
-        $this->assertArrayHasKey('access_token', $token);
-        $this->assertArrayHasKey('scope', $token);
-        $this->assertEquals($token['scope'], 'scope1');
-    }
-
-    public function testValidJwtInvalidScope()
-    {
-        $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
-            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
-            'assertion' => $this->getJWT(null, null, null, 'Test Client ID', 'invalid-scope'), // valid assertion with invalid scope
-        ));
-        $token = $server->grantAccessToken($request);
-        $response = $server->getResponse();
-
-        $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
-    }
-
 
     /**
      * Generates a JWT

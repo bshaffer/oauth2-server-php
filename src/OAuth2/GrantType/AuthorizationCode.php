@@ -3,11 +3,10 @@
 /**
 *
 */
-class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, OAuth2_Response_ProviderInterface
+class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
 {
     private $storage;
-    private $response;
-    private $code;
+    private $authCode;
 
     public function __construct(OAuth2_Storage_AuthorizationCodeInterface $storage)
     {
@@ -19,54 +18,68 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface, O
         return 'authorization_code';
     }
 
-    public function getTokenData(OAuth2_RequestInterface $request, array $clientData)
+    public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
     {
         if (!$request->request('code')) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Missing parameter: "code" is required');
-            return null;
+            $response->setError(400, 'invalid_request', 'Missing parameter: "code" is required');
+            return false;
         }
 
-        $this->code = $request->request('code');
-        if (!$tokenData = $this->storage->getAuthorizationCode($this->code)) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
-            return null;
+        $code = $request->request('code');
+        if (!$authCode = $this->storage->getAuthorizationCode($code)) {
+            $response->setError(400, 'invalid_grant', 'Authorization code doesn\'t exist or is invalid for the client');
+            return false;
         }
 
         /*
          * 4.1.3 - ensure that the "redirect_uri" parameter is present if the "redirect_uri" parameter was included in the initial authorization request
          * @uri - http://tools.ietf.org/html/rfc6749#section-4.1.3
          */
-        if (isset($tokenData['redirect_uri']) && $tokenData['redirect_uri']) {
-            if (!$request->request('redirect_uri') || urldecode($request->request('redirect_uri')) != $tokenData['redirect_uri']) {
-                $this->response = new OAuth2_Response_Error(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match", "#section-4.1.3");
-                return null;
+        if (isset($authCode['redirect_uri']) && $authCode['redirect_uri']) {
+            if (!$request->request('redirect_uri') || urldecode($request->request('redirect_uri')) != $authCode['redirect_uri']) {
+                $response->setError(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match", "#section-4.1.3");
+                return false;
             }
         }
 
-        // Check the code exists
-        if ($tokenData === null || $clientData['client_id'] != $tokenData['client_id']) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "Authorization code doesn't exist or is invalid for the client");
-            return null;
+        if (!isset($authCode['expires'])) {
+            throw new Exception('Storage must return authcode with a value for "expires"');
         }
 
-        if ($tokenData["expires"] < time()) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_grant', "The authorization code has expired");
-            return null;
+        if ($authCode["expires"] < time()) {
+            $this->response->setError(400, 'invalid_grant', "The authorization code has expired");
+            return false;
         }
 
-        return $tokenData;
+        if (!isset($authCode['code'])) {
+            $authCode['code'] = $code; // used to expire the code after the access token is granted
+        }
+
+        $this->authCode = $authCode;
+
+        return true;
     }
 
-    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $clientData, array $tokenData)
+    public function getClientId()
     {
-        $this->storage->expireAuthorizationCode($this->code);
-        $token = $accessToken->createAccessToken($clientData['client_id'], $tokenData['user_id'], $tokenData['scope']);
+        return $this->authCode['client_id'];
+    }
+
+    public function getScope()
+    {
+        return isset($this->authCode['scope']) ? $this->authCode['scope'] : null;
+    }
+
+    public function getUserId()
+    {
+        return $this->authCode['user_id'];
+    }
+
+    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
+    {
+        $token = $accessToken->createAccessToken($client_id, $user_id, $scope);
+        $this->storage->expireAuthorizationCode($this->authCode['code']);
 
         return $token;
-    }
-
-    public function getResponse()
-    {
-        return $this->response;
     }
 }

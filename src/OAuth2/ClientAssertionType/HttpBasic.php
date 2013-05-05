@@ -7,9 +7,9 @@
  */
 class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionTypeInterface, OAuth2_Response_ProviderInterface
 {
-    private $response;
     private $storage;
     private $config;
+    private $clientData;
 
     public function __construct(OAuth2_Storage_ClientCredentialsInterface $storage, array $config = array())
     {
@@ -19,32 +19,34 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
         $this->storage = $storage;
     }
 
-    public function getClientData(OAuth2_RequestInterface $request)
+    public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
     {
-        if (!$clientData = $this->getClientCredentials($request)) {
-            return null;
+        if (!$clientData = $this->getClientCredentials($request, $response)) {
+            return false;
         }
 
         if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
             throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
         }
 
-        return $clientData;
-    }
-
-    public function validateClientData(array $clientData, $grantTypeIdentifier)
-    {
         if ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'The client credentials are invalid');
+            $response->setResponse(400, 'invalid_client', 'The client credentials are invalid');
             return false;
         }
 
-        if (!$this->storage->checkRestrictedGrantType($clientData['client_id'], $grantTypeIdentifier)) {
-            $this->response = new OAuth2_Response_Error(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
+        if (!$this->storage->checkRestrictedGrantType($clientData['client_id'], $request->request('grant_type'))) {
+            $response->setResponse(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
             return false;
         }
+
+        $this->clientData = $clientData;
 
         return true;
+    }
+
+    public function getClientId()
+    {
+        return $this->clientData['client_id'];
     }
 
     /**
@@ -67,7 +69,7 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
      *
      * @ingroup oauth2_section_2
      */
-    public function getClientCredentials(OAuth2_RequestInterface $request)
+    public function getClientCredentials(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response = null)
     {
         if (!is_null($request->headers('PHP_AUTH_USER')) && !is_null($request->headers('PHP_AUTH_PW'))) {
             return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));
@@ -80,7 +82,9 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
             }
         }
 
-        $this->response = new OAuth2_Response_Error(400, 'invalid_client', 'Client credentials were not found in the headers or body');
+        if ($response) {
+            $response->setResponse(400, 'invalid_client', 'Client credentials were not found in the headers or body');
+        }
         return null;
     }
 

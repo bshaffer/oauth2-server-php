@@ -2,7 +2,6 @@
 
 interface OAuth2_ClientAssertionTypeInterface
 {
-    public function getClientData(OAuth2_RequestInterface $request);
-
-    public function validateClientData(array $clientData, $grantTypeIdentifier);
+    public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response);
+    public function getClientId();
 }

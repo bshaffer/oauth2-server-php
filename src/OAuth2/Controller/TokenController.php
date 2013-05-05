@@ -32,14 +32,17 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function handleTokenRequest(OAuth2_RequestInterface $request)
+    public function handleTokenRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
     {
-        if ($token = $this->grantAccessToken($request)) {
+        if ($token = $this->grantAccessToken($request, $response)) {
             // @see http://tools.ietf.org/html/rfc6749#section-5.1
             // server MUST disable caching in headers when tokens are involved
-            $this->response = new OAuth2_Response($token, 200, array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
+            $response->setStatusCode(200);
+            $response->addParameters($token);
+            $response->addHttpHeaders(array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
+            return true;
         }
-        return $this->response;
+        return false;
     }
 
     /**
@@ -61,67 +64,71 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
      *
      * @ingroup oauth2_section_4
      */
-    public function grantAccessToken(OAuth2_RequestInterface $request)
+    public function grantAccessToken(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
     {
         if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
-            $this->response = new OAuth2_Response_Error(405, 'invalid_request', 'The request method must be POST when requesting an access token', 'http://tools.ietf.org/html/rfc6749#section-3.2');
-            $this->response->setHttpHeader( 'Allow', 'POST' );
+            $response->setError(405, 'invalid_request', 'The request method must be POST when requesting an access token', '#section-3.2');
+            $response->addHttpHeaders(array('Allow' => 'POST'));
             return null;
         }
 
-        // Determine grant type from request
+        /* Determine grant type from request
+         * and validate the request for that grant type
+         */
         if (!$grantTypeIdentifier = $request->request('grant_type')) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'The grant type was not specified in the request');
+            $response->setError(400, 'invalid_request', 'The grant type was not specified in the request');
             return null;
         }
         if (!isset($this->grantTypes[$grantTypeIdentifier])) {
             /* TODO: If this is an OAuth2 supported grant type that we have chosen not to implement, throw a 501 Not Implemented instead */
-            $this->response = new OAuth2_Response_Error(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantTypeIdentifier));
+            $response->setError(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantTypeIdentifier));
             return null;
         }
+
         $grantType = $this->grantTypes[$grantTypeIdentifier];
-
-        /* Retrieve the client information from the request */
-        // ClientAssertionTypes allow for grant types which also assert the client data (see JWTBearer)
-        $clientAssertionType = $grantType instanceof OAuth2_ClientAssertionTypeInterface ? $grantType : $this->clientAssertionType;
-
-        $clientData = $clientAssertionType->getClientData($request);
-        if (!$clientData || !$clientAssertionType->validateClientData($clientData, $grantTypeIdentifier)) {
-            if ($clientAssertionType instanceof OAuth2_Response_ProviderInterface && $response = $clientAssertionType->getResponse()) {
-                $this->response = $response;
-            } else {
-                $this->response = new OAuth2_Response_Error(400, 'invalid_request', 'Unable to verify client');
-            }
+        if (!$grantType->validateRequest($request, $response)) {
             return null;
         }
 
-        /* Retrieve the token information from the request */
-        if (!$tokenData = $grantType->getTokenData($request, $clientData)) {
-            if ($grantType instanceof OAuth2_Response_ProviderInterface && $response = $grantType->getResponse()) {
-                $this->response = $response;
-            } else {
-                $this->response = new OAuth2_Response_Error(400, 'invalid_grant', sprintf('Unable to retrieve token for "%s" grant type', $grantTypeIdentifier));
+        /* Retrieve the client information from the request
+         * ClientAssertionTypes allow for grant types which also assert the client data
+         * in which case ClientAssertion is handled in the validateRequest method
+         *
+         * @see OAuth2_GrantType_JWTBearer
+         * @see OAuth2_GrantType_ClientCredentials
+         */
+        if ($grantType instanceof OAuth2_ClientAssertionTypeInterface) {
+            $clientId = $grantType->getClientId();
+        } else {
+            if (!$this->clientAssertionType->validateRequest($request, $response)) {
+                return null;
             }
-            return null;
+            $clientId = $this->clientAssertionType->getClientId();
+
+            // validate the Client ID (if applicable)
+            if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
+                $response->setError(400, 'invalid_grant', 'Authorization code doesn\'t exist or is invalid for the client');
+                return null;
+            }
         }
 
-        /* Validate the scope of the token */
-        // if this is set, we are dealing with an authorization code or refresh token
-        $availableScope = isset($tokenData['scope']) ? $tokenData['scope'] : null;
-
+        /*
+         * Validate the scope of the token
+         * If the grant type returns a value for the scope,
+         * this value must be verified with the scope being requested
+         */
+        $availableScope = $grantType->getScope();
         if (!$requestedScope = $this->scopeUtil->getScopeFromRequest($request)) {
             $requestedScope = $availableScope ? $availableScope : $this->scopeUtil->getDefaultScope();
         }
 
         if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope))
             || ($availableScope && !$this->scopeUtil->checkScope($requestedScope, $availableScope))) {
-            $this->response = new OAuth2_Response_Error(400, 'invalid_scope', 'An unsupported scope was requested.');
+            $response->setError(400, 'invalid_scope', 'An unsupported scope was requested.');
             return null;
         }
 
-        $tokenData['scope'] = $requestedScope;
-
-        return $grantType->createAccessToken($this->accessToken, $clientData, $tokenData);
+        return $grantType->createAccessToken($this->accessToken, $clientId, $grantType->getUserId(), $requestedScope);
     }
 
     /**
@@ -139,10 +146,5 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         }
 
         $this->grantTypes[$identifier] = $grantType;
-    }
-
-    public function getResponse()
-    {
-        return $this->response;
     }
 }

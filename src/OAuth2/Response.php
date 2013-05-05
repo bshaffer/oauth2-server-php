@@ -3,7 +3,7 @@
 /**
 *
 */
-class OAuth2_Response
+class OAuth2_Response implements OAuth2_ResponseInterface
 {
     public $version;
     protected $statusCode = 200;
@@ -119,10 +119,16 @@ class OAuth2_Response
         return $this->parameters;
     }
 
-    public function setParameters($parameters)
+    public function setParameters(array $parameters)
     {
         $this->parameters = $parameters;
     }
+
+    public function addParameters(array $parameters)
+    {
+        $this->parameters = array_merge($this->parameters, $parameters);
+    }
+
     public function getParameter($name, $default = null)
     {
         return isset($this->parameters[$name]) ? $this->parameters[$name] : $default;
@@ -133,7 +139,7 @@ class OAuth2_Response
         $this->parameters[$name] = $value;
     }
 
-    public function setHttpHeaders($httpHeaders)
+    public function setHttpHeaders(array $httpHeaders)
     {
         $this->httpHeaders = $httpHeaders;
     }
@@ -141,6 +147,11 @@ class OAuth2_Response
     public function setHttpHeader($name, $value)
     {
         $this->httpHeaders[$name] = $value;
+    }
+
+    public function addHttpHeaders(array $httpHeaders)
+    {
+        $this->httpHeaders = array_merge($this->httpHeaders, $httpHeaders);
     }
 
     public function getHttpHeaders()
@@ -193,7 +204,61 @@ class OAuth2_Response
         echo $this->getResponseBody($format);
     }
 
-// http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+    public function setError($statusCode, $error, $errorDescription = null, $errorUri = null)
+    {
+        $parameters = array(
+            'error' => $error,
+            'error_description' => $errorDescription,
+        );
+
+        if (!is_null($errorUri)) {
+            if (strlen($errorUri) > 0 && $errorUri[0] == '#') {
+                // we are referencing an oauth bookmark (for brevity)
+                $errorUri = 'http://tools.ietf.org/html/rfc6749' . $errorUri;
+            }
+            $parameters['error_uri'] = $errorUri;
+        }
+
+        $httpHeaders = array(
+            'Cache-Control' => 'no-store'
+        );
+
+        $this->setStatusCode($statusCode);
+        $this->addParameters($parameters);
+        $this->addHttpHeaders($httpHeaders);
+
+        if (!$this->isClientError() && !$this->isServerError()) {
+            throw new InvalidArgumentException(sprintf('The HTTP status code is not an error ("%s" given).', $statusCode));
+        }
+    }
+
+    public function setRedirect($statusCode = 302, $url, $error = null, $errorDescription = null, $errorUri = null, $state = null)
+    {
+        if (empty($url)) {
+            throw new InvalidArgumentException('Cannot redirect to an empty URL.');
+        }
+
+        $parameters = array();
+
+        if (!is_null($state)) {
+            $parameters['state'] = $state;
+        }
+
+        $httpHeaders = array(
+            'Location' =>  $url,
+        );
+
+        $this->setError(400, $error, $errorDescription, $errorUri);
+        $this->addStatusCode($statusCode);
+        $this->addHttpHeaders($httpHeaders);
+        $this->addParameters($parameters);
+
+        if (!$this->isRedirection()) {
+            throw new InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $statusCode));
+        }
+    }
+
+    // http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
     /**
      * @return Boolean
      *
@@ -262,6 +327,15 @@ class OAuth2_Response
         if (count($headers) == 0) {
             return '';
         }
+
+        if ($this->isRedirection() && count($this->parameters) > 0) {
+            // add parameters to URL redirection
+            $location = $this->getHttpHeader('Location');
+            $parts = parse_url($location);
+            $sep = isset($parts['query']) && count($parts['query']) > 0 ? '&' : '?';
+            $this->setHttpHeader('Location', $url . $sep . http_build_query($this->parameters));
+        }
+
         $max = max(array_map('strlen', array_keys($headers))) + 1;
         $content = '';
         ksort($headers);

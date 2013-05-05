@@ -10,7 +10,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
         ));
-        $response = $server->handleTokenRequest($request);
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -26,7 +26,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'InvalidCode', // invalid authorization code
         ));
-        $response = $server->handleTokenRequest($request);
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -42,13 +42,13 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode', // valid code
         ));
-        $response = $server->handleTokenRequest($request);
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 200);
         $this->assertNotNull($response->getParameter('access_token'));
 
         // try to use the same code again
-        $response = $server->handleTokenRequest($request);
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -64,7 +64,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode', // valid code
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -79,7 +79,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode-with-scope', // valid code
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -97,7 +97,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'code'          => 'testcode-with-scope', // valid code
             'scope'         => 'scope2 scope1',
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -115,7 +115,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'code'          => 'testcode-with-scope', // valid code
             'scope'         => 'scope1',
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -133,7 +133,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'code'          => 'testcode-with-scope', // valid code
             'scope'         => 'scope3',
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -151,7 +151,7 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
             'code'          => 'testcode-with-scope', // valid code
             'scope'         => 'invalid-scope',
         ));
-        $token = $server->grantAccessToken($request);
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
         $response = $server->getResponse();
 
         $this->assertEquals($response->getStatusCode(), 400);

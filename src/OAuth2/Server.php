@@ -235,24 +235,17 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      *
      * @ingroup oauth2_section_4
      */
-    public function handleTokenRequest(OAuth2_RequestInterface $request)
+    public function handleTokenRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
     {
-        $value = $this->getTokenController()->handleTokenRequest($request);
-        $this->response = $this->tokenController->getResponse();
+        $value = $this->getTokenController()->handleTokenRequest($request, $response);
+        $this->response = $response;
         return $value;
     }
 
-    public function grantAccessToken(OAuth2_RequestInterface $request)
+    public function grantAccessToken(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
     {
-        $value = $this->getTokenController()->grantAccessToken($request);
-        $this->response = $this->tokenController->getResponse();
-        return $value;
-    }
-
-    public function getClientCredentials(OAuth2_RequestInterface $request)
-    {
-        $value = $this->getTokenController()->getClientCredentials($request);
-        $this->response = $this->tokenController->getResponse();
+        $value = $this->getTokenController()->grantAccessToken($request, $response);
+        $this->response = $response;
         return $value;
     }
 
