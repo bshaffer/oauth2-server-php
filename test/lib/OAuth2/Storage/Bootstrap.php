@@ -33,6 +33,11 @@ class OAuth2_Storage_Bootstrap
         return new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));
     }
 
+    public function getRedisStorage()
+    {
+        return new OAuth2_Storage_Redis(new OAuth2_Storage_MockRedisClient());
+    }
+    
     public function getMysqlPdo()
     {
         if (!$this->mysql) {
