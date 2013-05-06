@@ -151,7 +151,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         }
 
         // Return retrieved client details together with input
-        return array_merge(array('scope' => $scope, 'state' => null), $clientData, $request->getAllQueryParameters(), array('redirect_uri' => $redirect_uri));
+        return array_merge(array('scope' => $scope, 'state' => $state), $clientData, $request->getAllQueryParameters(), array('redirect_uri' => $redirect_uri));
     }
 
     /**
