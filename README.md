@@ -134,10 +134,6 @@ An endpoint which the client uses to exchange the `authorization code` for an `a
 
   * Receives a request object for a token request, returns a response object for the appropriate response.
 
-`getClientCredentials`
-
-  * parses the client credentials from the request and determines if they are valid
-
 ### Resource Requests
 
 Any API method requiring oauth2 authentication.  The server will validate the incomming request, and then allow
