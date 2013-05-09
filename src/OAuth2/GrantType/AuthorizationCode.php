@@ -47,7 +47,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
         }
 
         if ($authCode["expires"] < time()) {
-            $this->response->setError(400, 'invalid_grant', "The authorization code has expired");
+            $response->setError(400, 'invalid_grant', "The authorization code has expired");
             return false;
         }
 
