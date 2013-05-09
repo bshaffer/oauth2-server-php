@@ -47,7 +47,8 @@ to the constructor of `OAuth2_Storage_Pdo`:
 $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
 $server = new OAuth2_Server($storage);
 $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage)); // or some other grant type.  This is the simplest
-$server->handleTokenRequest(OAuth2_Request::createFromGlobals())->send();
+$server->handleTokenRequest(OAuth2_Request::createFromGlobals(), $response = new OAuth2_Response());
+$response->send();
 ```
 
 Let's break this down line by line. The first line is how the OAuth2 data is stored.
@@ -77,7 +78,8 @@ Call the `grantAccessToken` method to validate the request for the user credenti
 if successful.  Access the server's response object to send the successful response back, or the error response if applicable:
 
 ```php
-$server->handleTokenRequest(OAuth2_Request::createFromGlobals())->send();
+$server->handleTokenRequest(OAuth2_Request::createFromGlobals(), $response = new OAuth2_Response());
+$response->send();
 ```
 
 This creates the `OAuth2_Request` object from PHP global variables (most common, you can override this if need be) and sends it to the server
@@ -207,16 +209,19 @@ The response object serves the purpose of making your server OAuth2 compliant.  
 and response body for a valid or invalid oauth request.  To use it as it's simplest level, just send the output and exit:
 
 ```php
+$request = OAuth2_Request::createFromGlobals();
+$response = new OAuth2_Response();
+
 // will set headers, status code, and json response appropriately for success or failure
-$server->grantAccessToken();
-$server->getResponse()->send();
+$server->grantAccessToken($request, $response);
+$response->send();
 ```
 
 The response object can also be used to customize output. Below, if the request is NOT valid, the error is sent to the browser:
 
 ```php
-if (!$token = $server->grantAccessToken()) {
-    $server->getResponse()->send();
+if (!$token = $server->grantAccessToken($request, $response)) {
+    $response->send();
     die();
 }
 echo sprintf('Your token is %s!!', $token);
@@ -226,8 +231,7 @@ This will populate the appropriate error headers, and return a json error respon
 the response object can be used to display the information in any other format:
 
 ```php
-if (!$token = $server->grantAccessToken()) {
-    $response = $server->getResponse();
+if (!$token = $server->grantAccessToken($request, $response)) {
     $parameters = $response->getParameters();
     // format as XML
     header("HTTP/1.1 " . $response->getStatusCode());
@@ -305,10 +309,11 @@ access it:
 ```php
 // https://api.example.com/resource-requiring-postonwall-scope
 $request = OAuth2_Request::createFromGlobals();
+$response = new OAuth2_Response();
 $scopeRequired = 'postonwall'; // this resource requires "postonwall" scope
-if (!$server->verifyResourceRequest($request, $scopeRequired)) {
+if (!$server->verifyResourceRequest($request, $response, $scopeRequired)) {
   // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
-  $server->getRequest()->send();
+  $response->send();
 }
 ```
 

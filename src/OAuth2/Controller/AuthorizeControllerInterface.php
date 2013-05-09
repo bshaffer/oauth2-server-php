@@ -9,8 +9,10 @@
  *  ex:
  *  > $user_id = $this->somehowDetermineUserId();
  *  > $is_authorized = $this->somehowDetermineUserAuthorization();
- *  > $response = $authorizeController->handleAuthorizeRequest(
+ *  > $response = new OAuth2_Response();
+ *  > $authorizeController->handleAuthorizeRequest(
  *  >     OAuth2_Request::createFromGlobals(),
+ *  >     $response,
  *  >     $is_authorized,
  *  >     $user_id);
  *  > $response->send();

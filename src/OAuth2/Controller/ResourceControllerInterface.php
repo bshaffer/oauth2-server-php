@@ -6,8 +6,8 @@
  *  contains a valid token.
  *
  *  ex:
- *  > if (!$resourceController->verifyResourceRequest(OAuth2_Request::createFromGlobals())) {
- *  >     $resourceController->getResponse()->send(); // authorization failed
+ *  > if (!$resourceController->verifyResourceRequest(OAuth2_Request::createFromGlobals(), $response = new OAuth2_Response())) {
+ *  >     $response->send(); // authorization failed
  *  >     die();
  *  > }
  *  > return json_encode($resource); // valid token!  Send the stuff!
