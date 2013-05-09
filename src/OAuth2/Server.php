@@ -94,14 +94,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     public function getAuthorizeController()
     {
         if (is_null($this->authorizeController)) {
-            if (!isset($this->storages['client'])) {
-                throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientInterface to use the authorize server");
-            }
-            if (0 == count($this->responseTypes)) {
-                $this->responseTypes = $this->getDefaultResponseTypes();
-            }
-            $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state')));
-            $this->authorizeController = new OAuth2_Controller_AuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->getScopeUtil());
+            $this->authorizeController = $this->createDefaultAuthorizeController();
         }
         return $this->authorizeController;
     }
@@ -109,13 +102,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     public function getTokenController()
     {
         if (is_null($this->tokenController)) {
-            if (!isset($this->storages['client_credentials'])) {
-                throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientCredentialsInterface to use the grant server");
-            }
-            if (0 == count($this->grantTypes)) {
-                $this->grantTypes = $this->getDefaultGrantTypes();
-            }
-            $this->tokenController = new OAuth2_Controller_TokenController($this->storages['client_credentials'], $this->getAccessTokenResponseType(), $this->grantTypes, $this->getScopeUtil());
+            $this->tokenController = $this->createDefaultTokenController();
         }
         return $this->tokenController;
     }
@@ -123,23 +110,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     public function getResourceController()
     {
         if (is_null($this->resourceController)) {
-            if (is_null($this->config['token_type'])) {
-                $this->config['token_type'] = 'bearer';
-            }
-            $tokenType = null;
-            if ($this->config['token_type'] == 'bearer') {
-                $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_param_name token_bearer_header_name')));
-                $tokenType = new OAuth2_TokenType_Bearer($config);
-            } elseif ($this->config['token_type'] == 'mac') {
-                $tokenType = new OAuth2_TokenType_MAC();
-            } else {
-                throw new LogicException('unrecognized token type: '.$this->config['token_type']);
-            }
-            if (!isset($this->storages['access_token'])) {
-                throw new LogicException("You must supply a storage object implementing OAuth2_Storage_AccessTokenInterface to use the access server");
-            }
-            $config = array_intersect_key($this->config, array('www_realm' => ''));
-            $this->resourceController = new OAuth2_Controller_ResourceController($tokenType, $this->storages['access_token'], $config, $this->getScopeUtil());
+            $this->resourceController = $this->createDefaultResourceController();
         }
         return $this->resourceController;
     }
@@ -356,6 +327,50 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     public function setScopeUtil($scopeUtil)
     {
         $this->scopeUtil = $scopeUtil;
+    }
+
+    protected function createDefaultAuthorizeController()
+    {
+        if (!isset($this->storages['client'])) {
+                throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientInterface to use the authorize server");
+        }
+        if (0 == count($this->responseTypes)) {
+            $this->responseTypes = $this->getDefaultResponseTypes();
+        }
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state')));
+        return new OAuth2_Controller_AuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->getScopeUtil());
+    }
+
+    protected function createDefaultTokenController()
+    {
+        if (!isset($this->storages['client_credentials'])) {
+            throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientCredentialsInterface to use the grant server");
+        }
+        if (0 == count($this->grantTypes)) {
+            $this->grantTypes = $this->getDefaultGrantTypes();
+        }
+        return new OAuth2_Controller_TokenController($this->storages['client_credentials'], $this->getAccessTokenResponseType(), $this->grantTypes, $this->getScopeUtil());
+    }
+
+    protected function createDefaultResourceController()
+    {
+        if (is_null($this->config['token_type'])) {
+                $this->config['token_type'] = 'bearer';
+        }
+        $tokenType = null;
+        if ($this->config['token_type'] == 'bearer') {
+            $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_param_name token_bearer_header_name')));
+            $tokenType = new OAuth2_TokenType_Bearer($config);
+        } elseif ($this->config['token_type'] == 'mac') {
+            $tokenType = new OAuth2_TokenType_MAC();
+        } else {
+            throw new LogicException('unrecognized token type: '.$this->config['token_type']);
+        }
+        if (!isset($this->storages['access_token'])) {
+            throw new LogicException("You must supply a storage object implementing OAuth2_Storage_AccessTokenInterface to use the access server");
+        }
+        $config = array_intersect_key($this->config, array('www_realm' => ''));
+        return new OAuth2_Controller_ResourceController($tokenType, $this->storages['access_token'], $config, $this->getScopeUtil());
     }
 
     protected function getDefaultResponseTypes()
