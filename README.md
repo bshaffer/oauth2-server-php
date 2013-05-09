@@ -131,11 +131,8 @@ echo json_encode(array('success' => true, 'message' => 'You accessed my APIs!'))
 Now run the following from the command line:
 
 ```bash
-curl http://localhost/resource.php -d 'access_token=03807cb390319329bdf6c777d4dfae9c0d3b3c35'
+curl http://localhost/resource.php -d 'access_token=YOUR_TOKEN'
 ```
-
-> Note: your access token should be the returned value from the request to `token.php` above, and not
-> the literal token shown here.
 
 If all goes well, you should receive a response like this:
 
@@ -206,7 +203,7 @@ You will be prompted with an authorization form, and receive an authorization co
 > ```
 > And call this endpoint using the returned authorization code:
 > ```bash
-> curl -u testclient:testpass http://localhost/token.php -d 'grant_type=authorization_code&redirect_uri=http://fake/&code=1e3c5bb84ea5d2edc6d430c3b32d8a5675eba48b'
+> curl -u testclient:testpass http://localhost/token.php -d 'grant_type=authorization_code&redirect_uri=http://fake/&code=YOUR_CODE'
 > ```
 
 Server Methods
