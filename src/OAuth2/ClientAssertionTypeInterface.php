@@ -1,8 +1,11 @@
 <?php
 
-interface OAuth2_ClientAssertionTypeInterface
+/**
+ * Interface for all OAuth2 Client Assertion Types
+ *
+ * @see OAuth2_CompatibilityInterface
+ **/
+interface OAuth2_ClientAssertionTypeInterface extends OAuth2_CompatibilityInterface
 {
-    public function getClientDataFromRequest(OAuth2_RequestInterface $request);
 
-    public function validateClientData(array $clientData, $grantTypeIdentifier);
 }

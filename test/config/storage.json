@@ -4,8 +4,14 @@
             "client_id": "Test Client ID",
             "user_id": "",
             "redirect_uri": "",
+            "expires": "9999999999"
+        },
+        "testcode-with-scope": {
+            "client_id": "Test Client ID",
+            "user_id": "",
+            "redirect_uri": "",
             "expires": "9999999999",
-            "scope": ""
+            "scope": "scope1 scope2"
         }
     },
     "client_credentials" : {
@@ -27,6 +33,13 @@
             "user_id": "test-username",
             "expires": 99999999900,
             "scope": null
+        },
+        "test-refreshtoken-with-scope": {
+            "refresh_token": "test-refreshtoken",
+            "client_id": "Test Client ID",
+            "user_id": "test-username",
+            "expires": 99999999900,
+            "scope": "scope1 scope2"
         }
     },
     "access_tokens" : {
@@ -48,26 +61,27 @@
             "scope": "testscope"
         }
     },
-    
     "jwt": {
 	    "Test Client ID": {
-	        "key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAstgzbq1Tyozg6Wn/ugyw\\nng4J2wPOaSJwPWlFFff92K60rQrrCDDUSVeuhC0+Tjn7Lq35gMZrsWazl3oj4KAH BBFZqBPejER0Z/t1wgZka97uooW2BclxUMjL6sFW92BLm2f2Po/SDjKdGRwt0+kd\\nj2MgmdqIDu7KTNLPVS/3zk0Ln+Ett92pbODhUliYHkVFy/ZZtoX66lggLjZXGdBP\\n2pLx/cAR09B0m1QDBvkzGewmF6Hl0gXqKSBQel1vnR8Pp2c8Fjp3sDB65hiStXmf\\na6NpMZBAb4vBp39SyRrbXiNH7GbYoIiBBtgnhVg4zHAG6btsEyAtmVM0aMhn01TK\\nHQIDAQAB\\n-----END PUBLIC KEY-----",
+	        "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5/SxVlE8gnpFqCxgl2wjhzY7u\ncEi00s0kUg3xp7lVEvgLgYcAnHiWp+gtSjOFfH2zsvpiWm6Lz5f743j/FEzHIO1o\nwR0p4d9pOaJK07d01+RzoQLOIQAgXrr4T1CCWUesncwwPBVCyy2Mw3Nmhmr9MrF8\nUlvdRKBxriRnlP3qJQIDAQAB\n-----END PUBLIC KEY-----",
 	        "subject": "testuser@ourdomain.com"
 	    },
-	    
 	    "Test Client ID PHP-5.2": {
 	        "key": "mysecretkey",
 	        "subject": "testuser@ourdomain.com"
 	    },
-	    
 	    "Missing Key Client": {
 	        "key": null,
 	        "subject": "testuser@ourdomain.com"
 	    },
-	    
 	    "Missing Key Client PHP-5.2": {
 	        "key": null,
 	        "subject": "testuser@ourdomain.com"
 	    }
-    }
+    },
+    "supported_scopes" : [
+        "scope1",
+        "scope2",
+        "scope3"
+    ]
 }

@@ -47,7 +47,6 @@ interface OAuth2_Storage_UserCredentialsInterface
      * @return
      * ARRAY the associated "scope" or "user_id" values if applicable, or an empty array
      * if this does not apply
-     *
      */
     public function getUserDetails($username);
 }
