@@ -77,7 +77,7 @@ $server = new OAuth2_Server($storage);
 $server->addGrantType(new OAuth2_GrantType_ClientCredentials($storage));
 
 // Handle a request for an OAuth2.0 Access Token and send the response to the client
-$server->handleTokenRequest(OAuth2_Request::createFromGlobals())->send();
+$server->handleTokenRequest(OAuth2_Request::createFromGlobals(), new OAuth2_Response())->send();
 ```
 
 Congratulatons!  You have created a **Token Controller**!  Do you want to see it in action? Run the following SQL:
@@ -121,7 +121,7 @@ $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 
 $server = new OAuth2_Server($storage);
 
 // Handle a request for an OAuth2.0 Access Token and send the response to the client
-if (!$server->verifyResourceRequest(OAuth2_Request::createFromGlobals())) {
+if (!$server->verifyResourceRequest(OAuth2_Request::createFromGlobals(), new OAuth2_Response())) {
     $server->getResponse()->send();
     die;
 }
