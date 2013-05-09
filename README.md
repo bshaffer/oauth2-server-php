@@ -21,7 +21,7 @@ Using [Composer](http://getcomposer.php)? Add the following to `composer.json`:
 ```
 {
     "require": {
-        "bshaffer/oauth2-server-php": "v0.7",
+        "bshaffer/oauth2-server-php": "dev-develop",
         ...
     },
     ...
@@ -30,8 +30,9 @@ Using [Composer](http://getcomposer.php)? Add the following to `composer.json`:
 
 And then run `composer.phar install`
 
-> Checkout out the tag `v0.7` will ensure your application doesn't break from backwards-compatibility issues, but also this means you
-> will not receive the latest changes.  To ride the bleeding edge of development, use `dev-develop` instead.
+> It is highly recommended you check out the `[v0.7](https://github.com/bshaffer/oauth2-server-php/tree/v0.7)` tag to
+> ensure your application doesn't break from backwards-compatibility issues, but also this means you
+> will not receive the latest changes.
 
 Learning OAuth2.0
 -----------------
