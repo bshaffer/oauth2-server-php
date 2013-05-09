@@ -12,6 +12,12 @@
             "redirect_uri": "",
             "expires": "9999999999",
             "scope": "scope1 scope2"
+        },
+        "testcode-expired": {
+            "client_id": "Test Client ID",
+            "user_id": "",
+            "redirect_uri": "",
+            "expires": "1356998400"
         }
     },
     "client_credentials" : {

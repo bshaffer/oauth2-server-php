@@ -55,6 +55,22 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error_description'), 'Authorization code doesn\'t exist or is invalid for the client');
     }
 
+    public function testExpiredCode()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type'    => 'authorization_code', // valid grant type
+            'client_id'     => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code'          => 'testcode-expired', // expired authorization code
+        ));
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'The authorization code has expired');
+    }
+
     public function testValidCode()
     {
         $server = $this->getTestServer();
