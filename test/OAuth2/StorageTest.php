@@ -231,12 +231,14 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
         $mysql = OAuth2_Storage_Bootstrap::getInstance()->getMysqlPdo();
         $sqlite = OAuth2_Storage_Bootstrap::getInstance()->getSqlitePdo();
         $mongo = OAuth2_Storage_Bootstrap::getInstance()->getMongo();
+        $redis = OAuth2_Storage_Bootstrap::getInstance()->getRedisStorage();
 
         // will add multiple storage types later
         return array(
             array($sqlite),
             array($mysql),
-            array($mongo)
+            array($mongo),
+            array($redis)
         );
     }
 }
