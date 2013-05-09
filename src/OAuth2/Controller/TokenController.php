@@ -11,14 +11,14 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
     private $grantTypes;
     private $scopeUtil;
 
-    public function __construct($clientAssertionType = null, OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), OAuth2_ScopeInterface $scopeUtil = null)
+    public function __construct(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), OAuth2_ClientAssertionTypeInterface $clientAssertionType = null, OAuth2_ScopeInterface $scopeUtil = null)
     {
-        if ($clientAssertionType instanceof OAuth2_Storage_ClientCredentialsInterface) {
-            // this is for backwards compatibility
-            $clientAssertionType = new OAuth2_ClientAssertionType_HttpBasic($clientAssertionType);
-        }
-        if (!is_null($clientAssertionType) && !$clientAssertionType instanceof OAuth2_ClientAssertionTypeInterface) {
-            throw new LogicException('$clientAssertionType must be an instance of OAuth2_Storage_ClientCredentialsInterface, OAuth2_ClientAssertionTypeInterface, or null');
+        if (is_null($clientAssertionType)) {
+            foreach ($grantTypes as $grantType) {
+                if (!$grantType instanceof OAuth2_ClientAssertionTypeInterface) {
+                    throw new InvalidArgumentException('You must supply an instance of OAuth2_ClientAssertionTypeInterface or only use grant types which implement OAuth2_ClientAssertionTypeInterface');
+                }
+            }
         }
         $this->clientAssertionType = $clientAssertionType;
         $this->accessToken = $accessToken;
