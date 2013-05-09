@@ -40,9 +40,7 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
             $response->setStatusCode(200);
             $response->addParameters($token);
             $response->addHttpHeaders(array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
-            return true;
         }
-        return false;
     }
 
     /**

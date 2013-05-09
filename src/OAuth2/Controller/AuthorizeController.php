@@ -34,12 +34,12 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         // We repeat this, because we need to re-validate. In theory, this could be POSTed
         // by a 3rd-party (because we are not internally enforcing NONCEs, etc)
         if (!$params = $this->validateAuthorizeRequest($request, $response)) {
-            return null;
+            return;
         }
 
         if ($is_authorized === false) {
             $response->setRedirect(302, $params['redirect_uri'], $params['state'], 'access_denied', "The user denied access to your application");
-            return null;
+            return;
         }
 
         $authResult = $this->responseTypes[$params['response_type']]->getAuthorizeResponse($params, $user_id);
