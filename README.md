@@ -54,8 +54,8 @@ CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id T
 
 ### Create a Token Controller
 
-Once you have done this, you will want to create a basic Token Controller.  Here is an example of a token controller
-in the file `token.php`:
+The first thing you will do is create the **Token Controller**. This is the URI which returns an OAuth2.0 Token to the client.
+Here is an example of a token controller in the file `token.php`:
 
 ```php
 // Autoloading (composer is preferred, but for this example let's just do this)
@@ -102,8 +102,8 @@ If everything works, you should receive a response like this:
 
 ### Create a Resource Controller
 
-Well, now that you have an OAuth2.0 server, you'll want to validate the token for your APIs.  Here is an
-example of a resource controller in the file `resource.php`
+Now that you are creating tokens, you'll want to validate them in your APIs.  Here is an
+example of a resource controller in the file `resource.php`:
 
 ```php
 // Autoloading again
@@ -122,6 +122,7 @@ $server = new OAuth2_Server($storage);
 // Handle a request for an OAuth2.0 Access Token and send the response to the client
 if (!$server->verifyResourceRequest(OAuth2_Request::createFromGlobals(), $response = new OAuth2_Response())) {
     $response->send();
+    die;
 }
 echo json_encode(array('success' => true, 'message' => 'You accessed my APIs!'));
 ```
