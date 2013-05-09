@@ -23,7 +23,6 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     // config classes
     protected $responseTypes;
     protected $grantTypes;
-    protected $accessTokenResponseType;
     protected $scopeUtil;
 
     protected $storageMap = array(
@@ -56,9 +55,6 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      * Response types to use.  array keys should be "code" and and "token" for
      * Access Token and Authorization Code response types
      *
-     * @param OAuth2_ResponseType_AccessTokenInterface $accessTokenResponseType
-     * Response type to use for access token
-     *
      * @return
      * TRUE if everything in required scope is contained in available scope,
      * and FALSE if it isn't.
@@ -67,7 +63,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      *
      * @ingroup oauth2_section_7
      */
-    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_ResponseType_AccessTokenInterface $accessTokenResponseType = null, OAuth2_ScopeInterface $scopeUtil = null)
+    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_ScopeInterface $scopeUtil = null)
     {
         $storage = is_array($storage) ? $storage : array($storage);
         $this->storages = array();
@@ -92,7 +88,6 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         foreach ($grantTypes as $key => $grantType) {
             $this->addGrantType($grantType, $key);
         }
-        $this->accessTokenResponseType = $accessTokenResponseType;
         $this->scopeUtil = $scopeUtil;
     }
 
@@ -141,25 +136,10 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             if (!isset($this->storages['client_credentials'])) {
                 throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientCredentialsInterface to use the grant server");
             }
-            if (is_null($this->accessTokenResponseType)) {
-                if (isset($this->responseTypes['access_token'])) {
-                    $this->accessTokenResponseType = $this->responseTypes['access_token'];
-                } else {
-                    if (!isset($this->storages['access_token'])) {
-                        throw new LogicException("You must supply a storage object implementing OAuth2_Storage_AccessTokenInterface to use the grant server");
-                    }
-                    $refreshStorage = null;
-                    if (isset($this->storages['refresh_token'])) {
-                        $refreshStorage = $this->storages['refresh_token'];
-                    }
-                    $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime refresh_token_lifetime')));
-                    $this->accessTokenResponseType = new OAuth2_ResponseType_AccessToken($this->storages['access_token'], $refreshStorage, $config);
-                }
-            }
             if (0 == count($this->grantTypes)) {
                 $this->grantTypes = $this->getDefaultGrantTypes();
             }
-            $this->tokenController = new OAuth2_Controller_TokenController($this->storages['client_credentials'], $this->accessTokenResponseType, $this->grantTypes, $this->getScopeUtil());
+            $this->tokenController = new OAuth2_Controller_TokenController($this->storages['client_credentials'], $this->getAccessTokenResponseType(), $this->grantTypes, $this->getScopeUtil());
         }
         return $this->tokenController;
     }
@@ -213,6 +193,22 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         }
 
         return $grantTypes;
+    }
+
+    protected function getAccessTokenResponseType()
+    {
+        if (isset($this->responseTypes['access_token'])) {
+            return $this->responseTypes['access_token'];
+        }
+        if (!isset($this->storages['access_token'])) {
+            throw new LogicException("You must supply a response type implementing OAuth2_ResponseType_AccessTokenInterface, or a storage object implementing OAuth2_Storage_AccessTokenInterface to use the grant server");
+        }
+        $refreshStorage = null;
+        if (isset($this->storages['refresh_token'])) {
+            $refreshStorage = $this->storages['refresh_token'];
+        }
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime refresh_token_lifetime')));
+        return new OAuth2_ResponseType_AccessToken($this->storages['access_token'], $refreshStorage, $config);
     }
 
     /**
