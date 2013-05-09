@@ -9,7 +9,7 @@ class OAuth2_Controller_Authorize_CodeTest extends PHPUnit_Framework_TestCase
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
         $request->query['response_type'] = 'code';
-        $response = $server->handleAuthorizeRequest($request, false);
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -27,7 +27,7 @@ class OAuth2_Controller_Authorize_CodeTest extends PHPUnit_Framework_TestCase
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
         $request->query['response_type'] = 'code';
-        $response = $server->handleAuthorizeRequest($request, true);
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -60,7 +60,7 @@ class OAuth2_Controller_Authorize_CodeTest extends PHPUnit_Framework_TestCase
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
         $request->query['response_type'] = 'code';
         $request->query['state'] = 'test'; // valid state string (just needs to be passed back to us)
-        $response = $server->handleAuthorizeRequest($request, true);
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
 
@@ -86,7 +86,7 @@ class OAuth2_Controller_Authorize_CodeTest extends PHPUnit_Framework_TestCase
         $request->query['response_type'] = 'code';
         $request->query['state'] = 'test'; // valid state string (just needs to be passed back to us)
         $request->query['fake'] = 'something'; // extra query param
-        $response = $server->handleAuthorizeRequest($request, true);
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $this->assertNull($response->getParameter('error'));

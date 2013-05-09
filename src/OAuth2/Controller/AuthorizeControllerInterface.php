@@ -16,7 +16,7 @@
  *  > $response->send();
  *
  */
-interface OAuth2_Controller_AuthorizeControllerInterface extends OAuth2_Response_ProviderInterface
+interface OAuth2_Controller_AuthorizeControllerInterface
 {
     /**
      * List of possible authentication response types.
@@ -30,7 +30,7 @@ interface OAuth2_Controller_AuthorizeControllerInterface extends OAuth2_Response
     const RESPONSE_TYPE_AUTHORIZATION_CODE = 'code';
     const RESPONSE_TYPE_ACCESS_TOKEN = 'token';
 
-    public function handleAuthorizeRequest(OAuth2_RequestInterface $request, $is_authorized, $user_id = null);
+    public function handleAuthorizeRequest(OAuth2_RequestInterface $requestt, OAuth2_ResponseInterface $response, $is_authorized, $user_id = null);
 
-    public function validateAuthorizeRequest(OAuth2_RequestInterface $request);
+    public function validateAuthorizeRequest(OAuth2_RequestInterface $requestt, OAuth2_ResponseInterface $response);
 }
