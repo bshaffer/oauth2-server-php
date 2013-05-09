@@ -343,13 +343,22 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
 
     protected function createDefaultTokenController()
     {
-        if (!isset($this->storages['client_credentials'])) {
-            throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientCredentialsInterface to use the grant server");
-        }
         if (0 == count($this->grantTypes)) {
             $this->grantTypes = $this->getDefaultGrantTypes();
         }
-        return new OAuth2_Controller_TokenController($this->storages['client_credentials'], $this->getAccessTokenResponseType(), $this->grantTypes, $this->getScopeUtil());
+        // see if HttpBasic assertion type is requred.  If so, then create it from storage classes.
+        $clientAssertionType = null;
+        foreach ($this->grantTypes as $grantType) {
+            if (!$grantType instanceof OAuth2_ClientAssertionTypeInterface) {
+                if (!isset($this->storages['client_credentials'])) {
+                    throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientCredentialsInterface to use the grant server");
+                }
+                $clientAssertionType = new OAuth2_ClientAssertionType_HttpBasic($this->storages['client_credentials']);
+                break;
+            }
+        }
+
+        return new OAuth2_Controller_TokenController($this->getAccessTokenResponseType(), $this->grantTypes, $clientAssertionType, $this->getScopeUtil());
     }
 
     protected function createDefaultResourceController()
