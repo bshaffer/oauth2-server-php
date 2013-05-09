@@ -55,6 +55,9 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      * Response types to use.  array keys should be "code" and and "token" for
      * Access Token and Authorization Code response types
      *
+     * @param OAuth2_TokenTypeInterface $tokenType
+     * The token type object to use. Valid token types are "bearer" and "mac"
+     *
      * @return
      * TRUE if everything in required scope is contained in available scope,
      * and FALSE if it isn't.
@@ -63,7 +66,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      *
      * @ingroup oauth2_section_7
      */
-    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_ScopeInterface $scopeUtil = null)
+    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_TokenTypeInterface $tokenType = null, OAuth2_ScopeInterface $scopeUtil = null)
     {
         $storage = is_array($storage) ? $storage : array($storage);
         $this->storages = array();
@@ -73,7 +76,6 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
 
         // merge all config values.  These get passed to our controller objects
         $this->config = array_merge(array(
-            'token_type'               => 'bearer',
             'access_lifetime'          => 3600,
             'www_realm'                => 'Service',
             'token_param_name'         => 'access_token',
@@ -82,12 +84,13 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             'allow_implicit'           => false,
         ), $config);
 
-        foreach ($responseTypes as $key => $responseType) {
-            $this->addResponseType($responseType, $key);
-        }
         foreach ($grantTypes as $key => $grantType) {
             $this->addGrantType($grantType, $key);
         }
+        foreach ($responseTypes as $key => $responseType) {
+            $this->addResponseType($responseType, $key);
+        }
+        $this->tokenType = $tokenType;
         $this->scopeUtil = $scopeUtil;
     }
 
@@ -363,35 +366,28 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
 
     protected function createDefaultResourceController()
     {
-        if (is_null($this->config['token_type'])) {
-                $this->config['token_type'] = 'bearer';
-        }
-        $tokenType = null;
-        if ($this->config['token_type'] == 'bearer') {
-            $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_param_name token_bearer_header_name')));
-            $tokenType = new OAuth2_TokenType_Bearer($config);
-        } elseif ($this->config['token_type'] == 'mac') {
-            $tokenType = new OAuth2_TokenType_MAC();
-        } else {
-            throw new LogicException('unrecognized token type: '.$this->config['token_type']);
-        }
         if (!isset($this->storages['access_token'])) {
             throw new LogicException("You must supply a storage object implementing OAuth2_Storage_AccessTokenInterface to use the access server");
         }
+        if (!$this->tokenType) {
+            $this->tokenType = $this->getDefaultTokenType();
+        }
         $config = array_intersect_key($this->config, array('www_realm' => ''));
-        return new OAuth2_Controller_ResourceController($tokenType, $this->storages['access_token'], $config, $this->getScopeUtil());
+        return new OAuth2_Controller_ResourceController($this->tokenType, $this->storages['access_token'], $config, $this->getScopeUtil());
+    }
+
+    protected function getDefaultTokenType()
+    {
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_param_name token_bearer_header_name')));
+        return new OAuth2_TokenType_Bearer($config);
     }
 
     protected function getDefaultResponseTypes()
     {
         $responseTypes = array();
+
         if (isset($this->storages['access_token'])) {
-            $refreshStorage = null;
-            if (isset($this->storages['refresh_token'])) {
-                $refreshStorage = $this->storages['refresh_token'];
-            }
-            $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime refresh_token_lifetime')));
-            $responseTypes['token'] = new OAuth2_ResponseType_AccessToken($this->storages['access_token'], $refreshStorage, $config);
+            $responseTypes['token'] = $this->getAccessTokenResponseType();
         }
 
         if (isset($this->storages['authorization_code'])) {
@@ -439,13 +435,15 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             return $this->responseTypes['access_token'];
         }
         if (!isset($this->storages['access_token'])) {
-            throw new LogicException("You must supply a response type implementing OAuth2_ResponseType_AccessTokenInterface, or a storage object implementing OAuth2_Storage_AccessTokenInterface to use the grant server");
+            throw new LogicException("You must supply a response type implementing OAuth2_ResponseType_AccessTokenInterface, or a storage object implementing OAuth2_Storage_AccessTokenInterface to use the token server");
         }
         $refreshStorage = null;
         if (isset($this->storages['refresh_token'])) {
             $refreshStorage = $this->storages['refresh_token'];
         }
-        $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_type access_lifetime refresh_token_lifetime')));
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'access_lifetime refresh_token_lifetime')));
+        $config['token_type'] = $this->tokenType ? $this->tokenType->getTokenType() :  $this->getDefaultTokenType()->getTokenType();
+
         return new OAuth2_ResponseType_AccessToken($this->storages['access_token'], $refreshStorage, $config);
     }
 }
