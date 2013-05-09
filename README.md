@@ -36,7 +36,7 @@ And then run `composer.phar install`
 Learning OAuth2.0
 -----------------
 
-If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo Application](http://brentertainment.com/oauth2) and the [source code](https://github.com/bshaffer/oauth2-server-demo), and read up on [OAuth2 Flows](http://drupal.org/node/1958718).
+If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo Application](http://brentertainment.com/oauth2) and the [source code](https://github.com/bshaffer/oauth2-server-demo), and read up on [OAuth2 Flows](http://drupal.org/node/1958718).  For everything else, consult the [OAuth2.0 Specification](http://tools.ietf.org/html/rfc6749)
 
 Get Started
 -----------
