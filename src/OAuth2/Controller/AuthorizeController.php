@@ -44,8 +44,8 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
 
         $authResult = $this->responseTypes[$params['response_type']]->getAuthorizeResponse($params, $user_id);
 
-        list($redirect_uri, $result) = $authResult;
-        $uri = $this->buildUri($redirect_uri, $result);
+        list($redirect_uri, $uri_params) = $authResult;
+        $uri = $this->buildUri($redirect_uri, $uri_params);
 
         // return redirect response
         $response->setRedirect(302, $uri);
