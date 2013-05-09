@@ -3,9 +3,7 @@ oauth2-server-php
 
 [![Build Status](https://secure.travis-ci.org/bshaffer/oauth2-server-php.png)](http://travis-ci.org/bshaffer/oauth2-server-php)
 
-An OAuth2.0 Server in PHP!
-
-[View the Full Working Demo!](http://brentertainment.com/oauth2) ([code](https://github.com/bshaffer/oauth2-server-demo))
+An OAuth2.0 Server in PHP! [View the Full Working Demo](http://brentertainment.com/oauth2) ([code](https://github.com/bshaffer/oauth2-server-demo))
 
 Installation
 ------------
@@ -38,10 +36,12 @@ And then run `composer.phar install`
 Learning OAuth2.0
 -----------------
 
-If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo Application](http://brentertainment.com/oauth2) and the [source code](https://github.com/bshaffer/oauth2-server-demo).  This will help you with understanding the basic OAuth2 flows.
+If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo Application](http://brentertainment.com/oauth2) and the [source code](https://github.com/bshaffer/oauth2-server-demo).  This will help you understand basic OAuth2 flows.
 
 Get Started
 -----------
+
+### Define your Schema
 
 The quickest way to get started is to use the following schema to create the default database:
 
@@ -52,18 +52,18 @@ CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT,
 CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
 ```
 
-Once you have done this, use your database information to create an instance of `OAuth2_Storage_Pdo`:
+### Create a Token Controller
+
+Once you have done this, you will want to create a basic Token Controller.  Here is an example of a token controller
+in the file `token.php`:
 
 ```php
-/*
- * OAuth 2.0 Token Controller
- *
- * Save this to "token.php", or make available at /token
- */
-
 // Autoloading (composer is preferred, but for this example let's just do this)
 require_once('path/to/oauth2-server-php/src/OAuth2/Autoloader.php');
 OAuth2_Autoloader::register();
+
+// error reporting (this is a demo, after all!)
+ini_set('display_errors',1);error_reporting(E_ALL);
 
 // $dsn is the Data Source Name for your database, for exmaple "mysql:dbname=my_oauth2_db;host=localhost"
 $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
@@ -71,8 +71,8 @@ $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 
 // Pass a storage object or array of storage objects to the OAuth2 server class
 $server = new OAuth2_Server($storage);
 
-// Add the OAuth2.0 Grant Types
-$server->addGrantType(new OAuth2_GrantType_ClientCredentials($storage)); // or some other grant type.  This is the simplest
+// Add the OAuth2.0 Grant Types (this one is easy)
+$server->addGrantType(new OAuth2_GrantType_ClientCredentials($storage));
 
 // Handle a request for an OAuth2.0 Access Token and send the response to the client
 $server->handleTokenRequest(OAuth2_Request::createFromGlobals(), $response = new OAuth2_Response());
@@ -92,12 +92,53 @@ curl -u testclient:testpass http://localhost/token.php -d 'grant_type=client_cre
 ```
 
 > Note: http://localhost/token.php assumes you have the file `token.php` on your local machine, and you have
-> set up the "localhost" webhost to point to it.  This will vary per your configuration.
+> set up the "localhost" webhost to point to it.  This may vary for your application.
 
 If everything works, you should receive a response like this:
 
 ```json
 {"access_token":"03807cb390319329bdf6c777d4dfae9c0d3b3c35","expires_in":3600,"token_type":"bearer","scope":null}
+```
+
+### Create a Resource Controller
+
+Well, now that you have an OAuth2.0 server, you'll want to validate the token for your APIs.  Here is an
+example of a resource controller in the file `resource.php`
+
+```php
+// Autoloading again
+require_once('path/to/oauth2-server-php/src/OAuth2/Autoloader.php');
+OAuth2_Autoloader::register();
+
+// error reporting (this is a demo, after all!)
+ini_set('display_errors',1);error_reporting(E_ALL);
+
+// create your storage again
+$storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
+
+// Pass a storage object or array of storage objects to the OAuth2 server class
+$server = new OAuth2_Server($storage);
+
+// Handle a request for an OAuth2.0 Access Token and send the response to the client
+if (!$server->verifyResourceRequest(OAuth2_Request::createFromGlobals(), $response = new OAuth2_Response())) {
+    $response->send();
+}
+echo json_encode(array('success' => true, 'message' => 'You accessed my APIs!'));
+```
+
+Now run the following from the command line:
+
+```bash
+curl http://localhost/resource.php -d 'access_token=03807cb390319329bdf6c777d4dfae9c0d3b3c35'
+```
+
+> Note: your access token should be the returned value from the request to `token.php` above, and not
+> the literal token shown here.
+
+If all goes well, you should receive a response like this:
+
+```json
+{"success":true,"message":"You accessed my APIs!"}
 ```
 
 Server Methods
