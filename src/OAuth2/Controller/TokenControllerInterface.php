@@ -6,7 +6,7 @@
  *  It also validates the client's credentials
  *
  *  ex:
- *  > $response = $tokenController->handleTokenRequest(OAuth2_Request::createFromGlobals());
+ *  > $tokenController->handleTokenRequest(OAuth2_Request::createFromGlobals(), $response = new OAuth2_Response());
  *  > $response->send();
  *
  */
@@ -18,7 +18,10 @@ interface OAuth2_Controller_TokenControllerInterface
      * @param $request
      * OAuth2_RequestInterface - The current http request
      *
-     **/
+     * @param $response
+     * OAuth2_ResponseInterface - An instance of OAuth2_ResponseInterface to contain the response data
+     *
+     */
     public function handleTokenRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response);
 
     public function grantAccessToken(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response);
