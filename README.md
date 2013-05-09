@@ -206,7 +206,7 @@ You will be prompted with an authorization form, and receive an authorization co
 > ```
 > And call this endpoint using the returned authorization code:
 > ```bash
-> curl -u testclient:testpass http://localhost/token.php -d 'grant_type=authorization_code&code=1e3c5bb84ea5d2edc6d430c3b32d8a5675eba48b'
+> curl -u testclient:testpass http://localhost/token.php -d 'grant_type=authorization_code&redirect_uri=http://fake/&code=1e3c5bb84ea5d2edc6d430c3b32d8a5675eba48b'
 > ```
 
 Server Methods
