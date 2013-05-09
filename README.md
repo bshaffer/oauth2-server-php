@@ -20,13 +20,15 @@ OAuth2_Autoloader::register();
 
 If you use a package library like [Composer](http://getcomposer.php), add the following to `composer.json`
 
-    {
-        "require": {
-            "bshaffer/oauth2-server-php": "v0.6",
-            ...
-        },
+```
+{
+    "require": {
+        "bshaffer/oauth2-server-php": "v0.6",
         ...
-    }
+    },
+    ...
+}
+```
 
 And then run `composer.phar install`
 
@@ -57,6 +59,10 @@ $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 
 $server = new OAuth2_Server($storage);
 ```
 
+> Note: `$dsn` is the Data Source Name for your database.  For example, if you are using MySQL your dsn will
+> look something like `mysql:dbname=my_database;host=localhost`. If you are using sqlite, your dsn will look
+> something like `sqlite://path/to/my/file.sqlite`.
+
 The next step is to add a grant type. This example uses the "User Credentials" grant type, which grants a token based on
 explicit user credentials passed to the request. The [OAuth2 spec](http://tools.ietf.org/html/rfc6749) has no
 restrictions on the number of grant types your server can support and therefore you can add more than one grant type to
@@ -77,6 +83,14 @@ $server->handleTokenRequest(OAuth2_Request::createFromGlobals())->send();
 This creates the `OAuth2_Request` object from PHP global variables (most common, you can override this if need be) and sends it to the server
 for assessment.  The response by default is in json format, and includes the access token if successful, and error codes if not.
 
+> If you are just getting started, use the SQL below to create the database tables for the default MySQL setup
+> ```sql
+> CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT);
+> CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
+> CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires TIMESTAMP, scope TEXT);
+> CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
+> ```
+
 Server Methods
 --------------
 
@@ -90,16 +104,13 @@ Server Methods
 >
 >   ~ OAuth2 ([draft #31](http://tools.ietf.org/html/rfc6749#section-1))
 
-Most OAuth2 APIs will have endpoints for `Authorize Requests`, `Token Requests`, and `Resource Requests`:
+Most OAuth2 APIs will have endpoints for `Authorize Requests`, `Token Requests`, and `Resource Requests`.  The `OAuth2_Server` object has methods to handle each of these requests.
 
- * **Authorize Requests** - An endpoint requiring the user to authenticate, which redirects back to the client with an `authorization code`
- * **Token Requests** - An endpoint which the client uses to exchange the `authorization code` for an `access token`
- * **Resource Requests** - Any API method requiring oauth2 authentication.  The server will validate the incomming request, and then allow
-the application to serve back the protected resource
+### Authorize Requests
 
-For these tyes of requests, this library provides the following methods:
+An endpoint requiring the user to authenticate, which redirects back to the client with an `authorization code`.
 
-**Authorize Requests**
+**methods**:
 
 `handleAuthorizeRequest`
   * Receives a request object for an authorize request, returns a response object with the appropriate response
@@ -109,7 +120,11 @@ For these tyes of requests, this library provides the following methods:
 is valid, returns an array of retrieved client details together with input.
 Applications should call this before displaying a login or authorization form to the user
 
-**Token Requests**
+### Token Requests
+
+An endpoint which the client uses to exchange the `authorization code` for an `access token`.
+
+**methods**:
 
 `grantAccessToken`
 
@@ -123,7 +138,12 @@ Applications should call this before displaying a login or authorization form to
 
   * parses the client credentials from the request and determines if they are valid
 
-**Resource Requests**
+### Resource Requests
+
+Any API method requiring oauth2 authentication.  The server will validate the incomming request, and then allow
+the application to serve back the protected resource.
+
+**methods**:
 
 `verifyResourceRequest`
 
@@ -133,44 +153,6 @@ the incomming request is valid
 `getAccessTokenData`
 
   * Takes a token string as an argument and returns the token data if applicable, or null if the token is invalid
-
-The Response Object
--------------------
-
-The response object serves the purpose of making your server OAuth2 compliant.  It will set the appropriate status codes, headers,
-and response body for a valid or invalid oauth request.  To use it as it's simplest level, just send the output and exit:
-
-```php
-// will set headers, status code, and json response appropriately for success or failure
-$server->grantAccessToken();
-$server->getResponse()->send();
-```
-
-The response object can also be used to customize output. Below, if the request is NOT valid, the error is sent to the browser:
-
-```php
-if (!$token = $server->grantAccessToken()) {
-    $server->getResponse()->send();
-    die();
-}
-echo sprintf('Your token is %s!!', $token);
-```
-
-This will populate the appropriate error headers, and return a json error response.  If you do not want to send a JSON response,
-the response object can be used to display the information in any other format:
-
-```php
-if (!$token = $server->grantAccessToken()) {
-    $response = $server->getResponse();
-    $parameters = $response->getParameters();
-    // format as XML
-    header("HTTP/1.1 " . $response->getStatusCode());
-    header("Content-Type: text/xml");
-    echo "<error><name>".$parameters['error']."</name><message>".$parameters['error_description']."</message></error>";
-}
-```
-
-This is very useful when working in a framework or existing codebase, where this library will not have full control of the response.
 
 Grant Types
 -----------
@@ -222,6 +204,44 @@ $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
 
 Create a custom grant type by implementing the `OAuth2_GrantTypeInterface` and adding it to the OAuth2 Server object.
 
+The Response Object
+-------------------
+
+The response object serves the purpose of making your server OAuth2 compliant.  It will set the appropriate status codes, headers,
+and response body for a valid or invalid oauth request.  To use it as it's simplest level, just send the output and exit:
+
+```php
+// will set headers, status code, and json response appropriately for success or failure
+$server->grantAccessToken();
+$server->getResponse()->send();
+```
+
+The response object can also be used to customize output. Below, if the request is NOT valid, the error is sent to the browser:
+
+```php
+if (!$token = $server->grantAccessToken()) {
+    $server->getResponse()->send();
+    die();
+}
+echo sprintf('Your token is %s!!', $token);
+```
+
+This will populate the appropriate error headers, and return a json error response.  If you do not want to send a JSON response,
+the response object can be used to display the information in any other format:
+
+```php
+if (!$token = $server->grantAccessToken()) {
+    $response = $server->getResponse();
+    $parameters = $response->getParameters();
+    // format as XML
+    header("HTTP/1.1 " . $response->getStatusCode());
+    header("Content-Type: text/xml");
+    echo "<error><name>".$parameters['error']."</name><message>".$parameters['error_description']."</message></error>";
+}
+```
+
+This is very useful when working in a framework or existing codebase, where this library will not have full control of the response.
+
 Scope
 -----
 
@@ -235,47 +255,47 @@ In this library, scope is handled by implementing `OAuth2_Storage_ScopeInterface
 implementation, or by taking advantage of the existing `OAuth2_Storage_Memory` class:
 
 ```php
-    // configure your available scopes
-    $defaultScope = 'basic';
-    $supportedScopes = array(
-      'basic',
-      'postonwall',
-      'accessphonenumber'
-    );
-    $memory = new OAuth2_Storage_Memory(array(
-      'default_scope' => $defaultScope,
-      'supported_scopes' => $supportedScoes
-    ));
-    $scopeUtil = new OAuth2_Scope($memory);
+// configure your available scopes
+$defaultScope = 'basic';
+$supportedScopes = array(
+  'basic',
+  'postonwall',
+  'accessphonenumber'
+);
+$memory = new OAuth2_Storage_Memory(array(
+  'default_scope' => $defaultScope,
+  'supported_scopes' => $supportedScopes
+));
+$scopeUtil = new OAuth2_Scope($memory);
 
-    $server->setScopeUtil($scopeUtil);
+$server->setScopeUtil($scopeUtil);
 ```
 
 This is the simplest way, but scope can by dynamically configured as well:
 
 ```php
-    // configure your available scopes
-    $doctrine = Doctrine_Core::getTable('OAuth2Scope');
-    $scopeUtil = new OAuth2_Scope($doctrine);
+// configure your available scopes
+$doctrine = Doctrine_Core::getTable('OAuth2Scope');
+$scopeUtil = new OAuth2_Scope($doctrine);
 
-    $server->setScopeUtil($scopeUtil);
+$server->setScopeUtil($scopeUtil);
 ```
 
 This example assumes the class being used implements `OAuth2_Storage_ScopeInterface`:
 
 ```php
-    class OAuth2ScopeTable extends Doctrine_Table implements OAuth2_Storage_ScopeInterface
+class OAuth2ScopeTable extends Doctrine_Table implements OAuth2_Storage_ScopeInterface
+{
+    public function getDefaultScope()
     {
-      public function getDefaultScope()
-      {
         //...
-      }
-
-      public function getSupportedScopes($client_id = null)
-      {
-        //...
-      }
     }
+
+    public function scopeExists($scope, $client_id = null)
+    {
+        //...
+    }
+}
 ```
 
 ####Validate your scope
@@ -287,13 +307,13 @@ the scope of the authorization being granted.  Second, the resource request itse
 access it:
 
 ```php
-    // https://api.example.com/resource-requiring-postonwall-scope
-    $request = OAuth2_Request::createFromGlobals();
-    $scopeRequired = 'postonwall'; // this resource requires "postonwall" scope
-    if (!$server->verifyResourceRequest($request, $scopeRequired)) {
-      // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
-      $server->getRequest()->send();
-    }
+// https://api.example.com/resource-requiring-postonwall-scope
+$request = OAuth2_Request::createFromGlobals();
+$scopeRequired = 'postonwall'; // this resource requires "postonwall" scope
+if (!$server->verifyResourceRequest($request, $scopeRequired)) {
+  // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
+  $server->getRequest()->send();
+}
 ```
 
 ####Customizing your scope
