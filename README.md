@@ -36,7 +36,7 @@ And then run `composer.phar install`
 Learning OAuth2.0
 -----------------
 
-If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo Application](http://brentertainment.com/oauth2) and the [source code](https://github.com/bshaffer/oauth2-server-demo).  This will help you understand basic OAuth2 flows.
+If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo Application](http://brentertainment.com/oauth2) and the [source code](https://github.com/bshaffer/oauth2-server-demo), and read up on [OAuth2 Flows](http://drupal.org/node/1958718).
 
 Get Started
 -----------
@@ -49,6 +49,7 @@ The quickest way to get started is to use the following schema to create the def
 CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT);
 CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
 CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires TIMESTAMP, scope TEXT);
+CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT);
 CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
 ```
 
@@ -58,12 +59,12 @@ The first thing you will do is create the **Token Controller**. This is the URI 
 Here is an example of a token controller in the file `token.php`:
 
 ```php
+// error reporting (this is a demo, after all!)
+ini_set('display_errors',1);error_reporting(E_ALL);
+
 // Autoloading (composer is preferred, but for this example let's just do this)
 require_once('path/to/oauth2-server-php/src/OAuth2/Autoloader.php');
 OAuth2_Autoloader::register();
-
-// error reporting (this is a demo, after all!)
-ini_set('display_errors',1);error_reporting(E_ALL);
 
 // $dsn is the Data Source Name for your database, for exmaple "mysql:dbname=my_oauth2_db;host=localhost"
 $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
@@ -71,7 +72,7 @@ $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 
 // Pass a storage object or array of storage objects to the OAuth2 server class
 $server = new OAuth2_Server($storage);
 
-// Add the OAuth2.0 Grant Types (this one is easy)
+// Add the "Client Credentials" grant type (it is the simplest of the grant types)
 $server->addGrantType(new OAuth2_GrantType_ClientCredentials($storage));
 
 // Handle a request for an OAuth2.0 Access Token and send the response to the client
@@ -82,7 +83,7 @@ $response->send();
 Congratulatons!  You have created a **Token Controller**!  Do you want to see it in action? Run the following SQL:
 
 ```sql
-INSERT INTO oauth_clients (client_id, client_secret, redirect_uri) VALUES ("testclient", "testpass", NULL);
+INSERT INTO oauth_clients (client_id, client_secret, redirect_uri) VALUES ("testclient", "testpass", "http://fake/");
 ```
 
 Now run the following from the command line:
@@ -106,17 +107,17 @@ Now that you are creating tokens, you'll want to validate them in your APIs.  He
 example of a resource controller in the file `resource.php`:
 
 ```php
+// error reporting again
+ini_set('display_errors',1);error_reporting(E_ALL);
+
 // Autoloading again
 require_once('path/to/oauth2-server-php/src/OAuth2/Autoloader.php');
 OAuth2_Autoloader::register();
 
-// error reporting (this is a demo, after all!)
-ini_set('display_errors',1);error_reporting(E_ALL);
-
 // create your storage again
 $storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
 
-// Pass a storage object or array of storage objects to the OAuth2 server class
+// create your server again
 $server = new OAuth2_Server($storage);
 
 // Handle a request for an OAuth2.0 Access Token and send the response to the client
@@ -141,6 +142,72 @@ If all goes well, you should receive a response like this:
 ```json
 {"success":true,"message":"You accessed my APIs!"}
 ```
+
+### Create an Authorize Controller
+
+Authorize Controllers are the "killer feature" of OAuth2, and allow for your users to authorize
+third party applications.  Here is an example of an authorize controller in `authorize.php`:
+
+```php
+// error reporting again
+ini_set('display_errors',1);error_reporting(E_ALL);
+
+// Autoloading again
+require_once('path/to/oauth2-server-php/src/OAuth2/Autoloader.php');
+OAuth2_Autoloader::register();
+
+// create your storage again
+$storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
+
+// create your server again
+$server = new OAuth2_Server($storage);
+
+// Add the "Authorization Code" grant type (this is required for authorization flows)
+$server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
+
+$request = OAuth2_Request::createFromGlobals();
+$response = new OAuth2_Response();
+
+// validate the authorize request
+if (!$server->validateAuthorizeRequest($request, $response)) {
+    $response->send();
+    die;
+}
+// display an authorization form
+if (empty($_POST)) {
+  exit('
+<form method="post">
+  <label>Do You Authorize TestClient?</label><br />
+  <input type="submit" name="authorized" value="yes">
+  <input type="submit" name="authorized" value="no">
+</form>');
+}
+// print the authorization code if the user has authorized your client
+$server->handleAuthorizeRequest($request, $response, 'yes' === $_POST['authorized']);
+if ('yes' === $_POST['authorized']) {
+  $code = substr($response->getHttpHeader('Location'), strpos($response->getHttpHeader('Location'), 'code=')+5);
+  exit("SUCCESS! Authorization Code: $code");
+}
+$response->send();
+```
+
+Now paste the following URL in your browser
+
+```
+http://localhost/authorize.php?response_type=code&client_id=testclient
+```
+
+You will be prompted with an authorization form, and receive an authorization code upon clicking "yes"
+
+> Note: The Authorization Code can now be used to receive an access token from your previously
+> created `token.php` endpoint.  Just add the following grant type to `token.php`:
+> ```php
+> $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
+> ```
+> And call this endpoint using the returned authorization code:
+> ```bash
+> curl -u testclient:testpass http://localhost/token.php -d 'grant_type=authorization_code&code=1e3c5bb84ea5d2edc6d430c3b32d8a5675eba48b'
+> ```
 
 Server Methods
 --------------
