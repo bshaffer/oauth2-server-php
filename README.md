@@ -197,8 +197,10 @@ if (empty($_POST)) {
 </form>');
 }
 // print the authorization code if the user has authorized your client
-$server->handleAuthorizeRequest($request, $response, 'yes' === $_POST['authorized']);
-if ('yes' === $_POST['authorized']) {
+$is_authorized = ($_POST['authorized'] === 'yes');
+$server->handleAuthorizeRequest($request, $response, $is_authorized);
+if ($is_authorized) {
+  // this is only here so that you get to see your code in the cURL request. Otherwise, we'd redirect back to the client
   $code = substr($response->getHttpHeader('Location'), strpos($response->getHttpHeader('Location'), 'code=')+5);
   exit("SUCCESS! Authorization Code: $code");
 }
