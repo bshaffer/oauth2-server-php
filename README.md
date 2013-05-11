@@ -42,6 +42,23 @@ If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo A
 Get Started
 -----------
 
+## Basic Implementation
+
+Here is an example of a bare-bones OAuth2 Server implementation:
+
+```php
+$storage = new OAuth2_Storage_Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
+$server = new OAuth2_Server($storage);
+$server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage)); // or any grant type you like!
+$server->handleTokenRequest(OAuth2_Request::createFromGlobals(), new OAuth2_Response())->send();
+```
+
+## Advanced Implementation
+
+The following instructions provide a detailed walkthrough to help you get an OAuth2 server
+up and running.  To see the codebase of an existing OAuth2 server implementing this library,
+check out the [OAuth2 Demo](https://github.com/bshaffer/oauth2-server-demo).
+
 ### Define your Schema
 
 The quickest way to get started is to use the following schema to create the default database:
