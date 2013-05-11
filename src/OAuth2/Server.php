@@ -82,6 +82,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             'token_bearer_header_name' => 'Bearer',
             'enforce_state'            => false,
             'allow_implicit'           => false,
+			'return_existing_token'	   => false
         ), $config);
 
         foreach ($grantTypes as $key => $grantType) {
@@ -364,8 +365,9 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
                 break;
             }
         }
-
-        return new OAuth2_Controller_TokenController($this->getAccessTokenResponseType(), $this->grantTypes, $clientAssertionType, $this->getScopeUtil());
+		
+		$config = array_intersect_key($this->config, array_flip(explode(' ', 'return_existing_token')));
+        return new OAuth2_Controller_TokenController($this->storages['client'], $config, $this->getAccessTokenResponseType(), $this->grantTypes, $clientAssertionType, $this->getScopeUtil());
     }
 
     protected function createDefaultResourceController()
