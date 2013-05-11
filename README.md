@@ -42,7 +42,7 @@ If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo A
 Get Started
 -----------
 
-## Basic Implementation
+### Basic Implementation
 
 Here is an example of a bare-bones OAuth2 Server implementation:
 
@@ -53,13 +53,13 @@ $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage)); // or a
 $server->handleTokenRequest(OAuth2_Request::createFromGlobals(), new OAuth2_Response())->send();
 ```
 
-## Advanced Implementation
+### Advanced Implementation
 
 The following instructions provide a detailed walkthrough to help you get an OAuth2 server
 up and running.  To see the codebase of an existing OAuth2 server implementing this library,
 check out the [OAuth2 Demo](https://github.com/bshaffer/oauth2-server-demo).
 
-### Define your Schema
+#### Define your Schema
 
 The quickest way to get started is to use the following schema to create the default database:
 
@@ -71,7 +71,7 @@ CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_na
 CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
 ```
 
-### Create a Token Controller
+#### Create a Token Controller
 
 The first thing you will do is create the **Token Controller**. This is the URI which returns an OAuth2.0 Token to the client.
 Here is an example of a token controller in the file `token.php`:
@@ -118,7 +118,7 @@ If everything works, you should receive a response like this:
 {"access_token":"03807cb390319329bdf6c777d4dfae9c0d3b3c35","expires_in":3600,"token_type":"bearer","scope":null}
 ```
 
-### Create a Resource Controller
+#### Create a Resource Controller
 
 Now that you are creating tokens, you'll want to validate them in your APIs.  Here is an
 example of a resource controller in the file `resource.php`:
@@ -157,7 +157,7 @@ If all goes well, you should receive a response like this:
 {"success":true,"message":"You accessed my APIs!"}
 ```
 
-### Create an Authorize Controller
+#### Create an Authorize Controller
 
 Authorize Controllers are the "killer feature" of OAuth2, and allow for your users to authorize
 third party applications.  Here is an example of an authorize controller in `authorize.php`:
