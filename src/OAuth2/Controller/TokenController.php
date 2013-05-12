@@ -5,7 +5,6 @@
  */
 class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenControllerInterface
 {
-    private $clientStorage;
     private $config;
     private $response;
     private $clientAssertionType;
@@ -13,10 +12,9 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
     private $grantTypes;
     private $scopeUtil;
 
-    public function __construct(OAuth2_Storage_ClientInterface $clientStorage, array $config = array(), OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), OAuth2_ClientAssertionTypeInterface $clientAssertionType = null, OAuth2_ScopeInterface $scopeUtil = null)
+    public function __construct(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), OAuth2_ClientAssertionTypeInterface $clientAssertionType = null, OAuth2_ScopeInterface $scopeUtil = null, array $config = array())
     {
-		$this->clientStorage = $clientStorage;
-		$this->config = array_merge(array(
+        $this->config = array_merge(array(
             'return_existing_token' => false
         ), $config);
 
@@ -117,10 +115,10 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
             }
         }
 
-		/* Retreive user id
-		 */
-		$userId = $grantType->getUserId();
-		
+        /* Retreive user id
+         */
+        $userId = $grantType->getUserId();
+
         /*
          * Validate the scope of the token
          * If the grant type returns a value for the scope,
@@ -137,14 +135,14 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
             return null;
         }
 		
-		$token = null;
-		if ($this->config['return_existing_token']) {
-			$token = $this->clientStorage->getAccessTokenByUser($clientId, $userId, $requestedScope);
-		}
-		
-		if (!$token) {
-			$token = $grantType->createAccessToken($this->accessToken, $clientId, $grantType->getUserId(), $requestedScope);
-		}
+        $token = null;
+        if ($this->config['return_existing_token']) {
+            $token = $grantType->getAccessTokenByUser($clientId, $userId, $requestedScope);
+        }
+
+        if (!$token) {
+            $token = $grantType->createAccessToken($this->accessToken, $clientId, $grantType->getUserId(), $requestedScope);
+        }
         return $token;
     }
 

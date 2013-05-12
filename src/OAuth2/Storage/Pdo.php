@@ -91,11 +91,11 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $token;
     }
 
-	/* Return existing access token by searching for client_id, user_id, scope */
+    /* Return existing access token by searching for client_id, user_id, scope */
     public function getAccessTokenByUser($client_id, $user_id, $scope)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id and user_id = :user_id and scope = :scope', $this->config['access_token_table'],
-			$client_id, $user_id, $scope));
+        $client_id, $user_id, $scope));
 		
         $token = $stmt->execute(compact('client_id', 'user_id', 'scope'));
         if ($token = $stmt->fetch()) {
@@ -156,7 +156,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
 
     /* UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
-    {	
+    {
         if ($user = $this->getUser($username)) {
             return $this->checkPassword($user, $password);
         }
