@@ -5,8 +5,8 @@
  */
 class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenControllerInterface
 {
-	private $clientStorage;
-	private $config;
+    private $clientStorage;
+    private $config;
     private $response;
     private $clientAssertionType;
     private $accessToken;

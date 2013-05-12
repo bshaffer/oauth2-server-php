@@ -20,20 +20,11 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface
 
     public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
     {
-        if (!$request->request("password") || !$request->request("username") || !$request->request("sig")) {
-            $response->setError(400, 'invalid_request', 'Missing parameters: "username" and "password" and "sig" required');
+        if (!$request->request("password") || !$request->request("username")) {
+            $response->setError(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
             return null;
         }
 
-		$clientData = $this->getClientCredentials($request, $response);
-		$client = $this->storage->getClientDetails($clientData['client_id']);
-		
-		$hashStr = $request->request("username") . $request->request("password") . $client['client_sig'];
-		if (hash('sha256', $hashStr) != $request->request("sig")) {
-			$response->setError(400, 'invalid_request', 'Invalid signature');
-			return null;
-		}
-		
         if (!$this->storage->checkUserCredentials($request->request("username"), $request->request("password"))) {
             $response->setError(400, 'invalid_grant', 'Invalid username and password combination');
             return null;
@@ -70,13 +61,5 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface
     public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
         return $accessToken->createAccessToken($client_id, $user_id, $scope);
-    }
-
-    public function getClientCredentials(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response = null)
-    {
-        if (!is_null($request->headers('PHP_AUTH_USER')) && !is_null($request->headers('PHP_AUTH_PW'))) {
-            return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));
-        }
-		return null;
     }
 }
