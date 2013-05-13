@@ -85,6 +85,10 @@
 	        "subject": "testuser@ourdomain.com"
 	    }
     },
+    "client_supported_scopes" : {
+        "Test Client ID" : ["clientscope1", "clientscope2"],
+        "Test Client ID 2" : ["clientscope3"]
+    },
     "supported_scopes" : [
         "scope1",
         "scope2",
