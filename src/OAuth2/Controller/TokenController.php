@@ -110,11 +110,6 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
             }
         }
 
-        /**
-         * Retrieve user id. It will be used to return the access token for the given client_id, user_id and scope.
-         */
-        $userId = $grantType->getUserId();
-
         /*
          * Validate the scope of the token
          * If the grant type returns a value for the scope,

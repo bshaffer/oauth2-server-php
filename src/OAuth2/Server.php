@@ -364,7 +364,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
                 break;
             }
         }
-		
+
         return new OAuth2_Controller_TokenController($this->getAccessTokenResponseType(), $this->grantTypes, $clientAssertionType, $this->getScopeUtil());
     }
 

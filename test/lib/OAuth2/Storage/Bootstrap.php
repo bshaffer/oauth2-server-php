@@ -41,7 +41,7 @@ class OAuth2_Storage_Bootstrap
     public function getMysqlPdo()
     {
         if (!$this->mysql) {
-            $pdo = new PDO('mysql:host=localhost;', 'root', 'root');
+            $pdo = new PDO('mysql:host=localhost;', 'root');
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->removeMysqlDb($pdo);
             $this->createMysqlDb($pdo);
