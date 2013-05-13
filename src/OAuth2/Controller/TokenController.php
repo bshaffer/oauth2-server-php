@@ -125,7 +125,7 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
             $response->setError(400, 'invalid_scope', 'An unsupported scope was requested.');
             return null;
         }
-        		
+		
         return $grantType->createAccessToken($this->accessToken, $clientId, $grantType->getUserId(), $requestedScope);
     }
 
