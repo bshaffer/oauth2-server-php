@@ -121,7 +121,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     /**
      * every getter deserves a setter
      */
-    public function setAuthorizeController(OAuth2_Controller_TokenControllerInterface $authorizeController)
+    public function setAuthorizeController(OAuth2_Controller_AuthorizeControllerInterface $authorizeController)
     {
         $this->authorizeController = $authorizeController;
     }
