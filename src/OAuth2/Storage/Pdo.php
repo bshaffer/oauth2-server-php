@@ -78,30 +78,27 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     }
 
     /* AccessTokenInterface */
-    public function getAccessToken($access_token)
+    public function getAccessToken($access_token, $client_id = null, $user_id = null, $scope = null)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = :access_token', $this->config['access_token_table']));
+        $token = null;
+        
+        // Search for an existing access_token for the given client_id, user_id, scope
+        if ($client_id && $user_id && $scope) {
+            $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id and user_id = :user_id and scope = :scope', $this->config['access_token_table'],
+            $client_id, $user_id, $scope));
+            $token = $stmt->execute(compact('client_id', 'user_id', 'scope'));
+            $token = $stmt->fetch();
+        } else {
+            $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = :access_token', $this->config['access_token_table']));
+            $token = $stmt->execute(compact('access_token'));
+            $token = $stmt->fetch();
+        }
 
-        $token = $stmt->execute(compact('access_token'));
-        if ($token = $stmt->fetch()) {
+        if ($token) {
             // convert date string back to timestamp
             $token['expires'] = strtotime($token['expires']);
         }
 
-        return $token;
-    }
-
-    /* Return existing access token by searching for client_id, user_id, scope */
-    public function getAccessTokenByUser($client_id, $user_id, $scope)
-    {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id and user_id = :user_id and scope = :scope', $this->config['access_token_table'],
-        $client_id, $user_id, $scope));
-		
-        $token = $stmt->execute(compact('client_id', 'user_id', 'scope'));
-        if ($token = $stmt->fetch()) {
-            // convert date string back to timestamp
-            $token['expires'] = strtotime($token['expires']);
-        }
         return $token;
     }
 

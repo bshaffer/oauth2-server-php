@@ -41,7 +41,7 @@ class OAuth2_Storage_Bootstrap
     public function getMysqlPdo()
     {
         if (!$this->mysql) {
-            $pdo = new PDO('mysql:host=localhost;', 'root');
+            $pdo = new PDO('mysql:host=localhost;', 'root', 'root');
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->removeMysqlDb($pdo);
             $this->createMysqlDb($pdo);
@@ -78,6 +78,7 @@ class OAuth2_Storage_Bootstrap
         // test data
         $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret) VALUES ("oauth_test_client", "testpass")');
         $pdo->exec('INSERT INTO oauth_access_tokens (access_token, client_id) VALUES ("testtoken", "Some Client")');
+        $pdo->exec('INSERT INTO oauth_access_tokens (access_token, client_id, user_id, scope) VALUES ("testtoken_user", "Some Client", 1, "basic")');
         $pdo->exec('INSERT INTO oauth_authorization_codes (authorization_code, client_id) VALUES ("testcode", "Some Client")');
         $pdo->exec('INSERT INTO oauth_users (username, password) VALUES ("testuser", "password")');
     }

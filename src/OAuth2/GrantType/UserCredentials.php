@@ -58,11 +58,6 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface
         return isset($this->userInfo['scope']) ? $this->userInfo['scope'] : null;
     }
   
-    public function getAccessTokenByUser($client_id, $user_id, $scope)
-    {
-        return $this->storage->getAccessTokenByUser($client_id, $user_id, $scope);
-    }
-  
     public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
         return $accessToken->createAccessToken($client_id, $user_id, $scope);

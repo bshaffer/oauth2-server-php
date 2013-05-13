@@ -61,6 +61,12 @@ class OAuth2_ResponseType_AccessToken implements OAuth2_ResponseType_AccessToken
      */
     public function createAccessToken($client_id, $user_id, $scope = null, $includeRefreshToken = true)
     {
+        // Check to see if we already have an existing token (for the given client, user and scope) and return it
+        $token = $this->tokenStorage->getAccessToken(null, $client_id, $user_id, $scope);
+        if ($token) {
+            return $token;
+        }
+                
         $token = array(
             "access_token" => $this->generateAccessToken(),
             "expires_in" => $this->config['access_lifetime'],

@@ -55,6 +55,29 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
         // valid client_id
         $details = $storage->getAccessToken('testtoken');
         $this->assertNotNull($details);
+        
+        // nonexistent token for wrong client_id
+        $details = $storage->getAccessToken(null, "testtoken", 1, "basic");
+        $this->assertFalse($details);
+        
+        // nonexistent token for wrong user_id
+        $details = $storage->getAccessToken(null, "Some Client", 2, "basic");
+        $this->assertFalse($details);
+        
+        // nonexistent token for wrong scope
+        $details = $storage->getAccessToken(null, "Some Client", 1, "basic2");
+        $this->assertFalse($details);
+        
+        // valid token for client_id, user_id_scope
+        $details = $storage->getAccessToken(null, "Some Client", 1, "basic");
+        $this->assertNotNull($details);
+        
+        // valid token for client token
+        $details2 = $storage->getAccessToken("testtoken_user");
+        $this->assertNotNull($details2);
+        
+        // return identical access token when we fetch by client+user+scope and by token
+        $this->assertTrue($details === $details2);
     }
 
     /** @dataProvider provideStorage */

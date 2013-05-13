@@ -25,7 +25,7 @@ interface OAuth2_Storage_AccessTokenInterface
      *
      * @ingroup oauth2_section_7
      */
-    public function getAccessToken($oauth_token);
+    public function getAccessToken($oauth_token, $client_id = null, $user_id = null, $scope = null);
 
     /**
      * Store the supplied access token values to storage.

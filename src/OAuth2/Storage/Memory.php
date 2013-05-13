@@ -140,7 +140,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     }
 
     /* AccessTokenInterface */
-    public function getAccessToken($access_token)
+    public function getAccessToken($access_token, $client_id = null, $user_id = null, $scope = null)
     {
         return isset($this->accessTokens[$access_token]) ? $this->accessTokens[$access_token] : null;
     }

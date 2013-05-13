@@ -5,19 +5,14 @@
  */
 class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenControllerInterface
 {
-    private $config;
     private $response;
     private $clientAssertionType;
     private $accessToken;
     private $grantTypes;
     private $scopeUtil;
 
-    public function __construct(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), OAuth2_ClientAssertionTypeInterface $clientAssertionType = null, OAuth2_ScopeInterface $scopeUtil = null, array $config = array())
+    public function __construct(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), OAuth2_ClientAssertionTypeInterface $clientAssertionType = null, OAuth2_ScopeInterface $scopeUtil = null)
     {
-        $this->config = array_merge(array(
-            'return_existing_token' => false
-        ), $config);
-
         if (is_null($clientAssertionType)) {
             foreach ($grantTypes as $grantType) {
                 if (!$grantType instanceof OAuth2_ClientAssertionTypeInterface) {
@@ -115,7 +110,8 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
             }
         }
 
-        /* Retreive user id
+        /**
+         * Retrieve user id. It will be used to return the access token for the given client_id, user_id and scope.
          */
         $userId = $grantType->getUserId();
 
@@ -134,16 +130,8 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
             $response->setError(400, 'invalid_scope', 'An unsupported scope was requested.');
             return null;
         }
-		
-        $token = null;
-        if ($this->config['return_existing_token']) {
-            $token = $grantType->getAccessTokenByUser($clientId, $userId, $requestedScope);
-        }
-
-        if (!$token) {
-            $token = $grantType->createAccessToken($this->accessToken, $clientId, $grantType->getUserId(), $requestedScope);
-        }
-        return $token;
+        		
+        return $grantType->createAccessToken($this->accessToken, $clientId, $grantType->getUserId(), $requestedScope);
     }
 
     /**
