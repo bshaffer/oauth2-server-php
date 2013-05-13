@@ -104,6 +104,43 @@ class OAuth2_Controller_Token_BasicValidationTest extends PHPUnit_Framework_Test
         $this->assertNotNUll($response->getParameter('token_type'));
     }
 
+    public function testValidClientIdScope()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+                'grant_type' => 'authorization_code', // valid grant type
+                'code'       => 'testcode',
+                'client_id' => 'Test Client ID', // valid client id
+                'client_secret' => 'TestSecret', // valid client secret
+                'scope' => 'clientscope1 clientscope2 scope1 scope2 scope3'
+        ));
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
+
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertNull($response->getParameter('error'));
+        $this->assertNull($response->getParameter('error_description'));
+        $this->assertEquals('clientscope1 clientscope2 scope1 scope2 scope3', $response->getParameter('scope'));
+    }
+
+    public function testInvalidClientIdScope()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+                'grant_type' => 'authorization_code', // valid grant type
+                'code'       => 'testcode',
+                'client_id' => 'Test Client ID', // valid client id
+                'client_secret' => 'TestSecret', // valid client secret
+                'scope' => 'clientscope3 scope1'
+        ));
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_scope');
+        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
+    }
+
     private function getTestServer()
     {
         $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();

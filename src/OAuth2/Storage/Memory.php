@@ -20,6 +20,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     private $accessTokens;
     private $jwt;
     private $supportedScopes;
+    private $clientSupportedScopes;
     private $defaultScope;
 
     public function __construct($params = array())
@@ -32,6 +33,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
             'access_tokens' => array(),
             'jwt' => array(),
             'default_scope' => null,
+            'client_supported_scopes' => array(),
             'supported_scopes' => array(),
         ), $params);
 
@@ -42,6 +44,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         $this->accessTokens = $params['access_tokens'];
         $this->jwt = $params['jwt'];
         $this->supportedScopes = $params['supported_scopes'];
+        $this->clientSupportedScopes = $params['client_supported_scopes'];
         $this->defaultScope = $params['default_scope'];
     }
 
@@ -152,8 +155,16 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
 
     public function scopeExists($scope, $client_id = null)
     {
+
         $scope = explode(' ', trim($scope));
-        return (count(array_diff($scope, $this->supportedScopes)) == 0);
+
+        if($client_id && array_key_exists($client_id, $this->clientSupportedScopes)){
+            $allowedScopes = array_merge($this->supportedScopes, $this->clientSupportedScopes[$client_id]);
+        }else{
+            $allowedScopes = $this->supportedScopes;
+        }
+
+        return (count(array_diff($scope, $allowedScopes)) == 0);
     }
 
     public function getDefaultScope()
