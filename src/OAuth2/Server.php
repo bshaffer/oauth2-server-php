@@ -267,6 +267,16 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         }
     }
 
+    /**
+     * Set a storage object for the server
+     *
+     * @param $storage
+     * An object implementing one of the Storage interfaces
+     *
+     * @param $key
+     * If null, the storage is set to the key of each storage interface it implements
+     * @see storageMap
+     */
     public function addStorage($storage, $key = null)
     {
         // if explicitly set to a valid key, do not "magically" set below
@@ -279,9 +289,6 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             throw new InvalidArgumentException(sprintf('unknown storage key "%s", must be one of [%s]', $key, implode(', ', array_keys($this->storageMap))));
         } else {
             $set = false;
-            // set a storage object to each key for the interface it represents
-            // this means if an object represents more than one storage type, it will be referenced by multiple storage keys
-            // ex: OAuth2_Storage_Pdo will be set for all the $storageMap keys
             foreach ($this->storageMap as $type => $interface) {
                 if ($storage instanceof $interface) {
                     $this->storages[$type] = $storage;
