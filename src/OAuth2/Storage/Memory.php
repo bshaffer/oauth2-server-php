@@ -155,12 +155,11 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
 
     public function scopeExists($scope, $client_id = null)
     {
-
         $scope = explode(' ', trim($scope));
 
-        if($client_id && array_key_exists($client_id, $this->clientSupportedScopes)){
+        if (!is_null($client_id) && array_key_exists($client_id, $this->clientSupportedScopes)) {
             $allowedScopes = array_merge($this->supportedScopes, $this->clientSupportedScopes[$client_id]);
-        }else{
+        } else {
             $allowedScopes = $this->supportedScopes;
         }
 
