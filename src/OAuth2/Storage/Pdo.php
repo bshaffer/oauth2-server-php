@@ -3,11 +3,14 @@
 /**
  * Simple PDO storage for all storage types
  *
- * NOTE: This class is meant to get users started 
- * quickly. If your application requires further 
+ * NOTE: This class is meant to get users started
+ * quickly. If your application requires further
  * customization, extend this class or create your own.
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * NOTE: Passwords are stored in plaintext, which is never
+ * a good idea.  Be sure to override this for your application
+ *
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface,
@@ -47,7 +50,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         ), $config);
     }
 
-    /* ClientCredentialsInterface */
+    /* OAuth2_Storage_ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
@@ -77,7 +80,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return true;
     }
 
-    /* AccessTokenInterface */
+    /* OAuth2_Storage_AccessTokenInterface */
     public function getAccessToken($access_token)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = :access_token', $this->config['access_token_table']));
@@ -105,7 +108,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
-    /* AuthorizationCodeInterface */
+    /* OAuth2_Storage_AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = :code', $this->config['code_table']));
@@ -140,7 +143,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('code'));
     }
 
-    /* UserCredentialsInterface */
+    /* OAuth2_Storage_UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
         if ($user = $this->getUser($username)) {
@@ -154,7 +157,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $this->getUser($username);
     }
 
-    /* RefreshTokenInterface */
+    /* OAuth2_Storage_RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
@@ -209,6 +212,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }
 
+    /* OAuth2_Storage_JWTBearerInterface */
     public function getClientKey($client_id, $subject)
     {
         $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));

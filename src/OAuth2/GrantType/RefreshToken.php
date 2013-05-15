@@ -1,8 +1,9 @@
 <?php
 
 /**
-*
-*/
+ *
+ * @author Brent Shaffer <bshafs at gmail dot com>
+ */
 class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface
 {
     private $storage;

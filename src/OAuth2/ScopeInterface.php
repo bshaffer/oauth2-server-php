@@ -1,8 +1,10 @@
 <?php
 
 /**
-* Class to handle scope implementation logic
-*/
+ * Class to handle scope implementation logic
+ *
+ * @see OAuth2_Storage_ScopeInterface
+ */
 interface OAuth2_ScopeInterface extends OAuth2_Storage_ScopeInterface
 {
     /**

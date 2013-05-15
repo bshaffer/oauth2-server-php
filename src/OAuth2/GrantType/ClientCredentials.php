@@ -1,5 +1,9 @@
 <?php
 
+/**
+ *
+ * @author Brent Shaffer <bshafs at gmail dot com>
+ */
 class OAuth2_GrantType_ClientCredentials extends OAuth2_ClientAssertionType_HttpBasic implements OAuth2_GrantTypeInterface
 {
     public function getQuerystringIdentifier()

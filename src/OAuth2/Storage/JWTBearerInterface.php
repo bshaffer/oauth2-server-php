@@ -8,11 +8,10 @@
  * be the same storage as retrieving clientData
  *
  * @author F21
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 interface OAuth2_Storage_JWTBearerInterface
 {
-
     /**
      * Get the public key associated with a client_id
      *

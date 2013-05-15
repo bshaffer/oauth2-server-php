@@ -4,7 +4,7 @@
  * Interface for all OAuth2 Grant Types
  *
  * @see OAuth2_CompatibilityInterface
- **/
+ */
 interface OAuth2_GrantTypeInterface extends OAuth2_CompatibilityInterface
 {
     public function getUserId();

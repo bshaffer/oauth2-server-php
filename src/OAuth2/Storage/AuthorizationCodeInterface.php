@@ -5,7 +5,7 @@
  * should get/save authorization codes for the "Authorization Code"
  * grant type
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 interface OAuth2_Storage_AuthorizationCodeInterface
 {

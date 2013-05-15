@@ -1,8 +1,9 @@
 <?php
 
 /**
-* Service class for OAuth
-* This class serves only to wrap the other Controller classes
+* Server class for OAuth2
+* This class serves as a convience class which wraps the other Controller classes
+*
 * @see OAuth2_Controller_ResourceController
 * @see OAuth2_Controller_AuthorizeController
 * @see OAuth2_Controller_TokenController

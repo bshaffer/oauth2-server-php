@@ -9,7 +9,7 @@
  * have common methods, it doesn't actually make sense to extend a base interface.
  * However, this is temporarily required for the library to run in PHP 5.2
  *
- **/
+ */
 interface OAuth2_CompatibilityInterface
 {
 

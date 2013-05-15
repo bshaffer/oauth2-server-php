@@ -5,7 +5,7 @@
  * should retrieve data involving the relevent scopes associated
  * with this implementation.
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 interface OAuth2_Storage_ScopeInterface
 {

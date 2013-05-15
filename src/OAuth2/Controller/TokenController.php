@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  @see OAuth2_Controller_TokenControllerInterface
+ * @see OAuth2_Controller_TokenControllerInterface
  */
 class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenControllerInterface
 {

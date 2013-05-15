@@ -4,7 +4,7 @@
  * Implement this interface to specify how the OAuth2 Server
  * should verify client credentials
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 interface OAuth2_Storage_ClientCredentialsInterface extends OAuth2_Storage_ClientInterface
 {

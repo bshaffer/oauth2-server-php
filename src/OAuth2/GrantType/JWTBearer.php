@@ -1,9 +1,13 @@
 <?php
 
 /**
-* The JWT bearer authorization grant implements JWT (JSON Web Tokens) as a grant type per the IETF draft.
-* @see http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4
-*/
+ * The JWT bearer authorization grant implements JWT (JSON Web Tokens) as a grant type per the IETF draft.
+ *
+ * @see http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4
+ *
+ * @author F21
+ * @author Brent Shaffer <bshafs at gmail dot com>
+ */
 class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_ClientAssertionTypeInterface
 {
     private $storage;
@@ -35,7 +39,10 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Cl
 
     /**
      * Returns the grant_type get parameter to identify the grant type request as JWT bearer authorization grant.
-     * @return The string identifier for grant_type.
+     *
+     * @return
+     * The string identifier for grant_type.
+     *
      * @see OAuth2_GrantTypeInterface::getQuerystringIdentifier()
      */
     public function getQuerystringIdentifier()
@@ -46,7 +53,9 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Cl
     /**
      * Validates the data from the decoded JWT.
      *
-     * @return TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.
+     * @return
+     * TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.
+     *
      * @see OAuth2_GrantTypeInterface::getTokenData()
      */
     public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
@@ -167,6 +176,7 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Cl
     /**
      * Creates an access token that is NOT associated with a refresh token.
      * If a subject (sub) the name of the user/account we are accessing data on behalf of.
+     *
      * @see OAuth2_GrantTypeInterface::createAccessToken()
      */
     public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $client_id, $user_id, $scope)

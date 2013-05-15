@@ -5,11 +5,10 @@
  * should retrieve user credentials for the
  * "Resource Owner Password Credentials" grant type
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 interface OAuth2_Storage_UserCredentialsInterface
 {
-
     /**
      * Grant access tokens for basic user credentials.
      *

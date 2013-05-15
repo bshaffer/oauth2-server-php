@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  @see OAuth2_Controller_ResourceControllerInterface
+ * @see OAuth2_Controller_ResourceControllerInterface
  */
 class OAuth2_Controller_ResourceController implements OAuth2_Controller_ResourceControllerInterface
 {

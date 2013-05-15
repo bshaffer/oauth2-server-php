@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  @see OAuth2_Controller_AuthorizeControllerInterface
+ * @see OAuth2_Controller_AuthorizeControllerInterface
  */
 class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_AuthorizeControllerInterface
 {

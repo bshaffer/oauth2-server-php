@@ -6,7 +6,7 @@
  * NOTE: This class should never be used in production, and is
  * a stub class for example use only
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface,
     OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_AccessTokenInterface,
