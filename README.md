@@ -42,8 +42,6 @@ If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo A
 Get Started
 -----------
 
-### Basic Implementation
-
 Here is an example of a bare-bones OAuth2 Server implementation:
 
 ```php
@@ -53,13 +51,29 @@ $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage)); // or a
 $server->handleTokenRequest(OAuth2_Request::createFromGlobals(), new OAuth2_Response())->send();
 ```
 
-### Advanced Implementation
+This library requires you to define a `Storage` object, containing instrutions on how to interact with objects in your storage
+layer such as [OAuth Clients](https://github.com/bshaffer/oauth2-server-php/blob/develop/src/OAuth2/Storage/ClientInterface.php) and
+[Authorization Codes](https://github.com/bshaffer/oauth2-server-php/blob/develop/src/OAuth2/Storage/AuthorizationCodeInterface.php).
+Built-in storage classes include [PDO](https://github.com/bshaffer/oauth2-server-php/blob/develop/src/OAuth2/Storage/Pdo.php),
+[Redis](https://github.com/bshaffer/oauth2-server-php/blob/develop/src/OAuth2/Storage/Redis.php), and
+[Mongo](https://github.com/bshaffer/oauth2-server-php/blob/develop/src/OAuth2/Storage/Mongo.php).  The interfaces allow (and encourage)
+the use of your own Storage objects to fit your application's implementation.
+
+Once you've created a storage object, pass it to the server object and define which Grant Types your server is to support.  See
+the list of supported [Grant Types](#grant-types) below.
+
+The final step, once the Server object is set up, is to handle the incoming request.  Consult the [Server Methods](#server-methods), or
+follow the [Step-by-Step Walkthrough](#step-by-step-walkthrough) to familiarize yourself with the types of requests involved in
+OAuth2.0 workflows.
+
+Step-by-Step Walkthrough
+------------------------
 
 The following instructions provide a detailed walkthrough to help you get an OAuth2 server
 up and running.  To see the codebase of an existing OAuth2 server implementing this library,
 check out the [OAuth2 Demo](https://github.com/bshaffer/oauth2-server-demo).
 
-#### Define your Schema
+### Define your Schema
 
 The quickest way to get started is to use the following schema to create the default database:
 
@@ -71,7 +85,7 @@ CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_na
 CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
 ```
 
-#### Create a Token Controller
+### Create a Token Controller
 
 The first thing you will do is create the **Token Controller**. This is the URI which returns an OAuth2.0 Token to the client.
 Here is an example of a token controller in the file `token.php`:
@@ -97,7 +111,8 @@ $server->addGrantType(new OAuth2_GrantType_ClientCredentials($storage));
 $server->handleTokenRequest(OAuth2_Request::createFromGlobals(), new OAuth2_Response())->send();
 ```
 
-Congratulatons!  You have created a **Token Controller**!  Do you want to see it in action? Run the following SQL:
+Congratulatons!  You have created a **Token Controller**!  Do you want to see it in action? Run the following SQL to
+create an OAuth Client:
 
 ```sql
 INSERT INTO oauth_clients (client_id, client_secret, redirect_uri) VALUES ("testclient", "testpass", "http://fake/");
@@ -118,7 +133,7 @@ If everything works, you should receive a response like this:
 {"access_token":"03807cb390319329bdf6c777d4dfae9c0d3b3c35","expires_in":3600,"token_type":"bearer","scope":null}
 ```
 
-#### Create a Resource Controller
+### Create a Resource Controller
 
 Now that you are creating tokens, you'll want to validate them in your APIs.  Here is an
 example of a resource controller in the file `resource.php`:
@@ -151,13 +166,15 @@ Now run the following from the command line:
 curl http://localhost/resource.php -d 'access_token=YOUR_TOKEN'
 ```
 
+> Note: Use the value returned in "access_token" from the previous step in place of YOUR_TOKEN
+
 If all goes well, you should receive a response like this:
 
 ```json
 {"success":true,"message":"You accessed my APIs!"}
 ```
 
-#### Create an Authorize Controller
+### Create an Authorize Controller
 
 Authorize Controllers are the "killer feature" of OAuth2, and allow for your users to authorize
 third party applications.  Here is an example of an authorize controller in `authorize.php`:
@@ -225,6 +242,57 @@ You will be prompted with an authorization form, and receive an authorization co
 > curl -u testclient:testpass http://localhost/token.php -d 'grant_type=authorization_code&redirect_uri=http://fake/&code=YOUR_CODE'
 > ```
 
+Grant Types
+-----------
+
+There are many supported grant types in the OAuth2 specification, and this library allows for the addition of custom grant types as well.
+Supported grant types are as follows:
+
+  1. [Authorization Code](http://tools.ietf.org/html/rfc6749#section-4.1)
+
+        An authorization code obtained by user authorization is exchanged for a token
+
+  2. [Implicit](http://tools.ietf.org/html/rfc6749#section-4.2)
+
+        As part of user authorization, a token is retured to the client instead of an authorization code
+
+  3. [Resource Owner Password Credentials](http://tools.ietf.org/html/rfc6749#section-4.3)
+
+        The username and password are submitted as part of the request, and a token is issued upon successful authentication
+
+  4. [Client Credentials](http://tools.ietf.org/html/rfc6749#section-4.4)
+
+        The client can use their credentials to retrieve an access token directly, which will allow access to resources under the client's control
+
+  5. [JWT Authorization Grant](http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4)
+
+        The client can submit a JWT (JSON Web Token) in a request to the token endpoint. An access token (without a refresh token) is then returned directly.
+
+  6. [Refresh Token](http://tools.ietf.org/html/rfc6749#section-6)
+
+        The client can submit refresh token and recieve a new access token e.g. it may be necessary to do this if the access_token had expired.
+
+  7. [Exension Grant](http://tools.ietf.org/html/rfc6749#section-4.5)
+
+        Create your own grant type by implementing the `OAuth2_GrantTypeInterface` and adding it to the OAuth2 Server object.
+
+When submitting a request for an access_token using either the 'Authorization Code' or 'Resource Owner Password
+Credential' grant, a refresh_token is provided. However, When using the refresh_token from above to request a new
+access_token, a new refresh_token is not provided. The spec does not strictly require a refresh_token be granted but it
+is [still possible to do it](http://tools.ietf.org/html/rfc6749#section-6).
+
+As a result, the option always_issue_new_refresh_token was added (defaults to FALSE) in the
+[OAuth2_GrantType_RefreshToken](src/OAuth2/GrantType/RefreshToken.php) class. So, by default a new refresh token is not
+issued, but you can easily configure this to do so by setting `'always_issue_new_refresh_token' => true`
+
+If you want to support more than one grant type it is possible to add more when the Server object is created:
+
+```php
+$server->addGrantType(new OAuth2_GrantType_UserCredentials($storage));
+$server->addGrantType(new OAuth2_GrantType_RefreshToken($storage));
+$server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
+```
+
 Server Methods
 --------------
 
@@ -283,56 +351,6 @@ the incomming request is valid
 `getAccessTokenData`
 
   * Takes a token string as an argument and returns the token data if applicable, or null if the token is invalid
-
-Grant Types
------------
-
-There are many supported grant types in the OAuth2 specification, and this library allows for the addition of custom grant types as well.
-Supported grant types are as follows:
-
-  1. [Authorization Code](http://tools.ietf.org/html/rfc6749#section-4.1)
-
-        An authorization code obtained by user authorization is exchanged for a token
-
-  2. [Implicit](http://tools.ietf.org/html/rfc6749#section-4.2)
-
-        As part of user authorization, a token is retured to the client instead of an authorization code
-
-  3. [Resource Owner Password Credentials](http://tools.ietf.org/html/rfc6749#section-4.3)
-
-        The username and password are submitted as part of the request, and a token is issued upon successful authentication
-
-  4. [Client Credentials](http://tools.ietf.org/html/rfc6749#section-4.4)
-
-        The client can use their credentials to retrieve an access token directly, which will allow access to resources under the client's control
-
-  5. [JWT Authorization Grant](http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4)
-
-        The client can submit a JWT (JSON Web Token) in a request to the token endpoint. An access token (without a refresh token) is then returned directly.
-
-  6. [Refresh Token](http://tools.ietf.org/html/rfc6749#section-6)
-
-        The client can submit refresh token and recieve a new access token e.g. it may be necessary to do this if the access_token had expired.
-
-When submitting a request for an access_token using either the 'Authorization Code' or 'Resource Owner Password
-Credential' grant, a refresh_token is provided. However, When using the refresh_token from above to request a new
-access_token, a new refresh_token is not provided. The spec does not strictly require a refresh_token be granted but it
-is [still possible to do it](http://tools.ietf.org/html/rfc6749#section-6).
-
-As a result, the option always_issue_new_refresh_token was added (defaults to FALSE) in the
-[OAuth2_GrantType_RefreshToken](src/OAuth2/GrantType/RefreshToken.php) class. So, by default a new refresh token is not
-issued, but you can easily configure this to do so by setting `'always_issue_new_refresh_token' => true`
-
-If you want to support more than one grant type it is possible to add more than 1 type to the $server as you
-initialize, see below.
-
-```php
-$server->addGrantType(new OAuth2_GrantType_UserCredentials($storage));
-$server->addGrantType(new OAuth2_GrantType_RefreshToken($storage));
-$server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
-```
-
-Create a custom grant type by implementing the `OAuth2_GrantTypeInterface` and adding it to the OAuth2 Server object.
 
 The Response Object
 -------------------
