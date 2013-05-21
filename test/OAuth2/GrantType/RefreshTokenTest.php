@@ -150,6 +150,22 @@ class OAuth2_GrantType_RefreshTokenTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
     }
 
+    public function testValidClientDifferentRefreshToken()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type'    => 'refresh_token', // valid grant type
+            'client_id'     => 'Test Some Other Client', // valid client id
+            'client_secret' => 'TestSecret3', // valid client secret
+            'refresh_token' => 'test-refreshtoken', // valid refresh token
+        ));
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'refresh_token doesn\'t exist or is invalid for the client');
+    }
+
     private function getTestServer()
     {
         $this->storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();

@@ -105,7 +105,7 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
 
             // validate the Client ID (if applicable)
             if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
-                $response->setError(400, 'invalid_grant', 'Authorization code doesn\'t exist or is invalid for the client');
+                $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier));
                 return null;
             }
         }

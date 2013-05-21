@@ -173,6 +173,22 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
     }
 
+    public function testValidClientDifferentCode()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type'    => 'authorization_code', // valid grant type
+            'client_id'     => 'Test Some Other Client', // valid client id
+            'client_secret' => 'TestSecret3', // valid client secret
+            'code'          => 'testcode', // valid code
+        ));
+        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'authorization_code doesn\'t exist or is invalid for the client');
+    }
+
     private function getTestServer()
     {
         $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();

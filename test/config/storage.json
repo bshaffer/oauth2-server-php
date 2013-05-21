@@ -27,6 +27,9 @@
         "Test Client ID with Redirect Uri": {
             "secret": "TestSecret2",
             "redirect_uri": "http://brentertainment.com"
+        },
+        "Test Some Other Client": {
+            "secret": "TestSecret3"
         }
     },
     "user_credentials" : {
