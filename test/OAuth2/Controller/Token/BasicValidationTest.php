@@ -58,24 +58,33 @@ class OAuth2_Controller_Token_BasicValidationTest extends PHPUnit_Framework_Test
         $this->assertEquals($response->getParameter('error_description'), 'Client credentials were not found in the headers or body');
     }
 
-    public function testInvalidClientCredentials()
+    public function testInvalidClientId()
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request_TestRequest::createPost(array(
             'grant_type' => 'authorization_code', // valid grant type
             'code'       => 'testcode',
-            'client_id' => 'Fake Client ID', // invalid client id
-            'client_secret' => 'Fake Client Secret', // invalid client secret
+            'client_id'  => 'Fake Client ID', // invalid client id
+            'client_secret' => 'TestSecret', // valid client secret
         ));
         $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_client');
         $this->assertEquals($response->getParameter('error_description'), 'The client credentials are invalid');
+    }
 
-        // try again with a real client ID, but an invalid secret
-        $request->request['client_id'] = 'Test Client ID'; // valid client id
+    public function testInvalidClientSecret()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code', // valid grant type
+            'code'       => 'testcode',
+            'client_id'  => 'Test Client ID', // valid client id
+            'client_secret' => 'Fake Client Secret', // invalid client secret
+        ));
         $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
