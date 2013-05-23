@@ -272,7 +272,7 @@ Supported grant types are as follows:
 
         The client can submit refresh token and recieve a new access token e.g. it may be necessary to do this if the access_token had expired.
 
-  7. [Exension Grant](http://tools.ietf.org/html/rfc6749#section-4.5)
+  7. [Extension Grant](http://tools.ietf.org/html/rfc6749#section-4.5)
 
         Create your own grant type by implementing the `OAuth2_GrantTypeInterface` and adding it to the OAuth2 Server object.
 
