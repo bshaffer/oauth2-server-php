@@ -232,14 +232,28 @@ http://localhost/authorize.php?response_type=code&client_id=testclient
 
 You will be prompted with an authorization form, and receive an authorization code upon clicking "yes"
 
-> Note: The Authorization Code can now be used to receive an access token from your previously
-> created `token.php` endpoint.  Just add the following grant type to `token.php`:
+> Note: The Authorization Code can now be used to receive an access token from your previously created `token.php` endpoint.  Just add the following grant type to `token.php`:
+>
 > ```php
 > $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
 > ```
+>
+> Then comment this line:
+>
+> ```php
+> $server->addGrantType(new OAuth2_GrantType_ClientCredentials($storage));
+> ```
+>
 > And call this endpoint using the returned authorization code:
+>
 > ```bash
 > curl -u testclient:testpass http://localhost/token.php -d 'grant_type=authorization_code&redirect_uri=http://fake/&code=YOUR_CODE'
+> ```
+>
+> If success, you should receive a response like this:
+>
+> ```json
+> {"access_token":"3f4e0087243ee6df4753bd7ae182773b1d61c26b","expires_in":3600,"token_type":"bearer","scope":null,"refresh_token":"cea73c874768e9d8aead3f8491567ca570107546"}
 > ```
 
 Grant Types
