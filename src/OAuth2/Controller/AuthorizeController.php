@@ -195,14 +195,27 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
 
     /**
      * Internal method for validating redirect URI supplied
+     *
      * @param string $inputUri
+     * The submitted URI to be validated
+     *
      * @param string $storedUri
+     * The allowed URIs to validate against.  Can be a space-delimited string of URIs to
+     * allow for multiple URIs
      */
     private function validateRedirectUri($inputUri, $storedUri)
     {
         if (!$inputUri || !$storedUri) {
             return false; // if either one is missing, assume INVALID
         }
-        return strcasecmp(substr($inputUri, 0, strlen($storedUri)), $storedUri) === 0;
+
+        $stored_uris = explode(' ', $storedUri);
+
+        foreach ($stored_uris as $stored) {
+            if (strcasecmp(substr($inputUri, 0, strlen($stored)), $stored) === 0) {
+                return true;
+            }
+        }
+        return false;
     }
 }

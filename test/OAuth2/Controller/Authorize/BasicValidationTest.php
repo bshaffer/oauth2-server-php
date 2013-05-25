@@ -134,7 +134,7 @@ class OAuth2_Controller_Authorize_BasicValidationTest extends PHPUnit_Framework_
         $this->assertFalse(isset($query['error']));
     }
 
-    public function testValidateRedirectUri()
+    public function testInvalidRedirectUri()
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
@@ -147,6 +147,24 @@ class OAuth2_Controller_Authorize_BasicValidationTest extends PHPUnit_Framework_
 
         $this->assertEquals($response->getParameter('error'), 'redirect_uri_mismatch');
         $this->assertEquals($response->getParameter('error_description'), 'The redirect URI provided is missing or does not match');
+    }
+
+    public function testMultipleRedirectUris()
+    {
+        $server = $this->getTestServer();
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['client_id'] = 'Test Client ID with Multiple Redirect Uris'; // valid client id
+        $request->query['redirect_uri'] = 'http://brentertainment.com'; // valid redirect URI
+        $request->query['response_type'] = 'code';
+
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $this->assertEquals($response->getStatusCode(), 302);
+
+        // call again with different (but still valid) redirect URI
+        $request->query['redirect_uri'] = 'http://morehazards.com';
+
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $this->assertEquals($response->getStatusCode(), 302);
     }
 
     private function getTestServer($config = array())

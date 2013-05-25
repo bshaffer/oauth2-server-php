@@ -28,6 +28,10 @@
             "secret": "TestSecret2",
             "redirect_uri": "http://brentertainment.com"
         },
+        "Test Client ID with Multiple Redirect Uris": {
+            "secret": "TestSecret2",
+            "redirect_uri": "http://brentertainment.com http://morehazards.com"
+        },
         "Test Some Other Client": {
             "secret": "TestSecret3"
         }
