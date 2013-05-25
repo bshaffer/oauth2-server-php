@@ -29,9 +29,9 @@ class OAuth2_Request implements OAuth2_RequestInterface
      *
      * @api
      */
-    public function __construct(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null)
+    public function __construct(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null, array $headers = null)
     {
-        $this->initialize($query, $request, $attributes, $cookies, $files, $server, $content);
+        $this->initialize($query, $request, $attributes, $cookies, $files, $server, $content, $headers);
     }
 
     /**
@@ -49,7 +49,7 @@ class OAuth2_Request implements OAuth2_RequestInterface
      *
      * @api
      */
-    public function initialize(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null)
+    public function initialize(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null, array $headers = null)
     {
         $this->request = $request;
         $this->query = $query;
@@ -57,7 +57,8 @@ class OAuth2_Request implements OAuth2_RequestInterface
         $this->cookies = $cookies;
         $this->files = $files;
         $this->server = $server;
-        $this->headers = $this->getHeadersFromServer($this->server);
+        $this->content = $content;
+        $this->headers = is_null($headers) ? $this->getHeadersFromServer($this->server) : $headers;
     }
 
     public function query($name, $default = null)
