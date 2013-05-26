@@ -25,6 +25,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     protected $responseTypes;
     protected $grantTypes;
     protected $scopeUtil;
+    protected $clientAssertionType;
 
     protected $storageMap = array(
         'access_token' => 'OAuth2_Storage_AccessTokenInterface',
@@ -59,6 +60,12 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      * @param OAuth2_TokenTypeInterface $tokenType
      * The token type object to use. Valid token types are "bearer" and "mac"
      *
+     * @param OAuth2_ScopeInterface $scopeUtil
+     * The scope utility class to use to validate scope
+     *
+     * @param OAuth2_ClientAssertionTypeInterface $clientAssertionType
+     * The method in which to verify the client identity.  Default is HttpBasic
+     *
      * @return
      * TRUE if everything in required scope is contained in available scope,
      * and FALSE if it isn't.
@@ -67,7 +74,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      *
      * @ingroup oauth2_section_7
      */
-    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_TokenTypeInterface $tokenType = null, OAuth2_ScopeInterface $scopeUtil = null)
+    public function __construct($storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), OAuth2_TokenTypeInterface $tokenType = null, OAuth2_ScopeInterface $scopeUtil = null, OAuth2_ClientAssertionTypeInterface $clientAssertionType = null)
     {
         $storage = is_array($storage) ? $storage : array($storage);
         $this->storages = array();
@@ -93,6 +100,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         }
         $this->tokenType = $tokenType;
         $this->scopeUtil = $scopeUtil;
+        $this->clientAssertionType = $clientAssertionType;
     }
 
     public function getAuthorizeController()
@@ -361,25 +369,27 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         if (0 == count($this->grantTypes)) {
             $this->grantTypes = $this->getDefaultGrantTypes();
         }
-        // see if HttpBasic assertion type is requred.  If so, then create it from storage classes.
-        $clientAssertionType = null;
-        foreach ($this->grantTypes as $grantType) {
-            if (!$grantType instanceof OAuth2_ClientAssertionTypeInterface) {
-                if (!isset($this->storages['client_credentials'])) {
-                    throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientCredentialsInterface to use the grant server");
+
+        if (is_null($this->clientAssertionType)) {
+            // see if HttpBasic assertion type is requred.  If so, then create it from storage classes.
+            foreach ($this->grantTypes as $grantType) {
+                if (!$grantType instanceof OAuth2_ClientAssertionTypeInterface) {
+                    if (!isset($this->storages['client_credentials'])) {
+                        throw new LogicException("You must supply a storage object implementing OAuth2_Storage_ClientCredentialsInterface to use the token server");
+                    }
+                    $this->clientAssertionType = new OAuth2_ClientAssertionType_HttpBasic($this->storages['client_credentials']);
+                    break;
                 }
-                $clientAssertionType = new OAuth2_ClientAssertionType_HttpBasic($this->storages['client_credentials']);
-                break;
             }
         }
 
-        return new OAuth2_Controller_TokenController($this->getAccessTokenResponseType(), $this->grantTypes, $clientAssertionType, $this->getScopeUtil());
+        return new OAuth2_Controller_TokenController($this->getAccessTokenResponseType(), $this->grantTypes, $this->clientAssertionType, $this->getScopeUtil());
     }
 
     protected function createDefaultResourceController()
     {
         if (!isset($this->storages['access_token'])) {
-            throw new LogicException("You must supply a storage object implementing OAuth2_Storage_AccessTokenInterface to use the access server");
+            throw new LogicException("You must supply a storage object implementing OAuth2_Storage_AccessTokenInterface to use the resource server");
         }
         if (!$this->tokenType) {
             $this->tokenType = $this->getDefaultTokenType();

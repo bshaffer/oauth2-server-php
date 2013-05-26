@@ -183,7 +183,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $storage
           ->expects($this->any())
           ->method('checkRestrictedGrantType')
-          ->will($this->returnValue(TRUE));
+          ->will($this->returnValue(true));
 
         // add with the "code" key explicitly set
         $codeType = new OAuth2_ResponseType_AuthorizationCode($storage);
@@ -212,6 +212,30 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         parse_str($parts['query'], $query);
         $this->assertTrue(isset($query['code']));
         $this->assertFalse(isset($query['error']));
+    }
+
+    public function testCustomClientAssertionType()
+    {
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code',
+            'client_id' =>'Test Client ID',
+            'code' => 'testcode',
+        ));
+        // verify the mock clientAssertionType was called as expected
+        $clientAssertionType = $this->getMock('OAuth2_ClientAssertionTypeInterface', array('validateRequest', 'getClientId'));
+        $clientAssertionType
+            ->expects($this->once())
+            ->method('validateRequest')
+            ->will($this->returnValue(true));
+        $clientAssertionType
+            ->expects($this->once())
+            ->method('getClientId')
+            ->will($this->returnValue('Test Client ID'));
+
+        // create mock storage
+        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
+        $server = new OAuth2_Server(array($storage), array(), array(), array(), null, null, $clientAssertionType);
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
     }
 
     /**
