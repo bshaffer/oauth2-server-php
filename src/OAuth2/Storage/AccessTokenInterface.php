@@ -4,7 +4,7 @@
  * Implement this interface to specify where the OAuth2 Server
  * should get/save access tokens
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 interface OAuth2_Storage_AccessTokenInterface
 {

@@ -5,11 +5,10 @@
  * should get/save refresh tokens for the "Refresh Token"
  * grant type
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 interface OAuth2_Storage_RefreshTokenInterface
 {
-
     /**
      * Grant refresh access tokens.
      *

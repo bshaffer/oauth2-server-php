@@ -8,11 +8,11 @@ class OAuth2_RequestTest extends PHPUnit_Framework_TestCase
         $server = $this->getTestServer();
 
         // Smoke test for override request class
-        // $response = $server->handleTokenRequest($request);
+        // $server->handleTokenRequest($request, $response = new OAuth2_Response());
         // $this->assertInstanceOf('OAuth2_Response', $response);
-        // $response = $server->handleAuthorizeRequest($request, true);
+        // $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
         // $this->assertInstanceOf('OAuth2_Response', $response);
-        // $response = $server->verifyResourceRequest($request);
+        // $response = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
         // $this->assertTrue(is_bool($response));
 
         /*** make some valid requests ***/
@@ -24,7 +24,7 @@ class OAuth2_RequestTest extends PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret',
             'code' => 'testcode',
         ));
-        $response = $server->handleTokenRequest($request);
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
         $this->assertEquals($response->getStatusCode(), 200);
         $this->assertNull($response->getParameter('error'));
         $this->assertNotNUll($response->getParameter('access_token'));

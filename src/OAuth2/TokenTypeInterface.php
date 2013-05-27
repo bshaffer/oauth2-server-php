@@ -2,6 +2,15 @@
 
 interface OAuth2_TokenTypeInterface
 {
+    /**
+     * Token type identification string
+     *
+     * ex: "bearer" or "mac"
+     */
     public function getTokenType();
-    public function getAccessTokenParameter(OAuth2_RequestInterface $request);
+
+    /**
+     * Retrieves the token string from the request object
+     */
+    public function getAccessTokenParameter(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response);
 }

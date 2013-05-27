@@ -5,7 +5,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException LogicException OAuth2_Storage_ClientInterface
      **/
-    public function testGetAuthorizeServerWithNoClientStorageThrowsException()
+    public function testGetAuthorizeControllerWithNoClientStorageThrowsException()
     {
         // must set Client Storage
         $server = new OAuth2_Server();
@@ -15,7 +15,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException LogicException OAuth2_Storage_AccessTokenInterface
      **/
-    public function testGetAuthorizeServerWithNoAccessTokenStorageThrowsException()
+    public function testGetAuthorizeControllerWithNoAccessTokenStorageThrowsException()
     {
         // must set AccessToken or AuthorizationCode
         $server = new OAuth2_Server();
@@ -23,7 +23,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $server->getAuthorizeController();
     }
 
-    public function testGetAuthorizeServerWithClientStorageAndAccessTokenResponseType()
+    public function testGetAuthorizeControllerWithClientStorageAndAccessTokenResponseType()
     {
         // must set AccessToken or AuthorizationCode
         $server = new OAuth2_Server();
@@ -33,7 +33,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $this->assertNotNull($server->getAuthorizeController());
     }
 
-    public function testGetAuthorizeServerWithClientStorageAndAuthorizationCodeResponseType()
+    public function testGetAuthorizeControllerWithClientStorageAndAuthorizationCodeResponseType()
     {
         // must set AccessToken or AuthorizationCode
         $server = new OAuth2_Server();
@@ -43,7 +43,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $this->assertNotNull($server->getAuthorizeController());
     }
 
-    public function testGetAuthorizeServerWithClientStorageAndAccessTokenStorage()
+    public function testGetAuthorizeControllerWithClientStorageAndAccessTokenStorage()
     {
         // must set AccessToken or AuthorizationCode
         $server = new OAuth2_Server();
@@ -53,7 +53,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $this->assertNotNull($server->getAuthorizeController());
     }
 
-    public function testGetAuthorizeServerWithClientStorageAndAuthorizationCodeStorage()
+    public function testGetAuthorizeControllerWithClientStorageAndAuthorizationCodeStorage()
     {
         // must set AccessToken or AuthorizationCode
         $server = new OAuth2_Server();
@@ -64,25 +64,35 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException LogicException OAuth2_Storage_ClientCredentialsInterface
+     * @expectedException LogicException grant_types
      **/
-    public function testGetGrantServerWithNoClientCredentialsStorageThrowsException()
+    public function testGetTokenControllerWithGrantTypeStorageThrowsException()
     {
         $server = new OAuth2_Server();
         $server->getTokenController();
     }
 
     /**
+     * @expectedException LogicException OAuth2_Storage_ClientCredentialsInterface
+     **/
+    public function testGetTokenControllerWithNoClientCredentialsStorageThrowsException()
+    {
+        $server = new OAuth2_Server();
+        $server->addStorage($this->getMock('OAuth2_Storage_UserCredentialsInterface'));
+        $server->getTokenController();
+    }
+
+    /**
      * @expectedException LogicException OAuth2_Storage_AccessTokenInterface
      **/
-    public function testGetGrantServerWithNoAccessTokenStorageThrowsException()
+    public function testGetTokenControllerWithNoAccessTokenStorageThrowsException()
     {
         $server = new OAuth2_Server();
         $server->addStorage($this->getMock('OAuth2_Storage_ClientCredentialsInterface'));
         $server->getTokenController();
     }
 
-    public function testGetGrantServerWithAccessTokenAndClientCredentialsStorage()
+    public function testGetTokenControllerWithAccessTokenAndClientCredentialsStorage()
     {
         $server = new OAuth2_Server();
         $server->addStorage($this->getMock('OAuth2_Storage_AccessTokenInterface'));
@@ -90,7 +100,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $server->getTokenController();
     }
 
-    public function testGetGrantServerAccessTokenStorageAndClientCredentialsStorageAndGrantTypes()
+    public function testGetTokenControllerAccessTokenStorageAndClientCredentialsStorageAndGrantTypes()
     {
         $server = new OAuth2_Server();
         $server->addStorage($this->getMock('OAuth2_Storage_AccessTokenInterface'));
@@ -102,13 +112,13 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException LogicException OAuth2_Storage_AccessTokenInterface
      **/
-    public function testGetAccessServerWithNoAccessTokenStorageThrowsException()
+    public function testGetResourceControllerWithNoAccessTokenStorageThrowsException()
     {
         $server = new OAuth2_Server();
         $server->getResourceController();
     }
 
-    public function testGetAccessServerWithAccessTokenStorage()
+    public function testGetResourceControllerWithAccessTokenStorage()
     {
         $server = new OAuth2_Server();
         $server->addStorage($this->getMock('OAuth2_Storage_AccessTokenInterface'));
@@ -121,7 +131,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
     public function testAddingStorageWithInvalidClass()
     {
         $server = new OAuth2_Server();
-        $server->addStorage($this->getMock('OAuth2_ScopeInterface'));
+        $server->addStorage(new StdClass());
     }
 
     /**
@@ -173,7 +183,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $storage
           ->expects($this->any())
           ->method('checkRestrictedGrantType')
-          ->will($this->returnValue(TRUE));
+          ->will($this->returnValue(true));
 
         // add with the "code" key explicitly set
         $codeType = new OAuth2_ResponseType_AuthorizationCode($storage);
@@ -181,7 +191,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $server->addStorage($storage);
         $server->addResponseType($codeType);
         $request = new OAuth2_Request(array('response_type' => 'code', 'client_id' => 'some_client', 'redirect_uri' => 'http://example.com'));
-        $response = $server->handleAuthorizeRequest($request, true);
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         // the response is successful
         $this->assertEquals($response->getStatusCode(), 302);
@@ -194,7 +204,7 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $codeType = new OAuth2_ResponseType_AuthorizationCode($storage);
         $server = new OAuth2_Server(array($storage), array(), array(), array($codeType));
         $request = new OAuth2_Request(array('response_type' => 'code', 'client_id' => 'some_client', 'redirect_uri' => 'http://example.com'));
-        $response = $server->handleAuthorizeRequest($request, true);
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         // the response is successful
         $this->assertEquals($response->getStatusCode(), 302);
@@ -202,6 +212,30 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         parse_str($parts['query'], $query);
         $this->assertTrue(isset($query['code']));
         $this->assertFalse(isset($query['error']));
+    }
+
+    public function testCustomClientAssertionType()
+    {
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code',
+            'client_id' =>'Test Client ID',
+            'code' => 'testcode',
+        ));
+        // verify the mock clientAssertionType was called as expected
+        $clientAssertionType = $this->getMock('OAuth2_ClientAssertionTypeInterface', array('validateRequest', 'getClientId'));
+        $clientAssertionType
+            ->expects($this->once())
+            ->method('validateRequest')
+            ->will($this->returnValue(true));
+        $clientAssertionType
+            ->expects($this->once())
+            ->method('getClientId')
+            ->will($this->returnValue('Test Client ID'));
+
+        // create mock storage
+        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
+        $server = new OAuth2_Server(array($storage), array(), array(), array(), null, null, $clientAssertionType);
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
     }
 
     /**

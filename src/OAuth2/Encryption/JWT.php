@@ -1,9 +1,9 @@
 <?php
+
 /**
  * @link https://github.com/F21/jwt
  * @author F21
  */
-
 class OAuth2_Encryption_JWT
 {
     public function encode($payload, $key, $algo = 'HS256')
@@ -33,23 +33,22 @@ class OAuth2_Encryption_JWT
 
         list($headb64, $payloadb64, $cryptob64) = $tks;
 
-        if (null === ($header = json_decode($this->urlsafeB64Decode($headb64)))){
+        if (null === ($header = json_decode($this->urlsafeB64Decode($headb64), true))) {
             return false;
         }
 
-        if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64))){
+        if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64), true)) {
             return false;
         }
 
         $sig = $this->urlsafeB64Decode($cryptob64);
 
         if ($verify) {
-
-            if (empty($header->alg)) {
+            if (!isset($header['alg'])) {
                 return false;
             }
 
-            if (!$this->verifySignature($sig, "$headb64.$payloadb64", $key, $header->alg)) {
+            if (!$this->verifySignature($sig, "$headb64.$payloadb64", $key, $header['alg'])) {
                 return false;
             }
         }
@@ -66,7 +65,7 @@ class OAuth2_Encryption_JWT
                 return $this->sign($input, $key, $algo) === $signature;
 
             case 'RS256':
-                return @openssl_verify($input, $signature, $key, 'sha256') === 1;
+                return openssl_verify($input, $signature, $key, 'sha256') === 1;
 
             case 'RS384':
                 return @openssl_verify($input, $signature, $key, 'sha384') === 1;
@@ -82,7 +81,6 @@ class OAuth2_Encryption_JWT
     private function sign($input, $key, $algo = 'HS256')
     {
         switch($algo){
-
             case 'HS256':
                 return hash_hmac('sha256', $input, $key, true);
 

@@ -212,7 +212,7 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($storage->checkUserCredentials('fakeusername', 'testpass'));
 
         // invalid username
-        $this->assertFalse($storage->getUser('fakeusername'));
+        $this->assertFalse($storage->getUserDetails('fakeusername'));
 
         // ensure all properties are set
         $user = $storage->getUser('testusername');
@@ -227,15 +227,18 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
 
     public function provideStorage()
     {
+        $memory = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
         $mysql = OAuth2_Storage_Bootstrap::getInstance()->getMysqlPdo();
         $sqlite = OAuth2_Storage_Bootstrap::getInstance()->getSqlitePdo();
         $mongo = OAuth2_Storage_Bootstrap::getInstance()->getMongo();
+        $redis = OAuth2_Storage_Bootstrap::getInstance()->getRedisStorage();
 
         // will add multiple storage types later
         return array(
             array($sqlite),
             array($mysql),
-            array($mongo)
+            array($mongo),
+            array($redis)
         );
     }
 }

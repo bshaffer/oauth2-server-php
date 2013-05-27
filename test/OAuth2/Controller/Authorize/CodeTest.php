@@ -1,33 +1,15 @@
 <?php
 
-class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
+class OAuth2_Controller_Authorize_CodeTest extends PHPUnit_Framework_TestCase
 {
-    public function testImplicitNotAllowedResponse()
+    public function testUserDeniesAccessResponse()
     {
         $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
-        $request->query['response_type'] = 'token'; // invalid response type
-        $response = $server->handleAuthorizeRequest($request, false);
-
-        $this->assertEquals($response->getStatusCode(), 302);
-        $location = $response->getHttpHeader('Location');
-        $parts = parse_url($location);
-        parse_str($parts['query'], $query);
-
-        $this->assertEquals($query['error'], 'unsupported_response_type');
-        $this->assertEquals($query['error_description'], 'implicit grant type not supported');
-    }
-
-    public function testUserDeniesAccessResponse()
-    {
-        $server = $this->getTestServer(array('allow_implicit' => true));
-        $request = OAuth2_Request::createFromGlobals();
-        $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
-        $request->query['response_type'] = 'token'; // valid response type
-        $response = $server->handleAuthorizeRequest($request, false);
+        $request->query['response_type'] = 'code';
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -38,33 +20,36 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($query['error_description'], 'The user denied access to your application');
     }
 
-    public function testSuccessfulRequestFragmentParameter()
+    public function testCodeQueryParamIsSet()
     {
-        $server = $this->getTestServer(array('allow_implicit' => true));
+        $server = $this->getTestServer();
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
-        $request->query['response_type'] = 'token'; // valid response type
-        $response = $server->handleAuthorizeRequest($request, true);
+        $request->query['response_type'] = 'code';
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertNull($response->getParameter('error'));
-        $this->assertNull($response->getParameter('error_description'));
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
 
         $location = $response->getHttpHeader('Location');
         $parts = parse_url($location);
 
         $this->assertEquals('http', $parts['scheme']); // same as passed in to redirect_uri
         $this->assertEquals('adobe.com', $parts['host']); // same as passed in to redirect_uri
-        $this->assertArrayHasKey('fragment', $parts);
-        $this->assertFalse(isset($parts['query']));
+        $this->assertArrayHasKey('query', $parts);
+        $this->assertFalse(isset($parts['fragment']));
 
         // assert fragment is in "application/x-www-form-urlencoded" format
-        parse_str($parts['fragment'], $params);
-        $this->assertNotNull($params);
-        $this->assertArrayHasKey('access_token', $params);
-        $this->assertArrayHasKey('expires_in', $params);
-        $this->assertArrayHasKey('token_type', $params);
+        parse_str($parts['query'], $query);
+        $this->assertNotNull($query);
+        $this->assertArrayHasKey('code', $query);
+
+        // ensure no error was returned
+        $this->assertFalse(isset($query['error']));
+        $this->assertFalse(isset($query['error_description']));
     }
 
     public function testSuccessfulRequestReturnsStateParameter()
@@ -73,21 +58,23 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
-        $request->query['response_type'] = 'token'; // valid response type
+        $request->query['response_type'] = 'code';
         $request->query['state'] = 'test'; // valid state string (just needs to be passed back to us)
-        $response = $server->handleAuthorizeRequest($request, true);
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertNull($response->getParameter('error'));
-        $this->assertNull($response->getParameter('error_description'));
 
         $location = $response->getHttpHeader('Location');
         $parts = parse_url($location);
-        $this->assertArrayHasKey('fragment', $parts);
-        parse_str($parts['fragment'], $params);
+        $this->assertArrayHasKey('query', $parts);
+        parse_str($parts['query'], $query);
 
-        $this->assertArrayHasKey('state', $params);
-        $this->assertEquals($params['state'], 'test');
+        $this->assertArrayHasKey('state', $query);
+        $this->assertEquals($query['state'], 'test');
+
+        // ensure no error was returned
+        $this->assertFalse(isset($query['error']));
+        $this->assertFalse(isset($query['error_description']));
     }
 
     public function testSuccessfulRequestStripsExtraParameters()
@@ -95,25 +82,24 @@ class OAuth2_Server_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
         $server = $this->getTestServer(array('allow_implicit' => true));
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID'; // valid client id
-        $request->query['redirect_uri'] = 'http://adobe.com?fake=something'; // valid redirect URI
-        $request->query['response_type'] = 'token'; // valid response type
+        $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
+        $request->query['response_type'] = 'code';
         $request->query['state'] = 'test'; // valid state string (just needs to be passed back to us)
-        $request->query['fake'] = 'something'; // add extra param to querystring
-        $response = $server->handleAuthorizeRequest($request, true);
+        $request->query['fake'] = 'something'; // extra query param
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $this->assertNull($response->getParameter('error'));
-        $this->assertNull($response->getParameter('error_description'));
 
         $location = $response->getHttpHeader('Location');
         $parts = parse_url($location);
         $this->assertFalse(isset($parts['fake']));
-        $this->assertArrayHasKey('fragment', $parts);
-        parse_str($parts['fragment'], $params);
+        $this->assertArrayHasKey('query', $parts);
+        parse_str($parts['query'], $query);
 
         $this->assertFalse(isset($parmas['fake']));
-        $this->assertArrayHasKey('state', $params);
-        $this->assertEquals($params['state'], 'test');
+        $this->assertArrayHasKey('state', $query);
+        $this->assertEquals($query['state'], 'test');
     }
 
     private function getTestServer($config = array())

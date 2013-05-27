@@ -6,16 +6,16 @@
  *  contains a valid token.
  *
  *  ex:
- *  > if (!$resourceController->verifyResourceRequest(OAuth2_Request::createFromGlobals())) {
- *  >     $resourceController->getResponse()->send(); // authorization failed
+ *  > if (!$resourceController->verifyResourceRequest(OAuth2_Request::createFromGlobals(), $response = new OAuth2_Response())) {
+ *  >     $response->send(); // authorization failed
  *  >     die();
  *  > }
  *  > return json_encode($resource); // valid token!  Send the stuff!
  *
  */
-interface OAuth2_Controller_ResourceControllerInterface extends OAuth2_Response_ProviderInterface
+interface OAuth2_Controller_ResourceControllerInterface
 {
-    public function verifyResourceRequest(OAuth2_RequestInterface $request, $scope = null);
+    public function verifyResourceRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response, $scope = null);
 
-    public function getAccessTokenData(OAuth2_RequestInterface $request);
+    public function getAccessTokenData(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response);
 }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  @see OAuth2_Controller_ResourceControllerInterface
+ * @see OAuth2_Controller_ResourceControllerInterface
  */
 class OAuth2_Controller_ResourceController implements OAuth2_Controller_ResourceControllerInterface
 {
@@ -26,52 +26,43 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function verifyResourceRequest(OAuth2_RequestInterface $request, $scope = null)
+    public function verifyResourceRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response, $scope = null)
     {
-        $token_data = $this->getAccessTokenData($request, $scope);
-
-        return (bool) $token_data;
-    }
-
-    public function getAccessTokenData(OAuth2_RequestInterface $request, $scope = null)
-    {
-        // Get the token parameter
-        $token_param = $this->tokenType->getAccessTokenParameter($request);
-        if (is_null($token_param)) {
-            $this->response = $this->tokenType->getResponse();
-            return null;
-        }
-
-        // Get the stored token data (from the implementing subclass)
-        if (!$token = $this->tokenStorage->getAccessToken($token_param)) {
-            $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'The access token provided is invalid', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope);
-            return null;
-        }
-
-        // Check we have a well formed token
-        if (!isset($token["expires"]) || !isset($token["client_id"])) {
-            $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope);
-            return null;
-        }
-
-        // Check token expiration (expires is a mandatory paramter)
-        if (isset($token["expires"]) && time() > $token["expires"]) {
-            $this->response = new OAuth2_Response_AuthenticationError(401, 'invalid_grant', 'The access token provided has expired', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope);
-            return null;
-        }
+        $token = $this->getAccessTokenData($request, $response, $scope);
 
         // Check scope, if provided
         // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
         if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->scopeUtil->checkScope($scope, $token["scope"]))) {
-            $this->response = new OAuth2_Response_AuthenticationError(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope);
+            $response->setError(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token');
+            $response->addHttpHeaders(array('WWW-Authenticate' => sprintf('%s, realm="%s", scope="%s"', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope)));
+            return false;
+        }
+
+        return (bool) $token;
+    }
+
+    public function getAccessTokenData(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    {
+        // Get the token parameter
+        $token_param = $this->tokenType->getAccessTokenParameter($request, $response);
+        if (is_null($token_param)) {
             return null;
         }
 
-        return $token;
-    }
+        // Get the stored token data (from the implementing subclass)
+        // Check we have a well formed token
+        // Check token expiration (expires is a mandatory paramter)
+        if (!$token = $this->tokenStorage->getAccessToken($token_param)) {
+            $response->setError(401, 'invalid_grant', 'The access token provided is invalid', $this->tokenType->getTokenType(), $this->config['www_realm']);
+        } else if (!isset($token["expires"]) || !isset($token["client_id"])) {
+            $response->setError(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")', $this->tokenType->getTokenType(), $this->config['www_realm']);
+        } else if (isset($token["expires"]) && time() > $token["expires"]) {
+            $response->setError(401, 'invalid_grant', 'The access token provided has expired');
+        } else {
+            return $token;
+        }
 
-    public function getResponse()
-    {
-        return $this->response;
+        $response->addHttpHeaders(array('WWW-Authenticate' => sprintf('%s, realm="%"', $this->tokenType->getTokenType(), $this->config['www_realm'])));
+        return null;
     }
 }

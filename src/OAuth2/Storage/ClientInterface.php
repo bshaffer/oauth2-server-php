@@ -4,7 +4,7 @@
  * Implement this interface to specify where the OAuth2 Server
  * should retrieve client information
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 interface OAuth2_Storage_ClientInterface
 {
@@ -18,8 +18,9 @@ interface OAuth2_Storage_ClientInterface
      * Client identifier to be check with.
      *
      * @return array
-     * Client details. Only mandatory item is the "registered redirect URI", and MUST
-     * return FALSE if the given client does not exist or is invalid.
+     * Client details. The only mandatory key in the array is "redirect_uri".
+     * This function MUST return FALSE if the given client does not exist or is
+     * invalid. "redirect_uri" can be space-delimited to allow for multiple valid uris.
      *
      * @ingroup oauth2_section_4
      */

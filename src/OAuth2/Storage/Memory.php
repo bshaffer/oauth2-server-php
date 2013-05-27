@@ -6,7 +6,7 @@
  * NOTE: This class should never be used in production, and is
  * a stub class for example use only
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface,
     OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_AccessTokenInterface,
@@ -20,6 +20,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     private $accessTokens;
     private $jwt;
     private $supportedScopes;
+    private $clientSupportedScopes;
     private $defaultScope;
 
     public function __construct($params = array())
@@ -32,6 +33,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
             'access_tokens' => array(),
             'jwt' => array(),
             'default_scope' => null,
+            'client_supported_scopes' => array(),
             'supported_scopes' => array(),
         ), $params);
 
@@ -42,6 +44,7 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         $this->accessTokens = $params['access_tokens'];
         $this->jwt = $params['jwt'];
         $this->supportedScopes = $params['supported_scopes'];
+        $this->clientSupportedScopes = $params['client_supported_scopes'];
         $this->defaultScope = $params['default_scope'];
     }
 
@@ -76,14 +79,16 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         return isset($this->userCredentials[$username]) && $this->userCredentials[$username] === $password;
     }
 
-    public function setUserCredentials($user_credentials)
-    {
-        return isset($this->userCredentials[$username]) ? $this->userCredentials[$username] : null;
-    }
-
     public function getUserDetails($username)
     {
-        return $this->getUser($username);
+        if (!isset($this->userCredentials[$username])) {
+            return null;
+        }
+
+        return array(
+            'user_id'  => $username,
+            'password' => $this->userCredentials[$username],
+        );
     }
 
     /* ClientCredentialsInterface */
@@ -151,7 +156,14 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     public function scopeExists($scope, $client_id = null)
     {
         $scope = explode(' ', trim($scope));
-        return (count(array_diff($scope, $this->supportedScopes)) == 0);
+
+        if (!is_null($client_id) && array_key_exists($client_id, $this->clientSupportedScopes)) {
+            $allowedScopes = array_merge($this->supportedScopes, $this->clientSupportedScopes[$client_id]);
+        } else {
+            $allowedScopes = $this->supportedScopes;
+        }
+
+        return (count(array_diff($scope, $allowedScopes)) == 0);
     }
 
     public function getDefaultScope()
@@ -163,11 +175,8 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     public function getClientKey($client_id, $subject)
     {
         if (isset($this->jwt[$client_id])) {
-
             $jwt = $this->jwt[$client_id];
-
             if ($jwt) {
-
                 if ($jwt["subject"] == $subject) {
                     return $jwt["key"];
                 }

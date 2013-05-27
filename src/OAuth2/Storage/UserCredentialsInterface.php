@@ -5,11 +5,10 @@
  * should retrieve user credentials for the
  * "Resource Owner Password Credentials" grant type
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
 interface OAuth2_Storage_UserCredentialsInterface
 {
-
     /**
      * Grant access tokens for basic user credentials.
      *
@@ -47,7 +46,6 @@ interface OAuth2_Storage_UserCredentialsInterface
      * @return
      * ARRAY the associated "scope" or "user_id" values if applicable, or an empty array
      * if this does not apply
-     *
      */
     public function getUserDetails($username);
 }
