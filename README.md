@@ -30,7 +30,7 @@ Using [Composer](http://getcomposer.php)? Add the following to `composer.json`:
 
 And then run `composer.phar install`
 
-> It is highly recommended you check out the [`v0.7`](https://github.com/bshaffer/oauth2-server-php/tree/v0.7) tag to
+> It is highly recommended you check out the [`v0.8`](https://github.com/bshaffer/oauth2-server-php/tree/v0.8) tag to
 > ensure your application doesn't break from backwards-compatibility issues, but also this means you
 > will not receive the latest changes.
 
