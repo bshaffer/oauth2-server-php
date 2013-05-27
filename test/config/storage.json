@@ -29,8 +29,12 @@
             "redirect_uri": "http://brentertainment.com"
         },
         "Test Client ID with Multiple Redirect Uris": {
-            "secret": "TestSecret2",
+            "secret": "TestSecret3",
             "redirect_uri": "http://brentertainment.com http://morehazards.com"
+        },
+        "Test Client ID with Redirect Uri Parts": {
+            "secret": "TestSecret4",
+            "redirect_uri": "http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth"
         },
         "Test Some Other Client": {
             "secret": "TestSecret3"
