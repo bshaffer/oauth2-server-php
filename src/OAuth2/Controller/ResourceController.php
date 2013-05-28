@@ -30,6 +30,11 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
     {
         $token = $this->getAccessTokenData($request, $response, $scope);
 
+        // Check if we have token data 
+        if (is_null($token)) {
+            return false;
+        }
+
         // Check scope, if provided
         // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
         if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->scopeUtil->checkScope($scope, $token["scope"]))) {
