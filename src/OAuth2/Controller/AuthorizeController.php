@@ -17,6 +17,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         $this->config = array_merge(array(
             'allow_implicit' => false,
             'enforce_state' => false,
+            'require_exact_redirect_uri' => true,
         ), $config);
 
         if (is_null($scopeUtil)) {
@@ -217,9 +218,17 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
 
         $registered_uris = explode(' ', $registeredUriString);
         foreach ($registered_uris as $registered_uri) {
-            // the url matches the beginning of the registered_uri
-            if (strcasecmp(substr($inputUri, 0, strlen($registered_uri)), $registered_uri) === 0) {
-                return true;
+            if ($this->config['require_exact_redirect_uri']) {
+                // the input uri is validated against the registered uri using exact match
+                if (strcmp($inputUri, $registered_uri) === 0) {
+                    return true;
+                }
+            } else {
+                // the input uri is validated against the registered uri using case-insensitive match of the initial string
+                // i.e. additional query parameters may be applied
+                if (strcasecmp(substr($inputUri, 0, strlen($registered_uri)), $registered_uri) === 0) {
+                    return true;
+                }
             }
         }
         return false;

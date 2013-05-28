@@ -179,21 +179,36 @@ class OAuth2_Controller_Authorize_BasicValidationTest extends PHPUnit_Framework_
         $this->assertEquals($response->getStatusCode(), 302);
     }
 
-    public function testRedirectUriWithInvalidRedirectUri()
+    public function testRedirectUriWithDifferentQueryAndExactMatchRequired()
     {
-        $server = $this->getTestServer();
+        $server = $this->getTestServer(array('require_exact_redirect_uri' => true));
 
         // create a request with no "redirect_uri" in querystring
         $request = OAuth2_Request::createFromGlobals();
         $request->query['client_id'] = 'Test Client ID with Redirect Uri Parts'; // valid client id
         $request->query['response_type'] = 'code';
-        $request->query['redirect_uri'] = 'http://user:pass@brentertainment.com/authorize/cb?auth_type=oauth';
+        $request->query['redirect_uri'] = 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&hereisa=querystring';
 
         $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'redirect_uri_mismatch');
         $this->assertEquals($response->getParameter('error_description'), 'The redirect URI provided is missing or does not match');
+    }
+
+    public function testRedirectUriWithDifferentQueryAndExactMatchNotRequired()
+    {
+        $server = $this->getTestServer(array('require_exact_redirect_uri' => false));
+
+        // create a request with no "redirect_uri" in querystring
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['client_id'] = 'Test Client ID with Redirect Uri Parts'; // valid client id
+        $request->query['response_type'] = 'code';
+        $request->query['redirect_uri'] = 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&hereisa=querystring';
+
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+
+        $this->assertEquals($response->getStatusCode(), 302);
     }
 
     public function testMultipleRedirectUris()

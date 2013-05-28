@@ -89,6 +89,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             'token_param_name'         => 'access_token',
             'token_bearer_header_name' => 'Bearer',
             'enforce_state'            => false,
+            'require_exact_redirect_uri' => true,
             'allow_implicit'           => false,
         ), $config);
 
@@ -360,7 +361,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         if (0 == count($this->responseTypes)) {
             $this->responseTypes = $this->getDefaultResponseTypes();
         }
-        $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state')));
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state require_exact_redirect_uri')));
         return new OAuth2_Controller_AuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->getScopeUtil());
     }
 
