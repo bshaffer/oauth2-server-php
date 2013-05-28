@@ -33,10 +33,13 @@ class OAuth2_GrantType_UserCredentials implements OAuth2_GrantTypeInterface
 
         $userInfo = $this->storage->getUserDetails($request->request("username"));
 
-        // userInfo can be an empty array
-        if (false === $userInfo || is_null($userInfo)) {
+        if (empty($userInfo)) {
             $response->setError(400, 'invalid_grant', 'Unable to retrieve user information');
             return null;
+        }
+
+        if (!isset($userInfo['user_id'])) {
+            throw new LogicException("you must set the user_id on the array returned by getUserDetails");
         }
 
         $this->userInfo = $userInfo;
