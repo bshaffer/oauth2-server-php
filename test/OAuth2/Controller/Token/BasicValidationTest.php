@@ -118,11 +118,11 @@ class OAuth2_Controller_Token_BasicValidationTest extends PHPUnit_Framework_Test
         // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request_TestRequest::createPost(array(
-                'grant_type' => 'authorization_code', // valid grant type
-                'code'       => 'testcode',
-                'client_id' => 'Test Client ID', // valid client id
-                'client_secret' => 'TestSecret', // valid client secret
-                'scope' => 'clientscope1 clientscope2 scope1 scope2 scope3'
+            'grant_type' => 'authorization_code', // valid grant type
+            'code'       => 'testcode',
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'scope' => 'clientscope1 clientscope2 scope1 scope2 scope3'
         ));
         $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
@@ -137,11 +137,11 @@ class OAuth2_Controller_Token_BasicValidationTest extends PHPUnit_Framework_Test
         // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request_TestRequest::createPost(array(
-                'grant_type' => 'authorization_code', // valid grant type
-                'code'       => 'testcode',
-                'client_id' => 'Test Client ID', // valid client id
-                'client_secret' => 'TestSecret', // valid client secret
-                'scope' => 'clientscope3 scope1'
+            'grant_type' => 'authorization_code', // valid grant type
+            'code'       => 'testcode',
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'scope' => 'clientscope3 scope1'
         ));
         $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
