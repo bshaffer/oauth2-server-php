@@ -1,8 +1,9 @@
 <?php
 
 /**
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
+ *
+ * @see OAuth2_ClientAssertionType_HttpBasic
  */
 class OAuth2_GrantType_ClientCredentials extends OAuth2_ClientAssertionType_HttpBasic implements OAuth2_GrantTypeInterface
 {

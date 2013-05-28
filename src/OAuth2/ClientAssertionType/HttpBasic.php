@@ -13,10 +13,10 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
 
     public function __construct(OAuth2_Storage_ClientCredentialsInterface $storage, array $config = array())
     {
+        $this->storage = $storage;
         $this->config = array_merge(array(
             'allow_credentials_in_request_body' => true
         ), $config);
-        $this->storage = $storage;
     }
 
     public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
@@ -60,8 +60,8 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
      * A list containing the client identifier and password, for example
      * @code
      * return array(
-     * CLIENT_ID,
-     * CLIENT_SECRET
+     *     "client_id"     => CLIENT_ID,        // REQUIRED the client id
+     *     "client_secret" => CLIENT_SECRET,    // REQUIRED the client secret
      * );
      * @endcode
      *

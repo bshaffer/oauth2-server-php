@@ -17,7 +17,6 @@ interface OAuth2_Controller_TokenControllerInterface
      *
      * @param $request
      * OAuth2_RequestInterface - The current http request
-     *
      * @param $response
      * OAuth2_ResponseInterface - An instance of OAuth2_ResponseInterface to contain the response data
      *

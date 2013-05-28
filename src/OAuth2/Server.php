@@ -46,31 +46,19 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      * @param mixed $storage
      * array - array of Objects to implement storage
      * OAuth2_Storage object implementing all required storage types (ClientCredentialsInterface and AccessTokenInterface as a minimum)
-     *
      * @param array $config
      * specify a different token lifetime, token header name, etc
-     *
      * @param array $grantTypes
      * An array of OAuth2_GrantTypeInterface to use for granting access tokens
-     *
      * @param array $responseTypes
      * Response types to use.  array keys should be "code" and and "token" for
      * Access Token and Authorization Code response types
-     *
      * @param OAuth2_TokenTypeInterface $tokenType
      * The token type object to use. Valid token types are "bearer" and "mac"
-     *
      * @param OAuth2_ScopeInterface $scopeUtil
      * The scope utility class to use to validate scope
-     *
      * @param OAuth2_ClientAssertionTypeInterface $clientAssertionType
      * The method in which to verify the client identity.  Default is HttpBasic
-     *
-     * @return
-     * TRUE if everything in required scope is contained in available scope,
-     * and FALSE if it isn't.
-     *
-     * @see http://tools.ietf.org/html/rfc6749#section-7
      *
      * @ingroup oauth2_section_7
      */
@@ -205,10 +193,8 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      * list of space-delimited strings.
      * - state: (optional) An opaque value used by the client to maintain
      * state between the request and callback.
-     *
      * @param $is_authorized
      * TRUE or FALSE depending on whether the user authorized the access.
-     *
      * @param $user_id
      * Identifier of user who authorized the client
      *
@@ -282,9 +268,9 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      *
      * @param $storage
      * An object implementing one of the Storage interfaces
-     *
      * @param $key
      * If null, the storage is set to the key of each storage interface it implements
+     *
      * @see storageMap
      */
     public function addStorage($storage, $key = null)

@@ -38,9 +38,9 @@ interface OAuth2_Storage_AccessTokenInterface
      * Client identifier to be stored.
      * @param $user_id
      * User identifier to be stored.
-     * @param $expires
-     * Expiration to be stored.
-     * @param $scope
+     * @param int $expires
+     * Expiration to be stored as a Unix timestamp.
+     * @param string $scope
      * (optional) Scopes to be stored in space-separated string.
      *
      * @ingroup oauth2_section_4

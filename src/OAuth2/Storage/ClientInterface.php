@@ -21,6 +21,13 @@ interface OAuth2_Storage_ClientInterface
      * Client details. The only mandatory key in the array is "redirect_uri".
      * This function MUST return FALSE if the given client does not exist or is
      * invalid. "redirect_uri" can be space-delimited to allow for multiple valid uris.
+     * @code
+     * return array(
+     *     "redirect_uri" => REDIRECT_URI,      // REQUIRED redirect_uri registered for the client
+     *     "client_id"    => CLIENT_ID,         // OPTIONAL the client id
+     *     "grant_types"  => GRANT_TYPES,       // OPTIONAL an array of restricted grant types
+     * );
+     * @endcode
      *
      * @ingroup oauth2_section_4
      */

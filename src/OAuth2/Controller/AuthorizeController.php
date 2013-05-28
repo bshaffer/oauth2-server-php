@@ -13,21 +13,18 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
     /**
      * @param OAuth2_Storage_ClientInterface $clientStorage
      * REQUIRED Instance of OAuth2_Storage_ClientInterface to retrieve client information
-     *
      * @param array $responseTypes
      * OPTIONAL Array of OAuth2_ResponseTypeInterface objects.  Valid array
      * keys are "code" and "token"
-     *
      * @param array $config
      * OPTIONAL Configuration options for the server
-     * <code>
+     * @code
      * $config = array(
      *   'allow_implicit' => false,            // if the controller should allow the "implicit" grant type
      *   'enforce_state'  => true              // if the controller should require the "state" parameter
      *   'require_exact_redirect_uri' => true, // if the controller should require an exact match on the "redirect_uri" parameter
      * );
-     * </code>
-     *
+     * @endcode
      * @param OAuth2_ScopeInterface $scopeUtil
      * OPTIONAL Instance of OAuth2_ScopeInterface to validate the requested scope
      */
@@ -224,7 +221,6 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
      *
      * @param string $inputUri
      * The submitted URI to be validated
-     *
      * @param string $registeredUriString
      * The allowed URI(s) to validate against.  Can be a space-delimited string of URIs to
      * allow for multiple URIs
