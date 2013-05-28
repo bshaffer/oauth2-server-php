@@ -10,13 +10,34 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
     private $config;
     private $scopeUtil;
 
+    /**
+     * @param OAuth2_Storage_ClientInterface $clientStorage
+     * REQUIRED Instance of OAuth2_Storage_ClientInterface to retrieve client information
+     *
+     * @param array $responseTypes
+     * OPTIONAL Array of OAuth2_ResponseTypeInterface objects.  Valid array
+     * keys are "code" and "token"
+     *
+     * @param array $config
+     * OPTIONAL Configuration options for the server
+     * <code>
+     * $config = array(
+     *   'allow_implicit' => false,            // if the controller should allow the "implicit" grant type
+     *   'enforce_state'  => true              // if the controller should require the "state" parameter
+     *   'require_exact_redirect_uri' => true, // if the controller should require an exact match on the "redirect_uri" parameter
+     * );
+     * </code>
+     *
+     * @param OAuth2_ScopeInterface $scopeUtil
+     * OPTIONAL Instance of OAuth2_ScopeInterface to validate the requested scope
+     */
     public function __construct(OAuth2_Storage_ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), OAuth2_ScopeInterface $scopeUtil = null)
     {
         $this->clientStorage = $clientStorage;
         $this->responseTypes = $responseTypes;
         $this->config = array_merge(array(
             'allow_implicit' => false,
-            'enforce_state' => false,
+            'enforce_state'  => true,
             'require_exact_redirect_uri' => true,
         ), $config);
 

@@ -27,6 +27,7 @@ class OAuth2_Controller_Authorize_ImplicitTest extends PHPUnit_Framework_TestCas
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
         $request->query['response_type'] = 'token'; // valid response type
+        $request->query['state'] = 'xyz';
         $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 302);
@@ -45,6 +46,7 @@ class OAuth2_Controller_Authorize_ImplicitTest extends PHPUnit_Framework_TestCas
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
         $request->query['response_type'] = 'token'; // valid response type
+        $request->query['state'] = 'xyz';
         $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);

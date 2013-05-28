@@ -88,7 +88,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             'www_realm'                => 'Service',
             'token_param_name'         => 'access_token',
             'token_bearer_header_name' => 'Bearer',
-            'enforce_state'            => false,
+            'enforce_state'            => true,
             'require_exact_redirect_uri' => true,
             'allow_implicit'           => false,
         ), $config);

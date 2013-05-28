@@ -190,7 +190,12 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         $server = new OAuth2_Server();
         $server->addStorage($storage);
         $server->addResponseType($codeType);
-        $request = new OAuth2_Request(array('response_type' => 'code', 'client_id' => 'some_client', 'redirect_uri' => 'http://example.com'));
+        $request = new OAuth2_Request(array(
+            'response_type' => 'code',
+            'client_id' => 'some_client',
+            'redirect_uri' => 'http://example.com',
+            'state' => 'xyx',
+        ));
         $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         // the response is successful
@@ -203,7 +208,12 @@ class OAuth2_ServerTest extends PHPUnit_Framework_TestCase
         // add with the "code" key not set
         $codeType = new OAuth2_ResponseType_AuthorizationCode($storage);
         $server = new OAuth2_Server(array($storage), array(), array(), array($codeType));
-        $request = new OAuth2_Request(array('response_type' => 'code', 'client_id' => 'some_client', 'redirect_uri' => 'http://example.com'));
+        $request = new OAuth2_Request(array(
+            'response_type' => 'code',
+            'client_id' => 'some_client',
+            'redirect_uri' => 'http://example.com',
+            'state' => 'xyx',
+        ));
         $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         // the response is successful

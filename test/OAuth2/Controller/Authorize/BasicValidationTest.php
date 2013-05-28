@@ -104,6 +104,23 @@ class OAuth2_Controller_Authorize_BasicValidationTest extends PHPUnit_Framework_
         $this->assertEquals($query['error_description'], 'The state parameter is required');
     }
 
+    public function testDoNotEnforceState()
+    {
+        $server = $this->getTestServer(array('enforce_state' => false));
+        $request = OAuth2_Request::createFromGlobals();
+        $request->query['client_id'] = 'Test Client ID'; // valid client id
+        $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
+        $request->query['response_type'] = 'code';
+        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+
+        $this->assertEquals($response->getStatusCode(), 302);
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
+
+        $this->assertFalse(isset($query['error']));
+    }
+
     public function testEnforceScope()
     {
         $server = $this->getTestServer();
@@ -114,6 +131,7 @@ class OAuth2_Controller_Authorize_BasicValidationTest extends PHPUnit_Framework_
         $request->query['client_id'] = 'Test Client ID'; // valid client id
         $request->query['redirect_uri'] = 'http://adobe.com'; // valid redirect URI
         $request->query['response_type'] = 'code';
+        $request->query['state'] = 'xyz';
         $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
