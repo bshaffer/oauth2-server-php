@@ -30,7 +30,7 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
     {
         $token = $this->getAccessTokenData($request, $response, $scope);
 
-        // Check if we have token data 
+        // Check if we have token data
         if (is_null($token)) {
             return false;
         }
@@ -39,7 +39,15 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
         // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
         if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->scopeUtil->checkScope($scope, $token["scope"]))) {
             $response->setError(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token');
-            $response->addHttpHeaders(array('WWW-Authenticate' => sprintf('%s, realm="%s", scope="%s"', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope)));
+            $response->addHttpHeaders(array(
+                'WWW-Authenticate' => sprintf('%s realm="%s", scope="%s", error="%s", error_description="%s"',
+                    $this->tokenType->getTokenType(),
+                    $this->config['www_realm'],
+                    $scope,
+                    $response->getParameter('error'),
+                    $response->getParameter('error_description')
+                )
+            ));
             return false;
         }
 
@@ -67,12 +75,14 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
             return $token;
         }
 
-        $response->addHttpHeaders(array('WWW-Authenticate' => sprintf('%s realm="%s", error="%s", error_description="%s"',
-          $this->tokenType->getTokenType(),
-          $this->config['www_realm'],
-          $response->getParameter('error'),
-          $response->getParameter('error_description')))
-        );
+        $response->addHttpHeaders(array(
+            'WWW-Authenticate' => sprintf('%s realm="%s", error="%s", error_description="%s"',
+                $this->tokenType->getTokenType(),
+                $this->config['www_realm'],
+                $response->getParameter('error'),
+                $response->getParameter('error_description')
+            )
+        ));
         return null;
     }
 }
