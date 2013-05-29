@@ -7,6 +7,10 @@ class OAuth2_Scope implements OAuth2_ScopeInterface
 {
     private $storage;
 
+    /**
+     * @param mixed @storage
+     * Either an array of supported scopes, or an instance of OAuth2_Storage_ScopeInterface
+     */
     public function __construct($storage = null)
     {
         if (is_null($storage) || is_array($storage)) {
