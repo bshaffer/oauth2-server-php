@@ -35,10 +35,13 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
             return false;
         }
 
-        // Check scope, if provided
-        // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
+        /**
+         * Check scope, if provided
+         * If token doesn't have a scope, it's null/empty, or it's insufficient, then throw 403
+         * @see http://tools.ietf.org/html/rfc6750#section-3.1
+         */
         if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->scopeUtil->checkScope($scope, $token["scope"]))) {
-            $response->setError(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token');
+            $response->setError(403, 'insufficient_scope', 'The request requires higher privileges than provided by the access token');
             $response->addHttpHeaders(array(
                 'WWW-Authenticate' => sprintf('%s realm="%s", scope="%s", error="%s", error_description="%s"',
                     $this->tokenType->getTokenType(),

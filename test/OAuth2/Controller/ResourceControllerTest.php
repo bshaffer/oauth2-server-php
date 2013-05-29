@@ -105,9 +105,14 @@ class OAuth2_Controller_ResourceControllerTest extends PHPUnit_Framework_TestCas
         $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response(), $scope);
         $this->assertFalse($allow);
 
-        $this->assertEquals($response->getStatusCode(), 401);
+        $this->assertEquals($response->getStatusCode(), 403);
         $this->assertEquals($response->getParameter('error'), 'insufficient_scope');
         $this->assertEquals($response->getParameter('error_description'), 'The request requires higher privileges than provided by the access token');
+
+        // verify the "scope" has been set in the "WWW-Authenticate" header
+        preg_match('/scope="(.*?)"/', $response->getHttpHeader('WWW-Authenticate'), $matches);
+        $this->assertEquals(2, count($matches));
+        $this->assertEquals($matches[1], 'outofscope');
     }
 
     public function testMalformedToken()
