@@ -58,16 +58,21 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
         // Check we have a well formed token
         // Check token expiration (expires is a mandatory paramter)
         if (!$token = $this->tokenStorage->getAccessToken($token_param)) {
-            $response->setError(401, 'invalid_grant', 'The access token provided is invalid', $this->tokenType->getTokenType(), $this->config['www_realm']);
+            $response->setError(401, 'invalid_grant', 'The access token provided is invalid');
         } else if (!isset($token["expires"]) || !isset($token["client_id"])) {
-            $response->setError(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")', $this->tokenType->getTokenType(), $this->config['www_realm']);
+            $response->setError(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")');
         } else if (isset($token["expires"]) && time() > $token["expires"]) {
             $response->setError(401, 'invalid_grant', 'The access token provided has expired');
         } else {
             return $token;
         }
 
-        $response->addHttpHeaders(array('WWW-Authenticate' => sprintf('%s, realm="%"', $this->tokenType->getTokenType(), $this->config['www_realm'])));
+        $response->addHttpHeaders(array('WWW-Authenticate' => sprintf('%s realm="%s", error="%s", error_description="%s"',
+          $this->tokenType->getTokenType(),
+          $this->config['www_realm'],
+          $response->getParameter('error'),
+          $response->getParameter('error_description')))
+        );
         return null;
     }
 }
