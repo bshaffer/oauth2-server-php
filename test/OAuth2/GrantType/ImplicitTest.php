@@ -1,6 +1,6 @@
 <?php
 
-class OAuth2_Controller_Authorize_ImplicitTest extends PHPUnit_Framework_TestCase
+class OAuth2_GrantType_ImplicitTest extends PHPUnit_Framework_TestCase
 {
     public function testImplicitNotAllowedResponse()
     {
@@ -125,7 +125,7 @@ class OAuth2_Controller_Authorize_ImplicitTest extends PHPUnit_Framework_TestCas
 
     private function getTestServer($config = array())
     {
-        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));
+        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../config/storage.json'), true));
         $server = new OAuth2_Server($storage, $config);
 
         // Add the two types supported for authorization grant

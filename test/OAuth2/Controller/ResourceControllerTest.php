@@ -1,6 +1,6 @@
 <?php
 
-class OAuth2_Controller_Resource_BasicValidationTest extends PHPUnit_Framework_TestCase
+class OAuth2_Controller_ResourceControllerTest extends PHPUnit_Framework_TestCase
 {
     public function testNoAccessToken()
     {
