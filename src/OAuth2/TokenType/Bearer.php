@@ -53,7 +53,7 @@ class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface
             return null;
         }
         if ($methodsUsed == 0) {
-            $response->setError(400, 'invalid_request', 'The access token was not found');
+            $response->setStatusCode(401);
             return null;
         }
 
