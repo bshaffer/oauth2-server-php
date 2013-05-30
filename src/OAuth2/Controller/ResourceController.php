@@ -68,7 +68,7 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
                 $response->setError(401, 'invalid_grant', 'The access token provided is invalid');
             } else if (!isset($token["expires"]) || !isset($token["client_id"])) {
                 $response->setError(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")');
-            } else if (isset($token["expires"]) && time() > $token["expires"]) {
+            } else if (time() > $token["expires"]) {
                 $response->setError(401, 'invalid_grant', 'The access token provided has expired');
             } else {
                 return $token;
