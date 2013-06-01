@@ -1,11 +1,15 @@
 <?php
 
+namespace OAuth2;
+
+use OAuth2\Storage\ScopeInterface as ScopeStorageInterface;
+
 /**
  * Class to handle scope implementation logic
  *
  * @see OAuth2_Storage_ScopeInterface
  */
-interface OAuth2_ScopeInterface extends OAuth2_Storage_ScopeInterface
+interface ScopeInterface extends ScopeStorageInterface
 {
     /**
      * Check if everything in required scope is contained in available scope.
@@ -32,5 +36,5 @@ interface OAuth2_ScopeInterface extends OAuth2_Storage_ScopeInterface
      * @return
      * string representation of requested scope
      */
-    public function getScopeFromRequest(OAuth2_RequestInterface $request);
+    public function getScopeFromRequest(RequestInterface $request);
 }

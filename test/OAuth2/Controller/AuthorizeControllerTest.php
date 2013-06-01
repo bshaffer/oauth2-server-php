@@ -1,12 +1,22 @@
 <?php
 
-class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCase
+namespace OAuth2\Controller;
+
+use OAuth2\Storage\Memory;
+use OAuth2\Scope;
+use OAuth2\Storage\Bootstrap;
+use OAuth2\Server;
+use OAuth2\GrantType\AuthorizationCode;
+use OAuth2\Request;
+use OAuth2\Response;
+
+class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 {
     public function testNoClientIdResponse()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request();
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
+        $request = new Request();
+        $server->handleAuthorizeRequest($request, $response = new Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_client');
@@ -16,10 +26,10 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testInvalidClientIdResponse()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Fake Client ID', // invalid client id
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
+        $server->handleAuthorizeRequest($request, $response = new Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_client');
@@ -29,10 +39,10 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testNoRedirectUriSuppliedOrStoredResponse()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
+        $server->handleAuthorizeRequest($request, $response = new Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_uri');
@@ -42,11 +52,11 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testNoResponseTypeResponse()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com', // valid redirect URI
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
+        $server->handleAuthorizeRequest($request, $response = new Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -60,12 +70,12 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testInvalidResponseTypeResponse()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com', // valid redirect URI
             'response_type' => 'invalid', // invalid response type
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
+        $server->handleAuthorizeRequest($request, $response = new Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -79,12 +89,12 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testRedirectUriFragmentResponse()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com#fragment', // valid redirect URI
             'response_type' => 'code', // invalid response type
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_uri');
@@ -94,12 +104,12 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testEnforceState()
     {
         $server = $this->getTestServer(array('enforce_state' => true));
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com', // valid redirect URI
             'response_type' => 'code',
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -113,12 +123,12 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testDoNotEnforceState()
     {
         $server = $this->getTestServer(array('enforce_state' => false));
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com', // valid redirect URI
             'response_type' => 'code',
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -131,16 +141,16 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testEnforceScope()
     {
         $server = $this->getTestServer();
-        $scopeStorage = new OAuth2_Storage_Memory(array('default_scope' => false, 'supported_scopes' => array('testscope')));
-        $server->setScopeUtil(new OAuth2_Scope($scopeStorage));
+        $scopeStorage = new Memory(array('default_scope' => false, 'supported_scopes' => array('testscope')));
+        $server->setScopeUtil(new Scope($scopeStorage));
 
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com', // valid redirect URI
             'response_type' => 'code',
             'state' => 'xyz',
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $parts = parse_url($response->getHttpHeader('Location'));
@@ -150,7 +160,7 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
         $this->assertEquals($query['error_description'], 'This application requires you specify a scope parameter');
 
         $request->query['scope'] = 'testscope';
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $parts = parse_url($response->getHttpHeader('Location'));
@@ -163,12 +173,12 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testInvalidRedirectUri()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID with Redirect Uri', // valid client id
             'redirect_uri' => 'http://adobe.com', // invalid redirect URI
             'response_type' => 'code',
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'redirect_uri_mismatch');
@@ -180,12 +190,12 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
         $server = $this->getTestServer();
 
         // create a request with no "redirect_uri" in querystring
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID with Multiple Redirect Uris', // valid client id
             'response_type' => 'code',
         ));
 
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_uri');
@@ -197,13 +207,13 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
         $server = $this->getTestServer();
 
         // create a request with no "redirect_uri" in querystring
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID with Redirect Uri Parts', // valid client id
             'response_type' => 'code',
             'redirect_uri' => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth',
         ));
 
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
     }
@@ -213,13 +223,13 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
         $server = $this->getTestServer(array('require_exact_redirect_uri' => true));
 
         // create a request with no "redirect_uri" in querystring
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID with Redirect Uri Parts', // valid client id
             'response_type' => 'code',
             'redirect_uri' => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&hereisa=querystring',
         ));
 
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'redirect_uri_mismatch');
@@ -231,13 +241,13 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
         $server = $this->getTestServer(array('require_exact_redirect_uri' => false));
 
         // create a request with no "redirect_uri" in querystring
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID with Redirect Uri Parts', // valid client id
             'response_type' => 'code',
             'redirect_uri' => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&hereisa=querystring',
         ));
 
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
     }
@@ -245,32 +255,32 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testMultipleRedirectUris()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID with Multiple Redirect Uris', // valid client id
             'redirect_uri' => 'http://brentertainment.com', // valid redirect URI
             'response_type' => 'code',
         ));
 
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
         $this->assertEquals($response->getStatusCode(), 302);
 
         // call again with different (but still valid) redirect URI
         $request->query['redirect_uri'] = 'http://morehazards.com';
 
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
         $this->assertEquals($response->getStatusCode(), 302);
     }
 
     public function testUserDeniesAccessResponse()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com', // valid redirect URI
             'response_type' => 'code',
             'state' => 'xyz',
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
+        $server->handleAuthorizeRequest($request, $response = new Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -284,13 +294,13 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testCodeQueryParamIsSet()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id'     => 'Test Client ID', // valid client id
             'redirect_uri'  => 'http://adobe.com', // valid redirect URI
             'response_type' => 'code',
             'state'         => 'xyz',
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -318,13 +328,13 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testSuccessfulRequestReturnsStateParameter()
     {
         $server = $this->getTestServer(array('allow_implicit' => true));
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id'     => 'Test Client ID', // valid client id
             'redirect_uri'  => 'http://adobe.com', // valid redirect URI
             'response_type' => 'code',
             'state'         => 'test', // valid state string (just needs to be passed back to us)
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
 
@@ -344,14 +354,14 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
     public function testSuccessfulRequestStripsExtraParameters()
     {
         $server = $this->getTestServer(array('allow_implicit' => true));
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id'     => 'Test Client ID', // valid client id
             'redirect_uri'  => 'http://adobe.com', // valid redirect URI
             'response_type' => 'code',
             'state'         => 'test',      // valid state string (just needs to be passed back to us)
             'fake'          => 'something', // extra query param
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $this->assertNull($response->getParameter('error'));
@@ -369,11 +379,11 @@ class OAuth2_Controller_AuthorizeControllerTest extends PHPUnit_Framework_TestCa
 
     private function getTestServer($config = array())
     {
-        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
-        $server = new OAuth2_Server($storage, $config);
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server = new Server($storage, $config);
 
         // Add the two types supported for authorization grant
-        $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
+        $server->addGrantType(new AuthorizationCode($storage));
 
         return $server;
     }

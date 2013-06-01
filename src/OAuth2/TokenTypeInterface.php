@@ -1,6 +1,8 @@
 <?php
 
-interface OAuth2_TokenTypeInterface
+namespace OAuth2;
+
+interface TokenTypeInterface
 {
     /**
      * Token type identification string
@@ -12,5 +14,5 @@ interface OAuth2_TokenTypeInterface
     /**
      * Retrieves the token string from the request object
      */
-    public function getAccessTokenParameter(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response);
+    public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response);
 }

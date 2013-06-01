@@ -1,10 +1,14 @@
 <?php
 
+namespace OAuth2\ResponseType;
+
+use OAuth2\ResponseTypeInterface;
+
 /**
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface OAuth2_ResponseType_AuthorizationCodeInterface extends OAuth2_ResponseTypeInterface
+interface AuthorizationCodeInterface extends ResponseTypeInterface
 {
     /**
      * @return

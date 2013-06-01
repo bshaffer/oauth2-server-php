@@ -1,24 +1,29 @@
 <?php
 
+namespace OAuth2;
+
+use OAuth2\Storage\Memory;
+use OAuth2\Storage\ScopeInterface as ScopeStorageInterface;
+
 /**
 * @see OAuth2_ScopeInterface
 */
-class OAuth2_Scope implements OAuth2_ScopeInterface
+class Scope implements ScopeInterface
 {
     private $storage;
 
     /**
      * @param mixed @storage
-     * Either an array of supported scopes, or an instance of OAuth2_Storage_ScopeInterface
+     * Either an array of supported scopes, or an instance of OAuth2\Storage\ScopeInterface
      */
     public function __construct($storage = null)
     {
         if (is_null($storage) || is_array($storage)) {
-            $storage = new OAuth2_Storage_Memory((array) $storage);
+            $storage = new Memory((array) $storage);
         }
 
-        if (!$storage instanceof OAuth2_Storage_ScopeInterface) {
-            throw new InvalidArgumentException("Argument 1 to OAuth2_Scope must be null, an array, or instance of OAuth2_Storage_ScopeInterface");
+        if (!$storage instanceof ScopeStorageInterface) {
+            throw new \InvalidArgumentException("Argument 1 to OAuth2\Scope must be null, an array, or instance of OAuth2\Storage\ScopeInterface");
         }
 
         $this->storage = $storage;
@@ -61,7 +66,7 @@ class OAuth2_Scope implements OAuth2_ScopeInterface
         return $this->storage->scopeExists($scope, $client_id);
     }
 
-    public function getScopeFromRequest(OAuth2_RequestInterface $request)
+    public function getScopeFromRequest(RequestInterface $request)
     {
         // "scope" is valid if passed in either POST or QUERY
         return $request->request('scope', $request->query('scope'));

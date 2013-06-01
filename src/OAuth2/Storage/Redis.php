@@ -1,4 +1,7 @@
 <?php
+
+namespace OAuth2\Storage;
+
 /**
  * redis storage for all storage types
  *
@@ -8,12 +11,12 @@
  *  $storage->registerClient($client_id, $client_secret, $redirect_uri);
  * </code>
  */
-class OAuth2_Storage_Redis implements OAuth2_Storage_AuthorizationCodeInterface,
-    OAuth2_Storage_AccessTokenInterface,
-    OAuth2_Storage_ClientCredentialsInterface,
-    OAuth2_Storage_UserCredentialsInterface,
-    OAuth2_Storage_RefreshTokenInterface,
-    OAuth2_Storage_JWTBearerInterface
+class Redis implements AuthorizationCodeInterface,
+    AccessTokenInterface,
+    ClientCredentialsInterface,
+    UserCredentialsInterface,
+    RefreshTokenInterface,
+    JWTBearerInterface
 {
     private $redis;
     private $config;

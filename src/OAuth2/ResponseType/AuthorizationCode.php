@@ -1,15 +1,19 @@
 <?php
 
+namespace OAuth2\ResponseType;
+
+use OAuth2\Storage\AuthorizationCodeInterface as AuthorizationCodeStorageInterface;
+
 /**
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_ResponseType_AuthorizationCode implements OAuth2_ResponseType_AuthorizationCodeInterface
+class AuthorizationCode implements AuthorizationCodeInterface
 {
     private $storage;
     private $config;
 
-    public function __construct(OAuth2_Storage_AuthorizationCodeInterface $storage, array $config = array())
+    public function __construct(AuthorizationCodeStorageInterface $storage, array $config = array())
     {
         $this->storage = $storage;
         $this->config = array_merge(array(

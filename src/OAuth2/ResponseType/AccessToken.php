@@ -1,15 +1,20 @@
 <?php
 
+namespace OAuth2\ResponseType;
+
+use OAuth2\Storage\AccessTokenInterface as AccessTokenStorageInterface;
+use OAuth2\Storage\RefreshTokenInterface;
+
 /**
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_ResponseType_AccessToken implements OAuth2_ResponseType_AccessTokenInterface
+class AccessToken implements AccessTokenInterface
 {
     private $tokenStorage;
     private $refreshStorage;
 
-    public function __construct(OAuth2_Storage_AccessTokenInterface $tokenStorage, OAuth2_Storage_RefreshTokenInterface $refreshStorage = null, array $config = array())
+    public function __construct(AccessTokenStorageInterface $tokenStorage, RefreshTokenInterface $refreshStorage = null, array $config = array())
     {
         $this->tokenStorage = $tokenStorage;
         $this->refreshStorage = $refreshStorage;

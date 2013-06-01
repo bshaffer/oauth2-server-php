@@ -1,5 +1,7 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Implement this interface to specify where the OAuth2 Server
  * should retrieve user credentials for the
@@ -7,7 +9,7 @@
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface OAuth2_Storage_UserCredentialsInterface
+interface UserCredentialsInterface
 {
     /**
      * Grant access tokens for basic user credentials.

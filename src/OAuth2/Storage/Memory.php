@@ -1,5 +1,7 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Simple in-memory storage for all storage types
  *
@@ -8,10 +10,13 @@
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface,
-    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_AccessTokenInterface,
-    OAuth2_Storage_ClientCredentialsInterface, OAuth2_Storage_RefreshTokenInterface,
-    OAuth2_Storage_JWTBearerInterface, OAuth2_Storage_ScopeInterface
+class Memory implements AuthorizationCodeInterface,
+    UserCredentialsInterface,
+    AccessTokenInterface,
+    ClientCredentialsInterface,
+    RefreshTokenInterface,
+    JwtBearerInterface,
+    ScopeInterface
 {
     private $authorizationCodes;
     private $userCredentials;

@@ -1,11 +1,12 @@
 <?php
 
+namespace OAuth2;
+
 /**
  * Interface for all OAuth2 Client Assertion Types
- *
- * @see OAuth2_CompatibilityInterface
  */
-interface OAuth2_ClientAssertionTypeInterface extends OAuth2_CompatibilityInterface
+interface ClientAssertionTypeInterface
 {
-
+    public function validateRequest(RequestInterface $request, ResponseInterface $response);
+    public function getClientId();
 }

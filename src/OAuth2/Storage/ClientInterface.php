@@ -1,12 +1,14 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Implement this interface to specify where the OAuth2 Server
  * should retrieve client information
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface OAuth2_Storage_ClientInterface
+interface ClientInterface
 {
     /**
      * Get client details corresponding client_id.

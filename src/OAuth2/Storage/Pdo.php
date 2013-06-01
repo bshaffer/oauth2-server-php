@@ -1,5 +1,7 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Simple PDO storage for all storage types
  *
@@ -12,33 +14,36 @@
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
-    OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface,
-    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_RefreshTokenInterface, OAuth2_Storage_JWTBearerInterface
+class Pdo implements AuthorizationCodeInterface,
+    AccessTokenInterface,
+    ClientCredentialsInterface,
+    UserCredentialsInterface,
+    RefreshTokenInterface,
+    JwtBearerInterface
 {
     protected $db;
     protected $config;
 
     public function __construct($connection, $config = array())
     {
-        if (!$connection instanceof PDO) {
+        if (!$connection instanceof \PDO) {
             if (!is_array($connection)) {
-                throw new InvalidArgumentException('First argument to OAuth2_Storage_Pdo must be an instance of PDO or a configuration array');
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Pdo must be an instance of PDO or a configuration array');
             }
             if (!isset($connection['dsn'])) {
-                throw new InvalidArgumentException('configuration array must contain "dsn"');
+                throw new \InvalidArgumentException('configuration array must contain "dsn"');
             }
             // merge optional parameters
             $connection = array_merge(array(
                 'username' => null,
                 'password' => null,
             ), $connection);
-            $connection = new PDO($connection['dsn'], $connection['username'], $connection['password']);
+            $connection = new \PDO($connection['dsn'], $connection['username'], $connection['password']);
         }
         $this->db = $connection;
 
         // debugging
-        $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',

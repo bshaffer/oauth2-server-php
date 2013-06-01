@@ -1,10 +1,14 @@
 <?php
 
+namespace OAuth2\ResponseType;
+
+use OAuth2\ResponseTypeInterface;
+
 /**
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface OAuth2_ResponseType_AccessTokenInterface extends OAuth2_ResponseTypeInterface
+interface AccessTokenInterface extends ResponseTypeInterface
 {
     /**
      * Handle the creation of access token, also issue refresh token if supported / desirable.

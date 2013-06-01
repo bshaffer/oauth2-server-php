@@ -1,11 +1,17 @@
 <?php
 
+namespace OAuth2\GrantType;
+
+use OAuth2\ClientAssertionType\HttpBasic;
+use OAuth2\GrantTypeInterface;
+use OAuth2\ResponseType\AccessTokenInterface;
+
 /**
  * @author Brent Shaffer <bshafs at gmail dot com>
  *
  * @see OAuth2_ClientAssertionType_HttpBasic
  */
-class OAuth2_GrantType_ClientCredentials extends OAuth2_ClientAssertionType_HttpBasic implements OAuth2_GrantTypeInterface
+class ClientCredentials extends HttpBasic implements GrantTypeInterface
 {
     public function getQuerystringIdentifier()
     {
@@ -22,7 +28,7 @@ class OAuth2_GrantType_ClientCredentials extends OAuth2_ClientAssertionType_Http
         return null;
     }
 
-    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
+    public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
         /*
          * Client Credentials Grant does NOT include a refresh token
