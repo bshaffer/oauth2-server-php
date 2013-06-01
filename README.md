@@ -227,7 +227,7 @@ $response->send();
 Now paste the following URL in your browser
 
 ```
-http://localhost/authorize.php?response_type=code&client_id=testclient
+http://localhost/authorize.php?response_type=code&client_id=testclient&state=xyz
 ```
 
 You will be prompted with an authorization form, and receive an authorization code upon clicking "yes"
@@ -472,10 +472,23 @@ if (!$server->verifyResourceRequest($request, $response, $scopeRequired)) {
 As the implementation of "scope" can be significantly different for each application, providing a different class other than
 OAuth2_Scope can be beneficial.  Implement `OAuth2_ScopeInterface` in a custom class to fully customize.
 
-Acknowledgements
-----------------
+State
+-----
 
-This library is largely inspired and modified from [Quizlet's OAuth2 PHP library](https://github.com/quizlet/oauth2-php)
+The `state` parameter is required by default for authorize redirects.  This is the equivalent of a `CSRF` token, and provides
+session validation for your Authorize request.  See the [OAuth2.0 Spec](http://tools.ietf.org/html/rfc6749#section-4.1.1)
+for more information on state.
+
+This is enabled by default for security purposes, but you can remove this requirement when you configure your server:
+
+```php
+// on creation
+$server = new OAuth2_Server($storage, array('enforce_state' => false));
+
+// or after creation
+$server = new OAuth2_Server();
+$server->setConfig('enforce_state', false);
+```
 
 Contact
 -------
