@@ -62,7 +62,7 @@ class OAuth2_GrantType_ClientCredentialsTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
+        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
     }
 
     public function testValidCredentialsInHeader()

@@ -140,7 +140,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
                 return false;
             }
             if ($this->responseTypes['code']->enforceRedirect() && !$redirect_uri) {
-                $response->setError(400, 'redirect_uri_mismatch', 'The redirect URI is mandatory and was not supplied.');
+                $response->setError(400, 'redirect_uri_mismatch', 'The redirect URI is mandatory and was not supplied');
                 return false;
             }
         }
