@@ -22,8 +22,9 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     protected $resourceController;
 
     // config classes
-    protected $responseTypes;
     protected $grantTypes;
+    protected $responseTypes;
+    protected $tokenType;
     protected $scopeUtil;
     protected $clientAssertionType;
 
