@@ -461,4 +461,54 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     {
         return $this->response;
     }
+
+    public function getStorages()
+    {
+        return $this->storages;
+    }
+
+    public function getStorage($name)
+    {
+        return isset($this->storages[$name]) ? $this->storages[$name] : null;
+    }
+
+    public function getGrantTypes()
+    {
+        return $this->grantTypes;
+    }
+
+    public function getGrantType($name)
+    {
+        return isset($this->grantTypes[$name]) ? $this->grantTypes[$name] : null;
+    }
+
+    public function getResponseTypes()
+    {
+        return $this->responseTypes;
+    }
+
+    public function getResponseType($name)
+    {
+        return isset($this->responseTypes[$name]) ? $this->responseTypes[$name] : null;
+    }
+
+    public function getTokenType()
+    {
+        return $this->tokenType;
+    }
+
+    public function getClientAssertionType()
+    {
+        return $this->clientAssertionType;
+    }
+
+    public function setConfig($name, $value)
+    {
+        $this->config[$name] = $value;
+    }
+
+    public function getConfig($name, $default = null)
+    {
+        return isset($this->config[$name]) ? $this->config[$name] : $default;
+    }
 }
