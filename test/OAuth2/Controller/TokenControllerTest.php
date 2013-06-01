@@ -55,7 +55,21 @@ class OAuth2_Controller_TokenControllerTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getParameter('error_description'), 'Client credentials were not found in the headers or body');
+        $this->assertEquals($response->getParameter('error_description'), 'The client credentials are invalid');
+    }
+
+    public function testNoClientSecretWithEmptySecret()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code', // valid grant type
+            'code'       => 'testcode-empty-secret',
+            'client_id' => 'Test Client ID Empty Secret', // valid client id
+        ));
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
+
+        $this->assertEquals($response->getStatusCode(), 200);
     }
 
     public function testInvalidClientId()

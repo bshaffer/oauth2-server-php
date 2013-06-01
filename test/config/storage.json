@@ -18,6 +18,12 @@
             "user_id": "",
             "redirect_uri": "",
             "expires": "1356998400"
+        },
+        "testcode-empty-secret": {
+            "client_id": "Test Client ID Empty Secret",
+            "user_id": "",
+            "redirect_uri": "",
+            "expires": "9999999999"
         }
     },
     "client_credentials" : {
@@ -38,6 +44,9 @@
         },
         "Test Some Other Client": {
             "secret": "TestSecret3"
+        },
+        "Test Client ID Empty Secret": {
+            "secret": ""
         }
     },
     "user_credentials" : {
