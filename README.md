@@ -177,7 +177,9 @@ If all goes well, you should receive a response like this:
 ### Create an Authorize Controller
 
 Authorize Controllers are the "killer feature" of OAuth2, and allow for your users to authorize
-third party applications.  Here is an example of an authorize controller in `authorize.php`:
+third party applications.  Instead of issuing an authorization token straightaway as happened in
+the first token controller example, in this example an authorize controller is used to only issue
+a token once the user has authorized the request. Create `authorize.php`:
 
 ```php
 // error reporting again
@@ -233,7 +235,8 @@ http://localhost/authorize.php?response_type=code&client_id=testclient&state=xyz
 You will be prompted with an authorization form, and receive an authorization code upon clicking "yes"
 
 > Note: The Authorization Code can now be used to receive an access token from your previously
-> created `token.php` endpoint.  Just add the following grant type to `token.php`:
+> created `token.php` endpoint.  Just add the following grant type to `token.php` in place of
+> the previous ClientCredentials grant type:
 > ```php
 > $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
 > ```
@@ -241,6 +244,18 @@ You will be prompted with an authorization form, and receive an authorization co
 > ```bash
 > curl -u testclient:testpass http://localhost/token.php -d 'grant_type=authorization_code&redirect_uri=http://fake/&code=YOUR_CODE'
 > ```
+
+As with the first example, you should be able to run
+
+```bash
+curl http://localhost/resource.php -d 'access_token=YOUR_TOKEN'
+```
+
+And receive the same response:
+
+```json
+{"success":true,"message":"You accessed my APIs!"}
+```
 
 Grant Types
 -----------
