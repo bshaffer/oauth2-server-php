@@ -78,11 +78,11 @@ check out the [OAuth2 Demo](https://github.com/bshaffer/oauth2-demo-php).
 The quickest way to get started is to use the following schema to create the default database:
 
 ```sql
-CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT);
-CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
-CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires TIMESTAMP, scope TEXT);
-CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT);
-CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
+CREATE TABLE `oauth_clients` (`client_id` varchar(255) NOT NULL, `client_secret` varchar(255) NOT NULL, `redirect_uri` text NOT NULL, UNIQUE KEY `client_id` (`client_id`));
+CREATE TABLE `oauth_access_tokens` (`access_token` varchar(255) NOT NULL, `client_id` TEXT, `user_id` TEXT, `expires` TIMESTAMP, `scope` TEXT, UNIQUE KEY `access_token` (`access_token`));
+CREATE TABLE `oauth_authorization_codes` (`authorization_code` varchar(255) NOT NULL, `client_id` TEXT, `user_id` TEXT, `redirect_uri` TEXT, `expires` TIMESTAMP, `scope` TEXT, UNIQUE KEY `authorization_code` (`authorization_code`));
+CREATE TABLE `oauth_users` (`username` varchar(255) NOT NULL, `password` TEXT, `first_name` TEXT, `last_name` TEXT, UNIQUE KEY `username` (`username`) );
+CREATE TABLE `oauth_refresh_tokens` (`refresh_token` varchar(255) NOT NULL, `client_id` TEXT, `user_id` TEXT, `expires` TIMESTAMP, `scope` TEXT, UNIQUE KEY `refresh_token` (`refresh_token`));
 ```
 
 ### Create a Token Controller
