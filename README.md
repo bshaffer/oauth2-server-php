@@ -77,12 +77,14 @@ check out the [OAuth2 Demo](https://github.com/bshaffer/oauth2-demo-php).
 
 The quickest way to get started is to use the following schema to create the default database:
 
+##### Tested with: MySQL/SQLite
+
 ```sql
-CREATE TABLE `oauth_clients` (`client_id` varchar(255) NOT NULL, `client_secret` varchar(255) NOT NULL, `redirect_uri` text NOT NULL, UNIQUE KEY `client_id` (`client_id`));
-CREATE TABLE `oauth_access_tokens` (`access_token` varchar(255) NOT NULL, `client_id` TEXT, `user_id` TEXT, `expires` TIMESTAMP, `scope` TEXT, UNIQUE KEY `access_token` (`access_token`));
-CREATE TABLE `oauth_authorization_codes` (`authorization_code` varchar(255) NOT NULL, `client_id` TEXT, `user_id` TEXT, `redirect_uri` TEXT, `expires` TIMESTAMP, `scope` TEXT, UNIQUE KEY `authorization_code` (`authorization_code`));
-CREATE TABLE `oauth_users` (`username` varchar(255) NOT NULL, `password` TEXT, `first_name` TEXT, `last_name` TEXT, UNIQUE KEY `username` (`username`) );
-CREATE TABLE `oauth_refresh_tokens` (`refresh_token` varchar(255) NOT NULL, `client_id` TEXT, `user_id` TEXT, `expires` TIMESTAMP, `scope` TEXT, UNIQUE KEY `refresh_token` (`refresh_token`));
+CREATE TABLE oauth_clients ( client_id VARCHAR(80) NOT NULL, client_secret VARCHAR(80) NOT NULL, redirect_uri VARCHAR(2000)  NOT NULL, PRIMARY KEY (client_id));
+CREATE TABLE oauth_access_tokens (access_token VARCHAR(40) NOT NULL, client_id VARCHAR(80) NOT NULL, user_id INT UNSIGNED, expires TIMESTAMP NOT NULL,scope VARCHAR(2000), PRIMARY KEY (access_token));
+CREATE TABLE oauth_authorization_codes (authorization_code VARCHAR(40) NOT NULL, client_id VARCHAR(80) NOT NULL, user_id INT UNSIGNED, redirect_uri VARCHAR(2000) NOT NULL, expires TIMESTAMP NOT NULL, scope VARCHAR(2000), PRIMARY KEY (authorization_code) );
+CREATE TABLE oauth_refresh_tokens ( refresh_token VARCHAR(40) NOT NULL, client_id VARCHAR(80) NOT NULL, user_id INT UNSIGNED, expires TIMESTAMP NOT NULL, scope VARCHAR(2000), PRIMARY KEY (refresh_token));
+CREATE TABLE oauth_users (username varchar(255) NOT NULL, password TEXT, first_name TEXT, last_name TEXT, PRIMARY KEY (username) );
 ```
 
 ### Create a Token Controller
