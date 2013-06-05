@@ -179,14 +179,14 @@ class Server implements ResourceControllerInterface,
      *
      * @ingroup oauth2_section_4
      */
-    public function handleTokenRequest(RequestInterface $request, ResponseInterface $response)
+    public function handleTokenRequest(RequestInterface $request, ResponseInterface $response = null)
     {
         $this->response = is_null($response) ? new Response() : $response;
         $this->getTokenController()->handleTokenRequest($request, $this->response);
         return $this->response;
     }
 
-    public function grantAccessToken(RequestInterface $request, ResponseInterface $response)
+    public function grantAccessToken(RequestInterface $request, ResponseInterface $response = null)
     {
         $this->response = is_null($response) ? new Response() : $response;
         $value = $this->getTokenController()->grantAccessToken($request, $this->response);
@@ -223,7 +223,7 @@ class Server implements ResourceControllerInterface,
      */
     public function handleAuthorizeRequest(RequestInterface $request, ResponseInterface $response, $is_authorized, $user_id = null)
     {
-        $this->response = is_null($response) ? new Response() : $response;
+        $this->response = $response;
         $this->getAuthorizeController()->handleAuthorizeRequest($request, $this->response, $is_authorized, $user_id);
         return $this->response;
     }
@@ -247,21 +247,21 @@ class Server implements ResourceControllerInterface,
      *
      * @ingroup oauth2_section_3
      */
-    public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response)
+    public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response = null)
     {
         $this->response = is_null($response) ? new Response() : $response;
         $value = $this->getAuthorizeController()->validateAuthorizeRequest($request, $this->response);
         return $value;
     }
 
-    public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response, $scope = null)
+    public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response = null, $scope = null)
     {
         $this->response = is_null($response) ? new Response() : $response;
         $value = $this->getResourceController()->verifyResourceRequest($request, $this->response, $scope);
         return $value;
     }
 
-    public function getAccessTokenData(RequestInterface $request, ResponseInterface $response)
+    public function getAccessTokenData(RequestInterface $request, ResponseInterface $response = null)
     {
         $this->response = is_null($response) ? new Response() : $response;
         $value = $this->getResourceController()->getAccessTokenData($request, $this->response);
