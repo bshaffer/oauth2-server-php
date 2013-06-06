@@ -2,7 +2,7 @@
 
 namespace OAuth2\Controller;
 
-use OAuth2\TokenTypeInterface;
+use OAuth2\TokenType\TokenTypeInterface;
 use OAuth2\Storage\AccessTokenInterface;
 use OAuth2\ScopeInterface;
 use OAuth2\RequestInterface;

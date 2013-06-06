@@ -2,8 +2,7 @@
 
 namespace OAuth2\GrantType;
 
-use OAuth2\GrantTypeInterface;
-use OAuth2\ClientAssertionTypeInterface;
+use OAuth2\ClientAssertionType\ClientAssertionTypeInterface;
 use OAuth2\Storage\JwtBearerInterface;
 use OAuth2\Encryption\Jwt;
 use OAuth2\ResponseType\AccessTokenInterface;

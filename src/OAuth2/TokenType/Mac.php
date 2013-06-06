@@ -2,7 +2,6 @@
 
 namespace OAuth2\TokenType;
 
-use OAuth2\TokenTypeInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 
@@ -18,7 +17,6 @@ class Mac implements TokenTypeInterface
 
     public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response)
     {
-        throw new LogicException("Not supported");
-
+        throw new \LogicException("Not supported");
     }
 }

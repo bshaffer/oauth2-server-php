@@ -1,6 +1,6 @@
 <?php
 
-namespace OAuth2;
+namespace OAuth2\ResponseType;
 
 interface ResponseTypeInterface
 {

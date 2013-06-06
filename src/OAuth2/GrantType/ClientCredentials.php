@@ -3,7 +3,6 @@
 namespace OAuth2\GrantType;
 
 use OAuth2\ClientAssertionType\HttpBasic;
-use OAuth2\GrantTypeInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
 
 /**

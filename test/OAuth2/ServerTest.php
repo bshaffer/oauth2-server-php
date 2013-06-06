@@ -238,7 +238,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
             'code' => 'testcode',
         ));
         // verify the mock clientAssertionType was called as expected
-        $clientAssertionType = $this->getMock('OAuth2\ClientAssertionTypeInterface', array('validateRequest', 'getClientId'));
+        $clientAssertionType = $this->getMock('OAuth2\ClientAssertionType\ClientAssertionTypeInterface', array('validateRequest', 'getClientId'));
         $clientAssertionType
             ->expects($this->once())
             ->method('validateRequest')
@@ -260,7 +260,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
     public function testAddingUnknownResponseTypeThrowsException()
     {
         $server = new Server();
-        $server->addResponseType($this->getMock('OAuth2\ResponseTypeInterface'));
+        $server->addResponseType($this->getMock('OAuth2\ResponseType\ResponseTypeInterface'));
     }
 
 }

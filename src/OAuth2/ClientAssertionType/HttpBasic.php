@@ -2,8 +2,7 @@
 
 namespace OAuth2\ClientAssertionType;
 
-use OAuth2\ClientAssertionTypeInterface;
-use OAuth2\Storage\ClientCredentialsInterface as ClientCredentialsStorageInterface;
+use OAuth2\Storage\ClientCredentialsInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 
@@ -18,7 +17,7 @@ class HttpBasic implements ClientAssertionTypeInterface
     private $config;
     private $clientData;
 
-    public function __construct(ClientCredentialsStorageInterface $storage, array $config = array())
+    public function __construct(ClientCredentialsInterface $storage, array $config = array())
     {
         $this->storage = $storage;
         $this->config = array_merge(array(

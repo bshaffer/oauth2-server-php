@@ -3,10 +3,10 @@
 namespace OAuth2\Controller;
 
 use OAuth2\ResponseType\AccessTokenInterface;
-use OAuth2\ClientAssertionTypeInterface;
+use OAuth2\ClientAssertionType\ClientAssertionTypeInterface;
+use OAuth2\GrantType\GrantTypeInterface;
 use OAuth2\ScopeInterface;
 use OAuth2\Scope;
-use OAuth2\GrantTypeInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 

@@ -2,8 +2,6 @@
 
 namespace OAuth2\ResponseType;
 
-use OAuth2\ResponseTypeInterface;
-
 /**
  *
  * @author Brent Shaffer <bshafs at gmail dot com>

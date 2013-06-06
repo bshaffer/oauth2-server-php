@@ -1,6 +1,9 @@
 <?php
 
-namespace OAuth2;
+namespace OAuth2\ClientAssertionType;
+
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
 
 /**
  * Interface for all OAuth2 Client Assertion Types

@@ -1,8 +1,10 @@
 <?php
 
-namespace OAuth2;
+namespace OAuth2\GrantType;
 
 use OAuth2\ResponseType\AccessTokenInterface;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
 
 /**
  * Interface for all OAuth2 Grant Types

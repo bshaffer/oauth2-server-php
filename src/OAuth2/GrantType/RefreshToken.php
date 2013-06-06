@@ -2,7 +2,6 @@
 
 namespace OAuth2\GrantType;
 
-use OAuth2\GrantTypeInterface;
 use OAuth2\Storage\RefreshTokenInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
 use OAuth2\RequestInterface;

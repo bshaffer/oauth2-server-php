@@ -2,7 +2,6 @@
 
 namespace OAuth2\TokenType;
 
-use OAuth2\TokenTypeInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 

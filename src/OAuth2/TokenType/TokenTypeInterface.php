@@ -1,6 +1,9 @@
 <?php
 
-namespace OAuth2;
+namespace OAuth2\TokenType;
+
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
 
 interface TokenTypeInterface
 {
