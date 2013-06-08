@@ -1,6 +1,6 @@
 <?php
 
-class OAuth2_Controller_Token_BasicValidationTest extends PHPUnit_Framework_TestCase
+class OAuth2_Controller_TokenControllerTest extends PHPUnit_Framework_TestCase
 {
     public function testNoGrantType()
     {
@@ -55,7 +55,21 @@ class OAuth2_Controller_Token_BasicValidationTest extends PHPUnit_Framework_Test
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getParameter('error_description'), 'Client credentials were not found in the headers or body');
+        $this->assertEquals($response->getParameter('error_description'), 'The client credentials are invalid');
+    }
+
+    public function testNoClientSecretWithEmptySecret()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer();
+        $request = OAuth2_Request_TestRequest::createPost(array(
+            'grant_type' => 'authorization_code', // valid grant type
+            'code'       => 'testcode-empty-secret',
+            'client_id' => 'Test Client ID Empty Secret', // valid client id
+        ));
+        $server->handleTokenRequest($request, $response = new OAuth2_Response());
+
+        $this->assertEquals($response->getStatusCode(), 200);
     }
 
     public function testInvalidClientId()
@@ -118,11 +132,11 @@ class OAuth2_Controller_Token_BasicValidationTest extends PHPUnit_Framework_Test
         // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request_TestRequest::createPost(array(
-                'grant_type' => 'authorization_code', // valid grant type
-                'code'       => 'testcode',
-                'client_id' => 'Test Client ID', // valid client id
-                'client_secret' => 'TestSecret', // valid client secret
-                'scope' => 'clientscope1 clientscope2 scope1 scope2 scope3'
+            'grant_type' => 'authorization_code', // valid grant type
+            'code'       => 'testcode',
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'scope' => 'clientscope1 clientscope2 scope1 scope2 scope3'
         ));
         $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
@@ -137,17 +151,17 @@ class OAuth2_Controller_Token_BasicValidationTest extends PHPUnit_Framework_Test
         // add the test parameters in memory
         $server = $this->getTestServer();
         $request = OAuth2_Request_TestRequest::createPost(array(
-                'grant_type' => 'authorization_code', // valid grant type
-                'code'       => 'testcode',
-                'client_id' => 'Test Client ID', // valid client id
-                'client_secret' => 'TestSecret', // valid client secret
-                'scope' => 'clientscope3 scope1'
+            'grant_type' => 'authorization_code', // valid grant type
+            'code'       => 'testcode',
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'scope' => 'clientscope3 scope1'
         ));
         $server->handleTokenRequest($request, $response = new OAuth2_Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
+        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
     }
 
     private function getTestServer()

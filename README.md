@@ -3,7 +3,7 @@ oauth2-server-php
 
 [![Build Status](https://secure.travis-ci.org/bshaffer/oauth2-server-php.png)](http://travis-ci.org/bshaffer/oauth2-server-php)
 
-An OAuth2.0 Server in PHP! [View the Full Working Demo](http://brentertainment.com/oauth2) ([code](https://github.com/bshaffer/oauth2-server-demo))
+An OAuth2.0 Server in PHP! [View the Full Working Demo](http://brentertainment.com/oauth2) ([code](https://github.com/bshaffer/oauth2-demo-php))
 
 Installation
 ------------
@@ -37,7 +37,7 @@ And then run `composer.phar install`
 Learning OAuth2.0
 -----------------
 
-If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo Application](http://brentertainment.com/oauth2) and the [source code](https://github.com/bshaffer/oauth2-server-demo), and read up on [OAuth2 Flows](http://drupal.org/node/1958718).  For everything else, consult the [OAuth2.0 Specification](http://tools.ietf.org/html/rfc6749)
+If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo Application](http://brentertainment.com/oauth2) and the [source code](https://github.com/bshaffer/oauth2-demo-php), and read up on [OAuth2 Flows](http://drupal.org/node/1958718).  For everything else, consult the [OAuth2.0 Specification](http://tools.ietf.org/html/rfc6749)
 
 Get Started
 -----------
@@ -71,18 +71,28 @@ Step-by-Step Walkthrough
 
 The following instructions provide a detailed walkthrough to help you get an OAuth2 server
 up and running.  To see the codebase of an existing OAuth2 server implementing this library,
-check out the [OAuth2 Demo](https://github.com/bshaffer/oauth2-server-demo).
+check out the [OAuth2 Demo](https://github.com/bshaffer/oauth2-demo-php).
 
 ### Define your Schema
 
 The quickest way to get started is to use the following schema to create the default database:
 
+##### MySQL / SQLite / PostgreSQL / MS SQL Server
 ```sql
-CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT);
-CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
-CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires TIMESTAMP, scope TEXT);
-CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT);
-CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT);
+CREATE TABLE oauth_clients ( client_id VARCHAR(80) NOT NULL, client_secret VARCHAR(80) NOT NULL, redirect_uri VARCHAR(2000)  NOT NULL, CONSTRAINT client_id_pk PRIMARY KEY (client_id));
+CREATE TABLE oauth_access_tokens (access_token VARCHAR(40) NOT NULL, client_id VARCHAR(80) NOT NULL, user_id VARCHAR(255), expires TIMESTAMP NOT NULL,scope VARCHAR(2000), CONSTRAINT access_token_pk PRIMARY KEY (access_token));
+CREATE TABLE oauth_authorization_codes (authorization_code VARCHAR(40) NOT NULL, client_id VARCHAR(80) NOT NULL, user_id VARCHAR(255), redirect_uri VARCHAR(2000) NOT NULL, expires TIMESTAMP NOT NULL, scope VARCHAR(2000), CONSTRAINT auth_code_pk PRIMARY KEY (authorization_code));
+CREATE TABLE oauth_refresh_tokens ( refresh_token VARCHAR(40) NOT NULL, client_id VARCHAR(80) NOT NULL, user_id VARCHAR(255), expires TIMESTAMP NOT NULL, scope VARCHAR(2000), CONSTRAINT refresh_token_pk PRIMARY KEY (refresh_token));
+CREATE TABLE oauth_users (username VARCHAR(255) NOT NULL, password VARCHAR(2000), first_name VARCHAR(255), last_name VARCHAR(255), CONSTRAINT username_pk PRIMARY KEY (username));
+```
+
+##### Oracle:
+```sql
+CREATE TABLE oauth_clients ( client_id VARCHAR2(80) NOT NULL, client_secret VARCHAR2(80) NOT NULL, redirect_uri VARCHAR2(2000)  NOT NULL, CONSTRAINT client_id_pk PRIMARY KEY (client_id));
+CREATE TABLE oauth_access_tokens (access_token VARCHAR2(40) NOT NULL, client_id VARCHAR2(80) NOT NULL, user_id VARCHAR2(255), expires TIMESTAMP NOT NULL,scope VARCHAR2(2000), CONSTRAINT access_token_pk PRIMARY KEY (access_token));
+CREATE TABLE oauth_authorization_codes (authorization_code VARCHAR2(40) NOT NULL, client_id VARCHAR2(80) NOT NULL, user_id VARCHAR2(255), redirect_uri VARCHAR2(2000) NOT NULL, expires TIMESTAMP NOT NULL, scope VARCHAR2(2000), CONSTRAINT auth_code_pk PRIMARY KEY (authorization_code));
+CREATE TABLE oauth_refresh_tokens ( refresh_token VARCHAR2(40) NOT NULL, client_id VARCHAR2(80) NOT NULL, user_id VARCHAR2(255), expires TIMESTAMP NOT NULL, scope VARCHAR2(2000), CONSTRAINT refresh_token_pk PRIMARY KEY (refresh_token));
+CREATE TABLE oauth_users (username VARCHAR2(255) NOT NULL, password VARCHAR2(2000), first_name VARCHAR2(255), last_name VARCHAR2(255), CONSTRAINT username_pk PRIMARY KEY (username));
 ```
 
 ### Create a Token Controller
@@ -227,7 +237,7 @@ $response->send();
 Now paste the following URL in your browser
 
 ```
-http://localhost/authorize.php?response_type=code&client_id=testclient
+http://localhost/authorize.php?response_type=code&client_id=testclient&state=xyz
 ```
 
 You will be prompted with an authorization form, and receive an authorization code upon clicking "yes"
@@ -472,10 +482,23 @@ if (!$server->verifyResourceRequest($request, $response, $scopeRequired)) {
 As the implementation of "scope" can be significantly different for each application, providing a different class other than
 OAuth2_Scope can be beneficial.  Implement `OAuth2_ScopeInterface` in a custom class to fully customize.
 
-Acknowledgements
-----------------
+State
+-----
 
-This library is largely inspired and modified from [Quizlet's OAuth2 PHP library](https://github.com/quizlet/oauth2-php)
+The `state` parameter is required by default for authorize redirects.  This is the equivalent of a `CSRF` token, and provides
+session validation for your Authorize request.  See the [OAuth2.0 Spec](http://tools.ietf.org/html/rfc6749#section-4.1.1)
+for more information on state.
+
+This is enabled by default for security purposes, but you can remove this requirement when you configure your server:
+
+```php
+// on creation
+$server = new OAuth2_Server($storage, array('enforce_state' => false));
+
+// or after creation
+$server = new OAuth2_Server();
+$server->setConfig('enforce_state', false);
+```
 
 Contact
 -------

@@ -18,6 +18,12 @@
             "user_id": "",
             "redirect_uri": "",
             "expires": "1356998400"
+        },
+        "testcode-empty-secret": {
+            "client_id": "Test Client ID Empty Secret",
+            "user_id": "",
+            "redirect_uri": "",
+            "expires": "9999999999"
         }
     },
     "client_credentials" : {
@@ -29,11 +35,18 @@
             "redirect_uri": "http://brentertainment.com"
         },
         "Test Client ID with Multiple Redirect Uris": {
-            "secret": "TestSecret2",
+            "secret": "TestSecret3",
             "redirect_uri": "http://brentertainment.com http://morehazards.com"
+        },
+        "Test Client ID with Redirect Uri Parts": {
+            "secret": "TestSecret4",
+            "redirect_uri": "http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth"
         },
         "Test Some Other Client": {
             "secret": "TestSecret3"
+        },
+        "Test Client ID Empty Secret": {
+            "secret": ""
         }
     },
     "user_credentials" : {

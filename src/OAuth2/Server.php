@@ -22,8 +22,9 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     protected $resourceController;
 
     // config classes
-    protected $responseTypes;
     protected $grantTypes;
+    protected $responseTypes;
+    protected $tokenType;
     protected $scopeUtil;
     protected $clientAssertionType;
 
@@ -46,31 +47,19 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      * @param mixed $storage
      * array - array of Objects to implement storage
      * OAuth2_Storage object implementing all required storage types (ClientCredentialsInterface and AccessTokenInterface as a minimum)
-     *
      * @param array $config
      * specify a different token lifetime, token header name, etc
-     *
      * @param array $grantTypes
      * An array of OAuth2_GrantTypeInterface to use for granting access tokens
-     *
      * @param array $responseTypes
      * Response types to use.  array keys should be "code" and and "token" for
      * Access Token and Authorization Code response types
-     *
      * @param OAuth2_TokenTypeInterface $tokenType
      * The token type object to use. Valid token types are "bearer" and "mac"
-     *
      * @param OAuth2_ScopeInterface $scopeUtil
      * The scope utility class to use to validate scope
-     *
      * @param OAuth2_ClientAssertionTypeInterface $clientAssertionType
      * The method in which to verify the client identity.  Default is HttpBasic
-     *
-     * @return
-     * TRUE if everything in required scope is contained in available scope,
-     * and FALSE if it isn't.
-     *
-     * @see http://tools.ietf.org/html/rfc6749#section-7
      *
      * @ingroup oauth2_section_7
      */
@@ -88,7 +77,8 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
             'www_realm'                => 'Service',
             'token_param_name'         => 'access_token',
             'token_bearer_header_name' => 'Bearer',
-            'enforce_state'            => false,
+            'enforce_state'            => true,
+            'require_exact_redirect_uri' => true,
             'allow_implicit'           => false,
         ), $config);
 
@@ -204,10 +194,8 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      * list of space-delimited strings.
      * - state: (optional) An opaque value used by the client to maintain
      * state between the request and callback.
-     *
      * @param $is_authorized
      * TRUE or FALSE depending on whether the user authorized the access.
-     *
      * @param $user_id
      * Identifier of user who authorized the client
      *
@@ -281,9 +269,9 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
      *
      * @param $storage
      * An object implementing one of the Storage interfaces
-     *
      * @param $key
      * If null, the storage is set to the key of each storage interface it implements
+     *
      * @see storageMap
      */
     public function addStorage($storage, $key = null)
@@ -360,7 +348,7 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
         if (0 == count($this->responseTypes)) {
             $this->responseTypes = $this->getDefaultResponseTypes();
         }
-        $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state')));
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state require_exact_redirect_uri')));
         return new OAuth2_Controller_AuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->getScopeUtil());
     }
 
@@ -472,5 +460,55 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
     public function getResponse()
     {
         return $this->response;
+    }
+
+    public function getStorages()
+    {
+        return $this->storages;
+    }
+
+    public function getStorage($name)
+    {
+        return isset($this->storages[$name]) ? $this->storages[$name] : null;
+    }
+
+    public function getGrantTypes()
+    {
+        return $this->grantTypes;
+    }
+
+    public function getGrantType($name)
+    {
+        return isset($this->grantTypes[$name]) ? $this->grantTypes[$name] : null;
+    }
+
+    public function getResponseTypes()
+    {
+        return $this->responseTypes;
+    }
+
+    public function getResponseType($name)
+    {
+        return isset($this->responseTypes[$name]) ? $this->responseTypes[$name] : null;
+    }
+
+    public function getTokenType()
+    {
+        return $this->tokenType;
+    }
+
+    public function getClientAssertionType()
+    {
+        return $this->clientAssertionType;
+    }
+
+    public function setConfig($name, $value)
+    {
+        $this->config[$name] = $value;
+    }
+
+    public function getConfig($name, $default = null)
+    {
+        return isset($this->config[$name]) ? $this->config[$name] : $default;
     }
 }

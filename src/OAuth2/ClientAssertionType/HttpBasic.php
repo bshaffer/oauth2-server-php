@@ -13,10 +13,10 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
 
     public function __construct(OAuth2_Storage_ClientCredentialsInterface $storage, array $config = array())
     {
+        $this->storage = $storage;
         $this->config = array_merge(array(
             'allow_credentials_in_request_body' => true
         ), $config);
-        $this->storage = $storage;
     }
 
     public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
@@ -60,8 +60,8 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
      * A list containing the client identifier and password, for example
      * @code
      * return array(
-     * CLIENT_ID,
-     * CLIENT_SECRET
+     *     "client_id"     => CLIENT_ID,        // REQUIRED the client id
+     *     "client_secret" => CLIENT_SECRET,    // REQUIRED the client secret
      * );
      * @endcode
      *
@@ -77,8 +77,12 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
 
         if ($this->config['allow_credentials_in_request_body']) {
             // Using POST for HttpBasic authorization is not recommended, but is supported by specification
-            if (!is_null($request->request('client_id')) && !is_null($request->request('client_secret'))) {
-                return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
+            if (!is_null($request->request('client_id'))) {
+                /**
+                 * client_secret can be null if the client's password is an empty string
+                 * @see http://tools.ietf.org/html/rfc6749#section-2.3.1
+                 */
+                return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret', ''));
             }
         }
 

@@ -10,13 +10,32 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
     private $config;
     private $scopeUtil;
 
+    /**
+     * @param OAuth2_Storage_ClientInterface $clientStorage
+     * REQUIRED Instance of OAuth2_Storage_ClientInterface to retrieve client information
+     * @param array $responseTypes
+     * OPTIONAL Array of OAuth2_ResponseTypeInterface objects.  Valid array
+     * keys are "code" and "token"
+     * @param array $config
+     * OPTIONAL Configuration options for the server
+     * @code
+     * $config = array(
+     *   'allow_implicit' => false,            // if the controller should allow the "implicit" grant type
+     *   'enforce_state'  => true              // if the controller should require the "state" parameter
+     *   'require_exact_redirect_uri' => true, // if the controller should require an exact match on the "redirect_uri" parameter
+     * );
+     * @endcode
+     * @param OAuth2_ScopeInterface $scopeUtil
+     * OPTIONAL Instance of OAuth2_ScopeInterface to validate the requested scope
+     */
     public function __construct(OAuth2_Storage_ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), OAuth2_ScopeInterface $scopeUtil = null)
     {
         $this->clientStorage = $clientStorage;
         $this->responseTypes = $responseTypes;
         $this->config = array_merge(array(
             'allow_implicit' => false,
-            'enforce_state' => false,
+            'enforce_state'  => true,
+            'require_exact_redirect_uri' => true,
         ), $config);
 
         if (is_null($scopeUtil)) {
@@ -66,36 +85,40 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
             return false;
         }
 
-        $clientData += array('redirect_uri' => null); // this should be set.  We should create ClientData interface
-        if ($clientData === false) {
-            $response->setError(400, 'invalid_client', "Client id does not exist");
-            return false;
-        }
+        $registered_redirect_uri = isset($clientData['redirect_uri']) ? $clientData['redirect_uri'] : '';
 
         // Make sure a valid redirect_uri was supplied. If specified, it must match the clientData URI.
         // @see http://tools.ietf.org/html/rfc6749#section-3.1.2
         // @see http://tools.ietf.org/html/rfc6749#section-4.1.2.1
         // @see http://tools.ietf.org/html/rfc6749#section-4.2.2.1
-        if (!($redirect_uri = $request->query('redirect_uri')) && !($redirect_uri = $clientData['redirect_uri'])) {
-            $response->setError(400, 'invalid_uri', 'No redirect URI was supplied or stored');
-            return false;
-        }
+        if ($redirect_uri = $request->query('redirect_uri')) {
+            // validate there is no fragment supplied
+            $parts = parse_url($redirect_uri);
+            if (isset($parts['fragment']) && $parts['fragment']) {
+                $response->setError(400, 'invalid_uri', 'The redirect URI must not contain a fragment');
+                return false;
+            }
 
-        $parts = parse_url($redirect_uri);
+            // validate against the registered redirect uri(s) if available
+            if ($registered_redirect_uri && !$this->validateRedirectUri($redirect_uri, $registered_redirect_uri)) {
+                $response->setError(400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match', '#section-3.1.2');
+                return false;
+            }
+        } else {
+            // use the registered redirect_uri if none has been supplied, if possible
+            if (!$registered_redirect_uri) {
+                $response->setError(400, 'invalid_uri', 'No redirect URI was supplied or stored');
+                return false;
+            }
 
-        if (isset($parts['fragment']) && $parts['fragment']) {
-            $response->setError(400, 'invalid_uri', 'The redirect URI must not contain a fragment');
-            return false;
-        }
-
-        // Only need to validate if redirect_uri provided on input and clientData.
-        if ($clientData["redirect_uri"] && $redirect_uri && !$this->validateRedirectUri($redirect_uri, $clientData["redirect_uri"])) {
-            $response->setError(400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match');
-            return false;
+            if (count(explode(' ', $registered_redirect_uri)) > 1) {
+                $response->setError(400, 'invalid_uri', 'A redirect URI must be supplied when multiple redirect URIs are registered', '#section-3.1.2.3');
+                return false;
+            }
+            $redirect_uri = $registered_redirect_uri;
         }
 
         // Select the redirect URI
-        $redirect_uri = $redirect_uri ? $redirect_uri : $clientData["redirect_uri"];
         $response_type = $request->query('response_type');
         $state = $request->query('state');
         if (!$scope = $this->scopeUtil->getScopeFromRequest($request)) {
@@ -117,7 +140,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
                 return false;
             }
             if ($this->responseTypes['code']->enforceRedirect() && !$redirect_uri) {
-                $response->setError(400, 'redirect_uri_mismatch', 'The redirect URI is mandatory and was not supplied.');
+                $response->setError(400, 'redirect_uri_mismatch', 'The redirect URI is mandatory and was not supplied');
                 return false;
             }
         }
@@ -198,22 +221,31 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
      *
      * @param string $inputUri
      * The submitted URI to be validated
-     *
-     * @param string $storedUri
-     * The allowed URIs to validate against.  Can be a space-delimited string of URIs to
+     * @param string $registeredUriString
+     * The allowed URI(s) to validate against.  Can be a space-delimited string of URIs to
      * allow for multiple URIs
+     *
+     * @see http://tools.ietf.org/html/rfc6749#section-3.1.2
      */
-    private function validateRedirectUri($inputUri, $storedUri)
+    private function validateRedirectUri($inputUri, $registeredUriString)
     {
-        if (!$inputUri || !$storedUri) {
+        if (!$inputUri || !$registeredUriString) {
             return false; // if either one is missing, assume INVALID
         }
 
-        $stored_uris = explode(' ', $storedUri);
-
-        foreach ($stored_uris as $stored) {
-            if (strcasecmp(substr($inputUri, 0, strlen($stored)), $stored) === 0) {
-                return true;
+        $registered_uris = explode(' ', $registeredUriString);
+        foreach ($registered_uris as $registered_uri) {
+            if ($this->config['require_exact_redirect_uri']) {
+                // the input uri is validated against the registered uri using exact match
+                if (strcmp($inputUri, $registered_uri) === 0) {
+                    return true;
+                }
+            } else {
+                // the input uri is validated against the registered uri using case-insensitive match of the initial string
+                // i.e. additional query parameters may be applied
+                if (strcasecmp(substr($inputUri, 0, strlen($registered_uri)), $registered_uri) === 0) {
+                    return true;
+                }
             }
         }
         return false;
