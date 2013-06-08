@@ -1,9 +1,18 @@
 <?php
 
-class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
+namespace OAuth2;
+
+use OAuth2\Storage\ClientCredentialsInterface;
+use OAuth2\Storage\ClientInterface;
+use OAuth2\Storage\AccessTokenInterface;
+use OAuth2\Storage\RefreshTokenInterface;
+use OAuth2\Storage\AuthorizationCodeInterface;
+use OAuth2\Storage\Bootstrap;
+
+class StorageTest extends \PHPUnit_Framework_TestCase
 {
     /** @dataProvider provideStorage */
-    public function testCheckClientCredentials(OAuth2_Storage_ClientCredentialsInterface $storage = null)
+    public function testCheckClientCredentials(ClientCredentialsInterface $storage = null)
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
@@ -23,7 +32,7 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testGetClientDetails(OAuth2_Storage_ClientInterface $storage = null)
+    public function testGetClientDetails(ClientInterface $storage = null)
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
@@ -42,7 +51,7 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testGetAccessToken(OAuth2_Storage_AccessTokenInterface $storage = null)
+    public function testGetAccessToken(ClientInterface $storage = null)
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
@@ -58,7 +67,7 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testSetAccessToken(OAuth2_Storage_AccessTokenInterface $storage = null)
+    public function testSetAccessToken(AccessTokenInterface $storage = null)
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
@@ -102,7 +111,7 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testSetRefreshToken(OAuth2_Storage_RefreshTokenInterface $storage = null)
+    public function testSetRefreshToken(RefreshTokenInterface $storage = null)
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
@@ -130,7 +139,7 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testGetAuthorizationCode(OAuth2_Storage_AuthorizationCodeInterface $storage = null)
+    public function testGetAuthorizationCode(AuthorizationCodeInterface $storage = null)
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
@@ -146,7 +155,7 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testSetAuthorizationCode(OAuth2_Storage_AuthorizationCodeInterface $storage = null)
+    public function testSetAuthorizationCode(AuthorizationCodeInterface $storage = null)
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
@@ -227,11 +236,11 @@ class OAuth2_StorageTest extends PHPUnit_Framework_TestCase
 
     public function provideStorage()
     {
-        $memory = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
-        $mysql = OAuth2_Storage_Bootstrap::getInstance()->getMysqlPdo();
-        $sqlite = OAuth2_Storage_Bootstrap::getInstance()->getSqlitePdo();
-        $mongo = OAuth2_Storage_Bootstrap::getInstance()->getMongo();
-        $redis = OAuth2_Storage_Bootstrap::getInstance()->getRedisStorage();
+        $memory = Bootstrap::getInstance()->getMemoryStorage();
+        $mysql = Bootstrap::getInstance()->getMysqlPdo();
+        $sqlite = Bootstrap::getInstance()->getSqlitePdo();
+        $mongo = Bootstrap::getInstance()->getMongo();
+        $redis = Bootstrap::getInstance()->getRedisStorage();
 
         // will add multiple storage types later
         return array(

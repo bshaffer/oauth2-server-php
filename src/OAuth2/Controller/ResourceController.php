@@ -1,9 +1,17 @@
 <?php
 
+namespace OAuth2\Controller;
+
+use OAuth2\TokenType\TokenTypeInterface;
+use OAuth2\Storage\AccessTokenInterface;
+use OAuth2\ScopeInterface;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
 /**
  * @see OAuth2_Controller_ResourceControllerInterface
  */
-class OAuth2_Controller_ResourceController implements OAuth2_Controller_ResourceControllerInterface
+class ResourceController implements ResourceControllerInterface
 {
     private $response;
     private $tokenType;
@@ -11,7 +19,7 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
     private $config;
     private $scopeUtil;
 
-    public function __construct(OAuth2_TokenTypeInterface $tokenType, OAuth2_Storage_AccessTokenInterface $tokenStorage, $config = array(), OAuth2_ScopeInterface $scopeUtil = null)
+    public function __construct(TokenTypeInterface $tokenType, AccessTokenInterface $tokenStorage, $config = array(), ScopeInterface $scopeUtil = null)
     {
         $this->tokenType = $tokenType;
         $this->tokenStorage = $tokenStorage;
@@ -26,7 +34,7 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function verifyResourceRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response, $scope = null)
+    public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response, $scope = null)
     {
         $token = $this->getAccessTokenData($request, $response, $scope);
 
@@ -57,7 +65,7 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
         return (bool) $token;
     }
 
-    public function getAccessTokenData(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function getAccessTokenData(RequestInterface $request, ResponseInterface $response)
     {
         // Get the token parameter
         if ($token_param = $this->tokenType->getAccessTokenParameter($request, $response)) {

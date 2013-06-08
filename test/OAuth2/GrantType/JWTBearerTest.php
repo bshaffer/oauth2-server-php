@@ -1,6 +1,14 @@
 <?php
 
-class OAuth2_GrantType_JWTBearerTest extends PHPUnit_Framework_TestCase
+namespace OAuth2\GrantType;
+
+use OAuth2\Storage\Bootstrap;
+use OAuth2\Server;
+use OAuth2\Request\TestRequest;
+use OAuth2\Response;
+use OAuth2\Encryption\Jwt;
+
+class JwtBearerTest extends \PHPUnit_Framework_TestCase
 {
     private $privateKey;
 
@@ -28,7 +36,7 @@ EOD;
     public function testMalformedJWT()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', // valid grant type
         ));
 
@@ -38,7 +46,7 @@ EOD;
 
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -48,7 +56,7 @@ EOD;
     public function testBrokenSignature()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', // valid grant type
         ));
 
@@ -56,7 +64,7 @@ EOD;
         $jwt = $this->getJWT() . 'notSupposeToBeHere';
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -66,7 +74,7 @@ EOD;
     public function testExpiredJWT()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', // valid grant type
         ));
 
@@ -74,7 +82,7 @@ EOD;
         $jwt = $this->getJWT(1234);
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -84,7 +92,7 @@ EOD;
     public function testBadExp()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', // valid grant type
         ));
 
@@ -92,7 +100,7 @@ EOD;
         $jwt = $this->getJWT('badtimestamp');
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -102,13 +110,13 @@ EOD;
     public function testNoAssert()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', // valid grant type
         ));
 
         //Do not pass the assert (JWT)
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -118,7 +126,7 @@ EOD;
     public function testNotBefore()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', // valid grant type
         ));
 
@@ -126,7 +134,7 @@ EOD;
         $jwt = $this->getJWT(null, time() + 10000);
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -136,7 +144,7 @@ EOD;
     public function testBadNotBefore()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', // valid grant type
         ));
 
@@ -144,7 +152,7 @@ EOD;
         $jwt = $this->getJWT(null, 'notatimestamp');
         $request->request['assertion'] = $jwt;
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -154,12 +162,12 @@ EOD;
     public function testNonMatchingAudience()
     {
         $server = $this->getTestServer('http://google.com/oauth/o/auth');
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', // valid grant type
             'assertion' => $this->getJWT(),
         ));
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -169,12 +177,12 @@ EOD;
     public function testBadClientID()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
             'assertion' => $this->getJWT(null, null, null, 'bad_client_id'),
         ));
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -184,12 +192,12 @@ EOD;
     public function testBadSubject()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
             'assertion' => $this->getJWT(null, null, 'anotheruser@ourdomain,com'),
         ));
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -199,12 +207,12 @@ EOD;
     public function testMissingKey()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
             'assertion' => $this->getJWT(null, null, null, 'Missing Key Cli,nt'),
         ));
 
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -214,12 +222,12 @@ EOD;
     public function testValidJwt()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
             'assertion' => $this->getJWT(), // valid assertion
         ));
 
-        $token = $server->grantAccessToken($request, new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new Response());
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
     }
@@ -227,11 +235,11 @@ EOD;
     public function testValidJwtWithScope()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
             'assertion' => $this->getJWT(null, null, null, 'Test Client ID', 'scope1'), // valid assertion
         ));
-        $token = $server->grantAccessToken($request, new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -242,11 +250,11 @@ EOD;
     public function testValidJwtInvalidScope()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
             'assertion' => $this->getJWT(null, null, null, 'Test Client ID', 'invalid-scope'), // valid assertion with invalid scope
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
@@ -255,8 +263,8 @@ EOD;
 
     public function testJwtUtil()
     {
-        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
-        $jwtUtil = new OAuth2_Encryption_JWT();
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $jwtUtil = new Jwt();
         $client_id = 'Test Client ID';
         $params = $this->getJWTParams(null, null, null, $client_id);
 
@@ -318,7 +326,7 @@ EOD;
     {
         $params = $this->getJWTParams($exp, $nbf, $sub, $iss, $scope);
 
-        $jwtUtil = new OAuth2_Encryption_JWT();
+        $jwtUtil = new Jwt();
 
         if (version_compare(PHP_VERSION, '5.3.3') <= 0) {
             return $jwtUtil->encode($params, 'mysecretkey', 'HS256');
@@ -329,9 +337,9 @@ EOD;
 
     private function getTestServer($audience = 'http://myapp.com/oauth/auth')
     {
-        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
-        $server = new OAuth2_Server($storage);
-        $server->addGrantType(new OAuth2_GrantType_JWTBearer($storage, $audience));
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server = new Server($storage);
+        $server->addGrantType(new JwtBearer($storage, $audience));
 
         return $server;
     }

@@ -1,10 +1,12 @@
 <?php
 
+namespace OAuth2\Encryption;
+
 /**
  * @link https://github.com/F21/jwt
  * @author F21
  */
-class OAuth2_Encryption_JWT
+class Jwt
 {
     public function encode($payload, $key, $algo = 'HS256')
     {
@@ -107,7 +109,7 @@ class OAuth2_Encryption_JWT
     private function generateRSASignature($input, $key, $algo)
     {
         if (!openssl_sign($input, $signature, $key, $algo)) {
-            throw new Exception("Unable to sign data.");
+            throw new \Exception("Unable to sign data.");
         }
 
         return $signature;

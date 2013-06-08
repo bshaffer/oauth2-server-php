@@ -1,5 +1,8 @@
 <?php
-class OAuth2_Storage_MockRedisClient
+
+namespace OAuth2\Storage;
+
+class MockRedisClient
 {
     public function __construct()
     {
@@ -48,14 +51,14 @@ class OAuth2_Storage_MockRedisClient
         return true;
     }
 
-    function setex($key, $expires, $value) 
+    function setex($key, $expires, $value)
     {
-        
+
         $this->data[$key] = $value;
         return true;
     }
 
-    function expire($key) 
+    function expire($key)
     {
         unset($this->data[$key]);
         return true;

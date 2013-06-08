@@ -1,6 +1,8 @@
 <?php
 
-class OAuth2_Storage_Bootstrap
+namespace OAuth2\Storage;
+
+class Bootstrap
 {
     protected static $instance;
     private $mysql;
@@ -19,34 +21,34 @@ class OAuth2_Storage_Bootstrap
     {
         if (!$this->sqlite) {
             $this->removeSqliteDb();
-            $pdo = new PDO(sprintf('sqlite://%s', $this->getSqliteDir()));
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo = new \PDO(sprintf('sqlite://%s', $this->getSqliteDir()));
+            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $this->createSqliteDb($pdo);
 
-            $this->sqlite = new OAuth2_Storage_Pdo($pdo);
+            $this->sqlite = new Pdo($pdo);
         }
         return $this->sqlite;
     }
 
     public function getMemoryStorage()
     {
-        return new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));
+        return new Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));
     }
 
     public function getRedisStorage()
     {
-        return new OAuth2_Storage_Redis(new OAuth2_Storage_MockRedisClient());
+        return new Redis(new MockRedisClient());
     }
-    
+
     public function getMysqlPdo()
     {
         if (!$this->mysql) {
-            $pdo = new PDO('mysql:host=localhost;', 'root');
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo = new \PDO('mysql:host=localhost;', 'root');
+            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $this->removeMysqlDb($pdo);
             $this->createMysqlDb($pdo);
 
-            $this->mysql = new OAuth2_Storage_Pdo($pdo);
+            $this->mysql = new Pdo($pdo);
         }
         return $this->mysql;
     }
@@ -56,18 +58,18 @@ class OAuth2_Storage_Bootstrap
         if (!$this->mongo) {
             $skipMongo = isset($_SERVER['SKIP_MONGO_TESTS']) && $_SERVER['SKIP_MONGO_TESTS'];
             if (!$skipMongo && class_exists('MongoClient')) {
-                $m = new MongoClient();
+                $m = new \MongoClient();
                 $db = $m->oauth2_server_php;
                 $this->removeMongoDb($db);
                 $this->createMongoDb($db);
 
-                $this->mongo = new OAuth2_Storage_Mongo($db);
+                $this->mongo = new Mongo($db);
             }
         }
         return $this->mongo;
     }
 
-    private function createSqliteDb(PDO $pdo)
+    private function createSqliteDb(\PDO $pdo)
     {
         $pdo->exec('CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT)');
         $pdo->exec('CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT)');
@@ -89,7 +91,7 @@ class OAuth2_Storage_Bootstrap
         }
     }
 
-    private function createMysqlDb(PDO $pdo)
+    private function createMysqlDb(\PDO $pdo)
     {
         $pdo->exec('CREATE DATABASE oauth2_server_php');
         $pdo->exec('USE oauth2_server_php');
@@ -106,7 +108,7 @@ class OAuth2_Storage_Bootstrap
         $pdo->exec('INSERT INTO oauth_users (username, password) VALUES ("testuser", "password")');
     }
 
-    public function removeMysqlDb(PDO $pdo)
+    public function removeMysqlDb(\PDO $pdo)
     {
         $pdo->exec('DROP DATABASE IF EXISTS oauth2_server_php');
     }
@@ -116,7 +118,7 @@ class OAuth2_Storage_Bootstrap
         return dirname(__FILE__).'/../../../config/test.sqlite';
     }
 
-    private function createMongoDb(MongoDB $db)
+    private function createMongoDb(\MongoDB $db)
     {
         $db->oauth_clients->insert(array('client_id' => "oauth_test_client", 'client_secret' => "testpass", 'redirect_uri' => "http://example.com"));
         $db->oauth_access_tokens->insert(array('access_token' => "testtoken", 'client_id' => "Some Client"));
@@ -124,7 +126,7 @@ class OAuth2_Storage_Bootstrap
         $db->oauth_users->insert(array('username' => "testuser", 'password' => "password"));
     }
 
-    public function removeMongoDb(MongoDB $db)
+    public function removeMongoDb(\MongoDB $db)
     {
         $db->drop();
     }

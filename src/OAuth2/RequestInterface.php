@@ -1,6 +1,8 @@
 <?php
 
-interface OAuth2_RequestInterface
+namespace OAuth2;
+
+interface RequestInterface
 {
     public function query($name, $default = null);
 

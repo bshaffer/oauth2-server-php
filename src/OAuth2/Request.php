@@ -1,11 +1,13 @@
 <?php
 
+namespace OAuth2;
+
 /**
  * OAuth2_Request
  * This class is taken from the Symfony2 Framework and is part of the Symfony package.
  * See Symfony\Component\HttpFoundation\Request (https://github.com/symfony/symfony)
  */
-class OAuth2_Request implements OAuth2_RequestInterface
+class Request implements RequestInterface
 {
     public $attributes;
     public $request;

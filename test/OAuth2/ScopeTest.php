@@ -1,10 +1,14 @@
 <?php
 
-class OAuth2_ScopeTest extends PHPUnit_Framework_TestCase
+namespace OAuth2;
+
+use OAuth2\Storage\Memory;
+
+class ScopeTest extends \PHPUnit_Framework_TestCase
 {
     public function testCheckScope()
     {
-        $scopeUtil = new OAuth2_Scope();
+        $scopeUtil = new Scope();
 
         $this->assertFalse($scopeUtil->checkScope('invalid', 'list of scopes'));
         $this->assertTrue($scopeUtil->checkScope('valid', 'valid and-some other-scopes'));
@@ -16,21 +20,21 @@ class OAuth2_ScopeTest extends PHPUnit_Framework_TestCase
 
     public function testScopeStorage()
     {
-        $scopeUtil = new OAuth2_Scope();
+        $scopeUtil = new Scope();
         $this->assertEquals($scopeUtil->getDefaultScope(), null);
 
-        $scopeUtil = new OAuth2_Scope(array(
+        $scopeUtil = new Scope(array(
             'default_scope' => 'default',
             'supported_scopes' => array('this', 'that', 'another'),
         ));
         $this->assertEquals($scopeUtil->getDefaultScope(), 'default');
         $this->assertTrue($scopeUtil->scopeExists('this that another', 'client_id'));
 
-        $memoryStorage = new OAuth2_Storage_Memory(array(
+        $memoryStorage = new Memory(array(
             'default_scope' => 'base',
             'supported_scopes' => array('only-this-one'),
         ));
-        $scopeUtil = new OAuth2_Scope($memoryStorage);
+        $scopeUtil = new Scope($memoryStorage);
 
         $this->assertEquals($scopeUtil->getDefaultScope(), 'base');
         $this->assertTrue($scopeUtil->scopeExists('only-this-one', 'client_id'));

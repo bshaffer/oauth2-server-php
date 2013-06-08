@@ -1,9 +1,14 @@
 <?php
 
+namespace OAuth2\TokenType;
+
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
 /**
 *
 */
-class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface
+class Bearer implements TokenTypeInterface
 {
     private $config;
 
@@ -42,7 +47,7 @@ class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface
      * @see http://code.google.com/p/android/issues/detail?id=6684
      *
      */
-    public function getAccessTokenParameter(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response)
     {
         $headers = $request->headers('AUTHORIZATION');
 

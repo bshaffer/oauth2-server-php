@@ -1,12 +1,14 @@
 <?php
 
+namespace OAuth2;
+
 /**
  * Autoloads OAuth2 classes
  *
  * @author    Brent Shaffer <bshafs at gmail dot com>
  * @license   MIT License
  */
-class OAuth2_Autoloader
+class Autoloader
 {
     private $dir;
 
@@ -39,7 +41,7 @@ class OAuth2_Autoloader
             return;
         }
 
-        if (file_exists($file = $this->dir.'/'.str_replace('_', '/', $class).'.php')) {
+        if (file_exists($file = $this->dir.'/'.str_replace('\\', '/', $class).'.php')) {
             require $file;
         }
     }

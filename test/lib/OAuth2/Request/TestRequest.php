@@ -1,11 +1,15 @@
 <?php
 
+namespace OAuth2\Request;
+
+use OAuth2\RequestInterface;
+
 /**
 *
 */
-class OAuth2_Request_TestRequest implements OAuth2_RequestInterface
+class TestRequest implements RequestInterface
 {
-    public $query, $request, $server;
+    public $query, $request, $server, $headers;
 
     public function __construct()
     {
@@ -31,7 +35,7 @@ class OAuth2_Request_TestRequest implements OAuth2_RequestInterface
 
     public function headers($name, $default = null)
     {
-        return $default;
+        return isset($this->headers[$name]) ? $this->headers[$name] : $default;
     }
 
     public function getAllQueryParameters()

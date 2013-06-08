@@ -1,17 +1,23 @@
 <?php
 
+namespace OAuth2\ClientAssertionType;
+
+use OAuth2\Storage\ClientCredentialsInterface;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
 /**
  * Validate a client via Http Basic authentication
  *
  * @author    Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionTypeInterface
+class HttpBasic implements ClientAssertionTypeInterface
 {
     private $storage;
     private $config;
     private $clientData;
 
-    public function __construct(OAuth2_Storage_ClientCredentialsInterface $storage, array $config = array())
+    public function __construct(ClientCredentialsInterface $storage, array $config = array())
     {
         $this->storage = $storage;
         $this->config = array_merge(array(
@@ -19,7 +25,7 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
         ), $config);
     }
 
-    public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$clientData = $this->getClientCredentials($request, $response)) {
             return false;
@@ -69,7 +75,7 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
      *
      * @ingroup oauth2_section_2
      */
-    public function getClientCredentials(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response = null)
+    public function getClientCredentials(RequestInterface $request, ResponseInterface $response = null)
     {
         if (!is_null($request->headers('PHP_AUTH_USER')) && !is_null($request->headers('PHP_AUTH_PW'))) {
             return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));

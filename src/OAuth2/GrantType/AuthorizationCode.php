@@ -1,15 +1,22 @@
 <?php
 
+namespace OAuth2\GrantType;
+
+use OAuth2\Storage\AuthorizationCodeInterface;
+use OAuth2\ResponseType\AccessTokenInterface;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
 /**
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
+class AuthorizationCode implements GrantTypeInterface
 {
     private $storage;
     private $authCode;
 
-    public function __construct(OAuth2_Storage_AuthorizationCodeInterface $storage)
+    public function __construct(AuthorizationCodeInterface $storage)
     {
         $this->storage = $storage;
     }
@@ -19,7 +26,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
         return 'authorization_code';
     }
 
-    public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$request->request('code')) {
             $response->setError(400, 'invalid_request', 'Missing parameter: "code" is required');
@@ -76,7 +83,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
         return $this->authCode['user_id'];
     }
 
-    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
+    public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
         $token = $accessToken->createAccessToken($client_id, $user_id, $scope);
         $this->storage->expireAuthorizationCode($this->authCode['code']);

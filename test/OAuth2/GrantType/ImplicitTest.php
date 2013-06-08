@@ -1,16 +1,23 @@
 <?php
 
-class OAuth2_GrantType_ImplicitTest extends PHPUnit_Framework_TestCase
+namespace OAuth2\GrantType;
+
+use OAuth2\Storage\Bootstrap;
+use OAuth2\Server;
+use OAuth2\Request;
+use OAuth2\Response;
+
+class ImplicitTest extends \PHPUnit_Framework_TestCase
 {
     public function testImplicitNotAllowedResponse()
     {
         $server = $this->getTestServer();
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com', // valid redirect URI
             'response_type' => 'token', // invalid response type
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
+        $server->handleAuthorizeRequest($request, $response = new Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -24,13 +31,13 @@ class OAuth2_GrantType_ImplicitTest extends PHPUnit_Framework_TestCase
     public function testUserDeniesAccessResponse()
     {
         $server = $this->getTestServer(array('allow_implicit' => true));
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com', // valid redirect URI
             'response_type' => 'token', // valid response type
             'state' => 'xyz',
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), false);
+        $server->handleAuthorizeRequest($request, $response = new Response(), false);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $location = $response->getHttpHeader('Location');
@@ -44,13 +51,13 @@ class OAuth2_GrantType_ImplicitTest extends PHPUnit_Framework_TestCase
     public function testSuccessfulRequestFragmentParameter()
     {
         $server = $this->getTestServer(array('allow_implicit' => true));
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com', // valid redirect URI
             'response_type' => 'token', // valid response type
             'state' => 'xyz',
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $this->assertNull($response->getParameter('error'));
@@ -75,13 +82,13 @@ class OAuth2_GrantType_ImplicitTest extends PHPUnit_Framework_TestCase
     public function testSuccessfulRequestReturnsStateParameter()
     {
         $server = $this->getTestServer(array('allow_implicit' => true));
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com', // valid redirect URI
             'response_type' => 'token', // valid response type
             'state' => 'test', // valid state string (just needs to be passed back to us)
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $this->assertNull($response->getParameter('error'));
@@ -99,14 +106,14 @@ class OAuth2_GrantType_ImplicitTest extends PHPUnit_Framework_TestCase
     public function testSuccessfulRequestStripsExtraParameters()
     {
         $server = $this->getTestServer(array('allow_implicit' => true));
-        $request = new OAuth2_Request(array(
+        $request = new Request(array(
             'client_id' => 'Test Client ID', // valid client id
             'redirect_uri' => 'http://adobe.com?fake=something', // valid redirect URI
             'response_type' => 'token', // valid response type
             'state' => 'test', // valid state string (just needs to be passed back to us)
             'fake' => 'something', // add extra param to querystring
         ));
-        $server->handleAuthorizeRequest($request, $response = new OAuth2_Response(), true);
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
         $this->assertNull($response->getParameter('error'));
@@ -125,11 +132,11 @@ class OAuth2_GrantType_ImplicitTest extends PHPUnit_Framework_TestCase
 
     private function getTestServer($config = array())
     {
-        $storage = new OAuth2_Storage_Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../config/storage.json'), true));
-        $server = new OAuth2_Server($storage, $config);
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server = new Server($storage, $config);
 
         // Add the two types supported for authorization grant
-        $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
+        $server->addGrantType(new AuthorizationCode($storage));
 
         return $server;
     }

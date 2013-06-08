@@ -1,16 +1,23 @@
 <?php
 
+namespace OAuth2\GrantType;
+
+use OAuth2\Storage\RefreshTokenInterface;
+use OAuth2\ResponseType\AccessTokenInterface;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
 /**
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface
+class RefreshToken implements GrantTypeInterface
 {
     private $storage;
     private $config;
     private $refreshToken;
 
-    public function __construct(OAuth2_Storage_RefreshTokenInterface $storage, $config = array())
+    public function __construct(RefreshTokenInterface $storage, $config = array())
     {
         $this->config = array_merge(array(
             'always_issue_new_refresh_token' => false
@@ -23,7 +30,7 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface
         return 'refresh_token';
     }
 
-    public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$request->request("refresh_token")) {
             $response->setError(400, 'invalid_request', 'Missing parameter: "refresh_token" is required');
@@ -61,7 +68,7 @@ class OAuth2_GrantType_RefreshToken implements OAuth2_GrantTypeInterface
         return $this->refreshToken['scope'];
     }
 
-    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
+    public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
         /*
          * It is optional to force a new refresh token when a refresh token is used.

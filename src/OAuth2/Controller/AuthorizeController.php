@@ -1,9 +1,16 @@
 <?php
 
+namespace OAuth2\Controller;
+
+use OAuth2\Storage\ClientInterface;
+use OAuth2\ScopeInterface;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
 /**
  * @see OAuth2_Controller_AuthorizeControllerInterface
  */
-class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_AuthorizeControllerInterface
+class AuthorizeController implements AuthorizeControllerInterface
 {
     private $clientStorage;
     private $responseTypes;
@@ -28,7 +35,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
      * @param OAuth2_ScopeInterface $scopeUtil
      * OPTIONAL Instance of OAuth2_ScopeInterface to validate the requested scope
      */
-    public function __construct(OAuth2_Storage_ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), OAuth2_ScopeInterface $scopeUtil = null)
+    public function __construct(ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), ScopeInterface $scopeUtil = null)
     {
         $this->clientStorage = $clientStorage;
         $this->responseTypes = $responseTypes;
@@ -44,7 +51,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function handleAuthorizeRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response, $is_authorized, $user_id = null)
+    public function handleAuthorizeRequest(RequestInterface $request, ResponseInterface $response, $is_authorized, $user_id = null)
     {
         if (!is_bool($is_authorized)) {
             throw new InvalidArgumentException('Argument "is_authorized" must be a boolean.  This method must know if the user has granted access to the client.');
@@ -70,7 +77,7 @@ class OAuth2_Controller_AuthorizeController implements OAuth2_Controller_Authori
         $response->setRedirect(302, $uri);
     }
 
-    public function validateAuthorizeRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response)
     {
         // Make sure a valid client id was supplied (we can not redirect because we were unable to verify the URI)
         if (!$client_id = $request->query("client_id")) {
