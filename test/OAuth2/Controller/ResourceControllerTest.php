@@ -79,7 +79,7 @@ class OAuth2_Controller_ResourceControllerTest extends PHPUnit_Framework_TestCas
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error'), 'invalid_token');
         $this->assertEquals($response->getParameter('error_description'), 'The access token provided is invalid');
     }
 
@@ -92,7 +92,7 @@ class OAuth2_Controller_ResourceControllerTest extends PHPUnit_Framework_TestCas
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error'), 'invalid_token');
         $this->assertEquals($response->getParameter('error_description'), 'The access token provided has expired');
     }
 
@@ -124,7 +124,7 @@ class OAuth2_Controller_ResourceControllerTest extends PHPUnit_Framework_TestCas
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error'), 'invalid_token');
         $this->assertEquals($response->getParameter('error_description'), 'Malformed token (missing "expires" or "client_id")');
     }
 
