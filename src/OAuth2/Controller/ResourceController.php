@@ -65,11 +65,11 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
             // Check we have a well formed token
             // Check token expiration (expires is a mandatory paramter)
             if (!$token = $this->tokenStorage->getAccessToken($token_param)) {
-                $response->setError(401, 'invalid_grant', 'The access token provided is invalid');
+                $response->setError(401, 'invalid_token', 'The access token provided is invalid');
             } else if (!isset($token["expires"]) || !isset($token["client_id"])) {
-                $response->setError(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")');
+                $response->setError(401, 'invalid_token', 'Malformed token (missing "expires" or "client_id")');
             } else if (time() > $token["expires"]) {
-                $response->setError(401, 'invalid_grant', 'The access token provided has expired');
+                $response->setError(401, 'invalid_token', 'The access token provided has expired');
             } else {
                 return $token;
             }
