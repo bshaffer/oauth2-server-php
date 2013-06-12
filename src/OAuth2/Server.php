@@ -441,8 +441,8 @@ class OAuth2_Server implements OAuth2_Controller_ResourceControllerInterface,
 
     protected function getAccessTokenResponseType()
     {
-        if (isset($this->responseTypes['access_token'])) {
-            return $this->responseTypes['access_token'];
+        if (isset($this->responseTypes['token'])) {
+            return $this->responseTypes['token'];
         }
         if (!isset($this->storages['access_token'])) {
             throw new LogicException("You must supply a response type implementing OAuth2_ResponseType_AccessTokenInterface, or a storage object implementing OAuth2_Storage_AccessTokenInterface to use the token server");
