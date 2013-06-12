@@ -103,8 +103,8 @@ CREATE TABLE oauth_users (username VARCHAR(255) NOT NULL, password VARCHAR(2000)
 
 ### Bootstrap your OAuth2 Server
 
-Now we will create and configure our OAuth2 Server object.  This will be used
-by all the endpoints in your application.  Name this file `server.php`:
+We need to create and configure our OAuth2 Server object.  This will be used
+by all the endpoints in our application.  Name this file `server.php`:
 
 ```php
 $dsn      = 'mysql:dbname=my_oauth2_db;host=localhost';
