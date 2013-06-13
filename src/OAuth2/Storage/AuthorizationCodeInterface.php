@@ -33,6 +33,7 @@ interface OAuth2_Storage_AuthorizationCodeInterface
      * @code
      * return array(
      *     "client_id"    => CLIENT_ID,      // REQUIRED Stored client identifier
+     *     "user_id"      => USER_ID,        // REQUIRED Stored user identifier
      *     "expires"      => EXPIRES,        // REQUIRED Stored expiration in unix timestamp
      *     "redirect_uri" => REDIRECT_URI,   // REQUIRED Stored redirect URI
      *     "scope"        => SCOPE,          // OPTIONAL Stored scope values in space-separated string
