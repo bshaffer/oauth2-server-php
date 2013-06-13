@@ -1,7 +1,5 @@
 <?php
 
-namespace OAuth2\Storage;
-
 /**
  * Implement this interface to specify where the OAuth2 Server
  * should get/save authorization codes for the "Authorization Code"
@@ -9,7 +7,7 @@ namespace OAuth2\Storage;
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface AuthorizationCodeInterface
+interface OAuth2_Storage_AuthorizationCodeInterface
 {
     /**
      * The Authorization Code grant type supports a response type of "code".
@@ -35,6 +33,7 @@ interface AuthorizationCodeInterface
      * @code
      * return array(
      *     "client_id"    => CLIENT_ID,      // REQUIRED Stored client identifier
+     *     "user_id"      => USER_ID,        // REQUIRED Stored user identifier
      *     "expires"      => EXPIRES,        // REQUIRED Stored expiration in unix timestamp
      *     "redirect_uri" => REDIRECT_URI,   // REQUIRED Stored redirect URI
      *     "scope"        => SCOPE,          // OPTIONAL Stored scope values in space-separated string
