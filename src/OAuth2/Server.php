@@ -463,8 +463,8 @@ class Server implements ResourceControllerInterface,
 
     protected function getAccessTokenResponseType()
     {
-        if (isset($this->responseTypes['access_token'])) {
-            return $this->responseTypes['access_token'];
+        if (isset($this->responseTypes['token'])) {
+            return $this->responseTypes['token'];
         }
         if (!isset($this->storages['access_token'])) {
             throw new \LogicException("You must supply a response type implementing OAuth2\ResponseType\AccessTokenInterface, or a storage object implementing OAuth2\Storage\AccessTokenInterface to use the token server");
