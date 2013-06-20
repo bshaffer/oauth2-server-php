@@ -262,8 +262,7 @@ And just as before, you will receive an access token:
 
 > Note: Be sure to do this quickly, because Authorization Codes expire in 30 seconds!
 
-Associating local users with access tokens
-------------------------------------------
+### Associating local users with access tokens
 
 Once you've authenticated a user and issued an access token (such as with an Authorize Controller),
 you'll probably want to know which user an access token applies to when it is used.
