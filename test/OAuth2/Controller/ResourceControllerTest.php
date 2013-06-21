@@ -12,6 +12,7 @@ class OAuth2_Controller_ResourceControllerTest extends PHPUnit_Framework_TestCas
         $this->assertEquals($response->getStatusCode(), 401);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
         $this->assertEquals($response->getParameter('error_description'), 'The access token was not found');
+        $this->assertEquals($response->getHttpHeader('WWW-Authenticate'), 'bearer realm="Service", error="invalid_request", error_description="The access token was not found"');
     }
 
     public function testMalformedHeader()
