@@ -132,11 +132,7 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $location = $response->getHttpHeader('Location');
-        $parts = parse_url($location);
-        parse_str($parts['query'], $query);
-
-        $this->assertFalse(isset($query['error']));
+        $this->assertNotContains('error', $response->getHttpHeader('Location'));
     }
 
     public function testEnforceScope()
@@ -164,11 +160,7 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $parts = parse_url($response->getHttpHeader('Location'));
-        parse_str($parts['query'], $query);
-
-        // success!
-        $this->assertFalse(isset($query['error']));
+        $this->assertNotContains('error', $response->getHttpHeader('Location'));
     }
 
     public function testInvalidRedirectUri()
@@ -209,14 +201,16 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 
         // create a request with no "redirect_uri" in querystring
         $request = new Request(array(
-            'client_id' => 'Test Client ID with Redirect Uri Parts', // valid client id
+            'client_id'     => 'Test Client ID with Redirect Uri Parts', // valid client id
             'response_type' => 'code',
-            'redirect_uri' => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth',
+            'redirect_uri'  => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth',
+            'state'         => 'xyz',
         ));
 
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
+        $this->assertContains('code', $response->getHttpHeader('Location'));
     }
 
     public function testRedirectUriWithDifferentQueryAndExactMatchRequired()
@@ -243,33 +237,38 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 
         // create a request with no "redirect_uri" in querystring
         $request = new Request(array(
-            'client_id' => 'Test Client ID with Redirect Uri Parts', // valid client id
+            'client_id'     => 'Test Client ID with Redirect Uri Parts', // valid client id
             'response_type' => 'code',
-            'redirect_uri' => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&hereisa=querystring',
+            'redirect_uri'  => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&hereisa=querystring',
+            'state'         => 'xyz',
         ));
 
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
+        $this->assertContains('code', $response->getHttpHeader('Location'));
     }
 
     public function testMultipleRedirectUris()
     {
         $server = $this->getTestServer();
         $request = new Request(array(
-            'client_id' => 'Test Client ID with Multiple Redirect Uris', // valid client id
-            'redirect_uri' => 'http://brentertainment.com', // valid redirect URI
+            'client_id'     => 'Test Client ID with Multiple Redirect Uris', // valid client id
+            'redirect_uri'  => 'http://brentertainment.com', // valid redirect URI
             'response_type' => 'code',
+            'state'         => 'xyz'
         ));
 
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
         $this->assertEquals($response->getStatusCode(), 302);
+        $this->assertContains('code', $response->getHttpHeader('Location'));
 
         // call again with different (but still valid) redirect URI
         $request->query['redirect_uri'] = 'http://morehazards.com';
 
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
         $this->assertEquals($response->getStatusCode(), 302);
+        $this->assertContains('code', $response->getHttpHeader('Location'));
     }
 
     /**
@@ -398,9 +397,9 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertNull($response->getParameter('error'));
-
         $location = $response->getHttpHeader('Location');
+        $this->assertNotContains('error', $location);
+
         $parts = parse_url($location);
         $this->assertFalse(isset($parts['fake']));
         $this->assertArrayHasKey('query', $parts);
