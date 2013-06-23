@@ -196,7 +196,7 @@ class Pdo implements AuthorizationCodeInterface,
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {
-        return $user['password'] == $password;
+        return $user['password'] == sha1($password);
     }
 
     public function getUser($username)
@@ -208,6 +208,9 @@ class Pdo implements AuthorizationCodeInterface,
 
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
+        // do not store in plaintext
+        $password = sha1($password);
+
         // if it exists, update it.
         if ($this->getUser($username)) {
             $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table']));
