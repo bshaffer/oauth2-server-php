@@ -9,6 +9,7 @@ use OAuth2\Server;
 use OAuth2\GrantType\AuthorizationCode;
 use OAuth2\Request;
 use OAuth2\Response;
+use OAuth2\Request\TestRequest;
 
 class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 {
@@ -269,6 +270,39 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
         $this->assertEquals($response->getStatusCode(), 302);
+    }
+
+    /**
+     * @see http://tools.ietf.org/html/rfc6749#section-4.1.3
+     * @see https://github.com/bshaffer/oauth2-server-php/issues/163
+     */
+    public function testNoRedirectUriSuppliedDoesNotRequireTokenRedirectUri()
+    {
+        $server = $this->getTestServer();
+        $request = new Request(array(
+            'client_id'     => 'Test Client ID with Redirect Uri', // valid client id
+            'response_type' => 'code',
+            'state'         => 'xyz',
+        ));
+
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
+        $this->assertEquals($response->getStatusCode(), 302);
+        $this->assertContains('code', $response->getHttpHeader('Location'));
+
+        $parts = parse_url($response->getHttpHeader('Location'));
+        parse_str($parts['query'], $query);
+
+        // call token endpoint with no redirect_uri supplied
+        $request = TestRequest::createPost(array(
+            'client_id'     => 'Test Client ID with Redirect Uri', // valid client id
+            'client_secret' => 'TestSecret2',
+            'grant_type'    => 'authorization_code',
+            'code'          => $query['code'],
+        ));
+
+        $server->handleTokenRequest($request, $response = new Response(), true);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertNotNull($response->getParameter('access_token'));
     }
 
     public function testUserDeniesAccessResponse()

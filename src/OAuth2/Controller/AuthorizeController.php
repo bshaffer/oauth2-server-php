@@ -17,6 +17,12 @@ class AuthorizeController implements AuthorizeControllerInterface
     private $config;
     private $scopeUtil;
 
+    private $scope;
+    private $state;
+    private $client_id;
+    private $redirect_uri;
+    private $response_type;
+
     /**
      * @param OAuth2_Storage_ClientInterface $clientStorage
      * REQUIRED Instance of OAuth2_Storage_ClientInterface to retrieve client information
@@ -59,16 +65,25 @@ class AuthorizeController implements AuthorizeControllerInterface
 
         // We repeat this, because we need to re-validate. The request could be POSTed
         // by a 3rd-party (because we are not internally enforcing NONCEs, etc)
-        if (!$params = $this->validateAuthorizeRequest($request, $response)) {
+        if (!$this->validateAuthorizeRequest($request, $response)) {
             return;
         }
 
         if ($is_authorized === false) {
-            $response->setRedirect(302, $params['redirect_uri'], $params['state'], 'access_denied', "The user denied access to your application");
+            $response->setRedirect(302, $this->redirect_uri, $this->state, 'access_denied', "The user denied access to your application");
             return;
         }
 
-        $authResult = $this->responseTypes[$params['response_type']]->getAuthorizeResponse($params, $user_id);
+        // @TODO: we should be explicit with this in the future
+        $params = array(
+            'scope'         => $this->scope,
+            'state'         => $this->state,
+            'client_id'     => $this->client_id,
+            'redirect_uri'  => $this->redirect_uri,
+            'response_type' => $this->response_type,
+        );
+
+        $authResult = $this->responseTypes[$this->response_type]->getAuthorizeResponse($params, $user_id);
 
         list($redirect_uri, $uri_params) = $authResult;
         $uri = $this->buildUri($redirect_uri, $uri_params);
@@ -98,19 +113,20 @@ class AuthorizeController implements AuthorizeControllerInterface
         // @see http://tools.ietf.org/html/rfc6749#section-3.1.2
         // @see http://tools.ietf.org/html/rfc6749#section-4.1.2.1
         // @see http://tools.ietf.org/html/rfc6749#section-4.2.2.1
-        if ($redirect_uri = $request->query('redirect_uri')) {
+        if ($supplied_redirect_uri = $request->query('redirect_uri')) {
             // validate there is no fragment supplied
-            $parts = parse_url($redirect_uri);
+            $parts = parse_url($supplied_redirect_uri);
             if (isset($parts['fragment']) && $parts['fragment']) {
                 $response->setError(400, 'invalid_uri', 'The redirect URI must not contain a fragment');
                 return false;
             }
 
             // validate against the registered redirect uri(s) if available
-            if ($registered_redirect_uri && !$this->validateRedirectUri($redirect_uri, $registered_redirect_uri)) {
+            if ($registered_redirect_uri && !$this->validateRedirectUri($supplied_redirect_uri, $registered_redirect_uri)) {
                 $response->setError(400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match', '#section-3.1.2');
                 return false;
             }
+            $redirect_uri = $supplied_redirect_uri;
         } else {
             // use the registered redirect_uri if none has been supplied, if possible
             if (!$registered_redirect_uri) {
@@ -180,8 +196,15 @@ class AuthorizeController implements AuthorizeControllerInterface
             return false;
         }
 
-        // Return retrieved client details together with input
-        return array_merge(array('scope' => $scope, 'state' => $state), $clientData, $request->getAllQueryParameters(), array('redirect_uri' => $redirect_uri));
+        // save the input data and return true
+        $this->scope         = $scope;
+        $this->state         = $state;
+        $this->client_id     = $client_id;
+        // Only save the SUPPLIED redirect URI (@see http://tools.ietf.org/html/rfc6749#section-4.1.3)
+        $this->redirect_uri  = $supplied_redirect_uri;
+        $this->response_type = $response_type;
+
+        return true;
     }
 
     /**
@@ -256,5 +279,34 @@ class AuthorizeController implements AuthorizeControllerInterface
             }
         }
         return false;
+    }
+
+    /**
+     * Convenience methods to access the parameters derived from the validated request
+     */
+
+    public function getScope()
+    {
+        return $this->scope;
+    }
+
+    public function getState()
+    {
+        return $this->state;
+    }
+
+    public function getClientId()
+    {
+        return $this->client_id;
+    }
+
+    public function getRedirectUri()
+    {
+        return $this->redirect_uri;
+    }
+
+    public function getResponseType()
+    {
+        return $this->response_type;
     }
 }
