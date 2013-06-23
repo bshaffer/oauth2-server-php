@@ -57,7 +57,7 @@ class AuthorizeController implements AuthorizeControllerInterface
             throw new InvalidArgumentException('Argument "is_authorized" must be a boolean.  This method must know if the user has granted access to the client.');
         }
 
-        // We repeat this, because we need to re-validate. In theory, this could be POSTed
+        // We repeat this, because we need to re-validate. The request could be POSTed
         // by a 3rd-party (because we are not internally enforcing NONCEs, etc)
         if (!$params = $this->validateAuthorizeRequest($request, $response)) {
             return;
