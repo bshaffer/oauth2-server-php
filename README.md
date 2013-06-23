@@ -8,7 +8,7 @@ An OAuth2.0 Server in PHP! [View the Full Working Demo](http://brentertainment.c
 Requirements
 ------------
 
-PHP 5.3+ is required for this library.  However, we have a [stable release](https://github.com/bshaffer/oauth2-server-php/tree/v0.9) and [developerment branch](https://github.com/bshaffer/oauth2-server-php/tree/php5.2-develop) for PHP 5.2 as well.
+PHP 5.3.9+ is required for this library.  However, we have a [stable release](https://github.com/bshaffer/oauth2-server-php/tree/v0.9) and [developerment branch](https://github.com/bshaffer/oauth2-server-php/tree/php5.2-develop) for PHP <5.3.8 and PHP 5.2.x as well.
 
 Installation
 ------------
