@@ -18,6 +18,7 @@ class ResourceController implements ResourceControllerInterface
     private $tokenStorage;
     private $config;
     private $scopeUtil;
+    private $token;
 
     public function __construct(TokenTypeInterface $tokenType, AccessTokenInterface $tokenStorage, $config = array(), ScopeInterface $scopeUtil = null)
     {
@@ -62,6 +63,9 @@ class ResourceController implements ResourceControllerInterface
             return false;
         }
 
+        // allow retrieval of the token
+        $this->token = $token;
+
         return (bool) $token;
     }
 
@@ -94,5 +98,11 @@ class ResourceController implements ResourceControllerInterface
 
         $response->addHttpHeaders(array('WWW-Authenticate' => $authHeader));
         return null;
+    }
+
+    // convenience method to allow retrieval of the token
+    public function getToken()
+    {
+        return $this->token;
     }
 }
