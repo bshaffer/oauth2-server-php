@@ -80,7 +80,7 @@ class AuthorizationCode implements GrantTypeInterface
 
     public function getUserId()
     {
-        return $this->authCode['user_id'];
+        return isset($this->authCode['user_id']) ? $this->authCode['user_id'] : null;
     }
 
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
