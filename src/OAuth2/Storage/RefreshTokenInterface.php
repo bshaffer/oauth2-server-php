@@ -24,6 +24,7 @@ interface RefreshTokenInterface
      * @return
      * An associative array as below, and NULL if the refresh_token is
      * invalid:
+     * - refresh_token: Stored refresh token.
      * - client_id: Stored client identifier.
      * - expires: Stored expiration unix timestamp.
      * - scope: (optional) Stored scope values in space-separated string.
