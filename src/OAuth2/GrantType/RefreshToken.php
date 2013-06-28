@@ -60,7 +60,7 @@ class RefreshToken implements GrantTypeInterface
 
     public function getUserId()
     {
-        return $this->refreshToken['user_id'];
+        return isset($this->refreshToken['user_id']) ? $this->refreshToken['user_id'] : null;
     }
 
     public function getScope()
