@@ -74,11 +74,6 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
             return null;
         }
 
-        if (!$request->request("assertion")) {
-            $response->setError(400, 'invalid_request', 'Missing parameters: "assertion" required');
-            return null;
-        }
-
         // Store the undecoded JWT for later use
         $undecodedJWT = $request->request('assertion');
 
