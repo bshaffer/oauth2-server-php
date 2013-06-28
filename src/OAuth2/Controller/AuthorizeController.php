@@ -69,8 +69,15 @@ class AuthorizeController implements AuthorizeControllerInterface
             return;
         }
 
+        // If no redirect_uri is passed in the request, use client's registered one
+        if (empty($this->redirect_uri)) {
+            $clientData              = $this->clientStorage->getClientDetails($this->client_id);
+            $registered_redirect_uri = $clientData['redirect_uri'];
+        }
+
         if ($is_authorized === false) {
-            $response->setRedirect(302, $this->redirect_uri, $this->state, 'access_denied', "The user denied access to your application");
+            $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
+            $response->setRedirect(302, $redirect_uri, $this->state, 'access_denied', "The user denied access to your application");
             return;
         }
 
@@ -86,6 +93,11 @@ class AuthorizeController implements AuthorizeControllerInterface
         $authResult = $this->responseTypes[$this->response_type]->getAuthorizeResponse($params, $user_id);
 
         list($redirect_uri, $uri_params) = $authResult;
+
+        if (empty($redirect_uri) && !empty($registered_redirect_uri)) {
+            $redirect_uri = $registered_redirect_uri;
+        }
+
         $uri = $this->buildUri($redirect_uri, $uri_params);
 
         // return redirect response
