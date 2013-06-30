@@ -188,3 +188,8 @@ And just as before, you will receive an access token:
 ```
 
 > Note: Be sure to do this quickly, because Authorization Codes expire in 30 seconds!
+
+### Testing your Authorize Controller with an external client
+
+If you want to test the authorize controller using a "real" client, check out the
+[Google OAuth2 Playground example](google-playground.md)
