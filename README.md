@@ -10,6 +10,20 @@ Requirements
 
 PHP 5.3.9+ is required for this library.  However, we have a [stable release](https://github.com/bshaffer/oauth2-server-php/tree/v0.9) and [developerment branch](https://github.com/bshaffer/oauth2-server-php/tree/php5.2-develop) for PHP <5.3.8 and PHP 5.2.x as well.
 
+Documentation Index
+-------------------
+
+In addition to this README page, the following documentation is available:
+
+  1. [Grant Types](docs/grant_types.md)
+  2. [Server Methods](docs/methods.md)
+  3. [Scope](docs/scope.md)
+  4. [Response Object](docs/response.md)
+  5. Cookbook examples:
+   * [Step-by-Step walkthrough](docs/cookbook/walkthrough.md)
+   * [Integrating with Doctrine](docs/cookbook/doctrine.md)
+   * [Testing with Google OAuth2 Playground](docs/cookbook/google-playground.md)
+
 Installation
 ------------
 
@@ -39,13 +53,13 @@ And then run `composer.phar install`
 > ensure your application doesn't break from backwards-compatibility issues, but also this means you
 > will not receive the latest changes.
 
-Learning OAuth2.0
------------------
+Learning the OAuth2.0 Standard
+------------------------------
 
 If you are new to OAuth2, take a little time first to look at the [Oauth2 Demo Application](http://brentertainment.com/oauth2) and the [source code](https://github.com/bshaffer/oauth2-demo-php), and read up on [OAuth2 Flows](http://drupal.org/node/1958718).  For everything else, consult the [OAuth2.0 Specification](http://tools.ietf.org/html/rfc6749)
 
-Get Started
------------
+Get Started With oauth2-server-php
+----------------------------------
 
 Here is an example of a bare-bones OAuth2 Server implementation:
 
@@ -65,11 +79,16 @@ Built-in storage classes include [PDO](https://github.com/bshaffer/oauth2-server
 the use of your own Storage objects to fit your application's implementation.
 
 Once you've created a storage object, pass it to the server object and define which Grant Types your server is to support.  See
-the list of supported [Grant Types](#grant-types) below.
+the list of supported [Grant Types](docs/grant_types.md) below.
 
-The final step, once the Server object is set up, is to handle the incoming request.  Consult the [Server Methods](#server-methods), or
-follow the [Step-by-Step Walkthrough](#step-by-step-walkthrough) to familiarize yourself with the types of requests involved in
-OAuth2.0 workflows.
+The final step, once the Server object is set up, is to handle the incoming request.  Consult the [Server Methods](docs/methods.md), or
+see the Step-by-Step walkthrough below to familiarize yourself with the types of requests involved in OAuth2.0 workflows.
+
+You might also want to learn about the [Scope](docs/scope.md) of an application or read more about the [Response Object](docs/response.md)
+
+### Walkthrough Example
+
+To get started quickly with some real code try out the [Step-by-Step Walkthrough](docs/cookbook/walkthrough.md).
 
 Contact
 -------
