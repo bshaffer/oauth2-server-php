@@ -189,6 +189,12 @@ And just as before, you will receive an access token:
 
 > Note: Be sure to do this quickly, because Authorization Codes expire in 30 seconds!
 
+### Associating local users with access tokens
+
+Once you've authenticated a user and issued an access token (such as with the above Authorize Controller example),
+you'll probably want to know which user an access token applies to when it is used. Have a look at the
+[User ID documentation](../userid.md) for information on how to do this.
+
 ### Testing your Authorize Controller with an external client
 
 If you want to test the authorize controller using a "real" client, check out the
