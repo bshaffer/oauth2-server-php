@@ -16,19 +16,12 @@ Documentation Index
 In addition to this README page, the following documentation is available:
 
   1. [Grant Types](docs/grant_types.md)
-
   2. [Server Methods](docs/methods.md)
-
   3. [Scope](docs/scope.md)
-
   4. [Response Object](docs/response.md)
-
   5. Cookbook examples:
-
    * [Step-by-Step walkthrough](docs/cookbook/walkthrough.md)
-
    * [Integrating with Doctrine](docs/cookbook/doctrine.md)
-
    * [Testing with Google OAuth2 Playground](docs/cookbook/google-playground.md)
 
 Installation
