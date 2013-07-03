@@ -16,7 +16,7 @@ class Redis implements AuthorizationCodeInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
     RefreshTokenInterface,
-    JWTBearerInterface
+    JwtBearerInterface
 {
     private $redis;
     private $config;
