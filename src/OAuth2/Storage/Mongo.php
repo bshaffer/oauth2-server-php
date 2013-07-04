@@ -57,9 +57,10 @@ class Mongo implements AuthorizationCodeInterface,
     /* ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
-        $result = $this->collection('client_table')->findOne(array('client_id' => $client_id));
-
-        return $result['client_secret'] == $client_secret;
+        if ($result = $this->collection('client_table')->findOne(array('client_id' => $client_id))) {
+            return $result['client_secret'] == $client_secret;
+        }
+        return false;
     }
 
     public function getClientDetails($client_id)
