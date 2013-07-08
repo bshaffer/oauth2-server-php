@@ -72,8 +72,8 @@ class Scope implements ScopeInterface
         return $request->request('scope', $request->query('scope'));
     }
 
-    public function getDefaultScope()
+    public function getDefaultScope($client_id = null)
     {
-        return $this->storage->getDefaultScope();
+        return $this->storage->getDefaultScope($client_id);
     }
 }
