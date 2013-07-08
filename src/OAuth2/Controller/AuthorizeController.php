@@ -145,7 +145,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         $response_type = $request->query('response_type');
         $state = $request->query('state');
         if (!$scope = $this->scopeUtil->getScopeFromRequest($request)) {
-            $scope = $this->scopeUtil->getDefaultScope();
+            $scope = $this->scopeUtil->getDefaultScope($client_id);
         }
 
         // type and client_id are required
