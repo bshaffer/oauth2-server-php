@@ -125,7 +125,7 @@ class TokenController implements TokenControllerInterface
          */
         $availableScope = $grantType->getScope();
         if (!$requestedScope = $this->scopeUtil->getScopeFromRequest($request)) {
-            $requestedScope = $availableScope ? $availableScope : $this->scopeUtil->getDefaultScope();
+            $requestedScope = $availableScope ? $availableScope : $this->scopeUtil->getDefaultScope($clientId);
         }
 
         if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope, $clientId))
