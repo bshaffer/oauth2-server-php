@@ -92,9 +92,6 @@ class TokenController implements TokenControllerInterface
         }
 
         $grantType = $this->grantTypes[$grantTypeIdentifier];
-        if (!$grantType->validateRequest($request, $response)) {
-            return null;
-        }
 
         /* Retrieve the client information from the request
          * ClientAssertionTypes allow for grant types which also assert the client data
@@ -103,14 +100,25 @@ class TokenController implements TokenControllerInterface
          * @see OAuth2\GrantType\JWTBearer
          * @see OAuth2\GrantType\ClientCredentials
          */
-        if ($grantType instanceof ClientAssertionTypeInterface) {
-            $clientId = $grantType->getClientId();
-        } else {
+        if (!$grantType instanceof ClientAssertionTypeInterface) {
             if (!$this->clientAssertionType->validateRequest($request, $response)) {
                 return null;
             }
             $clientId = $this->clientAssertionType->getClientId();
+        }
 
+        /* Retrieve the grant type information from the request
+         * The GrantTypeInterface object handles all validation
+         * If the object is an instance of ClientAssertionTypeInterface,
+         * That logic is handled here as well
+         */
+        if (!$grantType->validateRequest($request, $response)) {
+            return null;
+        }
+
+        if ($grantType instanceof ClientAssertionTypeInterface) {
+            $clientId = $grantType->getClientId();
+        } else {
             // validate the Client ID (if applicable)
             if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
                 $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier));
