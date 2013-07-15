@@ -286,7 +286,8 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
         $this->assertEquals($response->getStatusCode(), 302);
-        $this->assertContains('code', $response->getHttpHeader('Location'));
+        $this->assertContains('state', $response->getHttpHeader('Location'));
+        $this->assertStringStartsWith('http://brentertainment.com?code=', $response->getHttpHeader('Location'));
 
         $parts = parse_url($response->getHttpHeader('Location'));
         parse_str($parts['query'], $query);
