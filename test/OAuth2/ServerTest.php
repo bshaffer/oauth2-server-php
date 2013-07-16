@@ -249,6 +249,22 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $server->handleTokenRequest($request, $response = new Response());
     }
 
+    public function testHttpBasicConfig()
+    {
+        // create mock storage
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server = new Server(array($storage), array('allow_credentials_in_request_body' => false));
+        $server->getTokenController();
+        $httpBasic = $server->getClientAssertionType();
+
+        $reflection = new \ReflectionClass($httpBasic);
+        $prop = $reflection->getProperty('config');
+        $prop->setAccessible(true);
+
+        $config = $prop->getValue($httpBasic); // get the private "storages" property
+        $this->assertEquals($config['allow_credentials_in_request_body'], false);
+    }
+
     /**
      * @expectedException InvalidArgumentException OAuth2\ResponseType\AuthorizationCodeInterface
      **/
