@@ -52,7 +52,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         ), $config);
 
         if (is_null($scopeUtil)) {
-            $scopeUtil = new OAuth2_Scope();
+            $scopeUtil = new \OAuth2\Scope();
         }
         $this->scopeUtil = $scopeUtil;
     }
@@ -60,7 +60,7 @@ class AuthorizeController implements AuthorizeControllerInterface
     public function handleAuthorizeRequest(RequestInterface $request, ResponseInterface $response, $is_authorized, $user_id = null)
     {
         if (!is_bool($is_authorized)) {
-            throw new InvalidArgumentException('Argument "is_authorized" must be a boolean.  This method must know if the user has granted access to the client.');
+            throw new \InvalidArgumentException('Argument "is_authorized" must be a boolean.  This method must know if the user has granted access to the client.');
         }
 
         // We repeat this, because we need to re-validate. The request could be POSTed

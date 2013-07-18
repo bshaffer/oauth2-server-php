@@ -51,7 +51,7 @@ class AuthorizationCode implements GrantTypeInterface
         }
 
         if (!isset($authCode['expires'])) {
-            throw new Exception('Storage must return authcode with a value for "expires"');
+            throw new \Exception('Storage must return authcode with a value for "expires"');
         }
 
         if ($authCode["expires"] < time()) {
