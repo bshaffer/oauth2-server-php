@@ -18,7 +18,6 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
 {
     protected $db;
     protected $config;
-
      
     public function __construct($connection, $config = array())
     {
