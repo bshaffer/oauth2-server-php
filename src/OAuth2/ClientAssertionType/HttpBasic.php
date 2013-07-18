@@ -33,7 +33,7 @@ class HttpBasic implements ClientAssertionTypeInterface
         }
 
         if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
-            throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
+            throw new \LogicException('the clientData array must have "client_id" and "client_secret" values set.');
         }
 
         if ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {

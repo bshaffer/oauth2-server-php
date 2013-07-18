@@ -30,7 +30,7 @@ class ResourceController implements ResourceControllerInterface
         ), $config);
 
         if (is_null($scopeUtil)) {
-            $scopeUtil = new OAuth2_Scope();
+            $scopeUtil = new \OAuth2\Scope();
         }
         $this->scopeUtil = $scopeUtil;
     }
