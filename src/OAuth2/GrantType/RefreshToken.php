@@ -6,6 +6,7 @@ use OAuth2\Storage\RefreshTokenInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
+use OAuth2\ErrorCode;
 
 /**
  *
@@ -33,17 +34,17 @@ class RefreshToken implements GrantTypeInterface
     public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$request->request("refresh_token")) {
-            $response->setError(400, 'invalid_request', 'Missing parameter: "refresh_token" is required');
+            $response->setError(400, ErrorCode::INVALID_REQUEST, 'Missing parameter: "refresh_token" is required');
             return null;
         }
 
         if (!$refreshToken = $this->storage->getRefreshToken($request->request("refresh_token"))) {
-            $response->setError(400, 'invalid_grant', 'Invalid refresh token');
+            $response->setError(400, ErrorCode::INVALID_GRANT, 'Invalid refresh token');
             return null;
         }
 
         if ($refreshToken["expires"] < time()) {
-            $response->setError(400, 'invalid_grant', 'Refresh token has expired');
+            $response->setError(400, ErrorCode::INVALID_GRANT, 'Refresh token has expired');
             return null;
         }
 
