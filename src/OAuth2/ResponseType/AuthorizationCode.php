@@ -10,8 +10,8 @@ use OAuth2\Storage\AuthorizationCodeInterface as AuthorizationCodeStorageInterfa
  */
 class AuthorizationCode implements AuthorizationCodeInterface
 {
-    private $storage;
-    private $config;
+    protected $storage;
+    protected $config;
 
     public function __construct(AuthorizationCodeStorageInterface $storage, array $config = array())
     {

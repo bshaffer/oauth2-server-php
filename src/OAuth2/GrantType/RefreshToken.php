@@ -13,9 +13,10 @@ use OAuth2\ResponseInterface;
  */
 class RefreshToken implements GrantTypeInterface
 {
-    private $storage;
-    private $config;
     private $refreshToken;
+
+    protected $storage;
+    protected $config;
 
     public function __construct(RefreshTokenInterface $storage, $config = array())
     {

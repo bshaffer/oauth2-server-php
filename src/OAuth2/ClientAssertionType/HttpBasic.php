@@ -13,9 +13,10 @@ use OAuth2\ResponseInterface;
  */
 class HttpBasic implements ClientAssertionTypeInterface
 {
-    private $storage;
-    private $config;
     private $clientData;
+
+    protected $storage;
+    protected $config;
 
     public function __construct(ClientCredentialsInterface $storage, array $config = array())
     {

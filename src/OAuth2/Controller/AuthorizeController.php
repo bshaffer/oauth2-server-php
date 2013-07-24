@@ -12,16 +12,16 @@ use OAuth2\ResponseInterface;
  */
 class AuthorizeController implements AuthorizeControllerInterface
 {
-    private $clientStorage;
-    private $responseTypes;
-    private $config;
-    private $scopeUtil;
-
     private $scope;
     private $state;
     private $client_id;
     private $redirect_uri;
     private $response_type;
+
+    protected $clientStorage;
+    protected $responseTypes;
+    protected $config;
+    protected $scopeUtil;
 
     /**
      * @param OAuth2_Storage_ClientInterface $clientStorage

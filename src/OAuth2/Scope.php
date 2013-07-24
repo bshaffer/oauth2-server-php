@@ -10,7 +10,7 @@ use OAuth2\Storage\ScopeInterface as ScopeStorageInterface;
 */
 class Scope implements ScopeInterface
 {
-    private $storage;
+    protected $storage;
 
     /**
      * @param mixed @storage

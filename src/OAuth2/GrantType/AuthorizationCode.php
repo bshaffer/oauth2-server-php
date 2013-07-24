@@ -13,8 +13,8 @@ use OAuth2\ResponseInterface;
  */
 class AuthorizationCode implements GrantTypeInterface
 {
-    private $storage;
-    private $authCode;
+    protected $storage;
+    protected $authCode;
 
     public function __construct(AuthorizationCodeInterface $storage)
     {

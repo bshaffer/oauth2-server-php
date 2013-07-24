@@ -13,8 +13,9 @@ use OAuth2\ResponseInterface;
  */
 class UserCredentials implements GrantTypeInterface
 {
-    private $storage;
     private $userInfo;
+
+    protected $storage;
 
     public function __construct(UserCredentialsInterface $storage)
     {

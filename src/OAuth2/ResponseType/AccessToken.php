@@ -11,8 +11,8 @@ use OAuth2\Storage\RefreshTokenInterface;
  */
 class AccessToken implements AccessTokenInterface
 {
-    private $tokenStorage;
-    private $refreshStorage;
+    protected $tokenStorage;
+    protected $refreshStorage;
 
     public function __construct(AccessTokenStorageInterface $tokenStorage, RefreshTokenInterface $refreshStorage = null, array $config = array())
     {

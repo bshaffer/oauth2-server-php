@@ -19,10 +19,11 @@ use OAuth2\ResponseInterface;
  */
 class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
 {
-    private $storage;
-    private $audience;
-    private $jwtUtil;
     private $jwt;
+
+    protected $storage;
+    protected $audience;
+    protected $jwtUtil;
 
     /**
      * Creates an instance of the JWT bearer grant type.

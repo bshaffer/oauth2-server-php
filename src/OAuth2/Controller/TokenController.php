@@ -15,11 +15,10 @@ use OAuth2\ResponseInterface;
  */
 class TokenController implements TokenControllerInterface
 {
-    private $response;
-    private $clientAssertionType;
-    private $accessToken;
-    private $grantTypes;
-    private $scopeUtil;
+    protected $accessToken;
+    protected $grantTypes;
+    protected $clientAssertionType;
+    protected $scopeUtil;
 
     public function __construct(AccessTokenInterface $accessToken, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null)
     {

@@ -13,12 +13,12 @@ use OAuth2\ResponseInterface;
  */
 class ResourceController implements ResourceControllerInterface
 {
-    private $response;
-    private $tokenType;
-    private $tokenStorage;
-    private $config;
-    private $scopeUtil;
     private $token;
+
+    protected $tokenType;
+    protected $tokenStorage;
+    protected $config;
+    protected $scopeUtil;
 
     public function __construct(TokenTypeInterface $tokenType, AccessTokenInterface $tokenStorage, $config = array(), ScopeInterface $scopeUtil = null)
     {
