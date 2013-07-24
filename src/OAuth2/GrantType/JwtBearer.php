@@ -8,6 +8,7 @@ use OAuth2\Encryption\Jwt;
 use OAuth2\ResponseType\AccessTokenInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
+use OAuth2\ErrorCode;
 
 /**
  * The JWT bearer authorization grant implements JWT (JSON Web Tokens) as a grant type per the IETF draft.
@@ -71,7 +72,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$request->request("assertion")) {
-            $response->setError(400, 'invalid_request', 'Missing parameters: "assertion" required');
+            $response->setError(400, ErrorCode::INVALID_REQUEST, 'Missing parameters: "assertion" required');
             return null;
         }
 
@@ -82,7 +83,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
 
         if (!$jwt) {
-            $response->setError(400, 'invalid_request', "JWT is malformed");
+            $response->setError(400, ErrorCode::INVALID_REQUEST, "JWT is malformed");
             return null;
         }
 
@@ -101,28 +102,28 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         ), $jwt);
 
         if (!isset($jwt['iss'])) {
-            $response->setError(400, 'invalid_grant', "Invalid issuer (iss) provided");
+            $response->setError(400, ErrorCode::INVALID_GRANT, "Invalid issuer (iss) provided");
             return null;
         }
 
         if (!isset($jwt['sub'])) {
-            $response->setError(400, 'invalid_grant', "Invalid subject (sub) provided");
+            $response->setError(400, ErrorCode::INVALID_GRANT, "Invalid subject (sub) provided");
             return null;
         }
 
         if (!isset($jwt['exp'])) {
-            $response->setError(400, 'invalid_grant', "Expiration (exp) time must be present");
+            $response->setError(400, ErrorCode::INVALID_GRANT, "Expiration (exp) time must be present");
             return null;
         }
 
         // Check expiration
         if (ctype_digit($jwt['exp'])) {
             if ($jwt['exp'] <= time()) {
-                $response->setError(400, 'invalid_grant', "JWT has expired");
+                $response->setError(400, ErrorCode::INVALID_GRANT, "JWT has expired");
                 return null;
             }
         } else {
-            $response->setError(400, 'invalid_grant', "Expiration (exp) time must be a unix time stamp");
+            $response->setError(400, ErrorCode::INVALID_GRANT, "Expiration (exp) time must be a unix time stamp");
             return null;
         }
 
@@ -130,31 +131,31 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         if ($notBefore = $jwt['nbf']) {
             if (ctype_digit($notBefore)) {
                 if ($notBefore > time()) {
-                    $response->setError(400, 'invalid_grant', "JWT cannot be used before the Not Before (nbf) time");
+                    $response->setError(400, ErrorCode::INVALID_GRANT, "JWT cannot be used before the Not Before (nbf) time");
                     return null;
                 }
             } else {
-                $response->setError(400, 'invalid_grant', "Not Before (nbf) time must be a unix time stamp");
+                $response->setError(400, ErrorCode::INVALID_GRANT, "Not Before (nbf) time must be a unix time stamp");
                 return null;
             }
         }
 
         // Check the audience if required to match
         if (!isset($jwt['aud']) || ($jwt['aud'] != $this->audience)) {
-            $response->setError(400, 'invalid_grant', "Invalid audience (aud)");
+            $response->setError(400, ErrorCode::INVALID_GRANT, "Invalid audience (aud)");
             return null;
         }
 
         // Get the iss's public key
         // @see http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06#section-4.1.1
         if (!$key = $this->storage->getClientKey($jwt['iss'], $jwt['sub'])) {
-            $response->setError(400, 'invalid_grant', "Invalid issuer (iss) or subject (sub) provided");
+            $response->setError(400, ErrorCode::INVALID_GRANT, "Invalid issuer (iss) or subject (sub) provided");
             return null;
         }
 
         // Verify the JWT
         if (!$this->jwtUtil->decode($undecodedJWT, $key, true)) {
-            $response->setError(400, 'invalid_grant', "JWT failed signature verification");
+            $response->setError(400, ErrorCode::INVALID_GRANT, "JWT failed signature verification");
             return null;
         }
 

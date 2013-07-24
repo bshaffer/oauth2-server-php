@@ -6,6 +6,7 @@ use OAuth2\Storage\AuthorizationCodeInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
+use OAuth2\ErrorCode;
 
 /**
  *
@@ -29,13 +30,13 @@ class AuthorizationCode implements GrantTypeInterface
     public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$request->request('code')) {
-            $response->setError(400, 'invalid_request', 'Missing parameter: "code" is required');
+            $response->setError(400, ErrorCode::INVALID_REQUEST, 'Missing parameter: "code" is required');
             return false;
         }
 
         $code = $request->request('code');
         if (!$authCode = $this->storage->getAuthorizationCode($code)) {
-            $response->setError(400, 'invalid_grant', 'Authorization code doesn\'t exist or is invalid for the client');
+            $response->setError(400, ErrorCode::INVALID_GRANT, 'Authorization code doesn\'t exist or is invalid for the client');
             return false;
         }
 
@@ -45,17 +46,17 @@ class AuthorizationCode implements GrantTypeInterface
          */
         if (isset($authCode['redirect_uri']) && $authCode['redirect_uri']) {
             if (!$request->request('redirect_uri') || urldecode($request->request('redirect_uri')) != $authCode['redirect_uri']) {
-                $response->setError(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match", "#section-4.1.3");
+                $response->setError(400, ErrorCode::REDIRECT_URI_MISMATCH, "The redirect URI is missing or do not match", "#section-4.1.3");
                 return false;
             }
         }
 
         if (!isset($authCode['expires'])) {
-            throw new Exception('Storage must return authcode with a value for "expires"');
+            throw new \Exception('Storage must return authcode with a value for "expires"');
         }
 
         if ($authCode["expires"] < time()) {
-            $response->setError(400, 'invalid_grant', "The authorization code has expired");
+            $response->setError(400, ErrorCode::INVALID_GRANT, "The authorization code has expired");
             return false;
         }
 

@@ -4,7 +4,7 @@ namespace OAuth2\TokenType;
 
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
-
+use OAuth2\ErrorCode;
 /**
 *
 */
@@ -54,7 +54,7 @@ class Bearer implements TokenTypeInterface
         // Check that exactly one method was used
         $methodsUsed = !empty($headers) + !is_null($request->query($this->config['token_param_name'])) + !is_null($request->request($this->config['token_param_name']));
         if ($methodsUsed > 1) {
-            $response->setError(400, 'invalid_request', 'Only one method may be used to authenticate at a time (Auth header, GET or POST)');
+            $response->setError(400, ErrorCode::INVALID_REQUEST, 'Only one method may be used to authenticate at a time (Auth header, GET or POST)');
             return null;
         }
         if ($methodsUsed == 0) {
@@ -65,7 +65,7 @@ class Bearer implements TokenTypeInterface
         // HEADER: Get the access token from the header
         if (!empty($headers)) {
             if (!preg_match('/' . $this->config['token_bearer_header_name'] . '\s(\S+)/', $headers, $matches)) {
-                $response->setError(400, 'invalid_request', 'Malformed auth header');
+                $response->setError(400, ErrorCode::INVALID_REQUEST, 'Malformed auth header');
                 return null;
             }
             return $matches[1];
@@ -74,7 +74,7 @@ class Bearer implements TokenTypeInterface
         if ($request->request($this->config['token_param_name'])) {
             // POST: Get the token from POST data
             if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
-                $response->setError(400, 'invalid_request', 'When putting the token in the body, the method must be POST');
+                $response->setError(400, ErrorCode::INVALID_REQUEST, 'When putting the token in the body, the method must be POST');
                 return null;
             }
 
@@ -86,7 +86,7 @@ class Bearer implements TokenTypeInterface
             if ($contentType !== null && $contentType != 'application/x-www-form-urlencoded') {
                 // IETF specifies content-type. NB: Not all webservers populate this _SERVER variable
                 // @see http://tools.ietf.org/html/rfc6750#section-2.2
-                $response->setError(400, 'invalid_request', 'The content type for POST requests must be "application/x-www-form-urlencoded"');
+                $response->setError(400, ErrorCode::INVALID_REQUEST, 'The content type for POST requests must be "application/x-www-form-urlencoded"');
                 return null;
             }
 

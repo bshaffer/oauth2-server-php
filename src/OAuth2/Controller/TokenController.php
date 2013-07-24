@@ -9,6 +9,7 @@ use OAuth2\ScopeInterface;
 use OAuth2\Scope;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
+use OAuth2\ErrorCode;
 
 /**
  * @see OAuth2_Controller_TokenControllerInterface
@@ -72,7 +73,7 @@ class TokenController implements TokenControllerInterface
     public function grantAccessToken(RequestInterface $request, ResponseInterface $response)
     {
         if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
-            $response->setError(405, 'invalid_request', 'The request method must be POST when requesting an access token', '#section-3.2');
+            $response->setError(405, ErrorCode::INVALID_REQUEST, 'The request method must be POST when requesting an access token', '#section-3.2');
             $response->addHttpHeaders(array('Allow' => 'POST'));
             return null;
         }
@@ -81,12 +82,12 @@ class TokenController implements TokenControllerInterface
          * and validate the request for that grant type
          */
         if (!$grantTypeIdentifier = $request->request('grant_type')) {
-            $response->setError(400, 'invalid_request', 'The grant type was not specified in the request');
+            $response->setError(400, ErrorCode::INVALID_REQUEST, 'The grant type was not specified in the request');
             return null;
         }
         if (!isset($this->grantTypes[$grantTypeIdentifier])) {
             /* TODO: If this is an OAuth2 supported grant type that we have chosen not to implement, throw a 501 Not Implemented instead */
-            $response->setError(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantTypeIdentifier));
+            $response->setError(400, ErrorCode::UNSUPPORTED_GRANT_TYPE, sprintf('Grant type "%s" not supported', $grantTypeIdentifier));
             return null;
         }
 
@@ -120,7 +121,7 @@ class TokenController implements TokenControllerInterface
         } else {
             // validate the Client ID (if applicable)
             if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
-                $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier));
+                $response->setError(400, ErrorCode::INVALID_GRANT, sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier));
                 return null;
             }
         }
@@ -137,7 +138,7 @@ class TokenController implements TokenControllerInterface
 
         if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope, $clientId))
             || ($availableScope && !$this->scopeUtil->checkScope($requestedScope, $availableScope))) {
-            $response->setError(400, 'invalid_scope', 'An unsupported scope was requested');
+            $response->setError(400, ErrorCode::INVALID_SCOPE, 'An unsupported scope was requested');
             return null;
         }
 

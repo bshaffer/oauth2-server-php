@@ -5,6 +5,7 @@ namespace OAuth2\ClientAssertionType;
 use OAuth2\Storage\ClientCredentialsInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
+use OAuth2\ErrorCode;
 
 /**
  * Validate a client via Http Basic authentication
@@ -33,16 +34,16 @@ class HttpBasic implements ClientAssertionTypeInterface
         }
 
         if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
-            throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
+            throw new \LogicException('the clientData array must have "client_id" and "client_secret" values set.');
         }
 
         if ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
-            $response->setError(400, 'invalid_client', 'The client credentials are invalid');
+            $response->setError(400, ErrorCode::INVALID_CLIENT, 'The client credentials are invalid');
             return false;
         }
 
         if (!$this->storage->checkRestrictedGrantType($clientData['client_id'], $request->request('grant_type'))) {
-            $response->setError(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
+            $response->setError(400, ErrorCode::UNAUTHORIZED_CLIENT, 'The grant type is unauthorized for this client_id');
             return false;
         }
 
@@ -94,7 +95,7 @@ class HttpBasic implements ClientAssertionTypeInterface
         }
 
         if ($response) {
-            $response->setError(400, 'invalid_client', 'Client credentials were not found in the headers or body');
+            $response->setError(400, ErrorCode::INVALID_CLIENT, 'Client credentials were not found in the headers or body');
         }
 
         return null;
