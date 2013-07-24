@@ -411,6 +411,12 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($query['state'], 'test');
     }
 
+    public function testCreateController()
+    {
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $controller = new AuthorizeController($storage);
+    }
+
     private function getTestServer($config = array())
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();

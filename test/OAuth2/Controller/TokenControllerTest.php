@@ -172,6 +172,13 @@ class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
     }
 
+    public function testCreateController()
+    {
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $accessToken = new \OAuth2\ResponseType\AccessToken($storage);
+        $controller = new TokenController($accessToken);
+    }
+
     private function getTestServer()
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();

@@ -155,6 +155,13 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($allow);
     }
 
+    public function testCreateController()
+    {
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $tokenType = new \OAuth2\TokenType\Bearer();
+        $controller = new ResourceController($tokenType, $storage);
+    }
+
     private function getTestServer($config = array())
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();

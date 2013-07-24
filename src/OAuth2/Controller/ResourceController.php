@@ -7,6 +7,7 @@ use OAuth2\Storage\AccessTokenInterface;
 use OAuth2\ScopeInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
+use OAuth2\Scope;
 
 /**
  * @see OAuth2_Controller_ResourceControllerInterface
@@ -30,7 +31,7 @@ class ResourceController implements ResourceControllerInterface
         ), $config);
 
         if (is_null($scopeUtil)) {
-            $scopeUtil = new \OAuth2\Scope();
+            $scopeUtil = new Scope();
         }
         $this->scopeUtil = $scopeUtil;
     }

@@ -76,7 +76,7 @@ class Jwt
                 return @openssl_verify($input, $signature, $key, 'sha512') === 1;
 
             default:
-                throw new \Exception("Unsupported or invalid signing algorithm.");
+                throw new \InvalidArgumentException("Unsupported or invalid signing algorithm.");
         }
     }
 
