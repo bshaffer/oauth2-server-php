@@ -97,7 +97,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
     public function testGetTokenControllerWithNoClientCredentialsStorageThrowsException()
     {
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\UserCredentialsInterface'));
+        $server->addStorage($this->getMock('OAuth2\Storage\ResourceOwnerPasswordCredentialsInterface'));
         $server->getTokenController();
     }
 

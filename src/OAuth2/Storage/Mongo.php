@@ -19,7 +19,7 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
 class Mongo implements AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
-    UserCredentialsInterface,
+    ResourceOwnerPasswordCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     OpenIDAuthorizationCodeInterface
@@ -214,7 +214,7 @@ class Mongo implements AuthorizationCodeInterface,
     }
 
 
-    /* UserCredentialsInterface */
+    /* ResourceOwnerPasswordCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
         if ($user = $this->getUser($username)) {

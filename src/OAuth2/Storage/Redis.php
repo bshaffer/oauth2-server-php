@@ -18,7 +18,7 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
 class Redis implements AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
-    UserCredentialsInterface,
+    ResourceOwnerPasswordCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     ScopeInterface,
@@ -112,7 +112,7 @@ class Redis implements AuthorizationCodeInterface,
         return $this->expireValue($key);
     }
 
-    /* UserCredentialsInterface */
+    /* ResourceOwnerPasswordCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
         $user = $this->getUserDetails($username);

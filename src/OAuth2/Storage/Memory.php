@@ -14,7 +14,7 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class Memory implements AuthorizationCodeInterface,
-    UserCredentialsInterface,
+    ResourceOwnerPasswordCredentialsInterface,
     UserClaimsInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
@@ -25,7 +25,7 @@ class Memory implements AuthorizationCodeInterface,
     OpenIDAuthorizationCodeInterface
 {
     public $authorizationCodes;
-    public $userCredentials;
+    public $resourceOwnerPasswordCredentials;
     public $clientCredentials;
     public $refreshTokens;
     public $accessTokens;
@@ -39,7 +39,7 @@ class Memory implements AuthorizationCodeInterface,
     {
         $params = array_merge(array(
             'authorization_codes' => array(),
-            'user_credentials' => array(),
+            'resourceOwnerPasswordCredentials' => array(),
             'client_credentials' => array(),
             'refresh_tokens' => array(),
             'access_tokens' => array(),
@@ -51,7 +51,7 @@ class Memory implements AuthorizationCodeInterface,
         ), $params);
 
         $this->authorizationCodes = $params['authorization_codes'];
-        $this->userCredentials = $params['user_credentials'];
+        $this->resourceOwnerPasswordCredentials = $params['resourceOwnerPasswordCredentials'];
         $this->clientCredentials = $params['client_credentials'];
         $this->refreshTokens = $params['refresh_tokens'];
         $this->accessTokens = $params['access_tokens'];
@@ -91,9 +91,10 @@ class Memory implements AuthorizationCodeInterface,
         unset($this->authorizationCodes[$code]);
     }
 
-    /* UserCredentialsInterface */
+    /* ResourceOwnerPasswordCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
+
         $userDetails = $this->getUserDetails($username);
 
         return $userDetails && $userDetails['password'] && $userDetails['password'] === $password;
@@ -101,7 +102,7 @@ class Memory implements AuthorizationCodeInterface,
 
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
-        $this->userCredentials[$username] = array(
+        $this->resourceOwnerPasswordCredentials[$username] = array(
             'password'   => $password,
             'first_name' => $firstName,
             'last_name'  => $lastName,
@@ -112,7 +113,7 @@ class Memory implements AuthorizationCodeInterface,
 
     public function getUserDetails($username)
     {
-        if (!isset($this->userCredentials[$username])) {
+        if (!isset($this->resourceOwnerPasswordCredentials[$username])) {
             return false;
         }
 
@@ -121,7 +122,7 @@ class Memory implements AuthorizationCodeInterface,
             'password'   => null,
             'first_name' => null,
             'last_name'  => null,
-        ), $this->userCredentials[$username]);
+        ), $this->resourceOwnerPasswordCredentials[$username]);
     }
 
     /* UserClaimsInterface */

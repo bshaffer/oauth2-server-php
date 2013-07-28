@@ -166,7 +166,7 @@ class UserCredentialsTest extends \PHPUnit_Framework_TestCase
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $server = new Server($storage);
-        $server->addGrantType(new UserCredentials($storage));
+        $server->addGrantType(new ResourceOwnerPasswordCredentials($storage));
 
         return $server;
     }

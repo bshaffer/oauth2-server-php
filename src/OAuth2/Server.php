@@ -25,7 +25,7 @@ use OAuth2\OpenID\ResponseType\TokenIdToken;
 use OAuth2\TokenType\TokenTypeInterface;
 use OAuth2\TokenType\Bearer;
 use OAuth2\GrantType\GrantTypeInterface;
-use OAuth2\GrantType\UserCredentials;
+use OAuth2\GrantType\ResourceOwnerPasswordCredentials;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\RefreshToken;
 use OAuth2\GrantType\AuthorizationCode;
@@ -69,7 +69,7 @@ class Server implements ResourceControllerInterface,
         'client_credentials' => 'OAuth2\Storage\ClientCredentialsInterface',
         'client' => 'OAuth2\Storage\ClientInterface',
         'refresh_token' => 'OAuth2\Storage\RefreshTokenInterface',
-        'user_credentials' => 'OAuth2\Storage\UserCredentialsInterface',
+        'user_credentials' => 'OAuth2\Storage\ResourceOwnerPasswordCredentials',
         'user_claims' => 'OAuth2\OpenID\Storage\UserClaimsInterface',
         'public_key' => 'OAuth2\Storage\PublicKeyInterface',
         'jwt_bearer' => 'OAuth2\Storage\JWTBearerInterface',
@@ -590,7 +590,7 @@ class Server implements ResourceControllerInterface,
         $grantTypes = array();
 
         if (isset($this->storages['user_credentials'])) {
-            $grantTypes['password'] = new UserCredentials($this->storages['user_credentials']);
+            $grantTypes['password'] = new ResourceOwnerPasswordCredentials($this->storages['user_credentials']);
         }
 
         if (isset($this->storages['client_credentials'])) {

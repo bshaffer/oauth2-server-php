@@ -9,7 +9,7 @@ namespace OAuth2\Storage;
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface UserCredentialsInterface
+interface ResourceOwnerPasswordCredentialsInterface
 {
     /**
      * Grant access tokens for basic user credentials.
