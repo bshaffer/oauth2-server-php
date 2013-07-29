@@ -5,6 +5,8 @@ namespace OAuth2\Controller;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
 use OAuth2\GrantType\AuthorizationCode;
+use OAuth2\GrantType\ClientCredentials;
+use OAuth2\Scope;
 use OAuth2\Request\TestRequest;
 use OAuth2\Response;
 
@@ -172,6 +174,30 @@ class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
     }
 
+    public function testEnforceScope()
+    {
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server = new Server($storage);
+        $server->addGrantType(new ClientCredentials($storage));
+
+        $scope = new Scope(array(
+            'default_scope' => false,
+            'supported_scopes' => array('testscope')
+        ));
+        $server->setScopeUtil($scope);
+
+        $request = TestRequest::createPost(array(
+            'grant_type' => 'client_credentials', // valid grant type
+            'client_id'  => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+        ));
+        $response = $server->handleTokenRequest($request);
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_scope');
+        $this->assertEquals($response->getParameter('error_description'), 'This application requires you specify a scope parameter');
+    }
+
     public function testCreateController()
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
@@ -183,7 +209,7 @@ class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $server = new Server($storage);
-        $server->addGrantType(new AuthorizationCode($storage)); // or some other grant type.  This is the simplest
+        $server->addGrantType(new AuthorizationCode($storage));
 
         return $server;
     }

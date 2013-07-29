@@ -128,11 +128,18 @@ class TokenController implements TokenControllerInterface
         /*
          * Validate the scope of the token
          * If the grant type returns a value for the scope,
+         * as is the case with the "Authorization Code" grant type,
          * this value must be verified with the scope being requested
          */
         $availableScope = $grantType->getScope();
         if (!$requestedScope = $this->scopeUtil->getScopeFromRequest($request)) {
-            $requestedScope = $availableScope ? $availableScope : $this->scopeUtil->getDefaultScope($clientId);
+            if (!$availableScope) {
+                if (false === $defaultScope = $this->scopeUtil->getDefaultScope($clientId)) {
+                    $response->setError(400, 'invalid_scope', 'This application requires you specify a scope parameter');
+                    return null;
+                }
+            }
+            $requestedScope = $availableScope ? $availableScope : $defaultScope;
         }
 
         if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope, $clientId))
