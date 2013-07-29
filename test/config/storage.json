@@ -69,7 +69,7 @@
             "grant_types": "implicit password"
         }
     },
-    "user_credentials" : {
+    "resource_owner_password_credentials" : {
         "test-username": {
             "password": "testpass"
         },
