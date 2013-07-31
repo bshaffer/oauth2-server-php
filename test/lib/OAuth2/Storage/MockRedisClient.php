@@ -11,6 +11,7 @@ class MockRedisClient
                 'client_id' => 'oauth_test_client',
                 'client_secret' => "testpass",
                 'redirect_uri' => '',
+                'grant_types' => 'implicit password',
             ),
             'oauth_access_tokens:testtoken' => array(
                 'access_token' => 'testtoken',

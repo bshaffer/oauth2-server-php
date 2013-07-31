@@ -51,6 +51,23 @@ class StorageTest extends \PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
+    public function testCheckRestrictedGrantType(ClientInterface $storage = null)
+    {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
+
+        // Check invalid
+        $pass = $storage->checkRestrictedGrantType('oauth_test_client', 'authorization_code');
+        $this->assertFalse($pass);
+
+        // Check valid
+        $pass = $storage->checkRestrictedGrantType('oauth_test_client', 'implicit');
+        $this->assertTrue($pass);
+    }
+
+    /** @dataProvider provideStorage */
     public function testGetAccessToken(ClientInterface $storage = null)
     {
         if (is_null($storage)) {
