@@ -78,7 +78,9 @@ class Pdo implements AuthorizationCodeInterface,
     {
         $details = $this->getClientDetails($client_id);
         if (isset($details['grant_types'])) {
-            return in_array($grant_type, (array) $details['grant_types']);
+            $grant_types = explode(' ', $details['grant_types']);
+
+            return in_array($grant_type, (array) $grant_types);
         }
 
         // if grant_types are not defined, then none are restricted
