@@ -47,7 +47,7 @@ class UserCredentials implements GrantTypeInterface
         }
 
         if (!isset($userInfo['user_id'])) {
-            throw new LogicException("you must set the user_id on the array returned by getUserDetails");
+            throw new \LogicException("you must set the user_id on the array returned by getUserDetails");
         }
 
         $this->userInfo = $userInfo;
