@@ -111,11 +111,11 @@ class Redis implements AuthorizationCodeInterface,
         return $this->getValue($this->config['user_key'] . $username);
     }
 
-    public function setUser($username, $password, $first_name = null, $last_name = null)
+    public function setUser($user_id, $password, $first_name = null, $last_name = null)
     {
         return $this->setValue(
-            $this->config['user_key'] . $username,
-            compact('username', 'password', 'first_name', 'last_name')
+            $this->config['user_key'] . $user_id,
+            compact('user_id', 'password', 'first_name', 'last_name')
         );
     }
 

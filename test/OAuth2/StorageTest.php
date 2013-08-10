@@ -241,12 +241,12 @@ class StorageTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($storage->getUserDetails('fakeusername'));
 
         // ensure all properties are set
-        $user = $storage->getUser('testusername');
+        $user = $storage->getUserDetails('testusername');
         $this->assertTrue($user !== false);
-        $this->assertArrayHasKey('username', $user);
+        $this->assertArrayHasKey('user_id', $user);
         $this->assertArrayHasKey('first_name', $user);
         $this->assertArrayHasKey('last_name', $user);
-        $this->assertEquals($user['username'], 'testusername');
+        $this->assertEquals($user['user_id'], 'testusername');
         $this->assertEquals($user['first_name'], 'Test');
         $this->assertEquals($user['last_name'], 'User');
     }
@@ -261,6 +261,7 @@ class StorageTest extends \PHPUnit_Framework_TestCase
 
         // will add multiple storage types later
         return array(
+            array($memory),
             array($sqlite),
             array($mysql),
             array($mongo),

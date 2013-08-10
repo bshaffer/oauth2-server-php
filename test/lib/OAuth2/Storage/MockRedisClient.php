@@ -29,7 +29,7 @@ class MockRedisClient
                 'scope' => ''
             ),
             'oauth_users:testuser' => array(
-                'username' => 'testuser',
+                'user_id' => 'testuser',
                 'password' => "password",
                 'first_name' => '',
                 'last_name' => ''

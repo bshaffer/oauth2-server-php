@@ -66,7 +66,7 @@ class RefreshTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($refresh_token['client_id'], $request->request('client_id'));
         $this->assertTrue($token['refresh_token'] != 'test-refreshtoken', 'the refresh token returned is not the one used');
         $used_token = $this->storage->getRefreshToken('test-refreshtoken');
-        $this->assertNull($used_token, 'the refresh token used is no longer valid');
+        $this->assertFalse($used_token, 'the refresh token used is no longer valid');
     }
 
     public function testValidRefreshTokenWithNoRefreshTokenInResponse()

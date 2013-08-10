@@ -28,29 +28,38 @@
     },
     "client_credentials" : {
         "Test Client ID": {
-            "secret": "TestSecret"
+            "client_secret": "TestSecret"
         },
         "Test Client ID with Redirect Uri": {
-            "secret": "TestSecret2",
+            "client_secret": "TestSecret2",
             "redirect_uri": "http://brentertainment.com"
         },
         "Test Client ID with Multiple Redirect Uris": {
-            "secret": "TestSecret3",
+            "client_secret": "TestSecret3",
             "redirect_uri": "http://brentertainment.com http://morehazards.com"
         },
         "Test Client ID with Redirect Uri Parts": {
-            "secret": "TestSecret4",
+            "client_secret": "TestSecret4",
             "redirect_uri": "http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth"
         },
         "Test Some Other Client": {
-            "secret": "TestSecret3"
+            "client_secret": "TestSecret3"
         },
         "Test Client ID Empty Secret": {
-            "secret": ""
+            "client_secret": ""
+        },
+        "oauth_test_client": {
+            "client_secret": "testpass",
+            "grant_types": "implicit password"
         }
     },
     "user_credentials" : {
-        "test-username": "testpass"
+        "test-username": {
+            "password": "testpass"
+        },
+        "testusername":  {
+            "password": "testpass"
+        }
     },
     "refresh_tokens" : {
         "test-refreshtoken": {

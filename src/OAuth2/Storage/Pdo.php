@@ -35,10 +35,10 @@ class Pdo implements AuthorizationCodeInterface,
             }
             // merge optional parameters
             $connection = array_merge(array(
-                'username' => null,
+                'user_id' => null,
                 'password' => null,
             ), $connection);
-            $connection = new \PDO($connection['dsn'], $connection['username'], $connection['password']);
+            $connection = new \PDO($connection['dsn'], $connection['user_id'], $connection['password']);
         }
         $this->db = $connection;
 
@@ -151,17 +151,17 @@ class Pdo implements AuthorizationCodeInterface,
     }
 
     /* OAuth2_Storage_UserCredentialsInterface */
-    public function checkUserCredentials($username, $password)
+    public function checkUserCredentials($user_id, $password)
     {
-        if ($user = $this->getUser($username)) {
+        if ($user = $this->getUser($user_id)) {
             return $this->checkPassword($user, $password);
         }
         return false;
     }
 
-    public function getUserDetails($username)
+    public function getUserDetails($user_id)
     {
-        return $this->getUser($username);
+        return $this->getUser($user_id);
     }
 
     /* OAuth2_Storage_RefreshTokenInterface */
@@ -201,25 +201,25 @@ class Pdo implements AuthorizationCodeInterface,
         return $user['password'] == sha1($password);
     }
 
-    public function getUser($username)
+    public function getUser($user_id)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
-        $stmt->execute(array('username' => $username));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where user_id=:user_id', $this->config['user_table']));
+        $stmt->execute(array('user_id' => $user_id));
         return $stmt->fetch();
     }
 
-    public function setUser($username, $password, $firstName = null, $lastName = null)
+    public function setUser($user_id, $password, $firstName = null, $lastName = null)
     {
         // do not store in plaintext
         $password = sha1($password);
 
         // if it exists, update it.
-        if ($this->getUser($username)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table']));
+        if ($this->getUser($user_id)) {
+            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET password=:password, first_name=:firstName, last_name=:lastName where user_id=:user_id', $this->config['user_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (user_id, password, first_name, last_name) VALUES (:user_id, :password, :firstName, :lastName)', $this->config['user_table']));
         }
-        return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
+        return $stmt->execute(compact('user_id', 'password', 'firstName', 'lastName'));
     }
 
     /* OAuth2_Storage_JWTBearerInterface */
