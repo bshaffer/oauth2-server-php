@@ -37,6 +37,7 @@ class AuthorizeController implements AuthorizeControllerInterface
      *   'allow_implicit' => false,            // if the controller should allow the "implicit" grant type
      *   'enforce_state'  => true              // if the controller should require the "state" parameter
      *   'require_exact_redirect_uri' => true, // if the controller should require an exact match on the "redirect_uri" parameter
+     *   'redirect_status_code' => 302,        // HTTP status code to use for redirect responses
      * );
      * @endcode
      * @param OAuth2_ScopeInterface $scopeUtil
@@ -50,6 +51,7 @@ class AuthorizeController implements AuthorizeControllerInterface
             'allow_implicit' => false,
             'enforce_state'  => true,
             'require_exact_redirect_uri' => true,
+            'redirect_status_code' => 302,
         ), $config);
 
         if (is_null($scopeUtil)) {
@@ -78,7 +80,7 @@ class AuthorizeController implements AuthorizeControllerInterface
 
         if ($is_authorized === false) {
             $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
-            $response->setRedirect(302, $redirect_uri, $this->state, 'access_denied', "The user denied access to your application");
+            $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, 'access_denied', "The user denied access to your application");
             return;
         }
 
@@ -102,7 +104,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         $uri = $this->buildUri($redirect_uri, $uri_params);
 
         // return redirect response
-        $response->setRedirect(302, $uri);
+        $response->setRedirect($this->config['redirect_status_code'], $uri);
     }
 
     public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response)
@@ -163,16 +165,16 @@ class AuthorizeController implements AuthorizeControllerInterface
 
         // type and client_id are required
         if (!$response_type || !in_array($response_type, array(self::RESPONSE_TYPE_AUTHORIZATION_CODE, self::RESPONSE_TYPE_ACCESS_TOKEN))) {
-            $response->setRedirect(302, $redirect_uri, $state, 'invalid_request', 'Invalid or missing response type', null);
+            $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_request', 'Invalid or missing response type', null);
             return false;
         }
         if ($response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
             if (!isset($this->responseTypes['code'])) {
-                $response->setRedirect(302, $redirect_uri, $state, 'unsupported_response_type', 'authorization code grant type not supported', null);
+                $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'unsupported_response_type', 'authorization code grant type not supported', null);
                 return false;
             }
             if (!$this->clientStorage->checkRestrictedGrantType($client_id, 'authorization_code')) {
-                $response->setRedirect(302, $redirect_uri, $state, 'unauthorized_client', 'The grant type is unauthorized for this client_id', null);
+                $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'unauthorized_client', 'The grant type is unauthorized for this client_id', null);
                 return false;
             }
             if ($this->responseTypes['code']->enforceRedirect() && !$redirect_uri) {
@@ -183,29 +185,29 @@ class AuthorizeController implements AuthorizeControllerInterface
 
         if ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN) {
             if (!$this->config['allow_implicit']) {
-                $response->setRedirect(302, $redirect_uri, $state, 'unsupported_response_type', 'implicit grant type not supported', null);
+                $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'unsupported_response_type', 'implicit grant type not supported', null);
                 return false;
             }
             if (!$this->clientStorage->checkRestrictedGrantType($client_id, 'implicit')) {
-                $response->setRedirect(302, $redirect_uri, $state, 'unauthorized_client', 'The grant type is unauthorized for this client_id', null);
+                $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'unauthorized_client', 'The grant type is unauthorized for this client_id', null);
                 return false;
             }
         }
 
         // Validate that the requested scope is supported
         if (false === $scope) {
-            $response->setRedirect(302, $redirect_uri, $state, 'invalid_client', 'This application requires you specify a scope parameter', null);
+            $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_client', 'This application requires you specify a scope parameter', null);
             return false;
         }
 
         if (!is_null($scope) && !$this->scopeUtil->scopeExists($scope, $client_id)) {
-            $response->setRedirect(302, $redirect_uri, $state, 'invalid_scope', 'An unsupported scope was requested', null);
+            $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_scope', 'An unsupported scope was requested', null);
             return false;
         }
 
         // Validate state parameter exists (if configured to enforce this)
         if ($this->config['enforce_state'] && !$state) {
-            $response->setRedirect(302, $redirect_uri, null, 'invalid_request', 'The state parameter is required');
+            $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, null, 'invalid_request', 'The state parameter is required');
             return false;
         }
 
