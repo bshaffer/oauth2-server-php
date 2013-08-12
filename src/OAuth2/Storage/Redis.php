@@ -108,14 +108,21 @@ class Redis implements AuthorizationCodeInterface,
 
     public function getUser($username)
     {
-        return $this->getValue($this->config['user_key'] . $username);
+        if (!$userInfo = $this->getValue($this->config['user_key'] . $username)) {
+            return false;
+        }
+
+        // the default behavior is to use "username" as the user_id
+        return array_merge(array(
+            'user_id' => $username,
+        ), $userInfo);
     }
 
-    public function setUser($user_id, $password, $first_name = null, $last_name = null)
+    public function setUser($username, $password, $first_name = null, $last_name = null)
     {
         return $this->setValue(
-            $this->config['user_key'] . $user_id,
-            compact('user_id', 'password', 'first_name', 'last_name')
+            $this->config['user_key'] . $username,
+            compact('username', 'password', 'first_name', 'last_name')
         );
     }
 

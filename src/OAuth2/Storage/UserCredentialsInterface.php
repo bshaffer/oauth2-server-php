@@ -38,13 +38,13 @@ interface UserCredentialsInterface
 
     /**
      * @return
-     * ARRAY the associated "scope" or "user_id" values if applicable
+     * ARRAY the associated "user_id" and optional "scope" values
      * This function MUST return FALSE if the requested user does not exist or is
      * invalid. "scope" is a space-separated list of restricted scopes.
      * @code
      * return array(
-     *     "scope"   => SCOPE       // OPTIONAL space-separated list of restricted scopes
-     *     "user_id" => USER_ID,  // REQUIRED user id to be stored with the authorization code or access token
+     *     "user_id"  => USER_ID,    // REQUIRED user_id to be stored with the authorization code or access token
+     *     "scope"    => SCOPE       // OPTIONAL space-separated list of restricted scopes
      * );
      * @endcode
      */
