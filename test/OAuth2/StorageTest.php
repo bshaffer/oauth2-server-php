@@ -32,6 +32,35 @@ class StorageTest extends \PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
+    public function testClientScopeExists(ClientInterface $storage = null)
+    {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
+
+        //Test getting scopes with a client_id
+        $scopeUtil = new Scope($storage);
+        $this->assertTrue($scopeUtil->scopeExists('clientscope1 clientscope2', 'Test Client ID'));
+        $this->assertTrue($scopeUtil->scopeExists('clientscope3', 'Test Client ID 2'));
+        $this->assertFalse($scopeUtil->scopeExists('clientscope1 clientscope2 clientscope3', 'Test Client ID'));
+    }
+
+    /** @dataProvider provideStorage */
+    public function testGetDefaultClientScope(ClientInterface $storage = null)
+    {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
+
+        //Test getting scopes with a client_id
+        $scopeUtil = new Scope($storage);
+        $this->assertEquals($scopeUtil->getDefaultScope('Test Default Scope Client ID'), 'clientscope1 clientscope2');
+        $this->assertEquals($scopeUtil->getDefaultScope('Test Default Scope Client ID 2'), 'clientscope3');
+    }
+
+    /** @dataProvider provideStorage */
     public function testGetClientDetails(ClientInterface $storage = null)
     {
         if (is_null($storage)) {

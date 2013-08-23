@@ -19,7 +19,8 @@ class Pdo implements AuthorizationCodeInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
     RefreshTokenInterface,
-    JwtBearerInterface
+    JwtBearerInterface,
+    ScopeInterface
 {
     protected $db;
     protected $config;
@@ -228,6 +229,31 @@ class Pdo implements AuthorizationCodeInterface,
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
         }
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
+    }
+
+    /* ScopeInterface */
+    public function scopeExists($scope, $client_id = null)
+    {
+        if (!is_null($client_id)) {
+            $stmt = $this->db->prepare($sql = sprintf('SELECT supported_scopes FROM %s WHERE client_id = :client_id', $this->config['client_table']));
+            $stmt->execute(compact('client_id'));
+            $clientSupportedScopes = explode(' ', $stmt->fetchColumn());
+            $scope = explode(' ', $scope);
+
+            return (count(array_diff($scope, $clientSupportedScopes)) == 0);
+        }
+        return false;
+    }
+
+    public function getDefaultScope($client_id = null)
+    {
+        if (!is_null($client_id)) {
+            $stmt = $this->db->prepare($sql = sprintf('SELECT default_scope FROM %s WHERE client_id = :client_id', $this->config['client_table']));
+            $stmt->execute(compact('client_id'));
+
+            return $stmt->fetchColumn();
+        }
+        return null;
     }
 
     /* OAuth2_Storage_JWTBearerInterface */

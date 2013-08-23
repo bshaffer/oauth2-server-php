@@ -13,6 +13,30 @@ class MockRedisClient
                 'redirect_uri' => '',
                 'grant_types' => 'implicit password',
             ),
+            'oauth_clients:Test Client ID' => array(
+                'client_id' => 'Test Client ID',
+                'client_secret' => "TestSecret",
+                'supported_scopes' => 'clientscope1 clientscope2',
+                'default_scope' => 'clientscope1 clientscope2',
+            ),
+            'oauth_clients:Test Client ID 2' => array(
+                'client_id' => 'Test Client ID 2',
+                'client_secret' => "TestSecret",
+                'supported_scopes' => 'clientscope3',
+                'default_scope' => 'clientscope3',
+            ),
+            'oauth_clients:Test Default Scope Client ID' => array(
+                'client_id' => 'Test Default Scope Client ID',
+                'client_secret' => "TestSecret",
+                'supported_scopes' => 'clientscope1 clientscope2',
+                'default_scope' => 'clientscope1 clientscope2',
+            ),
+            'oauth_clients:Test Default Scope Client ID 2' => array(
+                'client_id' => 'Test Default Scope Client ID 2',
+                'client_secret' => "TestSecret",
+                'supported_scopes' => 'clientscope3',
+                'default_scope' => 'clientscope3',
+            ),
             'oauth_access_tokens:testtoken' => array(
                 'access_token' => 'testtoken',
                 'client_id' => "Some Client",
