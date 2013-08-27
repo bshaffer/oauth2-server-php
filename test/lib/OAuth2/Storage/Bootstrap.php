@@ -76,6 +76,7 @@ class Bootstrap
         $pdo->exec('CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires TIMESTAMP, scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT)');
         $pdo->exec('CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT)');
+        $pdo->exec('CREATE TABLE oauth_globals (oauth_key TEXT, oauth_value TEXT)');
 
         // test data
         $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, supported_scopes, default_scope) VALUES ("Test Client ID", "TestSecret", "clientscope1 clientscope2", "clientscope1 clientscope2")');
@@ -86,6 +87,7 @@ class Bootstrap
         $pdo->exec('INSERT INTO oauth_access_tokens (access_token, client_id) VALUES ("testtoken", "Some Client")');
         $pdo->exec('INSERT INTO oauth_authorization_codes (authorization_code, client_id) VALUES ("testcode", "Some Client")');
         $pdo->exec('INSERT INTO oauth_users (username, password) VALUES ("testuser", "password")');
+        $pdo->exec('INSERT INTO oauth_globals (oauth_key, oauth_value) VALUES ("supported_scopes", "scope1 scope2 scope3")');
     }
 
     private function removeSqliteDb()
@@ -104,6 +106,7 @@ class Bootstrap
         $pdo->exec('CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires DATETIME, scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT)');
         $pdo->exec('CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires DATETIME, scope TEXT)');
+        $pdo->exec('CREATE TABLE oauth_globals (oauth_key TEXT, oauth_value TEXT)');
 
         // test data
         $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, supported_scopes, default_scope) VALUES ("Test Client ID", "TestSecret", "clientscope1 clientscope2", "clientscope1 clientscope2")');
@@ -114,6 +117,7 @@ class Bootstrap
         $pdo->exec('INSERT INTO oauth_access_tokens (access_token, client_id) VALUES ("testtoken", "Some Client")');
         $pdo->exec('INSERT INTO oauth_authorization_codes (authorization_code, client_id) VALUES ("testcode", "Some Client")');
         $pdo->exec('INSERT INTO oauth_users (username, password) VALUES ("testuser", "password")');
+        $pdo->exec('INSERT INTO oauth_globals (oauth_key, oauth_value) VALUES ("supported_scopes", "scope1 scope2 scope3")');
     }
 
     public function removeMysqlDb(\PDO $pdo)

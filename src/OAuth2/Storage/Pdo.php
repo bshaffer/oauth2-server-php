@@ -53,6 +53,7 @@ class Pdo implements AuthorizationCodeInterface,
             'code_table' => 'oauth_authorization_codes',
             'user_table' => 'oauth_users',
             'jwt_table' => 'oauth_jwt',
+            'globals_table' => 'oauth_globals'
         ), $config);
     }
 
@@ -234,15 +235,21 @@ class Pdo implements AuthorizationCodeInterface,
     /* ScopeInterface */
     public function scopeExists($scope, $client_id = null)
     {
+        $scope = explode(' ', $scope);
+
+        // get any globally supported scopes
+        $supportedScopes = explode(' ', $this->getValue('supported_scopes'));
+
         if (!is_null($client_id)) {
             $stmt = $this->db->prepare($sql = sprintf('SELECT supported_scopes FROM %s WHERE client_id = :client_id', $this->config['client_table']));
             $stmt->execute(compact('client_id'));
             $clientSupportedScopes = explode(' ', $stmt->fetchColumn());
-            $scope = explode(' ', $scope);
-
-            return (count(array_diff($scope, $clientSupportedScopes)) == 0);
+            $allowedScopes = array_merge($supportedScopes, $clientSupportedScopes);
+        } else {
+            $allowedScopes = $supportedScopes;
         }
-        return false;
+
+        return (count(array_diff($scope, $allowedScopes)) == 0);
     }
 
     public function getDefaultScope($client_id = null)
@@ -250,9 +257,16 @@ class Pdo implements AuthorizationCodeInterface,
         if (!is_null($client_id)) {
             $stmt = $this->db->prepare($sql = sprintf('SELECT default_scope FROM %s WHERE client_id = :client_id', $this->config['client_table']));
             $stmt->execute(compact('client_id'));
+            $clientDefaultScope = $stmt->fetchColumn();
 
-            return $stmt->fetchColumn();
+            // if a client does not have a default scope, check for a global one
+            if (!is_null($clientDefaultScope)) {
+                return $clientDefaultScope;
+            } else {
+                return $this->getValue('default_scope');
+            }
         }
+
         return null;
     }
 
@@ -263,5 +277,14 @@ class Pdo implements AuthorizationCodeInterface,
 
         $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
         return $stmt->fetch();
+    }
+
+    // Store global settings as key+value pairs
+    public function getValue($key)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT oauth_value FROM %s WHERE oauth_key = :key', $this->config['globals_table']));
+        $stmt->execute(compact('key'));
+
+        return $stmt->fetchColumn();
     }
 }

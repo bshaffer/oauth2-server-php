@@ -9,43 +9,43 @@ class MockRedisClient
         $data = array(
             'oauth_clients:oauth_test_client' => array(
                 'client_id' => 'oauth_test_client',
-                'client_secret' => "testpass",
+                'client_secret' => 'testpass',
                 'redirect_uri' => '',
                 'grant_types' => 'implicit password',
             ),
             'oauth_clients:Test Client ID' => array(
                 'client_id' => 'Test Client ID',
-                'client_secret' => "TestSecret",
+                'client_secret' => 'TestSecret',
                 'supported_scopes' => 'clientscope1 clientscope2',
                 'default_scope' => 'clientscope1 clientscope2',
             ),
             'oauth_clients:Test Client ID 2' => array(
                 'client_id' => 'Test Client ID 2',
-                'client_secret' => "TestSecret",
+                'client_secret' => 'TestSecret',
                 'supported_scopes' => 'clientscope3',
                 'default_scope' => 'clientscope3',
             ),
             'oauth_clients:Test Default Scope Client ID' => array(
                 'client_id' => 'Test Default Scope Client ID',
-                'client_secret' => "TestSecret",
+                'client_secret' => 'TestSecret',
                 'supported_scopes' => 'clientscope1 clientscope2',
                 'default_scope' => 'clientscope1 clientscope2',
             ),
             'oauth_clients:Test Default Scope Client ID 2' => array(
                 'client_id' => 'Test Default Scope Client ID 2',
-                'client_secret' => "TestSecret",
+                'client_secret' => 'TestSecret',
                 'supported_scopes' => 'clientscope3',
                 'default_scope' => 'clientscope3',
             ),
             'oauth_access_tokens:testtoken' => array(
                 'access_token' => 'testtoken',
-                'client_id' => "Some Client",
+                'client_id' => 'Some Client',
                 'user_id' => '',
                 'expires' => 0,
                 'scope' => ''
             ),
             'oauth_authorization_codes:testcode' => array(
-                'client_id' => "Some Client",
+                'client_id' => 'Some Client',
                 'authorization_code' => 'testcode',
                 'user_id' => '',
                 'redirect_uri' => '',
@@ -54,9 +54,19 @@ class MockRedisClient
             ),
             'oauth_users:testuser' => array(
                 'user_id' => 'testuser',
-                'password' => "password",
+                'password' => 'password',
                 'first_name' => '',
                 'last_name' => ''
+            ),
+            'oauth_globals:supported_scopes' => array(
+                'scope1',
+                'scope2',
+                'scope3'
+            ),
+            'oauth_globals:default_scope' => array(
+                'scope1',
+                'scope2',
+                'scope3'
             )
         );
         foreach ( $data as $name => $val ) {
