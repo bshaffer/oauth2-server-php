@@ -16,7 +16,8 @@ class Redis implements AuthorizationCodeInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
     RefreshTokenInterface,
-    JwtBearerInterface
+    JwtBearerInterface,
+    ScopeInterface
 {
     private $redis;
     private $config;
@@ -193,6 +194,28 @@ class Redis implements AuthorizationCodeInterface,
             compact('access_token', 'client_id', 'user_id', 'expires', 'scope'),
             $expires
         );
+    }
+
+    /* ScopeInterface */
+    public function scopeExists($scope, $client_id = null)
+    {
+        $details = $this->getClientDetails($client_id);
+        if (isset($details['supported_scopes'])) {
+            $clientSupportedScopes = explode(' ', $details['supported_scopes']);
+            $scope = explode(' ', $scope);
+
+            return (count(array_diff($scope, $clientSupportedScopes)) == 0);
+        }
+        return false;
+    }
+
+    public function getDefaultScope($client_id = null)
+    {
+        $details = $this->getClientDetails($client_id);
+        if (isset($details['default_scope'])) {
+            return $details['default_scope'];
+        }
+        return null;
     }
 
     /*JWTBearerInterface */
