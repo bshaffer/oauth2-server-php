@@ -19,9 +19,14 @@ class Redis implements AuthorizationCodeInterface,
     JwtBearerInterface,
     ScopeInterface
 {
-    private $redis;
-    private $config;
+
     private $cache;
+
+    /* The redis client */
+    protected $redis;
+
+    /* Configuration array */
+    protected $config;
 
     /**
      * Redis Storage!
