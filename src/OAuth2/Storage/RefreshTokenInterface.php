@@ -26,6 +26,7 @@ interface RefreshTokenInterface
      * invalid:
      * - refresh_token: Stored refresh token identifier.
      * - client_id: Stored client identifier.
+     * - user_id: Stored user identifier.
      * - expires: Stored expiration unix timestamp.
      * - scope: (optional) Stored scope values in space-separated string.
      *
@@ -50,6 +51,8 @@ interface RefreshTokenInterface
      * Refresh token to be stored.
      * @param $client_id
      * Client identifier to be stored.
+     * @param $user_id
+     * User identifier to be stored.
      * @param $expires
      * expires to be stored.
      * @param $scope
