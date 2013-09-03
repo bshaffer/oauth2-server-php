@@ -44,7 +44,8 @@ class Redis implements AuthorizationCodeInterface,
             'code_key' => 'oauth_authorization_codes:',
             'user_key' => 'oauth_users:',
             'jwt_key' => 'oauth_jwt:',
-        ), $config);
+            'oauth_globals' => 'oauth_globals:'
+            ), $config);
     }
 
     protected function getValue($key)
@@ -204,14 +205,21 @@ class Redis implements AuthorizationCodeInterface,
     /* ScopeInterface */
     public function scopeExists($scope, $client_id = null)
     {
-        $details = $this->getClientDetails($client_id);
-        if (isset($details['supported_scopes'])) {
-            $clientSupportedScopes = explode(' ', $details['supported_scopes']);
-            $scope = explode(' ', $scope);
+        $scope = explode(' ', $scope);
 
-            return (count(array_diff($scope, $clientSupportedScopes)) == 0);
+        // get any globally supported scopes
+        $supportedScopes = $this->getValue($this->config['oauth_globals'] . 'supported_scopes');
+
+        // get any client supported scopes
+        if (!is_null($client_id)) {
+            $details = $this->getClientDetails($client_id);
+            $clientSupportedScopes = explode(' ', $details['supported_scopes']);
+            $allowedScopes = array_merge($supportedScopes, $clientSupportedScopes);
+        } else {
+            $allowedScopes = $supportedScopes;
         }
-        return false;
+
+        return (count(array_diff($scope, $allowedScopes)) == 0);
     }
 
     public function getDefaultScope($client_id = null)
@@ -220,6 +228,12 @@ class Redis implements AuthorizationCodeInterface,
         if (isset($details['default_scope'])) {
             return $details['default_scope'];
         }
+
+        $defaultScope = getValue($this->config['oauth_globals'] . 'default_scope');
+        if (isset($defaultScope))  {
+            return $defaultScope;
+        }
+
         return null;
     }
 
