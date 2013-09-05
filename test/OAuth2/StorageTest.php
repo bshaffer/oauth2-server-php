@@ -39,11 +39,16 @@ class StorageTest extends \PHPUnit_Framework_TestCase
             return;
         }
 
+        if (!$storage instanceof \OAuth2\ScopeInterface) {
+            $this->markTestSkipped('Skipping incompatible storage');
+            return;
+        }
+
         //Test getting scopes with a client_id
         $scopeUtil = new Scope($storage);
         $this->assertTrue($scopeUtil->scopeExists('clientscope1 clientscope2', 'Test Client ID'));
-        $this->assertTrue($scopeUtil->scopeExists('clientscope3', 'Test Client ID 2'));
         $this->assertFalse($scopeUtil->scopeExists('clientscope1 clientscope2 clientscope3', 'Test Client ID'));
+        $this->assertTrue($scopeUtil->scopeExists('clientscope3', 'Test Client ID 2'));
     }
 
     /** @dataProvider provideStorage */
@@ -51,6 +56,11 @@ class StorageTest extends \PHPUnit_Framework_TestCase
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
+
+        if (!$storage instanceof \OAuth2\ScopeInterface) {
+            $this->markTestSkipped('Skipping incompatible storage');
             return;
         }
 
