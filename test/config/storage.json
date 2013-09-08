@@ -125,6 +125,10 @@
     "supported_scopes" : [
         "scope1",
         "scope2",
-        "scope3"
+        "scope3",
+        "supportedscope1",
+        "supportedscope2",
+        "supportedscope3",
+        "supportedscope4"
     ]
 }

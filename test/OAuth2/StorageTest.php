@@ -4,6 +4,7 @@ namespace OAuth2;
 
 use OAuth2\Storage\ClientCredentialsInterface;
 use OAuth2\Storage\ClientInterface;
+use OAuth2\Storage\ScopeInterface;
 use OAuth2\Storage\AccessTokenInterface;
 use OAuth2\Storage\RefreshTokenInterface;
 use OAuth2\Storage\AuthorizationCodeInterface;
@@ -32,14 +33,14 @@ class StorageTest extends \PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testClientScopeExists(ClientInterface $storage = null)
+    public function testScopeExists($storage = null)
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
             return;
         }
 
-        if (!$storage instanceof \OAuth2\Storage\ScopeInterface) {
+        if (!$storage instanceof ScopeInterface) {
             $this->markTestSkipped('Skipping incompatible storage');
             return;
         }
@@ -52,19 +53,58 @@ class StorageTest extends \PHPUnit_Framework_TestCase
     }
 
     /** @dataProvider provideStorage */
-    public function testGetDefaultClientScope(ClientInterface $storage = null)
+    public function testGetDefaultScope($storage = null)
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
             return;
         }
 
-        if (!$storage instanceof \OAuth2\Storage\ScopeInterface) {
+        if (!$storage instanceof ScopeInterface) {
             $this->markTestSkipped('Skipping incompatible storage');
             return;
         }
 
-        //Test getting scopes with a client_id
+        // test getting default scope
+        $scopeUtil = new Scope($storage);
+        $this->assertEquals($scopeUtil->getDefaultScope(), 'defaultscope1 defaultscope2');
+    }
+
+    /** @dataProvider provideStorage */
+    public function testClientScopeExists($storage = null)
+    {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
+
+        if (!$storage instanceof ScopeInterface) {
+            $this->markTestSkipped('Skipping incompatible storage');
+            return;
+        }
+
+        // test getting scopes with a client_id
+        $scopeUtil = new Scope($storage);
+        $this->assertTrue($scopeUtil->scopeExists('supportedscope1'));
+        $this->assertTrue($scopeUtil->scopeExists('supportedscope2'));
+        $this->assertTrue($scopeUtil->scopeExists('supportedscope1 supportedscope2'));
+        $this->assertFalse($scopeUtil->scopeExists('bogusscope'));
+    }
+
+    /** @dataProvider provideStorage */
+    public function testGetDefaultClientScope($storage = null)
+    {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
+
+        if (!$storage instanceof ScopeInterface) {
+            $this->markTestSkipped('Skipping incompatible storage');
+            return;
+        }
+
+        // test getting scopes with a client_id
         $scopeUtil = new Scope($storage);
         $this->assertEquals($scopeUtil->getDefaultScope('Test Default Scope Client ID'), 'clientscope1 clientscope2');
         $this->assertEquals($scopeUtil->getDefaultScope('Test Default Scope Client ID 2'), 'clientscope3');
@@ -292,11 +332,16 @@ class StorageTest extends \PHPUnit_Framework_TestCase
 
     public function provideStorage()
     {
-        $memory = Bootstrap::getInstance()->getMemoryStorage();
         $mysql = Bootstrap::getInstance()->getMysqlPdo();
         $sqlite = Bootstrap::getInstance()->getSqlitePdo();
         $mongo = Bootstrap::getInstance()->getMongo();
         $redis = Bootstrap::getInstance()->getRedisStorage();
+
+        /* hack until we can fix "default_scope" dependencies in other tests */
+        // $memory = Bootstrap::getInstance()->getMemoryStorage();
+        $memoryConfig = json_decode(file_get_contents(__DIR__.'/../config/storage.json'), true);
+        $memoryConfig['default_scope'] = 'defaultscope1 defaultscope2';
+        $memory = new \OAuth2\Storage\Memory($memoryConfig);
 
         // will add multiple storage types later
         return array(

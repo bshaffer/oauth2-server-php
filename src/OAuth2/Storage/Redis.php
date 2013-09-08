@@ -44,6 +44,7 @@ class Redis implements AuthorizationCodeInterface,
             'code_key' => 'oauth_authorization_codes:',
             'user_key' => 'oauth_users:',
             'jwt_key' => 'oauth_jwt:',
+            'scope_key' => 'oauth_scopes:',
         ), $config);
     }
 
@@ -204,23 +205,21 @@ class Redis implements AuthorizationCodeInterface,
     /* ScopeInterface */
     public function scopeExists($scope, $client_id = null)
     {
-        $details = $this->getClientDetails($client_id);
-        if (isset($details['supported_scopes'])) {
-            $clientSupportedScopes = explode(' ', $details['supported_scopes']);
-            $scope = explode(' ', $scope);
-
-            return (count(array_diff($scope, $clientSupportedScopes)) == 0);
+        $scope = explode(' ', $scope);
+        if (is_null($client_id) || !$result = $this->getValue($this->config['scope_key'].'supported:'.$client_id)) {
+            $result = $this->getValue($this->config['scope_key'].'supported:global');
         }
-        return false;
+        $supportedScope = explode(' ', (string) $result);
+        return (count(array_diff($scope, $supportedScope)) == 0);
     }
 
     public function getDefaultScope($client_id = null)
     {
-        $details = $this->getClientDetails($client_id);
-        if (isset($details['default_scope'])) {
-            return $details['default_scope'];
+        if (is_null($client_id) || !$result = $this->getValue($this->config['scope_key'].'default:'.$client_id)) {
+            $result = $this->getValue($this->config['scope_key'].'default:global');
         }
-        return null;
+
+        return $result;
     }
 
     /*JWTBearerInterface */

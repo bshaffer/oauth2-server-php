@@ -98,8 +98,8 @@ class Bootstrap
         $pdo->exec('CREATE TABLE oauth_scopes (type TEXT, scope TEXT, client_id TEXT)');
 
         // set up scopes
-        $pdo->exec('INSERT INTO oauth_scopes (type, scope) VALUES ("supported", "clientscope1 clientscope2 clientscope3 clientscope4")');
-        $pdo->exec('INSERT INTO oauth_scopes (type, scope) VALUES ("default", "clientscope1")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope) VALUES ("supported", "supportedscope1 supportedscope2 supportedscope3 supportedscope4")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope) VALUES ("default", "defaultscope1 defaultscope2")');
         $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("supported", "clientscope1 clientscope2", "Test Client ID")');
         $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("default", "clientscope1 clientscope2", "Test Client ID")');
         $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("supported", "clientscope1 clientscope2 clientscope3", "Test Client ID 2")');

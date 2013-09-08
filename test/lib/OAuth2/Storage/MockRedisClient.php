@@ -15,27 +15,19 @@ class MockRedisClient
             ),
             'oauth_clients:Test Client ID' => array(
                 'client_id' => 'Test Client ID',
-                'client_secret' => "TestSecret",
-                'supported_scopes' => 'clientscope1 clientscope2',
-                'default_scope' => 'clientscope1 clientscope2',
+                'client_secret' => "TestSecret"
             ),
             'oauth_clients:Test Client ID 2' => array(
                 'client_id' => 'Test Client ID 2',
                 'client_secret' => "TestSecret",
-                'supported_scopes' => 'clientscope3',
-                'default_scope' => 'clientscope3',
             ),
             'oauth_clients:Test Default Scope Client ID' => array(
                 'client_id' => 'Test Default Scope Client ID',
                 'client_secret' => "TestSecret",
-                'supported_scopes' => 'clientscope1 clientscope2',
-                'default_scope' => 'clientscope1 clientscope2',
             ),
             'oauth_clients:Test Default Scope Client ID 2' => array(
                 'client_id' => 'Test Default Scope Client ID 2',
                 'client_secret' => "TestSecret",
-                'supported_scopes' => 'clientscope3',
-                'default_scope' => 'clientscope3',
             ),
             'oauth_access_tokens:testtoken' => array(
                 'access_token' => 'testtoken',
@@ -57,7 +49,17 @@ class MockRedisClient
                 'password' => "password",
                 'first_name' => '',
                 'last_name' => ''
-            )
+            ),
+            'oauth_scopes:supported:global' => 'supportedscope1 supportedscope2 supportedscope3 supportedscope4',
+            'oauth_scopes:default:global' => 'defaultscope1 defaultscope2',
+            'oauth_scopes:supported:Test Client ID' => 'clientscope1 clientscope2',
+            'oauth_scopes:default:Test Client ID' => 'clientscope1 clientscope2',
+            'oauth_scopes:supported:Test Client ID 2' => 'clientscope3',
+            'oauth_scopes:default:Test Client ID 2' => 'clientscope3',
+            'oauth_scopes:supported:Test Default Scope Client ID' => 'clientscope1 clientscope2',
+            'oauth_scopes:default:Test Default Scope Client ID' => 'clientscope1 clientscope2',
+            'oauth_scopes:supported:Test Default Scope Client ID 2' => 'clientscope3',
+            'oauth_scopes:default:Test Default Scope Client ID 2' => 'clientscope3',
         );
         foreach ( $data as $name => $val ) {
             $data[$name] = json_encode($val);
