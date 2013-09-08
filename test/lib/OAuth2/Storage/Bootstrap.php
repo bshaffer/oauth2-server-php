@@ -71,7 +71,7 @@ class Bootstrap
 
     private function createSqliteDb(\PDO $pdo)
     {
-        $this->runPDOSql($pdo);
+        $this->runPdoSql($pdo);
     }
 
     private function removeSqliteDb()
@@ -85,30 +85,35 @@ class Bootstrap
     {
         $pdo->exec('CREATE DATABASE oauth2_server_php');
         $pdo->exec('USE oauth2_server_php');
-        $this->runPDOSql($pdo);
+        $this->runPdoSql($pdo);
     }
 
-    public function runPDOSql(\PDO $pdo)
+    public function runPdoSql(\PDO $pdo)
     {
         $pdo->exec('CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT, grant_types TEXT, supported_scope_group TEXT, default_scope_group TEXT)');
         $pdo->exec('CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires DATETIME, scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires DATETIME, scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT)');
         $pdo->exec('CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires DATETIME, scope TEXT)');
-        $pdo->exec('CREATE TABLE oauth_scopes (scope_group TEXT, scope TEXT)');
+        $pdo->exec('CREATE TABLE oauth_scopes (type TEXT, scope TEXT, client_id TEXT)');
 
         // set up scopes
-        $pdo->exec('INSERT INTO oauth_scopes (scope_group, scope) VALUES ("default_scopes", "clientscope1")');
-        $pdo->exec('INSERT INTO oauth_scopes (scope_group, scope) VALUES ("supported_scopes", "clientscope1 clientscope2 clientscope3 clientscope4")');
-        $pdo->exec('INSERT INTO oauth_scopes (scope_group, scope) VALUES ("client_scopes1", "clientscope1 clientscope2")');
-        $pdo->exec('INSERT INTO oauth_scopes (scope_group, scope) VALUES ("client_scopes2", "clientscope1 clientscope2 clientscope3")');
-        $pdo->exec('INSERT INTO oauth_scopes (scope_group, scope) VALUES ("client_scopes3", "clientscope3")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope) VALUES ("supported", "clientscope1 clientscope2 clientscope3 clientscope4")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope) VALUES ("default", "clientscope1")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("supported", "clientscope1 clientscope2", "Test Client ID")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("default", "clientscope1 clientscope2", "Test Client ID")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("supported", "clientscope1 clientscope2 clientscope3", "Test Client ID 2")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("default", "clientscope1 clientscope2", "Test Client ID 2")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("supported", "clientscope1 clientscope2", "Test Default Scope Client ID")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("default", "clientscope1 clientscope2", "Test Default Scope Client ID")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("supported", "clientscope1 clientscope2 clientscope3", "Test Default Scope Client ID 2")');
+        $pdo->exec('INSERT INTO oauth_scopes (type, scope, client_id) VALUES ("default", "clientscope3", "Test Default Scope Client ID 2")');
 
         // set up clients
-        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, supported_scope_group, default_scope_group) VALUES ("Test Client ID", "TestSecret", "client_scopes1", "client_scopes1")');
-        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, supported_scope_group, default_scope_group) VALUES ("Test Client ID 2", "TestSecret", "client_scopes2", "client_scopes2")');
-        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, supported_scope_group, default_scope_group) VALUES ("Test Default Scope Client ID", "TestSecret", "client_scopes1", "client_scopes1")');
-        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, supported_scope_group, default_scope_group) VALUES ("Test Default Scope Client ID 2", "TestSecret", "client_scopes3", "client_scopes3")');
+        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret) VALUES ("Test Client ID", "TestSecret")');
+        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret) VALUES ("Test Client ID 2", "TestSecret")');
+        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret) VALUES ("Test Default Scope Client ID", "TestSecret")');
+        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret) VALUES ("Test Default Scope Client ID 2", "TestSecret")');
         $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, grant_types) VALUES ("oauth_test_client", "testpass", "implicit password")');
 
         // set up misc

@@ -39,7 +39,7 @@ class StorageTest extends \PHPUnit_Framework_TestCase
             return;
         }
 
-        if (!$storage instanceof \OAuth2\ScopeInterface) {
+        if (!$storage instanceof \OAuth2\Storage\ScopeInterface) {
             $this->markTestSkipped('Skipping incompatible storage');
             return;
         }
@@ -59,7 +59,7 @@ class StorageTest extends \PHPUnit_Framework_TestCase
             return;
         }
 
-        if (!$storage instanceof \OAuth2\ScopeInterface) {
+        if (!$storage instanceof \OAuth2\Storage\ScopeInterface) {
             $this->markTestSkipped('Skipping incompatible storage');
             return;
         }

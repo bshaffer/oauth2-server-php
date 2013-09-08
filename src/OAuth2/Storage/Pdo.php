@@ -53,7 +53,7 @@ class Pdo implements AuthorizationCodeInterface,
             'code_table' => 'oauth_authorization_codes',
             'user_table' => 'oauth_users',
             'jwt_table'  => 'oauth_jwt',
-            'scope_table' => 'oauth_scopes',
+            'scope_table'  => 'oauth_scopes'
         ), $config);
     }
 
@@ -236,31 +236,23 @@ class Pdo implements AuthorizationCodeInterface,
     public function scopeExists($scope, $client_id = null)
     {
         $scope = explode(' ', $scope);
-        if (!is_null($client_id)) {
-            $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s s JOIN %s c on s.scope_group = c.supported_scope_group WHERE c.client_id = :client_id', $this->config['scope_table'], $this->config['client_table']));
-        } else {
-            $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s WHERE scope_group="supported_scopes"', $this->config['scope_table']));
-        }
-
+        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type="supported" AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
         $stmt->execute(compact('client_id'));
+
         if ($result = $stmt->fetch()) {
-            $supportedScopes = explode(' ', $result['scope']);
+            $supportedScope = explode(' ', $result['scope']);
         } else {
-            $supportedScopes = array();
+            $supportedScope = array();
         }
 
-        return (count(array_diff($scope, $supportedScopes)) == 0);
+        return (count(array_diff($scope, $supportedScope)) == 0);
     }
 
     public function getDefaultScope($client_id = null)
     {
-        if (!is_null($client_id)) {
-            $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s s JOIN %s c on s.scope_group = c.default_scope_group WHERE c.client_id = :client_id', $this->config['scope_table'], $this->config['client_table']));
-        } else {
-            $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE scope_group="default_scopes"', $this->config['scope_table']));
-        }
-
+        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type="default" AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
         $stmt->execute(compact('client_id'));
+
         if ($result = $stmt->fetch()) {
             return $result['scope'];
         }
