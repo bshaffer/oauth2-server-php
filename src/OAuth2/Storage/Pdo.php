@@ -236,7 +236,7 @@ class Pdo implements AuthorizationCodeInterface,
     public function scopeExists($scope, $client_id = null)
     {
         $scope = explode(' ', $scope);
-        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type="supported" AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type=\'supported\' AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
         $stmt->execute(compact('client_id'));
 
         if ($result = $stmt->fetch()) {
@@ -250,7 +250,7 @@ class Pdo implements AuthorizationCodeInterface,
 
     public function getDefaultScope($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type="default" AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type=\'default\' AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
         $stmt->execute(compact('client_id'));
 
         if ($result = $stmt->fetch()) {
