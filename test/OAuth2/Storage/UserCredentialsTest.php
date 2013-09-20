@@ -5,7 +5,7 @@ namespace OAuth2\Storage;
 class UserCredentialsTest extends BaseTest
 {
     /** @dataProvider provideStorage */
-    public function testCheckUserCredentials(UserCredentialsInterface $storage)
+    public function testCheckUserCredentials(UserCredentialsInterface $storage = null)
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
