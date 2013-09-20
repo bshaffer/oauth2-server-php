@@ -40,6 +40,12 @@ class Bootstrap
         return new Redis(new MockRedisClient());
     }
 
+    public function getPublicKeyStorage()
+    {
+        $config = json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true);
+        return new PublicKey($config['crypto_token']['public_key'], $config['crypto_token']['private_key']);
+    }
+
     public function getMysqlPdo()
     {
         if (!$this->mysql) {
