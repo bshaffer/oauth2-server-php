@@ -13,6 +13,7 @@ class AccessToken implements AccessTokenInterface
 {
     protected $tokenStorage;
     protected $refreshStorage;
+    protected $config;
 
     public function __construct(AccessTokenStorageInterface $tokenStorage, RefreshTokenInterface $refreshStorage = null, array $config = array())
     {
