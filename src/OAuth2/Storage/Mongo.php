@@ -5,8 +5,12 @@ namespace OAuth2\Storage;
 /**
  * Simple MongoDB storage for all storage types
  *
- * NOTE: This class should never be used in production, and is
- * a stub class for example use only
+ * NOTE: This class is meant to get users started
+ * quickly. If your application requires further
+ * customization, extend this class or create your own.
+ *
+ * NOTE: Passwords are stored in plaintext, which is never
+ * a good idea.  Be sure to override this for your application
  *
  * @author Julien Chaumond <chaumond@gmail.com>
  */
