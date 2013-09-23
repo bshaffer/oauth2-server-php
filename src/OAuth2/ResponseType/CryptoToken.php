@@ -13,14 +13,14 @@ class CryptoToken extends AccessToken
 {
     /**
      * @param $config
-     *  - store_encrypted_token_string (bool false)
+     *  - store_encrypted_token_string (bool true)
      *       whether the entire encrypted string is stored,
      *       or just the token ID is stored
      */
     public function __construct(CryptoTokenInterface $tokenStorage, RefreshTokenInterface $refreshStorage = null, array $config = array())
     {
         $config = array_merge(array(
-            'store_encrypted_token_string' => false,
+            'store_encrypted_token_string' => true,
         ), $config);
         parent::__construct($tokenStorage, $refreshStorage, $config);
     }

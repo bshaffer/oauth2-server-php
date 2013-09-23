@@ -78,13 +78,11 @@ class CryptoTokenTest extends \PHPUnit_Framework_TestCase
             'access_token' => $pubkeyStorage,
             'client_credentials' => $memoryStorage,
         );
+        $server = new Server($storage);
+        $server->addGrantType(new ClientCredentials($memoryStorage));
 
         // make the "token" response type a CryptoToken
-        $responseTypes = array(
-            'token' => new CryptoToken($pubkeyStorage, null, array('store_encrypted_token_string' => true)),
-        );
-        $server = new Server($storage, array(), array(), $responseTypes);
-        $server->addGrantType(new ClientCredentials($memoryStorage));
+        $server->addResponseType(new CryptoToken($pubkeyStorage));
 
         return $server;
     }
