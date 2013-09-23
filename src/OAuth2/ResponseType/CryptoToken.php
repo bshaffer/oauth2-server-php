@@ -47,6 +47,7 @@ class CryptoToken extends AccessToken
         $cryptoToken = array(
             'id'         => $this->generateAccessToken(),
             'client_id'  => $client_id,
+            'user_id'    => $user_id,
             'expires'    => $expires,
             'token_type' => $this->config['token_type'],
             'scope'      => $scope
