@@ -6,7 +6,7 @@ namespace OAuth2\Encryption;
  * @link https://github.com/F21/jwt
  * @author F21
  */
-class Jwt
+class Jwt implements EncryptionInterface
 {
     public function encode($payload, $key, $algo = 'HS256')
     {

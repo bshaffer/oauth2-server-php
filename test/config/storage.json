@@ -97,22 +97,22 @@
         }
     },
     "jwt": {
-	    "Test Client ID": {
-	        "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5/SxVlE8gnpFqCxgl2wjhzY7u\ncEi00s0kUg3xp7lVEvgLgYcAnHiWp+gtSjOFfH2zsvpiWm6Lz5f743j/FEzHIO1o\nwR0p4d9pOaJK07d01+RzoQLOIQAgXrr4T1CCWUesncwwPBVCyy2Mw3Nmhmr9MrF8\nUlvdRKBxriRnlP3qJQIDAQAB\n-----END PUBLIC KEY-----",
-	        "subject": "testuser@ourdomain.com"
-	    },
-	    "Test Client ID PHP-5.2": {
-	        "key": "mysecretkey",
-	        "subject": "testuser@ourdomain.com"
-	    },
-	    "Missing Key Client": {
-	        "key": null,
-	        "subject": "testuser@ourdomain.com"
-	    },
-	    "Missing Key Client PHP-5.2": {
-	        "key": null,
-	        "subject": "testuser@ourdomain.com"
-	    }
+        "Test Client ID": {
+            "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5/SxVlE8gnpFqCxgl2wjhzY7u\ncEi00s0kUg3xp7lVEvgLgYcAnHiWp+gtSjOFfH2zsvpiWm6Lz5f743j/FEzHIO1o\nwR0p4d9pOaJK07d01+RzoQLOIQAgXrr4T1CCWUesncwwPBVCyy2Mw3Nmhmr9MrF8\nUlvdRKBxriRnlP3qJQIDAQAB\n-----END PUBLIC KEY-----",
+            "subject": "testuser@ourdomain.com"
+        },
+        "Test Client ID PHP-5.2": {
+            "key": "mysecretkey",
+            "subject": "testuser@ourdomain.com"
+        },
+        "Missing Key Client": {
+            "key": null,
+            "subject": "testuser@ourdomain.com"
+        },
+        "Missing Key Client PHP-5.2": {
+            "key": null,
+            "subject": "testuser@ourdomain.com"
+        }
     },
     "client_supported_scopes" : {
         "Test Client ID" : ["clientscope1", "clientscope2"],
@@ -130,5 +130,9 @@
         "supportedscope2",
         "supportedscope3",
         "supportedscope4"
-    ]
+    ],
+    "crypto_token": {
+        "public_key": "-----BEGIN CERTIFICATE-----\nMIICiDCCAfGgAwIBAgIBADANBgkqhkiG9w0BAQQFADA9MQswCQYDVQQGEwJVUzEL\nMAkGA1UECBMCVVQxITAfBgNVBAoTGFZpZ25ldHRlIENvcnBvcmF0aW9uIFNCWDAe\nFw0xMTEwMTUwMzE4MjdaFw0zMTEwMTAwMzE4MjdaMD0xCzAJBgNVBAYTAlVTMQsw\nCQYDVQQIEwJVVDEhMB8GA1UEChMYVmlnbmV0dGUgQ29ycG9yYXRpb24gU0JYMIGf\nMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8fpi06NfVYHAOAnxNMVnTXr/ptsLs\nNjP+uAt2eO0cc5J9H5XV8lFVujOrRu/JWi1TDmAvOaf/6A3BphIA1Pwp0AAqlZdw\nizIum8j0KzpsGYH5qReNQDwF3oUSKMsQCCGCDHrDYifG/pRi9bN1ZVjEXPr35HJu\nBe+FQpZTs8DewwIDAQABo4GXMIGUMB0GA1UdDgQWBBRe8hrEXm+Yim4YlD5Nx+1K\nvCYs9DBlBgNVHSMEXjBcgBRe8hrEXm+Yim4YlD5Nx+1KvCYs9KFBpD8wPTELMAkG\nA1UEBhMCVVMxCzAJBgNVBAgTAlVUMSEwHwYDVQQKExhWaWduZXR0ZSBDb3Jwb3Jh\ndGlvbiBTQliCAQAwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQQFAAOBgQBjhyRD\nlM7vnLn6drgQVftW5V9nDFAyPAuiGvMIKFSbiAf1PxXCRn5sfJquwWKsJUi4ZGNl\naViXdFmN6/F13PSM+yg63tpKy0fYqMbTM+Oe5WuSHkSW1VuYNHV+24adgNk/FRDL\nFRrlM1f6s9VTLWvwGItjfrof0Ba8Uq7ZDSb9Xg==\n-----END CERTIFICATE-----",
+        "private_key": "-----BEGIN RSA PRIVATE KEY-----\nMIICXQIBAAKBgQC8fpi06NfVYHAOAnxNMVnTXr/ptsLsNjP+uAt2eO0cc5J9H5XV\n8lFVujOrRu/JWi1TDmAvOaf/6A3BphIA1Pwp0AAqlZdwizIum8j0KzpsGYH5qReN\nQDwF3oUSKMsQCCGCDHrDYifG/pRi9bN1ZVjEXPr35HJuBe+FQpZTs8DewwIDAQAB\nAoGARfNxNknmtx/n1bskZ/01iZRzAge6BLEE0LV6Q4gS7mkRZu/Oyiv39Sl5vUlA\n+WdGxLjkBwKNjxGN8Vxw9/ASd8rSsqeAUYIwAeifXrHhj5DBPQT/pDPkeFnp9B1w\nC6jo+3AbBQ4/b0ONSIEnCL2xGGglSIAxO17T1ViXp7lzXPECQQDe63nkRdWM0OCb\noaHQPT3E26224maIstrGFUdt9yw3yJf4bOF7TtiPLlLuHsTTge3z+fG6ntC0xG56\n1cl37C3ZAkEA2HdVcRGugNp/qmVz4LJTpD+WZKi73PLAO47wDOrYh9Pn2I6fcEH0\nCPnggt1ko4ujvGzFTvRH64HXa6aPCv1j+wJBAMQMah3VQPNf/DlDVFEUmw9XeBZg\nVHaifX851aEjgXLp6qVj9IYCmLiLsAmVa9rr6P7p8asD418nZlaHUHE0eDkCQQCr\nuxis6GMx1Ka971jcJX2X696LoxXPd0KsvXySMupv79yagKPa8mgBiwPjrnK+EPVo\ncj6iochA/bSCshP/mwFrAkBHEKPi6V6gb94JinCT7x3weahbdp6bJ6/nzBH/p9VA\nHoT1JtwNFhGv9BCjmDydshQHfSWpY9NxlccBKL7ITm8R\n-----END RSA PRIVATE KEY-----"
+    }
 }

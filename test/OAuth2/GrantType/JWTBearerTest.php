@@ -261,26 +261,6 @@ EOD;
         $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
     }
 
-    public function testJwtUtil()
-    {
-        $storage = Bootstrap::getInstance()->getMemoryStorage();
-        $jwtUtil = new Jwt();
-        $client_id = 'Test Client ID';
-        $params = $this->getJWTParams(null, null, null, $client_id);
-
-
-        if (version_compare(PHP_VERSION, '5.3.3') <= 0) {
-            $encoded = $jwtUtil->encode($params, 'mysecretkey', 'HS256');
-            $client_id .= ' PHP-5.2';
-        } else {
-            $encoded = $jwtUtil->encode($params, $this->privateKey, 'RS256');
-        }
-
-        $payload = $jwtUtil->decode($encoded, $storage->getClientKey($client_id, "testuser@ourdomain.com"));
-
-        $this->assertEquals($params, $payload);
-    }
-
     /**
      * Generates a JWT
      * @param $exp The expiration date. If the current time is greater than the exp, the JWT is invalid.
@@ -289,15 +269,8 @@ EOD;
      * @param $iss The issuer, usually the client_id.
      * @return string
      */
-    private function getJWTParams($exp = null, $nbf = null, $sub = null, $iss = 'Test Client ID', $scope = null)
+    private function getJWT($exp = null, $nbf = null, $sub = null, $iss = 'Test Client ID', $scope = null)
     {
-        //Since PHP 5.2 does not have OpenSSL support on Travis CI, we will test it using the HS256 algorithm
-        //We also provided PHP 5.2 specific data for it in storage.json
-        if (version_compare(PHP_VERSION, '5.3.3') <= 0) {
-            // add "5.2" identifier onto the client name
-            $iss .= ' PHP-5.2';
-        }
-
         if (!$exp) {
             $exp = time() + 1000;
         }
@@ -319,18 +292,7 @@ EOD;
             $params['nbf'] = $nbf;
         }
 
-        return $params;
-    }
-
-    private function getJWT($exp = null, $nbf = null, $sub = null, $iss = 'Test Client ID', $scope = null)
-    {
-        $params = $this->getJWTParams($exp, $nbf, $sub, $iss, $scope);
-
         $jwtUtil = new Jwt();
-
-        if (version_compare(PHP_VERSION, '5.3.3') <= 0) {
-            return $jwtUtil->encode($params, 'mysecretkey', 'HS256');
-        }
 
         return $jwtUtil->encode($params, $this->privateKey, 'RS256');
     }
