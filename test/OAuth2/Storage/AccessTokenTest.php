@@ -2,7 +2,7 @@
 
 namespace OAuth2\Storage;
 
-class StorageTest extends BaseTest
+class AccessTokenTest extends BaseTest
 {
     /** @dataProvider provideStorage */
     public function testSetAccessToken(AccessTokenInterface $storage = null)
