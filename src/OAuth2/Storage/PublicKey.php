@@ -14,11 +14,15 @@ class PublicKey implements CryptoTokenInterface
 {
     protected $publicKey;
     protected $privateKey;
+    protected $config;
     protected $secondaryStorage;
     protected $encryptionUtil;
 
-    public function __construct($publicKey, $privateKey, AccessTokenInterface $secondaryStorage = null, EncryptionInterface $encryptionUtil = null)
+    public function __construct($publicKey, $privateKey, array $config = array(), AccessTokenInterface $secondaryStorage = null, EncryptionInterface $encryptionUtil = null)
     {
+        $this->config = array_merge(array(
+            'algorithm' => 'RS256',
+        ), $config);
         $this->publicKey  = $publicKey;
         $this->privateKey = $privateKey;
         $this->secondaryStorage = $secondaryStorage;
@@ -30,16 +34,16 @@ class PublicKey implements CryptoTokenInterface
 
     public function encodeToken(array $token)
     {
-        return $this->encryptionUtil->encode(json_encode($token), $this->privateKey);
+        return $this->encryptionUtil->encode($token, $this->privateKey, $this->config['algorithm']);
     }
 
     public function getAccessToken($oauth_token)
     {
-        if (!$decodedToken = $this->encryptionUtil->decode($oauth_token, $this->publicKey)) {
+        if (!$decodedToken = $this->encryptionUtil->decode($oauth_token, $this->publicKey, $this->config['algorithm'])) {
             return false;
         }
 
-        return json_decode($decodedToken, true);
+        return $decodedToken;
     }
 
     public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null)

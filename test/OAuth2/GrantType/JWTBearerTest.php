@@ -261,26 +261,6 @@ EOD;
         $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
     }
 
-    public function testJwtUtil()
-    {
-        $storage = Bootstrap::getInstance()->getMemoryStorage();
-        $jwtUtil = new Jwt();
-        $client_id = 'Test Client ID';
-        $params = $this->getJWTParams(null, null, null, $client_id);
-
-
-        if (version_compare(PHP_VERSION, '5.3.3') <= 0) {
-            $encoded = $jwtUtil->encode($params, 'mysecretkey', 'HS256');
-            $client_id .= ' PHP-5.2';
-        } else {
-            $encoded = $jwtUtil->encode($params, $this->privateKey, 'RS256');
-        }
-
-        $payload = $jwtUtil->decode($encoded, $storage->getClientKey($client_id, "testuser@ourdomain.com"));
-
-        $this->assertEquals($params, $payload);
-    }
-
     /**
      * Generates a JWT
      * @param $exp The expiration date. If the current time is greater than the exp, the JWT is invalid.

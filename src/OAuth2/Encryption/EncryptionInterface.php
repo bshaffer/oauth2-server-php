@@ -4,6 +4,6 @@ namespace OAuth2\Encryption;
 
 interface EncryptionInterface
 {
-    public function encode($payload, $key);
-    public function decode($payload, $key);
+    public function encode($payload, $key, $algorithm = null);
+    public function decode($payload, $key, $algorithm = null);
 }
