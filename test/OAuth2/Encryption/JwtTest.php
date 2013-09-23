@@ -33,7 +33,15 @@ EOD;
     public function testJwtUtil($client_id, $client_key)
     {
         $jwtUtil = new Jwt();
-        $params = $this->getJWTParams(null, null, null, $client_id);
+
+        $params = array(
+            'iss' => $client_id,
+            'exp' => time() + 1000,
+            'iat' => time(),
+            'sub' => 'testuser@ourdomain.com',
+            'aud' => 'http://myapp.com/oauth/auth',
+            'scope' => null,
+        );
 
         $encoded = $jwtUtil->encode($params, $this->privateKey, 'RS256');
 
@@ -50,46 +58,5 @@ EOD;
         return array(
             array($client_id, $client_key),
         );
-    }
-
-    /**
-     * Generates a JWT
-     * @param $exp The expiration date. If the current time is greater than the exp, the JWT is invalid.
-     * @param $nbf The "not before" time. If the current time is less than the nbf, the JWT is invalid.
-     * @param $sub The subject we are acting on behalf of. This could be the email address of the user in the system.
-     * @param $iss The issuer, usually the client_id.
-     * @return string
-     */
-    private function getJWTParams($exp = null, $nbf = null, $sub = null, $iss = 'Test Client ID', $scope = null)
-    {
-        //Since PHP 5.2 does not have OpenSSL support on Travis CI, we will test it using the HS256 algorithm
-        //We also provided PHP 5.2 specific data for it in storage.json
-        if (version_compare(PHP_VERSION, '5.3.3') <= 0) {
-            // add "5.2" identifier onto the client name
-            $iss .= ' PHP-5.2';
-        }
-
-        if (!$exp) {
-            $exp = time() + 1000;
-        }
-
-        if (!$sub) {
-            $sub = "testuser@ourdomain.com";
-        }
-
-        $params = array(
-            'iss' => $iss,
-            'exp' => $exp,
-            'iat' => time(),
-            'sub' => $sub,
-            'aud' => 'http://myapp.com/oauth/auth',
-            'scope' => $scope,
-        );
-
-        if ($nbf) {
-            $params['nbf'] = $nbf;
-        }
-
-        return $params;
     }
 }

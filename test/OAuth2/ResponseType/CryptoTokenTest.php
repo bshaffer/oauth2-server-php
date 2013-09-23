@@ -7,20 +7,19 @@ use OAuth2\Response;
 use OAuth2\Request\TestRequest;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Storage\PrivateKey;
-use OAuth2\GrantType\AuthorizationCode;
+use OAuth2\GrantType\ClientCredentials;
 use OAuth2\ResponseType\CryptoToken;
 
 class CryptoTokenTest extends \PHPUnit_Framework_TestCase
 {
-    public function testValidClientIdScope()
+    public function testGrantCryptoToken()
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
         $request = TestRequest::createPost(array(
-            'grant_type' => 'authorization_code', // valid grant type
-            'code'       => 'testcode',
-            'client_id' => 'Test Client ID', // valid client id
-            'client_secret' => 'TestSecret', // valid client secret
+            'grant_type'    => 'client_credentials', // valid grant type
+            'client_id'     => 'Test Client ID',     // valid client id
+            'client_secret' => 'TestSecret',         // valid client secret
         ));
         $server->handleTokenRequest($request, $response = new Response());
 
@@ -28,20 +27,64 @@ class CryptoTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(2, substr_count($response->getParameter('access_token'), '.'));
     }
 
+    public function testAccessResourceWithCryptoToken()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'client_credentials', // valid grant type
+            'client_id'     => 'Test Client ID',     // valid client id
+            'client_secret' => 'TestSecret',         // valid client secret
+        ));
+        $server->handleTokenRequest($request, $response = new Response());
+        $this->assertNotNull($cryptoToken = $response->getParameter('access_token'));
+
+        // make a call to the resource server using the crypto token
+        $request = TestRequest::createPost(array(
+            'access_token' => $cryptoToken,
+        ));
+
+        $this->assertTrue($server->verifyResourceRequest($request));
+    }
+
+    public function testAccessResourceWithCryptoTokenUsingSecondaryStorage()
+    {
+        // add the test parameters in memory
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'client_credentials', // valid grant type
+            'client_id'     => 'Test Client ID',     // valid client id
+            'client_secret' => 'TestSecret',         // valid client secret
+        ));
+        $server->handleTokenRequest($request, $response = new Response());
+        $this->assertNotNull($cryptoToken = $response->getParameter('access_token'));
+
+        // make a call to the resource server using the crypto token
+        $request = TestRequest::createPost(array(
+            'access_token' => $cryptoToken,
+        ));
+
+        // create a resource server with the "memory" storage from the grant server
+        $resourceServer = new Server($server->getStorage('client_credentials'));
+
+        $this->assertTrue($resourceServer->verifyResourceRequest($request));
+    }
+
     private function getTestServer()
     {
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
-        $pubkeyStorage = Bootstrap::getInstance()->getPublicKeyStorage();
+        $pubkeyStorage = Bootstrap::getInstance()->getPublicKeyStorage($memoryStorage);
         $storage = array(
             'access_token' => $pubkeyStorage,
-            'authorization_code' => $memoryStorage,
             'client_credentials' => $memoryStorage,
         );
+
+        // make the "token" response type a CryptoToken
         $responseTypes = array(
-            'token' => new CryptoToken($pubkeyStorage),
+            'token' => new CryptoToken($pubkeyStorage, null, array('store_encrypted_token_string' => true)),
         );
         $server = new Server($storage, array(), array(), $responseTypes);
-        $server->addGrantType(new AuthorizationCode($memoryStorage));
+        $server->addGrantType(new ClientCredentials($memoryStorage));
 
         return $server;
     }

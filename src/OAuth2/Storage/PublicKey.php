@@ -49,7 +49,7 @@ class PublicKey implements CryptoTokenInterface
     public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null)
     {
         if ($this->secondaryStorage) {
-            return $this->secondaryStorage($oauth_token, $client_id, $user_id, $expires, $scope);
+            return $this->secondaryStorage->setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope);
         }
     }
 }

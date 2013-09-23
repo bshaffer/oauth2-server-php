@@ -43,11 +43,13 @@ class CryptoToken extends AccessToken
     public function createAccessToken($client_id, $user_id, $scope = null, $includeRefreshToken = true)
     {
         // token to encrypt
+        $expires = time() + $this->config['access_lifetime'];
         $cryptoToken = array(
-            "id" => $this->generateAccessToken(),
-            "expires_in" => $this->config['access_lifetime'],
-            "token_type" => $this->config['token_type'],
-            "scope" => $scope
+            'id'         => $this->generateAccessToken(),
+            'client_id'  => $client_id,
+            'expires'    => $expires,
+            'token_type' => $this->config['token_type'],
+            'scope'      => $scope
         );
 
         /*
@@ -58,7 +60,7 @@ class CryptoToken extends AccessToken
          */
         if ($includeRefreshToken && $this->refreshStorage) {
             $cryptoToken["refresh_token"] = $this->generateRefreshToken();
-            $this->refreshStorage->setRefreshToken($cryptoToken['refresh_token'], $client_id, $user_id, time() + $this->config['refresh_token_lifetime'], $scope);
+            $this->refreshStorage->setRefreshToken($cryptoToken['refresh_token'], $client_id, $user_id, $expires, $scope);
         }
 
         /*
@@ -76,10 +78,10 @@ class CryptoToken extends AccessToken
 
         // token to return to the client
         $token = array(
-            "access_token" => $access_token,
-            "expires_in" => $this->config['access_lifetime'],
-            "token_type" => $this->config['token_type'],
-            "scope" => $scope
+            'access_token' => $access_token,
+            'expires_in' => $this->config['access_lifetime'],
+            'token_type' => $this->config['token_type'],
+            'scope' => $scope
         );
 
         return $token;
