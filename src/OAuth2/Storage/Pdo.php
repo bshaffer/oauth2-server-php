@@ -1,41 +1,50 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Simple PDO storage for all storage types
  *
- * NOTE: This class is meant to get users started 
- * quickly. If your application requires further 
+ * NOTE: This class is meant to get users started
+ * quickly. If your application requires further
  * customization, extend this class or create your own.
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * NOTE: Passwords are stored in plaintext, which is never
+ * a good idea.  Be sure to override this for your application
+ *
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
-    OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface,
-    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_RefreshTokenInterface, OAuth2_Storage_JWTBearerInterface
+class Pdo implements AuthorizationCodeInterface,
+    AccessTokenInterface,
+    ClientCredentialsInterface,
+    UserCredentialsInterface,
+    RefreshTokenInterface,
+    JwtBearerInterface,
+    ScopeInterface
 {
     protected $db;
     protected $config;
 
     public function __construct($connection, $config = array())
     {
-        if (!$connection instanceof PDO) {
+        if (!$connection instanceof \PDO) {
             if (!is_array($connection)) {
-                throw new InvalidArgumentException('First argument to OAuth2_Storage_Pdo must be an instance of PDO or a configuration array');
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Pdo must be an instance of PDO or a configuration array');
             }
             if (!isset($connection['dsn'])) {
-                throw new InvalidArgumentException('configuration array must contain "dsn"');
+                throw new \InvalidArgumentException('configuration array must contain "dsn"');
             }
             // merge optional parameters
             $connection = array_merge(array(
                 'username' => null,
                 'password' => null,
             ), $connection);
-            $connection = new PDO($connection['dsn'], $connection['username'], $connection['password']);
+            $connection = new \PDO($connection['dsn'], $connection['username'], $connection['password']);
         }
         $this->db = $connection;
 
         // debugging
-        $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
@@ -43,11 +52,12 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
             'refresh_token_table' => 'oauth_refresh_tokens',
             'code_table' => 'oauth_authorization_codes',
             'user_table' => 'oauth_users',
-            'jwt_table' => 'oauth_jwt',
+            'jwt_table'  => 'oauth_jwt',
+            'scope_table'  => 'oauth_scopes'
         ), $config);
     }
 
-    /* ClientCredentialsInterface */
+    /* OAuth2_Storage_ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
@@ -70,14 +80,16 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     {
         $details = $this->getClientDetails($client_id);
         if (isset($details['grant_types'])) {
-            return in_array($grant_type, (array) $details['grant_types']);
+            $grant_types = explode(' ', $details['grant_types']);
+
+            return in_array($grant_type, (array) $grant_types);
         }
 
         // if grant_types are not defined, then none are restricted
         return true;
     }
 
-    /* AccessTokenInterface */
+    /* OAuth2_Storage_AccessTokenInterface */
     public function getAccessToken($access_token)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = :access_token', $this->config['access_token_table']));
@@ -105,7 +117,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
-    /* AuthorizationCodeInterface */
+    /* OAuth2_Storage_AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = :code', $this->config['code_table']));
@@ -140,7 +152,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('code'));
     }
 
-    /* UserCredentialsInterface */
+    /* OAuth2_Storage_UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
         if ($user = $this->getUser($username)) {
@@ -154,7 +166,7 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $this->getUser($username);
     }
 
-    /* RefreshTokenInterface */
+    /* OAuth2_Storage_RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
@@ -188,18 +200,29 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {
-        return $user['password'] == $password;
+        return $user['password'] == sha1($password);
     }
 
     public function getUser($username)
     {
         $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
         $stmt->execute(array('username' => $username));
-        return $stmt->fetch();
+
+        if (!$userInfo = $stmt->fetch()) {
+            return false;
+        }
+
+        // the default behavior is to use "username" as the user_id
+        return array_merge(array(
+            'user_id' => $username
+        ), $userInfo);
     }
 
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
+        // do not store in plaintext
+        $password = sha1($password);
+
         // if it exists, update it.
         if ($this->getUser($username)) {
             $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table']));
@@ -209,6 +232,35 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }
 
+    /* ScopeInterface */
+    public function scopeExists($scope, $client_id = null)
+    {
+        $scope = explode(' ', $scope);
+        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type="supported" AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
+        $stmt->execute(compact('client_id'));
+
+        if ($result = $stmt->fetch()) {
+            $supportedScope = explode(' ', $result['scope']);
+        } else {
+            $supportedScope = array();
+        }
+
+        return (count(array_diff($scope, $supportedScope)) == 0);
+    }
+
+    public function getDefaultScope($client_id = null)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type="default" AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
+        $stmt->execute(compact('client_id'));
+
+        if ($result = $stmt->fetch()) {
+            return $result['scope'];
+        }
+
+        return null;
+    }
+
+    /* OAuth2_Storage_JWTBearerInterface */
     public function getClientKey($client_id, $subject)
     {
         $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));

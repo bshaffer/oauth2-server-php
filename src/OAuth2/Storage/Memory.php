@@ -1,17 +1,22 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Simple in-memory storage for all storage types
  *
  * NOTE: This class should never be used in production, and is
  * a stub class for example use only
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface,
-    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_AccessTokenInterface,
-    OAuth2_Storage_ClientCredentialsInterface, OAuth2_Storage_RefreshTokenInterface,
-    OAuth2_Storage_JWTBearerInterface, OAuth2_Storage_ScopeInterface
+class Memory implements AuthorizationCodeInterface,
+    UserCredentialsInterface,
+    AccessTokenInterface,
+    ClientCredentialsInterface,
+    RefreshTokenInterface,
+    JwtBearerInterface,
+    ScopeInterface
 {
     private $authorizationCodes;
     private $userCredentials;
@@ -20,6 +25,8 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     private $accessTokens;
     private $jwt;
     private $supportedScopes;
+    private $clientSupportedScopes;
+    private $clientDefaultScopes;
     private $defaultScope;
 
     public function __construct($params = array())
@@ -32,6 +39,8 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
             'access_tokens' => array(),
             'jwt' => array(),
             'default_scope' => null,
+            'client_supported_scopes' => array(),
+            'client_default_scopes' => array(),
             'supported_scopes' => array(),
         ), $params);
 
@@ -42,22 +51,28 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
         $this->accessTokens = $params['access_tokens'];
         $this->jwt = $params['jwt'];
         $this->supportedScopes = $params['supported_scopes'];
+        $this->clientSupportedScopes = $params['client_supported_scopes'];
+        $this->clientDefaultScopes = $params['client_default_scopes'];
         $this->defaultScope = $params['default_scope'];
     }
 
     /* AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
-        if (isset($this->authorizationCodes[$code])) {
-            return $this->authorizationCodes[$code];
+        if (!isset($this->authorizationCodes[$code])) {
+            return false;
         }
 
-        return null;
+        return array_merge(array(
+            'authorization_code' => $code,
+        ), $this->authorizationCodes[$code]);
     }
 
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null)
     {
         $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope');
+
+        return true;
     }
 
     public function setAuthorizationCodes($authorization_codes)
@@ -73,40 +88,62 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     /* UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
-        return isset($this->userCredentials[$username]) && $this->userCredentials[$username] === $password;
+        $userDetails = $this->getUserDetails($username);
+        return $userDetails && $userDetails['password'] && $userDetails['password'] === $password;
+    }
+
+    public function setUser($username, $password, $firstName = null, $lastName = null)
+    {
+        $this->userCredentials[$username] = array(
+            'password'   => $password,
+            'first_name' => $firstName,
+            'last_name'  => $lastName,
+        );
+
+        return true;
     }
 
     public function getUserDetails($username)
     {
         if (!isset($this->userCredentials[$username])) {
-            return null;
+            return false;
         }
 
-        return array(
-            'user_id'  => $username,
-            'password' => $this->userCredentials[$username],
-        );
+        return array_merge(array(
+            'user_id'    => $username,
+            'password'   => null,
+            'first_name' => null,
+            'last_name'  => null,
+        ), $this->userCredentials[$username]);
     }
 
     /* ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
-        return isset($this->clientCredentials[$client_id]['secret']) && $this->clientCredentials[$client_id]['secret'] === $client_secret;
+        return isset($this->clientCredentials[$client_id]['client_secret']) && $this->clientCredentials[$client_id]['client_secret'] === $client_secret;
     }
 
     public function getClientDetails($client_id)
     {
-        if (isset($this->clientCredentials[$client_id])) {
-            return $this->clientCredentials[$client_id];
+        if (!isset($this->clientCredentials[$client_id])) {
+            return false;
         }
 
-        return null;
+        $clientDetails = array_merge(array(
+            'client_id'     => $client_id,
+            'client_secret' => null,
+            'redirect_uri'  => null,
+        ), $this->clientCredentials[$client_id]);
+
+        return $clientDetails;
     }
 
     public function checkRestrictedGrantType($client_id, $grant_type)
     {
         if (isset($this->clientCredentials[$client_id]['grant_types'])) {
-            return in_array($grant_type, (array) $this->clientCredentials[$client_id]['grant_types']);
+            $grant_types = explode(' ', $this->clientCredentials[$client_id]['grant_types']);
+
+            return in_array($grant_type, $grant_types);
         }
 
         // if grant_types are not defined, then none are restricted
@@ -121,12 +158,14 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     /* RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
     {
-        return isset($this->refreshTokens[$refresh_token]) ? $this->refreshTokens[$refresh_token] : null;
+        return isset($this->refreshTokens[$refresh_token]) ? $this->refreshTokens[$refresh_token] : false;
     }
 
     public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
     {
         $this->refreshTokens[$refresh_token] = compact('refresh_token', 'client_id', 'user_id', 'expires', 'scope');
+
+        return true;
     }
 
     public function unsetRefreshToken($refresh_token)
@@ -142,23 +181,36 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
     /* AccessTokenInterface */
     public function getAccessToken($access_token)
     {
-        return isset($this->accessTokens[$access_token]) ? $this->accessTokens[$access_token] : null;
+        return isset($this->accessTokens[$access_token]) ? $this->accessTokens[$access_token] : false;
     }
 
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
         $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope');
+
+        return true;
     }
 
     public function scopeExists($scope, $client_id = null)
     {
         $scope = explode(' ', trim($scope));
-        return (count(array_diff($scope, $this->supportedScopes)) == 0);
+
+        if (!is_null($client_id) && array_key_exists($client_id, $this->clientSupportedScopes)) {
+            $allowedScopes = array_merge($this->supportedScopes, $this->clientSupportedScopes[$client_id]);
+        } else {
+            $allowedScopes = $this->supportedScopes;
+        }
+
+        return (count(array_diff($scope, $allowedScopes)) == 0);
     }
 
-    public function getDefaultScope()
+    public function getDefaultScope($client_id = null)
     {
-        return $this->defaultScope;
+        if ($client_id && array_key_exists($client_id, $this->clientDefaultScopes)) {
+           return implode(' ', $this->clientDefaultScopes[$client_id]);
+        }else{
+           return $this->defaultScope;
+        }
     }
 
     /*JWTBearerInterface */
@@ -173,6 +225,6 @@ class OAuth2_Storage_Memory implements OAuth2_Storage_AuthorizationCodeInterface
             }
         }
 
-        return null;
+        return false;
     }
 }

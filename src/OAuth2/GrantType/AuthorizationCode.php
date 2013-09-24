@@ -1,14 +1,22 @@
 <?php
 
-/**
-*
-*/
-class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
-{
-    private $storage;
-    private $authCode;
+namespace OAuth2\GrantType;
 
-    public function __construct(OAuth2_Storage_AuthorizationCodeInterface $storage)
+use OAuth2\Storage\AuthorizationCodeInterface;
+use OAuth2\ResponseType\AccessTokenInterface;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
+/**
+ *
+ * @author Brent Shaffer <bshafs at gmail dot com>
+ */
+class AuthorizationCode implements GrantTypeInterface
+{
+    protected $storage;
+    protected $authCode;
+
+    public function __construct(AuthorizationCodeInterface $storage)
     {
         $this->storage = $storage;
     }
@@ -18,7 +26,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
         return 'authorization_code';
     }
 
-    public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$request->request('code')) {
             $response->setError(400, 'invalid_request', 'Missing parameter: "code" is required');
@@ -43,7 +51,7 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
         }
 
         if (!isset($authCode['expires'])) {
-            throw new Exception('Storage must return authcode with a value for "expires"');
+            throw new \Exception('Storage must return authcode with a value for "expires"');
         }
 
         if ($authCode["expires"] < time()) {
@@ -72,10 +80,10 @@ class OAuth2_GrantType_AuthorizationCode implements OAuth2_GrantTypeInterface
 
     public function getUserId()
     {
-        return $this->authCode['user_id'];
+        return isset($this->authCode['user_id']) ? $this->authCode['user_id'] : null;
     }
 
-    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
+    public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
         $token = $accessToken->createAccessToken($client_id, $user_id, $scope);
         $this->storage->expireAuthorizationCode($this->authCode['code']);

@@ -1,9 +1,17 @@
 <?php
 
+namespace OAuth2;
+
 /**
-*
-*/
-class OAuth2_Response implements OAuth2_ResponseInterface
+ * Class to handle OAuth2 Responses in a graceful way.  Use this interface
+ * to output the proper OAuth2 responses.
+ *
+ * @see OAuth2_ResponseInterface
+ *
+ * This class borrows heavily from the Symfony2 Framework and is part of the symfony package
+ * @see Symfony\Component\HttpFoundation\Request (https://github.com/symfony/symfony)
+ */
+class Response implements ResponseInterface
 {
     public $version;
     protected $statusCode = 200;
@@ -103,7 +111,7 @@ class OAuth2_Response implements OAuth2_ResponseInterface
     {
         $this->statusCode = (int) $statusCode;
         if ($this->isInvalid()) {
-            throw new InvalidArgumentException(sprintf('The HTTP status code "%s" is not valid.', $statusCode));
+            throw new \InvalidArgumentException(sprintf('The HTTP status code "%s" is not valid.', $statusCode));
         }
 
         $this->statusText = false === $text ? '' : (null === $text ? self::$statusTexts[$this->statusCode] : $text);
@@ -171,12 +179,12 @@ class OAuth2_Response implements OAuth2_ResponseInterface
                 return json_encode($this->parameters);
             case 'xml':
                 // this only works for single-level arrays
-                $xml = new SimpleXMLElement('<response/>');
+                $xml = new \SimpleXMLElement('<response/>');
                 array_walk($this->parameters, array($xml, 'addChild'));
                 return $xml->asXML();
         }
 
-        throw new InvalidArgumentException(sprintf('The format %s is not supported'));
+        throw new \InvalidArgumentException(sprintf('The format %s is not supported'));
 
     }
 
@@ -228,14 +236,14 @@ class OAuth2_Response implements OAuth2_ResponseInterface
         $this->addHttpHeaders($httpHeaders);
 
         if (!$this->isClientError() && !$this->isServerError()) {
-            throw new InvalidArgumentException(sprintf('The HTTP status code is not an error ("%s" given).', $statusCode));
+            throw new \InvalidArgumentException(sprintf('The HTTP status code is not an error ("%s" given).', $statusCode));
         }
     }
 
     public function setRedirect($statusCode = 302, $url, $state = null, $error = null, $errorDescription = null, $errorUri = null)
     {
         if (empty($url)) {
-            throw new InvalidArgumentException('Cannot redirect to an empty URL.');
+            throw new \InvalidArgumentException('Cannot redirect to an empty URL.');
         }
 
         $parameters = array();
@@ -260,7 +268,7 @@ class OAuth2_Response implements OAuth2_ResponseInterface
         $this->addHttpHeaders(array('Location' =>  $url));
 
         if (!$this->isRedirection()) {
-            throw new InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $statusCode));
+            throw new \InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $statusCode));
         }
     }
 

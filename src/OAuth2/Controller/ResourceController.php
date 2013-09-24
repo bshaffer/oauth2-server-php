@@ -1,17 +1,27 @@
 <?php
 
-/**
- *  @see OAuth2_Controller_ResourceControllerInterface
- */
-class OAuth2_Controller_ResourceController implements OAuth2_Controller_ResourceControllerInterface
-{
-    private $response;
-    private $tokenType;
-    private $tokenStorage;
-    private $config;
-    private $scopeUtil;
+namespace OAuth2\Controller;
 
-    public function __construct(OAuth2_TokenTypeInterface $tokenType, OAuth2_Storage_AccessTokenInterface $tokenStorage, $config = array(), OAuth2_ScopeInterface $scopeUtil = null)
+use OAuth2\TokenType\TokenTypeInterface;
+use OAuth2\Storage\AccessTokenInterface;
+use OAuth2\ScopeInterface;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+use OAuth2\Scope;
+
+/**
+ * @see OAuth2_Controller_ResourceControllerInterface
+ */
+class ResourceController implements ResourceControllerInterface
+{
+    private $token;
+
+    protected $tokenType;
+    protected $tokenStorage;
+    protected $config;
+    protected $scopeUtil;
+
+    public function __construct(TokenTypeInterface $tokenType, AccessTokenInterface $tokenStorage, $config = array(), ScopeInterface $scopeUtil = null)
     {
         $this->tokenType = $tokenType;
         $this->tokenStorage = $tokenStorage;
@@ -21,48 +31,79 @@ class OAuth2_Controller_ResourceController implements OAuth2_Controller_Resource
         ), $config);
 
         if (is_null($scopeUtil)) {
-            $scopeUtil = new OAuth2_Scope();
+            $scopeUtil = new Scope();
         }
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function verifyResourceRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response, $scope = null)
+    public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response, $scope = null)
     {
         $token = $this->getAccessTokenData($request, $response, $scope);
 
-        // Check scope, if provided
-        // If token doesn't have a scope, it's null/empty, or it's insufficient, then throw an error
-        if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->scopeUtil->checkScope($scope, $token["scope"]))) {
-            $response->setError(401, 'insufficient_scope', 'The request requires higher privileges than provided by the access token');
-            $response->addHttpHeaders(array('WWW-Authenticate' => sprintf('%s, realm="%s", scope="%s"', $this->tokenType->getTokenType(), $this->config['www_realm'], $scope)));
+        // Check if we have token data
+        if (is_null($token)) {
             return false;
         }
+
+        /**
+         * Check scope, if provided
+         * If token doesn't have a scope, it's null/empty, or it's insufficient, then throw 403
+         * @see http://tools.ietf.org/html/rfc6750#section-3.1
+         */
+        if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->scopeUtil->checkScope($scope, $token["scope"]))) {
+            $response->setError(403, 'insufficient_scope', 'The request requires higher privileges than provided by the access token');
+            $response->addHttpHeaders(array(
+                'WWW-Authenticate' => sprintf('%s realm="%s", scope="%s", error="%s", error_description="%s"',
+                    $this->tokenType->getTokenType(),
+                    $this->config['www_realm'],
+                    $scope,
+                    $response->getParameter('error'),
+                    $response->getParameter('error_description')
+                )
+            ));
+            return false;
+        }
+
+        // allow retrieval of the token
+        $this->token = $token;
 
         return (bool) $token;
     }
 
-    public function getAccessTokenData(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function getAccessTokenData(RequestInterface $request, ResponseInterface $response)
     {
         // Get the token parameter
-        $token_param = $this->tokenType->getAccessTokenParameter($request, $response);
-        if (is_null($token_param)) {
-            return null;
+        if ($token_param = $this->tokenType->getAccessTokenParameter($request, $response)) {
+            // Get the stored token data (from the implementing subclass)
+            // Check we have a well formed token
+            // Check token expiration (expires is a mandatory paramter)
+            if (!$token = $this->tokenStorage->getAccessToken($token_param)) {
+                $response->setError(401, 'invalid_token', 'The access token provided is invalid');
+            } else if (!isset($token["expires"]) || !isset($token["client_id"])) {
+                $response->setError(401, 'invalid_token', 'Malformed token (missing "expires" or "client_id")');
+            } else if (time() > $token["expires"]) {
+                $response->setError(401, 'invalid_token', 'The access token provided has expired');
+            } else {
+                return $token;
+            }
         }
 
-        // Get the stored token data (from the implementing subclass)
-        // Check we have a well formed token
-        // Check token expiration (expires is a mandatory paramter)
-        if (!$token = $this->tokenStorage->getAccessToken($token_param)) {
-            $response->setError(401, 'invalid_grant', 'The access token provided is invalid', $this->tokenType->getTokenType(), $this->config['www_realm']);
-        } else if (!isset($token["expires"]) || !isset($token["client_id"])) {
-            $response->setError(401, 'invalid_grant', 'Malformed token (missing "expires" or "client_id")', $this->tokenType->getTokenType(), $this->config['www_realm']);
-        } else if (isset($token["expires"]) && time() > $token["expires"]) {
-            $response->setError(401, 'invalid_grant', 'The access token provided has expired');
-        } else {
-            return $token;
+        $authHeader = sprintf('%s realm="%s"', $this->tokenType->getTokenType(), $this->config['www_realm']);
+
+        if ($error = $response->getParameter('error')) {
+            $authHeader = sprintf('%s, error="%s"', $authHeader, $error);
+            if ($error_description = $response->getParameter('error_description')) {
+                $authHeader = sprintf('%s, error_description="%s"', $authHeader, $error_description);
+            }
         }
 
-        $response->addHttpHeaders(array('WWW-Authenticate' => sprintf('%s, realm="%"', $this->tokenType->getTokenType(), $this->config['www_realm'])));
+        $response->addHttpHeaders(array('WWW-Authenticate' => $authHeader));
         return null;
+    }
+
+    // convenience method to allow retrieval of the token
+    public function getToken()
+    {
+        return $this->token;
     }
 }

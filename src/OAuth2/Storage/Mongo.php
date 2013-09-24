@@ -1,5 +1,7 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Simple MongoDB storage for all storage types
  *
@@ -8,24 +10,27 @@
  *
  * @author Julien Chaumond <chaumond@gmail.com>
  */
-class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
-    OAuth2_Storage_AccessTokenInterface, OAuth2_Storage_ClientCredentialsInterface,
-    OAuth2_Storage_UserCredentialsInterface, OAuth2_Storage_RefreshTokenInterface, OAuth2_Storage_JWTBearerInterface
+class Mongo implements AuthorizationCodeInterface,
+    AccessTokenInterface,
+    ClientCredentialsInterface,
+    UserCredentialsInterface,
+    RefreshTokenInterface,
+    JwtBearerInterface
 {
     protected $db;
     protected $config;
 
     public function __construct($connection, $config = array())
     {
-        if ($connection instanceof MongoDB) {
+        if ($connection instanceof \MongoDB) {
             $this->db = $connection;
         }
         else {
             if (!is_array($connection)) {
-                throw new InvalidArgumentException('First argument to OAuth2_Storage_Mongo must be an instance of MongoDB or a configuration array');
+                throw new \InvalidArgumentException('First argument to OAuth2_Storage_Mongo must be an instance of MongoDB or a configuration array');
             }
             $server = sprintf('mongodb://%s:%d', $connection['host'], $connection['port']);
-            $m = new MongoClient($server);
+            $m = new \MongoClient($server);
             $this->db = $m->{$connection['database']};
         }
 
@@ -52,9 +57,10 @@ class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
     /* ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
-        $result = $this->collection('client_table')->findOne(array('client_id' => $client_id));
-
-        return $result['client_secret'] == $client_secret;
+        if ($result = $this->collection('client_table')->findOne(array('client_id' => $client_id))) {
+            return $result['client_secret'] == $client_secret;
+        }
+        return false;
     }
 
     public function getClientDetails($client_id)
@@ -68,7 +74,9 @@ class OAuth2_Storage_Mongo implements OAuth2_Storage_AuthorizationCodeInterface,
     {
         $details = $this->getClientDetails($client_id);
         if (isset($details['grant_types'])) {
-            return in_array($grant_type, (array) $details['grant_types']);
+            $grant_types = explode(' ', $details['grant_types']);
+
+            return in_array($grant_type, $grant_types);
         }
 
         // if grant_types are not defined, then none are restricted

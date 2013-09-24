@@ -1,25 +1,33 @@
 <?php
 
-class OAuth2_Controller_Resource_BasicValidationTest extends PHPUnit_Framework_TestCase
+namespace OAuth2\Controller;
+
+use OAuth2\Storage\Bootstrap;
+use OAuth2\Server;
+use OAuth2\GrantType\AuthorizationCode;
+use OAuth2\Request;
+use OAuth2\Response;
+
+class ResourceControllerTest extends \PHPUnit_Framework_TestCase
 {
     public function testNoAccessToken()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
+        $request = Request::createFromGlobals();
+        $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
 
-        $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getParameter('error_description'), 'The access token was not found');
+        $this->assertEquals($response->getStatusCode(), 401);
+        $this->assertNull($response->getParameter('error'));
+        $this->assertNull($response->getParameter('error_description'));
     }
 
     public function testMalformedHeader()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'tH1s i5 B0gU5';
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
+        $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -30,10 +38,10 @@ class OAuth2_Controller_Resource_BasicValidationTest extends PHPUnit_Framework_T
     public function testMultipleTokensSubmitted()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $request->request['access_token'] = 'TEST';
         $request->query['access_token'] = 'TEST';
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
+        $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -44,10 +52,10 @@ class OAuth2_Controller_Resource_BasicValidationTest extends PHPUnit_Framework_T
     public function testInvalidRequestMethod()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $request->server['REQUEST_METHOD'] = 'GET';
         $request->request['access_token'] = 'TEST';
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
+        $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -58,11 +66,11 @@ class OAuth2_Controller_Resource_BasicValidationTest extends PHPUnit_Framework_T
     public function testInvalidContentType()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $request->server['REQUEST_METHOD'] = 'POST';
         $request->server['CONTENT_TYPE'] = 'application/json';
         $request->request['access_token'] = 'TEST';
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
+        $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 400);
@@ -73,82 +81,94 @@ class OAuth2_Controller_Resource_BasicValidationTest extends PHPUnit_Framework_T
     public function testInvalidToken()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer TESTTOKEN';
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
+        $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error'), 'invalid_token');
         $this->assertEquals($response->getParameter('error_description'), 'The access token provided is invalid');
     }
 
     public function testExpiredToken()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-expired';
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
+        $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error'), 'invalid_token');
         $this->assertEquals($response->getParameter('error_description'), 'The access token provided has expired');
     }
 
     public function testOutOfScopeToken()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-scope';
         $scope = 'outofscope';
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response(), $scope);
+        $allow = $server->verifyResourceRequest($request, $response = new Response(), $scope);
         $this->assertFalse($allow);
 
-        $this->assertEquals($response->getStatusCode(), 401);
+        $this->assertEquals($response->getStatusCode(), 403);
         $this->assertEquals($response->getParameter('error'), 'insufficient_scope');
         $this->assertEquals($response->getParameter('error_description'), 'The request requires higher privileges than provided by the access token');
+
+        // verify the "scope" has been set in the "WWW-Authenticate" header
+        preg_match('/scope="(.*?)"/', $response->getHttpHeader('WWW-Authenticate'), $matches);
+        $this->assertEquals(2, count($matches));
+        $this->assertEquals($matches[1], 'outofscope');
     }
 
     public function testMalformedToken()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-malformed';
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
+        $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error'), 'invalid_token');
         $this->assertEquals($response->getParameter('error_description'), 'Malformed token (missing "expires" or "client_id")');
     }
 
     public function testValidToken()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-scope';
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
+        $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertTrue($allow);
     }
 
     public function testValidTokenWithScopeParam()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-scope';
         $request->query['scope'] = 'testscope';
-        $allow = $server->verifyResourceRequest($request, $response = new OAuth2_Response());
+        $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertTrue($allow);
+    }
+
+    public function testCreateController()
+    {
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $tokenType = new \OAuth2\TokenType\Bearer();
+        $controller = new ResourceController($tokenType, $storage);
     }
 
     private function getTestServer($config = array())
     {
-        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
-        $server = new OAuth2_Server($storage, $config);
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server = new Server($storage, $config);
 
         // Add the two types supported for authorization grant
-        $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
+        $server->addGrantType(new AuthorizationCode($storage));
 
         return $server;
     }

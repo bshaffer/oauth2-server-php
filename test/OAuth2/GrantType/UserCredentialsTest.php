@@ -1,17 +1,24 @@
 <?php
 
-class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
+namespace OAuth2\GrantType;
+
+use OAuth2\Storage\Bootstrap;
+use OAuth2\Server;
+use OAuth2\Request\TestRequest;
+use OAuth2\Response;
+
+class UserCredentialsTest extends \PHPUnit_Framework_TestCase
 {
     public function testNoUsername()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'password', // valid grant type
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'password' => 'testpass', // valid password
         ));
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -21,13 +28,13 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
     public function testNoPassword()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'password', // valid grant type
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'username' => 'test-username', // valid username
         ));
-        $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -37,14 +44,14 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
     public function testInvalidUsername()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'password', // valid grant type
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'username' => 'fake-username', // valid username
             'password' => 'testpass', // valid password
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -54,14 +61,14 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
     public function testInvalidPassword()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'password', // valid grant type
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'username' => 'test-username', // valid username
             'password' => 'fakepass', // invalid password
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -71,14 +78,14 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
     public function testValidCredentials()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'password', // valid grant type
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'username' => 'test-username', // valid username
             'password' => 'testpass', // valid password
         ));
-        $token = $server->grantAccessToken($request, new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -87,7 +94,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
     public function testValidCredentialsWithScope()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'password', // valid grant type
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
@@ -95,7 +102,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
             'password' => 'testpass', // valid password
             'scope'    => 'scope1', // valid scope
         ));
-        $token = $server->grantAccessToken($request, new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -106,7 +113,7 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
     public function testValidCredentialsInvalidScope()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'password', // valid grant type
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
@@ -114,18 +121,18 @@ class OAuth2_GrantType_UserCredentialsTest extends PHPUnit_Framework_TestCase
             'password' => 'testpass', // valid password
             'scope'         => 'invalid-scope',
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
+        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
     }
 
     private function getTestServer()
     {
-        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
-        $server = new OAuth2_Server($storage);
-        $server->addGrantType(new OAuth2_GrantType_UserCredentials($storage));
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server = new Server($storage);
+        $server->addGrantType(new UserCredentials($storage));
 
         return $server;
     }

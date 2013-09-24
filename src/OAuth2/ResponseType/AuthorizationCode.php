@@ -1,14 +1,19 @@
 <?php
 
-/**
-*
-*/
-class OAuth2_ResponseType_AuthorizationCode implements OAuth2_ResponseType_AuthorizationCodeInterface
-{
-    private $storage;
-    private $config;
+namespace OAuth2\ResponseType;
 
-    public function __construct(OAuth2_Storage_AuthorizationCodeInterface $storage, array $config = array())
+use OAuth2\Storage\AuthorizationCodeInterface as AuthorizationCodeStorageInterface;
+
+/**
+ *
+ * @author Brent Shaffer <bshafs at gmail dot com>
+ */
+class AuthorizationCode implements AuthorizationCodeInterface
+{
+    protected $storage;
+    protected $config;
+
+    public function __construct(AuthorizationCodeStorageInterface $storage, array $config = array())
     {
         $this->storage = $storage;
         $this->config = array_merge(array(
@@ -17,7 +22,7 @@ class OAuth2_ResponseType_AuthorizationCode implements OAuth2_ResponseType_Autho
         ), $config);
     }
 
-    // same params as above
+
     public function getAuthorizeResponse($params, $user_id = null)
     {
         // build the URL to redirect to
@@ -35,19 +40,19 @@ class OAuth2_ResponseType_AuthorizationCode implements OAuth2_ResponseType_Autho
     }
 
     /**
-     * Handle the creation of auth code.
-     *
-     * This belongs in a separate factory, but to keep it simple, I'm just
-     * keeping it here.
+     * Handle the creation of the authorization code.
      *
      * @param $client_id
-     * Client identifier related to the access token.
+     * Client identifier related to the authorization code
+     * @param $user_id
+     * User ID associated with the authorization code
      * @param $redirect_uri
      * An absolute URI to which the authorization server will redirect the
      * user-agent to when the end-user authorization step is completed.
      * @param $scope
      * (optional) Scopes to be stored in space-separated string.
      *
+     * @see http://tools.ietf.org/html/rfc6749#section-4
      * @ingroup oauth2_section_4
      */
     public function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null)
@@ -57,6 +62,10 @@ class OAuth2_ResponseType_AuthorizationCode implements OAuth2_ResponseType_Autho
         return $code;
     }
 
+    /**
+     * @return
+     * TRUE if the grant type requires a redirect_uri, FALSE if not
+     */
     public function enforceRedirect()
     {
         return $this->config['enforce_redirect'];

@@ -1,13 +1,15 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Implement this interface to specify where the OAuth2 Server
  * should retrieve data involving the relevent scopes associated
  * with this implementation.
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface OAuth2_Storage_ScopeInterface
+interface ScopeInterface
 {
     /**
      * Check if the provided scope exists.
@@ -39,5 +41,5 @@ interface OAuth2_Storage_ScopeInterface
      * ex:
      *     null
      */
-    public function getDefaultScope();
+    public function getDefaultScope($client_id = null);
 }

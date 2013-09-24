@@ -1,22 +1,31 @@
 <?php
 
-/**
- *  @see OAuth2_Controller_TokenControllerInterface
- */
-class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenControllerInterface
-{
-    private $response;
-    private $clientAssertionType;
-    private $accessToken;
-    private $grantTypes;
-    private $scopeUtil;
+namespace OAuth2\Controller;
 
-    public function __construct(OAuth2_ResponseType_AccessTokenInterface $accessToken, array $grantTypes = array(), OAuth2_ClientAssertionTypeInterface $clientAssertionType = null, OAuth2_ScopeInterface $scopeUtil = null)
+use OAuth2\ResponseType\AccessTokenInterface;
+use OAuth2\ClientAssertionType\ClientAssertionTypeInterface;
+use OAuth2\GrantType\GrantTypeInterface;
+use OAuth2\ScopeInterface;
+use OAuth2\Scope;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
+/**
+ * @see OAuth2_Controller_TokenControllerInterface
+ */
+class TokenController implements TokenControllerInterface
+{
+    protected $accessToken;
+    protected $grantTypes;
+    protected $clientAssertionType;
+    protected $scopeUtil;
+
+    public function __construct(AccessTokenInterface $accessToken, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null)
     {
         if (is_null($clientAssertionType)) {
             foreach ($grantTypes as $grantType) {
-                if (!$grantType instanceof OAuth2_ClientAssertionTypeInterface) {
-                    throw new InvalidArgumentException('You must supply an instance of OAuth2_ClientAssertionTypeInterface or only use grant types which implement OAuth2_ClientAssertionTypeInterface');
+                if (!$grantType instanceof ClientAssertionTypeInterface) {
+                    throw new \InvalidArgumentException('You must supply an instance of OAuth2\ClientAssertionTypeInterface or only use grant types which implement OAuth2\ClientAssertionTypeInterface');
                 }
             }
         }
@@ -27,12 +36,12 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         }
 
         if (is_null($scopeUtil)) {
-            $scopeUtil = new OAuth2_Scope();
+            $scopeUtil = new Scope();
         }
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function handleTokenRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function handleTokenRequest(RequestInterface $request, ResponseInterface $response)
     {
         if ($token = $this->grantAccessToken($request, $response)) {
             // @see http://tools.ietf.org/html/rfc6749#section-5.1
@@ -40,9 +49,7 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
             $response->setStatusCode(200);
             $response->addParameters($token);
             $response->addHttpHeaders(array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
-            return true;
         }
-        return false;
     }
 
     /**
@@ -50,10 +57,8 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
      * This would be called from the "/token" endpoint as defined in the spec.
      * You can call your endpoint whatever you want.
      *
-     * @param $request - OAuth2_RequestInterface
+     * @param $request - RequestInterface
      * Request object to grant access token
-     * @param $grantType - mixed
-     * OAuth2_GrantTypeInterface instance or one of the grant types configured in the constructor
      *
      * @throws InvalidArgumentException
      * @throws LogicException
@@ -64,7 +69,7 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
      *
      * @ingroup oauth2_section_4
      */
-    public function grantAccessToken(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function grantAccessToken(RequestInterface $request, ResponseInterface $response)
     {
         if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
             $response->setError(405, 'invalid_request', 'The request method must be POST when requesting an access token', '#section-3.2');
@@ -86,28 +91,36 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         }
 
         $grantType = $this->grantTypes[$grantTypeIdentifier];
-        if (!$grantType->validateRequest($request, $response)) {
-            return null;
-        }
 
         /* Retrieve the client information from the request
          * ClientAssertionTypes allow for grant types which also assert the client data
          * in which case ClientAssertion is handled in the validateRequest method
          *
-         * @see OAuth2_GrantType_JWTBearer
-         * @see OAuth2_GrantType_ClientCredentials
+         * @see OAuth2\GrantType\JWTBearer
+         * @see OAuth2\GrantType\ClientCredentials
          */
-        if ($grantType instanceof OAuth2_ClientAssertionTypeInterface) {
-            $clientId = $grantType->getClientId();
-        } else {
+        if (!$grantType instanceof ClientAssertionTypeInterface) {
             if (!$this->clientAssertionType->validateRequest($request, $response)) {
                 return null;
             }
             $clientId = $this->clientAssertionType->getClientId();
+        }
 
+        /* Retrieve the grant type information from the request
+         * The GrantTypeInterface object handles all validation
+         * If the object is an instance of ClientAssertionTypeInterface,
+         * That logic is handled here as well
+         */
+        if (!$grantType->validateRequest($request, $response)) {
+            return null;
+        }
+
+        if ($grantType instanceof ClientAssertionTypeInterface) {
+            $clientId = $grantType->getClientId();
+        } else {
             // validate the Client ID (if applicable)
             if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
-                $response->setError(400, 'invalid_grant', 'Authorization code doesn\'t exist or is invalid for the client');
+                $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier));
                 return null;
             }
         }
@@ -115,16 +128,23 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
         /*
          * Validate the scope of the token
          * If the grant type returns a value for the scope,
+         * as is the case with the "Authorization Code" grant type,
          * this value must be verified with the scope being requested
          */
         $availableScope = $grantType->getScope();
         if (!$requestedScope = $this->scopeUtil->getScopeFromRequest($request)) {
-            $requestedScope = $availableScope ? $availableScope : $this->scopeUtil->getDefaultScope();
+            if (!$availableScope) {
+                if (false === $defaultScope = $this->scopeUtil->getDefaultScope($clientId)) {
+                    $response->setError(400, 'invalid_scope', 'This application requires you specify a scope parameter');
+                    return null;
+                }
+            }
+            $requestedScope = $availableScope ? $availableScope : $defaultScope;
         }
 
-        if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope))
+        if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope, $clientId))
             || ($availableScope && !$this->scopeUtil->checkScope($requestedScope, $availableScope))) {
-            $response->setError(400, 'invalid_scope', 'An unsupported scope was requested.');
+            $response->setError(400, 'invalid_scope', 'An unsupported scope was requested');
             return null;
         }
 
@@ -134,12 +154,12 @@ class OAuth2_Controller_TokenController implements OAuth2_Controller_TokenContro
     /**
      * addGrantType
      *
-     * @param grantType - OAuth2_GrantTypeInterface
+     * @param grantType - OAuth2\GrantTypeInterface
      * the grant type to add for the specified identifier
      * @param identifier - string
      * a string passed in as "grant_type" in the response that will call this grantType
      **/
-    public function addGrantType(OAuth2_GrantTypeInterface $grantType, $identifier = null)
+    public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
     {
         if (is_null($identifier) || is_numeric($identifier)) {
             $identifier = $grantType->getQuerystringIdentifier();

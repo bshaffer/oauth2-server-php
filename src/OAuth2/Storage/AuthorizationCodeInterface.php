@@ -1,13 +1,15 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Implement this interface to specify where the OAuth2 Server
  * should get/save authorization codes for the "Authorization Code"
  * grant type
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface OAuth2_Storage_AuthorizationCodeInterface
+interface AuthorizationCodeInterface
 {
     /**
      * The Authorization Code grant type supports a response type of "code".
@@ -29,11 +31,16 @@ interface OAuth2_Storage_AuthorizationCodeInterface
      * Authorization code to be check with.
      *
      * @return
-     * An associative array as below, and NULL if the code is invalid:
-     * - client_id: Stored client identifier.
-     * - redirect_uri: Stored redirect URI.
-     * - expires: Stored expiration in unix timestamp.
-     * - scope: (optional) Stored scope values in space-separated string.
+     * An associative array as below, and NULL if the code is invalid
+     * @code
+     * return array(
+     *     "client_id"    => CLIENT_ID,      // REQUIRED Stored client identifier
+     *     "user_id"      => USER_ID,        // REQUIRED Stored user identifier
+     *     "expires"      => EXPIRES,        // REQUIRED Stored expiration in unix timestamp
+     *     "redirect_uri" => REDIRECT_URI,   // REQUIRED Stored redirect URI
+     *     "scope"        => SCOPE,          // OPTIONAL Stored scope values in space-separated string
+     * );
+     * @endcode
      *
      * @see http://tools.ietf.org/html/rfc6749#section-4.1
      *
@@ -58,11 +65,11 @@ interface OAuth2_Storage_AuthorizationCodeInterface
      * Client identifier to be stored.
      * @param $user_id
      * User identifier to be stored.
-     * @param $redirect_uri
-     * Redirect URI to be stored.
-     * @param $expires
-     * Expiration to be stored.
-     * @param $scope
+     * @param string $redirect_uri
+     * Redirect URI(s) to be stored in a space-separated string.
+     * @param int $expires
+     * Expiration to be stored as a Unix timestamp.
+     * @param string $scope
      * (optional) Scopes to be stored in space-separated string.
      *
      * @ingroup oauth2_section_4

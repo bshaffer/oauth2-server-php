@@ -1,9 +1,14 @@
 <?php
 
+namespace OAuth2\TokenType;
+
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
 /**
 *
 */
-class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface
+class Bearer implements TokenTypeInterface
 {
     private $config;
 
@@ -42,7 +47,7 @@ class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface
      * @see http://code.google.com/p/android/issues/detail?id=6684
      *
      */
-    public function getAccessTokenParameter(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response)
     {
         $headers = $request->headers('AUTHORIZATION');
 
@@ -53,7 +58,7 @@ class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface
             return null;
         }
         if ($methodsUsed == 0) {
-            $response->setError(400, 'invalid_request', 'The access token was not found');
+            $response->setStatusCode(401);
             return null;
         }
 
@@ -73,7 +78,12 @@ class OAuth2_TokenType_Bearer implements OAuth2_TokenTypeInterface
                 return null;
             }
 
-            if ($request->server('CONTENT_TYPE') !== null && $request->server('CONTENT_TYPE') != 'application/x-www-form-urlencoded') {
+            $contentType = $request->server('CONTENT_TYPE');
+            if (false !== $pos = strpos($contentType, ';')) {
+                $contentType = substr($contentType, 0, $pos);
+            }
+
+            if ($contentType !== null && $contentType != 'application/x-www-form-urlencoded') {
                 // IETF specifies content-type. NB: Not all webservers populate this _SERVER variable
                 // @see http://tools.ietf.org/html/rfc6750#section-2.2
                 $response->setError(400, 'invalid_request', 'The content type for POST requests must be "application/x-www-form-urlencoded"');

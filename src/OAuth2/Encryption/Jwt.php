@@ -1,10 +1,12 @@
 <?php
+
+namespace OAuth2\Encryption;
+
 /**
  * @link https://github.com/F21/jwt
  * @author F21
  */
-
-class OAuth2_Encryption_JWT
+class Jwt implements EncryptionInterface
 {
     public function encode($payload, $key, $algo = 'HS256')
     {
@@ -74,7 +76,7 @@ class OAuth2_Encryption_JWT
                 return @openssl_verify($input, $signature, $key, 'sha512') === 1;
 
             default:
-                throw new Exception("Unsupported or invalid signing algorithm.");
+                throw new \InvalidArgumentException("Unsupported or invalid signing algorithm.");
         }
     }
 
@@ -100,14 +102,14 @@ class OAuth2_Encryption_JWT
                 return $this->generateRSASignature($input, $key, 'sha512');
 
             default:
-                throw new Exception("Unsupported or invalid signing algorithm.");
+                throw new \Exception("Unsupported or invalid signing algorithm.");
         }
     }
 
     private function generateRSASignature($input, $key, $algo)
     {
         if (!openssl_sign($input, $signature, $key, $algo)) {
-            throw new Exception("Unable to sign data.");
+            throw new \Exception("Unable to sign data.");
         }
 
         return $signature;

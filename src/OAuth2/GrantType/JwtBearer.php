@@ -1,15 +1,29 @@
 <?php
 
+namespace OAuth2\GrantType;
+
+use OAuth2\ClientAssertionType\ClientAssertionTypeInterface;
+use OAuth2\Storage\JwtBearerInterface;
+use OAuth2\Encryption\Jwt;
+use OAuth2\ResponseType\AccessTokenInterface;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
 /**
-* The JWT bearer authorization grant implements JWT (JSON Web Tokens) as a grant type per the IETF draft.
-* @see http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4
-*/
-class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_ClientAssertionTypeInterface
+ * The JWT bearer authorization grant implements JWT (JSON Web Tokens) as a grant type per the IETF draft.
+ *
+ * @see http://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-04#section-4
+ *
+ * @author F21
+ * @author Brent Shaffer <bshafs at gmail dot com>
+ */
+class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
 {
-    private $storage;
-    private $audience;
-    private $jwtUtil;
     private $jwt;
+
+    protected $storage;
+    protected $audience;
+    protected $jwtUtil;
 
     /**
      * Creates an instance of the JWT bearer grant type.
@@ -21,13 +35,13 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Cl
      * @param OAuth2_Encryption_JWT OPTIONAL $jwtUtil
      * The class used to decode, encode and verify JWTs.
      */
-    public function __construct(OAuth2_Storage_JWTBearerInterface $storage, $audience, OAuth2_Encryption_JWT $jwtUtil = null)
+    public function __construct(JwtBearerInterface $storage, $audience, Jwt $jwtUtil = null)
     {
         $this->storage = $storage;
         $this->audience = $audience;
 
         if (is_null($jwtUtil)) {
-            $jwtUtil = new OAuth2_Encryption_JWT();
+            $jwtUtil = new Jwt();
         }
 
         $this->jwtUtil = $jwtUtil;
@@ -35,7 +49,10 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Cl
 
     /**
      * Returns the grant_type get parameter to identify the grant type request as JWT bearer authorization grant.
-     * @return The string identifier for grant_type.
+     *
+     * @return
+     * The string identifier for grant_type.
+     *
      * @see OAuth2_GrantTypeInterface::getQuerystringIdentifier()
      */
     public function getQuerystringIdentifier()
@@ -46,16 +63,13 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Cl
     /**
      * Validates the data from the decoded JWT.
      *
-     * @return TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.
+     * @return
+     * TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.
+     *
      * @see OAuth2_GrantTypeInterface::getTokenData()
      */
-    public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
-        if (!$request->request("assertion")) {
-            $response->setError(400, 'invalid_request', 'Missing parameters: "assertion" required');
-            return null;
-        }
-
         if (!$request->request("assertion")) {
             $response->setError(400, 'invalid_request', 'Missing parameters: "assertion" required');
             return null;
@@ -167,9 +181,10 @@ class OAuth2_GrantType_JWTBearer implements OAuth2_GrantTypeInterface, OAuth2_Cl
     /**
      * Creates an access token that is NOT associated with a refresh token.
      * If a subject (sub) the name of the user/account we are accessing data on behalf of.
+     *
      * @see OAuth2_GrantTypeInterface::createAccessToken()
      */
-    public function createAccessToken(OAuth2_ResponseType_AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
+    public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
         $includeRefreshToken = false;
         return $accessToken->createAccessToken($client_id, $user_id, $scope, $includeRefreshToken);

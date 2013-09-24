@@ -1,11 +1,13 @@
 <?php
 
+namespace OAuth2;
+
 /**
-* OAuth2_Request
-* This class is taken from the Symfony2 Framework and is part of the Symfony package.
-* See Symfony\Component\HttpFoundation\Request (https://github.com/symfony/symfony)
-*/
-class OAuth2_Request implements OAuth2_RequestInterface
+ * OAuth2_Request
+ * This class is taken from the Symfony2 Framework and is part of the Symfony package.
+ * See Symfony\Component\HttpFoundation\Request (https://github.com/symfony/symfony)
+ */
+class Request implements RequestInterface
 {
     public $attributes;
     public $request;
@@ -29,9 +31,9 @@ class OAuth2_Request implements OAuth2_RequestInterface
      *
      * @api
      */
-    public function __construct(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null)
+    public function __construct(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null, array $headers = null)
     {
-        $this->initialize($query, $request, $attributes, $cookies, $files, $server, $content);
+        $this->initialize($query, $request, $attributes, $cookies, $files, $server, $content, $headers);
     }
 
     /**
@@ -49,7 +51,7 @@ class OAuth2_Request implements OAuth2_RequestInterface
      *
      * @api
      */
-    public function initialize(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null)
+    public function initialize(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null, array $headers = null)
     {
         $this->request = $request;
         $this->query = $query;
@@ -57,7 +59,8 @@ class OAuth2_Request implements OAuth2_RequestInterface
         $this->cookies = $cookies;
         $this->files = $files;
         $this->server = $server;
-        $this->headers = $this->getHeadersFromServer($this->server);
+        $this->content = $content;
+        $this->headers = is_null($headers) ? $this->getHeadersFromServer($this->server) : $headers;
     }
 
     public function query($name, $default = null)
@@ -95,7 +98,7 @@ class OAuth2_Request implements OAuth2_RequestInterface
     public function getContent($asResource = false)
     {
         if (false === $this->content || (true === $asResource && null !== $this->content)) {
-            throw new LogicException('getContent() can only be called once when using the resource return type.');
+            throw new \LogicException('getContent() can only be called once when using the resource return type.');
         }
 
         if (true === $asResource) {

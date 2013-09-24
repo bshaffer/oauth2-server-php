@@ -1,12 +1,14 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Implement this interface to specify where the OAuth2 Server
  * should retrieve client information
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface OAuth2_Storage_ClientInterface
+interface ClientInterface
 {
     /**
      * Get client details corresponding client_id.
@@ -18,8 +20,16 @@ interface OAuth2_Storage_ClientInterface
      * Client identifier to be check with.
      *
      * @return array
-     * Client details. Only mandatory item is the "registered redirect URI", and MUST
-     * return FALSE if the given client does not exist or is invalid.
+     * Client details. The only mandatory key in the array is "redirect_uri".
+     * This function MUST return FALSE if the given client does not exist or is
+     * invalid. "redirect_uri" can be space-delimited to allow for multiple valid uris.
+     * @code
+     * return array(
+     *     "redirect_uri" => REDIRECT_URI,      // REQUIRED redirect_uri registered for the client
+     *     "client_id"    => CLIENT_ID,         // OPTIONAL the client id
+     *     "grant_types"  => GRANT_TYPES,       // OPTIONAL an array of restricted grant types
+     * );
+     * @endcode
      *
      * @ingroup oauth2_section_4
      */

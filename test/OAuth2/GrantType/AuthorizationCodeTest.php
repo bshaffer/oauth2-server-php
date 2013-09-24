@@ -1,16 +1,23 @@
 <?php
 
-class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
+namespace OAuth2\GrantType;
+
+use OAuth2\Storage\Bootstrap;
+use OAuth2\Server;
+use OAuth2\Request\TestRequest;
+use OAuth2\Response;
+
+class AuthorizationCodeTest extends \PHPUnit_Framework_TestCase
 {
     public function testNoCode()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type' => 'authorization_code', // valid grant type
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
         ));
-        $server->handleTokenRequest($request, $response = new OAuth2_Response());
+        $server->handleTokenRequest($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_request');
@@ -20,13 +27,13 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testInvalidCode()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type'    => 'authorization_code', // valid grant type
             'client_id'     => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'InvalidCode', // invalid authorization code
         ));
-        $server->handleTokenRequest($request, $response = new OAuth2_Response());
+        $server->handleTokenRequest($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -36,19 +43,19 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testCodeCannotBeUsedTwice()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type'    => 'authorization_code', // valid grant type
             'client_id'     => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode', // valid code
         ));
-        $server->handleTokenRequest($request, $response = new OAuth2_Response());
+        $server->handleTokenRequest($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 200);
         $this->assertNotNull($response->getParameter('access_token'));
 
         // try to use the same code again
-        $server->handleTokenRequest($request, $response = new OAuth2_Response());
+        $server->handleTokenRequest($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -58,13 +65,13 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testExpiredCode()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type'    => 'authorization_code', // valid grant type
             'client_id'     => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode-expired', // expired authorization code
         ));
-        $server->handleTokenRequest($request, $response = new OAuth2_Response());
+        $server->handleTokenRequest($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
@@ -74,13 +81,13 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testValidCode()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type'    => 'authorization_code', // valid grant type
             'client_id'     => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode', // valid code
         ));
-        $token = $server->grantAccessToken($request, new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -89,13 +96,13 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testValidCodeNoScope()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type'    => 'authorization_code', // valid grant type
             'client_id'     => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode-with-scope', // valid code
         ));
-        $token = $server->grantAccessToken($request, new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -106,14 +113,14 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testValidCodeSameScope()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type'    => 'authorization_code', // valid grant type
             'client_id'     => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode-with-scope', // valid code
             'scope'         => 'scope2 scope1',
         ));
-        $token = $server->grantAccessToken($request, new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -124,14 +131,14 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testValidCodeLessScope()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type'    => 'authorization_code', // valid grant type
             'client_id'     => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode-with-scope', // valid code
             'scope'         => 'scope1',
         ));
-        $token = $server->grantAccessToken($request, new OAuth2_Response());
+        $token = $server->grantAccessToken($request, new Response());
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
@@ -142,42 +149,58 @@ class OAuth2_GrantType_AuthorizationCodeTest extends PHPUnit_Framework_TestCase
     public function testValidCodeDifferentScope()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type'    => 'authorization_code', // valid grant type
             'client_id'     => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode-with-scope', // valid code
             'scope'         => 'scope3',
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
+        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
     }
 
     public function testValidCodeInvalidScope()
     {
         $server = $this->getTestServer();
-        $request = OAuth2_Request_TestRequest::createPost(array(
+        $request = TestRequest::createPost(array(
             'grant_type'    => 'authorization_code', // valid grant type
             'client_id'     => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
             'code'          => 'testcode-with-scope', // valid code
             'scope'         => 'invalid-scope',
         ));
-        $token = $server->grantAccessToken($request, $response = new OAuth2_Response());
+        $token = $server->grantAccessToken($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested.');
+        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
+    }
+
+    public function testValidClientDifferentCode()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'authorization_code', // valid grant type
+            'client_id'     => 'Test Some Other Client', // valid client id
+            'client_secret' => 'TestSecret3', // valid client secret
+            'code'          => 'testcode', // valid code
+        ));
+        $token = $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'authorization_code doesn\'t exist or is invalid for the client');
     }
 
     private function getTestServer()
     {
-        $storage = OAuth2_Storage_Bootstrap::getInstance()->getMemoryStorage();
-        $server = new OAuth2_Server($storage);
-        $server->addGrantType(new OAuth2_GrantType_AuthorizationCode($storage));
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server = new Server($storage);
+        $server->addGrantType(new AuthorizationCode($storage));
 
         return $server;
     }

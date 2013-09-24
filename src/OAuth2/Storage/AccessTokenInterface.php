@@ -1,12 +1,14 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Implement this interface to specify where the OAuth2 Server
  * should get/save access tokens
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface OAuth2_Storage_AccessTokenInterface
+interface AccessTokenInterface
 {
     /**
      * Look up the supplied oauth_token from storage.
@@ -38,9 +40,9 @@ interface OAuth2_Storage_AccessTokenInterface
      * Client identifier to be stored.
      * @param $user_id
      * User identifier to be stored.
-     * @param $expires
-     * Expiration to be stored.
-     * @param $scope
+     * @param int $expires
+     * Expiration to be stored as a Unix timestamp.
+     * @param string $scope
      * (optional) Scopes to be stored in space-separated string.
      *
      * @ingroup oauth2_section_4

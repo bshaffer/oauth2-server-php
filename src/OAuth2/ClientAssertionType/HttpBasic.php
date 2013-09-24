@@ -1,32 +1,39 @@
 <?php
 
+namespace OAuth2\ClientAssertionType;
+
+use OAuth2\Storage\ClientCredentialsInterface;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
+
 /**
  * Validate a client via Http Basic authentication
  *
  * @author    Brent Shaffer <bshafs at gmail dot com>
  */
-class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionTypeInterface
+class HttpBasic implements ClientAssertionTypeInterface
 {
-    private $storage;
-    private $config;
     private $clientData;
 
-    public function __construct(OAuth2_Storage_ClientCredentialsInterface $storage, array $config = array())
+    protected $storage;
+    protected $config;
+
+    public function __construct(ClientCredentialsInterface $storage, array $config = array())
     {
+        $this->storage = $storage;
         $this->config = array_merge(array(
             'allow_credentials_in_request_body' => true
         ), $config);
-        $this->storage = $storage;
     }
 
-    public function validateRequest(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$clientData = $this->getClientCredentials($request, $response)) {
             return false;
         }
 
         if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
-            throw new LogicException('the clientData array must have "client_id" and "client_secret" values set.');
+            throw new \LogicException('the clientData array must have "client_id" and "client_secret" values set.');
         }
 
         if ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
@@ -60,8 +67,8 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
      * A list containing the client identifier and password, for example
      * @code
      * return array(
-     * CLIENT_ID,
-     * CLIENT_SECRET
+     *     "client_id"     => CLIENT_ID,        // REQUIRED the client id
+     *     "client_secret" => CLIENT_SECRET,    // REQUIRED the client secret
      * );
      * @endcode
      *
@@ -69,7 +76,7 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
      *
      * @ingroup oauth2_section_2
      */
-    public function getClientCredentials(OAuth2_RequestInterface $request, OAuth2_ResponseInterface $response = null)
+    public function getClientCredentials(RequestInterface $request, ResponseInterface $response = null)
     {
         if (!is_null($request->headers('PHP_AUTH_USER')) && !is_null($request->headers('PHP_AUTH_PW'))) {
             return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));
@@ -77,8 +84,12 @@ class OAuth2_ClientAssertionType_HttpBasic implements OAuth2_ClientAssertionType
 
         if ($this->config['allow_credentials_in_request_body']) {
             // Using POST for HttpBasic authorization is not recommended, but is supported by specification
-            if (!is_null($request->request('client_id')) && !is_null($request->request('client_secret'))) {
-                return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
+            if (!is_null($request->request('client_id'))) {
+                /**
+                 * client_secret can be null if the client's password is an empty string
+                 * @see http://tools.ietf.org/html/rfc6749#section-2.3.1
+                 */
+                return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret', ''));
             }
         }
 

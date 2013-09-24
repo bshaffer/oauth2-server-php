@@ -1,15 +1,16 @@
 <?php
 
+namespace OAuth2\Storage;
+
 /**
  * Implement this interface to specify where the OAuth2 Server
  * should get/save refresh tokens for the "Refresh Token"
  * grant type
  *
- * @author Brent Shaffer <bshafs@gmail.com>
+ * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface OAuth2_Storage_RefreshTokenInterface
+interface RefreshTokenInterface
 {
-
     /**
      * Grant refresh access tokens.
      *
@@ -23,7 +24,9 @@ interface OAuth2_Storage_RefreshTokenInterface
      * @return
      * An associative array as below, and NULL if the refresh_token is
      * invalid:
+     * - refresh_token: Stored refresh token identifier.
      * - client_id: Stored client identifier.
+     * - user_id: Stored user identifier.
      * - expires: Stored expiration unix timestamp.
      * - scope: (optional) Stored scope values in space-separated string.
      *
@@ -48,6 +51,8 @@ interface OAuth2_Storage_RefreshTokenInterface
      * Refresh token to be stored.
      * @param $client_id
      * Client identifier to be stored.
+     * @param $user_id
+     * User identifier to be stored.
      * @param $expires
      * expires to be stored.
      * @param $scope
