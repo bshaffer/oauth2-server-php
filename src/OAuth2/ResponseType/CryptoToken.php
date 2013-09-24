@@ -3,6 +3,7 @@
 namespace OAuth2\ResponseType;
 
 use OAuth2\Storage\CryptoTokenInterface;
+use OAuth2\Storage\AccessTokenInterface as AccessTokenStorageInterface;
 use OAuth2\Storage\RefreshTokenInterface;
 
 /**
@@ -69,13 +70,15 @@ class CryptoToken extends AccessToken
          */
         $access_token = $this->tokenStorage->encodeToken($cryptoToken);
 
-        /*
-         * Save the token to a secondary storage.  This is implemented on the
-         * OAuth2\Storage\CryptoToken side, and will not actually store anything,
-         * if no secondary storage has been supplied
-         */
-        $token_to_store = $this->config['store_encrypted_token_string'] ? $access_token : $cryptoToken['id'];
-        $this->tokenStorage->setAccessToken($token_to_store, $client_id, $user_id, $this->config['access_lifetime'] ? time() + $this->config['access_lifetime'] : null, $scope);
+        if ($this->tokenStorage instanceof AccessTokenStorageInterface) {
+            /*
+             * Save the token to a secondary storage.  This is implemented on the
+             * OAuth2\Storage\CryptoToken side, and will not actually store anything,
+             * if no secondary storage has been supplied
+             */
+            $token_to_store = $this->config['store_encrypted_token_string'] ? $access_token : $cryptoToken['id'];
+            $this->tokenStorage->setAccessToken($token_to_store, $client_id, $user_id, $this->config['access_lifetime'] ? time() + $this->config['access_lifetime'] : null, $scope);
+        }
 
         // token to return to the client
         $token = array(

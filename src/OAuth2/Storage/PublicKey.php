@@ -10,7 +10,7 @@ use OAuth2\Encryption\Jwt;
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class PublicKey implements CryptoTokenInterface
+class PublicKey implements CryptoTokenInterface, AccessTokenInterface
 {
     protected $publicKey;
     protected $privateKey;
