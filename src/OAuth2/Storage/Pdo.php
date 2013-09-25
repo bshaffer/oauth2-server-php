@@ -20,7 +20,8 @@ class Pdo implements AuthorizationCodeInterface,
     UserCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
-    ScopeInterface
+    ScopeInterface,
+    PublicKeyInterface
 {
     protected $db;
     protected $config;
@@ -53,7 +54,8 @@ class Pdo implements AuthorizationCodeInterface,
             'code_table' => 'oauth_authorization_codes',
             'user_table' => 'oauth_users',
             'jwt_table'  => 'oauth_jwt',
-            'scope_table'  => 'oauth_scopes'
+            'scope_table'  => 'oauth_scopes',
+            'public_key_table'  => 'oauth_public_keys',
         ), $config);
     }
 
@@ -260,12 +262,44 @@ class Pdo implements AuthorizationCodeInterface,
         return null;
     }
 
-    /* OAuth2_Storage_JWTBearerInterface */
+    /* JWTBearerInterface */
     public function getClientKey($client_id, $subject)
     {
         $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));
 
         $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
         return $stmt->fetch();
+    }
+
+    /* PublicKeyInterface */
+    public function getPublicKey($client_id = null)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+
+        $stmt->execute(compact('client_id'));
+        if ($result = $stmt->fetch()) {
+            return $result['public_key'];
+        }
+    }
+
+    public function getPrivateKey($client_id = null)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT private_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+
+        $stmt->execute(compact('client_id'));
+        if ($result = $stmt->fetch()) {
+            return $result['private_key'];
+        }
+    }
+
+    public function getEncryptionAlgorithm($client_id = null)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT encryption_algorithm FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+
+        $stmt->execute(compact('client_id'));
+        if ($result = $stmt->fetch()) {
+            return $result['encryption_algorithm'];
+        }
+        return 'RS256';
     }
 }

@@ -16,7 +16,8 @@ class Memory implements AuthorizationCodeInterface,
     ClientCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
-    ScopeInterface
+    ScopeInterface,
+    PublicKeyInterface
 {
     private $authorizationCodes;
     private $userCredentials;
@@ -28,6 +29,7 @@ class Memory implements AuthorizationCodeInterface,
     private $clientSupportedScopes;
     private $clientDefaultScopes;
     private $defaultScope;
+    private $keys;
 
     public function __construct($params = array())
     {
@@ -42,6 +44,7 @@ class Memory implements AuthorizationCodeInterface,
             'client_supported_scopes' => array(),
             'client_default_scopes' => array(),
             'supported_scopes' => array(),
+            'keys' => array(),
         ), $params);
 
         $this->authorizationCodes = $params['authorization_codes'];
@@ -54,6 +57,7 @@ class Memory implements AuthorizationCodeInterface,
         $this->clientSupportedScopes = $params['client_supported_scopes'];
         $this->clientDefaultScopes = $params['client_default_scopes'];
         $this->defaultScope = $params['default_scope'];
+        $this->keys = $params['keys'];
     }
 
     /* AuthorizationCodeInterface */
@@ -226,5 +230,48 @@ class Memory implements AuthorizationCodeInterface,
         }
 
         return false;
+    }
+
+    /*PublicKeyInterface */
+    public function getPublicKey($client_id = null)
+    {
+        if (isset($this->keys[$client_id])) {
+            return $this->keys[$client_id]['public_key'];
+        }
+
+        // use a global encryption pair
+        if (isset($this->keys['public_key'])) {
+            return $this->keys['public_key'];
+        }
+
+        return false;
+    }
+
+    public function getPrivateKey($client_id = null)
+    {
+        if (isset($this->keys[$client_id])) {
+            return $this->keys[$client_id]['private_key'];
+        }
+
+        // use a global encryption pair
+        if (isset($this->keys['private_key'])) {
+            return $this->keys['private_key'];
+        }
+
+        return false;
+    }
+
+    public function getEncryptionAlgorithm($client_id = null)
+    {
+        if (isset($this->keys[$client_id]['encryption_algorithm'])) {
+            return $this->keys[$client_id]['encryption_algorithm'];
+        }
+
+        // use a global encryption algorithm
+        if (isset($this->keys['encryption_algorithm'])) {
+            return $this->keys['encryption_algorithm'];
+        }
+
+        return 'RS256';
     }
 }

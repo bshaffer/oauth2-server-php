@@ -6,9 +6,8 @@ use OAuth2\Server;
 use OAuth2\Response;
 use OAuth2\Request\TestRequest;
 use OAuth2\Storage\Bootstrap;
-use OAuth2\Storage\PrivateKey;
+use OAuth2\Storage\CryptoToken as CryptoTokenStorage;
 use OAuth2\GrantType\ClientCredentials;
-use OAuth2\ResponseType\CryptoToken;
 
 class CryptoTokenTest extends \PHPUnit_Framework_TestCase
 {
@@ -73,16 +72,16 @@ class CryptoTokenTest extends \PHPUnit_Framework_TestCase
     private function getTestServer()
     {
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
-        $pubkeyStorage = Bootstrap::getInstance()->getPublicKeyStorage($memoryStorage);
+
         $storage = array(
-            'access_token' => $pubkeyStorage,
+            'access_token' => new CryptoTokenStorage($memoryStorage),
             'client_credentials' => $memoryStorage,
         );
         $server = new Server($storage);
         $server->addGrantType(new ClientCredentials($memoryStorage));
 
         // make the "token" response type a CryptoToken
-        $server->addResponseType(new CryptoToken($pubkeyStorage));
+        $server->addResponseType(new CryptoToken($memoryStorage, $memoryStorage));
 
         return $server;
     }
