@@ -22,7 +22,7 @@ class Bearer implements TokenTypeInterface
 
     public function getTokenType()
     {
-        return 'bearer';
+        return 'Bearer';
     }
 
     /**
