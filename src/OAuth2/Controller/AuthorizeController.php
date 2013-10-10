@@ -220,7 +220,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         $this->response_type = $response_type;
 
         // return client data array
-        return $clientdata;
+        return $clientData;
     }
 
     /**
