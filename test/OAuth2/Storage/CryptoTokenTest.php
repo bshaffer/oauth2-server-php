@@ -2,36 +2,44 @@
 
 namespace OAuth2\Storage;
 
+use OAuth2\Encryption\Jwt;
+
 class CryptoTokenTest extends BaseTest
 {
     /** @dataProvider provideStorage */
-    public function testSetAccessToken(CryptoTokenInterface $storage = null)
+    public function testSetAccessToken($storage)
     {
+        $publicKeyStorage = Bootstrap::getInstance()->getMemoryStorage();
+        $encryptionUtil = new Jwt();
+
         $cryptoToken = array(
             'access_token' => rand(),
             'expires' => time() + 100,
             'scope'   => 'foo',
         );
-        $token = $storage->encodeToken($cryptoToken);
+
+        $token = $encryptionUtil->encode($cryptoToken, $publicKeyStorage->getPrivateKey(), $publicKeyStorage->getEncryptionAlgorithm());
 
         $this->assertNotNull($token);
 
-        $decodedToken = $storage->getAccessToken($token);
+        $tokenData = $storage->getAccessToken($token);
 
-        $this->assertTrue(is_array($decodedToken));
+        $this->assertTrue(is_array($tokenData));
 
         /* assert the decoded token is the same */
-        $this->assertEquals($decodedToken['access_token'], $cryptoToken['access_token']);
-        $this->assertEquals($decodedToken['expires'], $cryptoToken['expires']);
-        $this->assertEquals($decodedToken['scope'], $cryptoToken['scope']);
+        $this->assertEquals($tokenData['access_token'], $cryptoToken['access_token']);
+        $this->assertEquals($tokenData['expires'], $cryptoToken['expires']);
+        $this->assertEquals($tokenData['scope'], $cryptoToken['scope']);
     }
 
+    // @TODO - use the BaseTest provideStorage, and add support for storages which omit certain interfaces
     public function provideStorage()
     {
-        $publicKeyStorage = Bootstrap::getPublicKeyStorage();
+        $memory = Bootstrap::getInstance()->getMemoryStorage();
+        $storage = new CryptoToken($memory);
 
         return array(
-            array($publicKeyStorage)
+            array($storage)
         );
     }
 }

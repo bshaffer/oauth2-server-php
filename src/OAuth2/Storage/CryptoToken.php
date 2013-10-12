@@ -2,7 +2,6 @@
 
 namespace OAuth2\Storage;
 
-use OAuth2\Storage\AccessTokenInterface;
 use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\Encryption\Jwt;
 
@@ -10,12 +9,10 @@ use OAuth2\Encryption\Jwt;
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class PublicKey implements CryptoTokenInterface
+class CryptoToken implements AccessTokenInterface
 {
-    protected $publicKey;
-    protected $privateKey;
-    protected $config;
-    protected $secondaryStorage;
+    protected $publicKeyStorage;
+    protected $tokenStorage;
     protected $encryptionUtil;
 
     /**
@@ -29,12 +26,12 @@ class PublicKey implements CryptoTokenInterface
      *
      * @param array $config
      * (optional) configuration array. Valid parameters are
-     * - algorithm
+     * - encryption_algorithm
      *  the algorithm to use for encryption. This is passed to the
      *  EncryptionInterface object.
      *  @see OAuth2\Encryption\Jwt::verifySignature
      *
-     * @param OAuth2\Storage\AccessTokenInterface $secondaryStorage
+     * @param OAuth2\Storage\AccessTokenInterface $tokenStorage
      * (optional) persist the access token to another storage. This is useful if
      * you want to retain access token grant information somewhere, but
      * is not necessary when using this grant type.
@@ -42,41 +39,39 @@ class PublicKey implements CryptoTokenInterface
      * @param OAuth2\Encryption\EncryptionInterface $encryptionUtil
      * (optional) class to use for "encode" and "decode" functions.
      */
-    public function __construct($publicKey, $privateKey = null, array $config = array(), AccessTokenInterface $secondaryStorage = null, EncryptionInterface $encryptionUtil = null)
+    public function __construct(PublicKeyInterface $publicKeyStorage, AccessTokenInterface $tokenStorage = null, EncryptionInterface $encryptionUtil = null)
     {
-        $this->config = array_merge(array(
-            'algorithm' => 'RS256',
-        ), $config);
-        $this->publicKey  = $publicKey;
-        $this->privateKey = $privateKey;
-        $this->secondaryStorage = $secondaryStorage;
+        $this->publicKeyStorage = $publicKeyStorage;
+        $this->tokenStorage = $tokenStorage;
         if (is_null($encryptionUtil)) {
-            $encryptionUtil = new Jwt();
+            $encryptionUtil = new Jwt;
         }
         $this->encryptionUtil = $encryptionUtil;
     }
 
-    public function encodeToken(array $token)
-    {
-        if (is_null($this->privateKey)) {
-            throw new LogicException('A private key must be passed into the constructor to encode a token');
-        }
-        return $this->encryptionUtil->encode($token, $this->privateKey, $this->config['algorithm']);
-    }
-
     public function getAccessToken($oauth_token)
     {
-        if (!$decodedToken = $this->encryptionUtil->decode($oauth_token, $this->publicKey, $this->config['algorithm'])) {
+        // just decode the token, don't verify
+        if (!$tokenData = $this->encryptionUtil->decode($oauth_token, null, false)) {
             return false;
         }
 
-        return $decodedToken;
+        $client_id  = isset($tokenData['client_id']) ? $tokenData['client_id'] : null;
+        $public_key = $this->publicKeyStorage->getPublicKey($client_id);
+        $algorithm  = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
+
+        // now that we have the client_id, verify the token
+        if (false === $this->encryptionUtil->decode($oauth_token, $public_key, $algorithm)) {
+            return false;
+        }
+
+        return $tokenData;
     }
 
     public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null)
     {
-        if ($this->secondaryStorage) {
-            return $this->secondaryStorage->setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope);
+        if ($this->tokenStorage) {
+            return $this->tokenStorage->setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope);
         }
     }
 }
