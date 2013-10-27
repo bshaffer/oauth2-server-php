@@ -211,7 +211,7 @@ class AuthorizeController implements AuthorizeControllerInterface
             return false;
         }
 
-        // save the input data and return true
+        // save the input data and return clientdata
         $this->scope         = $scope;
         $this->state         = $state;
         $this->client_id     = $client_id;
@@ -219,7 +219,8 @@ class AuthorizeController implements AuthorizeControllerInterface
         $this->redirect_uri  = $supplied_redirect_uri;
         $this->response_type = $response_type;
 
-        return true;
+        // return client data array
+        return $clientData;
     }
 
     /**
