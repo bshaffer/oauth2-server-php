@@ -78,6 +78,17 @@ class Pdo implements AuthorizationCodeInterface,
         return $stmt->fetch();
     }
 
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null)
+    {
+        // if it exists, update it.
+        if ($this->getClientDetails($client_id)) {
+            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_secret=:client_secret, redirect_uri=:redirect_uri, grant_types=:grant_types where client_id=:client_id', $this->config['client_table']));
+        } else {
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (client_id, client_secret, redirect_uri, grant_types) VALUES (:client_id, :client_secret, :redirect_uri, :grant_types)', $this->config['client_table']));
+        }
+        return $stmt->execute(compact('client_id', 'client_secret', 'redirect_uri', 'grant_types'));
+    }
+
     public function checkRestrictedGrantType($client_id, $grant_type)
     {
         $details = $this->getClientDetails($client_id);
