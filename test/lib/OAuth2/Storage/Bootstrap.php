@@ -8,6 +8,12 @@ class Bootstrap
     private $mysql;
     private $sqlite;
     private $mongo;
+    private $configDir;
+
+    public function __construct()
+    {
+        $this->configDir = __DIR__.'/../../../config';
+    }
 
     public static function getInstance()
     {
@@ -32,18 +38,12 @@ class Bootstrap
 
     public function getMemoryStorage()
     {
-        return new Memory(json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true));
+        return new Memory(json_decode(file_get_contents($this->configDir. '/storage.json'), true));
     }
 
     public function getRedisStorage()
     {
         return new Redis(new MockRedisClient());
-    }
-
-    public function getPublicKeyStorage(AccessTokenInterface $secondaryStorage = null)
-    {
-        $config = json_decode(file_get_contents(dirname(__FILE__).'/../../../config/storage.json'), true);
-        return new PublicKey($config['crypto_token']['public_key'], $config['crypto_token']['private_key'], array(), $secondaryStorage);
     }
 
     public function getMysqlPdo()
@@ -102,6 +102,7 @@ class Bootstrap
         $pdo->exec('CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT)');
         $pdo->exec('CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires DATETIME, scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_scopes (type TEXT, scope TEXT, client_id TEXT)');
+        $pdo->exec('CREATE TABLE oauth_public_keys (client_id TEXT, public_key TEXT, private_key TEXT, encryption_algorithm VARCHAR(100) DEFAULT "RS256")');
 
         // set up scopes
         $pdo->exec('INSERT INTO oauth_scopes (type, scope) VALUES ("supported", "supportedscope1 supportedscope2 supportedscope3 supportedscope4")');
@@ -126,6 +127,9 @@ class Bootstrap
         $pdo->exec('INSERT INTO oauth_access_tokens (access_token, client_id) VALUES ("testtoken", "Some Client")');
         $pdo->exec('INSERT INTO oauth_authorization_codes (authorization_code, client_id) VALUES ("testcode", "Some Client")');
         $pdo->exec('INSERT INTO oauth_users (username, password) VALUES ("testuser", "password")');
+        $pdo->exec('INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES ("ClientID_One", "client_1_public", "client_1_private", "RS256")');
+        $pdo->exec('INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES ("ClientID_Two", "client_2_public", "client_2_private", "RS256")');
+        $pdo->exec(sprintf('INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES (NULL, "%s", "%s", "RS256")', file_get_contents($this->configDir.'/keys/id_rsa.pub'), file_get_contents($this->configDir.'/keys/id_rsa')));
     }
 
     public function removeMysqlDb(\PDO $pdo)
@@ -133,9 +137,14 @@ class Bootstrap
         $pdo->exec('DROP DATABASE IF EXISTS oauth2_server_php');
     }
 
-    private function getSqliteDir()
+    public function getSqliteDir()
     {
-        return dirname(__FILE__).'/../../../config/test.sqlite';
+        return $this->configDir. '/test.sqlite';
+    }
+
+    public function getConfigDir()
+    {
+        return $this->configDir;
     }
 
     private function createMongoDb(\MongoDB $db)

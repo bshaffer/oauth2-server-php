@@ -2,9 +2,12 @@
 
 namespace OAuth2\ResponseType;
 
-use OAuth2\Storage\CryptoTokenInterface;
+use OAuth2\Encryption\EncryptionInterface;
+use OAuth2\Encryption\Jwt;
 use OAuth2\Storage\AccessTokenInterface as AccessTokenStorageInterface;
 use OAuth2\Storage\RefreshTokenInterface;
+use OAuth2\Storage\PublicKeyInterface;
+use OAuth2\Storage\Memory;
 
 /**
  *
@@ -12,17 +15,29 @@ use OAuth2\Storage\RefreshTokenInterface;
  */
 class CryptoToken extends AccessToken
 {
+    protected $publicKeyStorage;
+    protected $encryptionUtil;
+
     /**
      * @param $config
      *  - store_encrypted_token_string (bool true)
      *       whether the entire encrypted string is stored,
      *       or just the token ID is stored
      */
-    public function __construct(CryptoTokenInterface $tokenStorage, RefreshTokenInterface $refreshStorage = null, array $config = array())
+    public function __construct(PublicKeyInterface $publicKeyStorage = null, AccessTokenStorageInterface $tokenStorage = null, RefreshTokenInterface $refreshStorage = null, array $config = array(), EncryptionInterface $encryptionUtil = null)
     {
+        $this->publicKeyStorage = $publicKeyStorage;
         $config = array_merge(array(
             'store_encrypted_token_string' => true,
         ), $config);
+        if (is_null($tokenStorage)) {
+            // a pass-thru, so we can call the parent constructor
+            $tokenStorage = new Memory();
+        }
+        if (is_null($encryptionUtil)) {
+            $encryptionUtil = new Jwt();
+        }
+        $this->encryptionUtil = $encryptionUtil;
         parent::__construct($tokenStorage, $refreshStorage, $config);
     }
 
@@ -62,23 +77,21 @@ class CryptoToken extends AccessToken
          */
         if ($includeRefreshToken && $this->refreshStorage) {
             $cryptoToken["refresh_token"] = $this->generateRefreshToken();
-            $this->refreshStorage->setRefreshToken($cryptoToken['refresh_token'], $client_id, $user_id, $expires, $scope);
+            $this->refreshStorage->setRefreshToken($cryptoToken['refresh_token'], $client_id, $user_id, time() + $this->config['refresh_token_lifetime'], $scope);
         }
 
         /*
          * Encode the token data into a single access_token string
          */
-        $access_token = $this->tokenStorage->encodeToken($cryptoToken);
+        $access_token = $this->encodeToken($cryptoToken, $client_id);
 
-        if ($this->tokenStorage instanceof AccessTokenStorageInterface) {
-            /*
-             * Save the token to a secondary storage.  This is implemented on the
-             * OAuth2\Storage\CryptoToken side, and will not actually store anything,
-             * if no secondary storage has been supplied
-             */
-            $token_to_store = $this->config['store_encrypted_token_string'] ? $access_token : $cryptoToken['id'];
-            $this->tokenStorage->setAccessToken($token_to_store, $client_id, $user_id, $this->config['access_lifetime'] ? time() + $this->config['access_lifetime'] : null, $scope);
-        }
+        /*
+         * Save the token to a secondary storage.  This is implemented on the
+         * OAuth2\Storage\CryptoToken side, and will not actually store anything,
+         * if no secondary storage has been supplied
+         */
+        $token_to_store = $this->config['store_encrypted_token_string'] ? $access_token : $cryptoToken['id'];
+        $this->tokenStorage->setAccessToken($token_to_store, $client_id, $user_id, $this->config['access_lifetime'] ? time() + $this->config['access_lifetime'] : null, $scope);
 
         // token to return to the client
         $token = array(
@@ -89,5 +102,13 @@ class CryptoToken extends AccessToken
         );
 
         return $token;
+    }
+
+    private function encodeToken(array $token, $client_id = null)
+    {
+        $private_key = $this->publicKeyStorage->getPrivateKey($client_id);
+        $algorithm   = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
+
+        return $this->encryptionUtil->encode($token, $private_key, $algorithm);
     }
 }
