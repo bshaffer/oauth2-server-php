@@ -4,6 +4,8 @@ namespace OAuth2\GrantType;
 
 use OAuth2\ClientAssertionType\HttpBasic;
 use OAuth2\ResponseType\AccessTokenInterface;
+use OAuth2\Storage\ClientInterface;
+use OAuth2\Storage\ClientCredentialsInterface;
 
 /**
  * @author Brent Shaffer <bshafs at gmail dot com>
@@ -12,6 +14,8 @@ use OAuth2\ResponseType\AccessTokenInterface;
  */
 class ClientCredentials extends HttpBasic implements GrantTypeInterface
 {
+    private $clientData;
+
     public function getQuerystringIdentifier()
     {
         return 'client_credentials';
@@ -19,12 +23,16 @@ class ClientCredentials extends HttpBasic implements GrantTypeInterface
 
     public function getScope()
     {
-        return null;
+        $this->loadClientData();
+
+        return isset($this->clientData['scope']) ? $this->clientData['scope'] : null;
     }
 
     public function getUserId()
     {
-        return null;
+        $this->loadClientData();
+
+        return isset($this->clientData['user_id']) ? $this->clientData['user_id'] : null;
     }
 
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
@@ -35,5 +43,12 @@ class ClientCredentials extends HttpBasic implements GrantTypeInterface
          */
         $includeRefreshToken = false;
         return $accessToken->createAccessToken($client_id, $user_id, $scope, $includeRefreshToken);
+    }
+
+    private function loadClientData()
+    {
+        if (!$this->clientData) {
+            $this->clientData = $this->storage->getClientDetails($this->getClientId());
+        }
     }
 }

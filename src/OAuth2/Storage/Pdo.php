@@ -78,15 +78,15 @@ class Pdo implements AuthorizationCodeInterface,
         return $stmt->fetch();
     }
 
-    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null)
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
     {
         // if it exists, update it.
         if ($this->getClientDetails($client_id)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_secret=:client_secret, redirect_uri=:redirect_uri, grant_types=:grant_types where client_id=:client_id', $this->config['client_table']));
+            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_secret=:client_secret, redirect_uri=:redirect_uri, grant_types=:grant_types, user_id=:user_id where client_id=:client_id', $this->config['client_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (client_id, client_secret, redirect_uri, grant_types) VALUES (:client_id, :client_secret, :redirect_uri, :grant_types)', $this->config['client_table']));
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (client_id, client_secret, redirect_uri, grant_types, user_id) VALUES (:client_id, :client_secret, :redirect_uri, :grant_types, :user_id)', $this->config['client_table']));
         }
-        return $stmt->execute(compact('client_id', 'client_secret', 'redirect_uri', 'grant_types'));
+        return $stmt->execute(compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'user_id'));
     }
 
     public function checkRestrictedGrantType($client_id, $grant_type)

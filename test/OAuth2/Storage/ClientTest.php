@@ -67,11 +67,14 @@ class ClientTest extends BaseTest
         $clientId = 'some-client-'.rand();
 
         // create a new client
-        $success = $storage->setClientDetails($clientId, 'somesecret');
+        $success = $storage->setClientDetails($clientId, 'somesecret', 'http://test.com', 'client_credentials', 'brent@brentertainment.com');
         $this->assertTrue($success);
 
         // valid client_id
         $details = $storage->getClientDetails($clientId);
         $this->assertEquals($details['client_secret'], 'somesecret');
+        $this->assertEquals($details['redirect_uri'], 'http://test.com');
+        $this->assertEquals($details['grant_types'], 'client_credentials');
+        $this->assertEquals($details['user_id'], 'brent@brentertainment.com');
     }
 }
