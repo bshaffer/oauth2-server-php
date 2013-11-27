@@ -70,6 +70,31 @@ class Mongo implements AuthorizationCodeInterface,
         return is_null($result) ? false : $result;
     }
 
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null)
+    {
+        if ($this->getClientDetails($client_id)) {
+            $this->collection('client_table')->update(
+                array('client_id' => $client_id),
+                array('$set' => array(
+                    'client_secret' => $client_secret,
+                    'redirect_uri'  => $redirect_uri,
+                    'grant_types'   => $grant_types
+                ))
+            );
+        } else {
+            $this->collection('client_table')->insert(
+                array(
+                    'client_id'     => $client_id,
+                    'client_secret' => $client_secret,
+                    'redirect_uri'  => $redirect_uri,
+                    'grant_types'   => $grant_types
+                )
+            );
+        }
+
+        return true;
+    }
+
     public function checkRestrictedGrantType($client_id, $grant_type)
     {
         $details = $this->getClientDetails($client_id);

@@ -55,4 +55,23 @@ class ClientTest extends BaseTest
         $details = $storage->getAccessToken('testtoken');
         $this->assertNotNull($details);
     }
+
+    /** @dataProvider provideStorage */
+    public function testSaveClient(ClientInterface $storage = null)
+    {
+        if (is_null($storage)) {
+            $this->markTestSkipped('Unable to load class Mongo_Client');
+            return;
+        }
+
+        $clientId = 'some-client-'.rand();
+
+        // create a new client
+        $success = $storage->setClientDetails($clientId, 'somesecret');
+        $this->assertTrue($success);
+
+        // valid client_id
+        $details = $storage->getClientDetails($clientId);
+        $this->assertEquals($details['client_secret'], 'somesecret');
+    }
 }

@@ -8,7 +8,7 @@ namespace OAuth2\Storage;
  * Register client:
  * <code>
  *  $storage = new OAuth2_Storage_Redis($redis);
- *  $storage->registerClient($client_id, $client_secret, $redirect_uri);
+ *  $storage->setClientDetails($client_id, $client_secret, $redirect_uri);
  * </code>
  */
 class Redis implements AuthorizationCodeInterface,
@@ -146,6 +146,14 @@ class Redis implements AuthorizationCodeInterface,
         return $this->getValue($this->config['client_key'] . $client_id);
     }
 
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null)
+    {
+        return $this->setValue(
+            $this->config['client_key'] . $client_id,
+            compact('client_id', 'client_secret', 'redirect_uri', 'grant_types')
+        );
+    }
+
     public function checkRestrictedGrantType($client_id, $grant_type)
     {
         $details = $this->getClientDetails($client_id);
@@ -157,14 +165,6 @@ class Redis implements AuthorizationCodeInterface,
 
         // if grant_types are not defined, then none are restricted
         return true;
-    }
-
-    public function registerClient($client_id, $client_secret, $redirect_uri)
-    {
-        return $this->setValue(
-            $this->config['client_key'] . $client_id,
-            compact('client_id', 'client_secret', 'redirect_uri')
-        );
     }
 
     /* RefreshTokenInterface */
