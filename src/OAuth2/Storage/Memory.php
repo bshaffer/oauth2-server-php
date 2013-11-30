@@ -25,6 +25,7 @@ class Memory implements AuthorizationCodeInterface,
     private $refreshTokens;
     private $accessTokens;
     private $jwt;
+    private $jti;
     private $supportedScopes;
     private $clientSupportedScopes;
     private $clientDefaultScopes;
@@ -40,6 +41,7 @@ class Memory implements AuthorizationCodeInterface,
             'refresh_tokens' => array(),
             'access_tokens' => array(),
             'jwt' => array(),
+            'jti' => array(),
             'default_scope' => null,
             'client_supported_scopes' => array(),
             'client_default_scopes' => array(),
@@ -53,6 +55,7 @@ class Memory implements AuthorizationCodeInterface,
         $this->refreshTokens = $params['refresh_tokens'];
         $this->accessTokens = $params['access_tokens'];
         $this->jwt = $params['jwt'];
+        $this->jti = $params['jti'];
         $this->supportedScopes = $params['supported_scopes'];
         $this->clientSupportedScopes = $params['client_supported_scopes'];
         $this->clientDefaultScopes = $params['client_default_scopes'];
@@ -238,6 +241,28 @@ class Memory implements AuthorizationCodeInterface,
         }
 
         return false;
+    }
+
+    public function getJti($client_id, $subject, $audience, $expires, $jti)
+    {
+        foreach ($this->jti as $storedJti) {
+
+            if ($storedJti['issuer'] == $client_id && $storedJti['subject'] == $subject && $storedJti['audience'] == $audience && $storedJti['expires'] == $expires && $storedJti['jti'] == $jti) {
+                return array('issuer' => $storedJti['issuer'],
+                             'subject' => $storedJti['subject'],
+                             'audience' => $storedJti['audience'],
+                             'expires' => $storedJti['expires'],
+                             'jti' => $storedJti['jti']
+                );
+            }
+        }
+
+        return null;
+    }
+
+    public function setJti($client_id, $subject, $audience, $expires, $jti)
+    {
+        $this->jti[] = array('issuer' => $client_id, 'subject' => $subject, 'audience' => $audience, 'expires' => $expires, 'jti' => $jti);
     }
 
     /*PublicKeyInterface */

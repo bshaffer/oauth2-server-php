@@ -261,6 +261,53 @@ EOD;
         $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
     }
 
+    public function testValidJti()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
+                'assertion' => $this->getJWT(null, null, 'testuser@ourdomain.com', 'Test Client ID', null, 'unused_jti'), // valid assertion with invalid scope
+        ));
+        $token = $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+    }
+
+    public function testInvalidJti()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
+                'assertion' => $this->getJWT(99999999900, null, 'testuser@ourdomain.com', 'Test Client ID', null, 'used_jti'), // valid assertion with invalid scope
+        ));
+        $token = $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'JSON Token Identifier (jti) has already been used');
+    }
+
+    public function testJtiReplayAttack()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
+                'assertion' => $this->getJWT(99999999900, null, 'testuser@ourdomain.com', 'Test Client ID', null, 'totally_new_jti'), // valid assertion with invalid scope
+        ));
+        $token = $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+
+        //Replay the same request
+        $token = $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
+        $this->assertEquals($response->getParameter('error_description'), 'JSON Token Identifier (jti) has already been used');
+    }
+
     /**
      * Generates a JWT
      * @param $exp The expiration date. If the current time is greater than the exp, the JWT is invalid.
@@ -269,7 +316,7 @@ EOD;
      * @param $iss The issuer, usually the client_id.
      * @return string
      */
-    private function getJWT($exp = null, $nbf = null, $sub = null, $iss = 'Test Client ID', $scope = null)
+    private function getJWT($exp = null, $nbf = null, $sub = null, $iss = 'Test Client ID', $scope = null, $jti = null)
     {
         if (!$exp) {
             $exp = time() + 1000;
@@ -290,6 +337,10 @@ EOD;
 
         if ($nbf) {
             $params['nbf'] = $nbf;
+        }
+
+        if ($jti){
+            $params['jti'] = $jti;
         }
 
         $jwtUtil = new Jwt();
