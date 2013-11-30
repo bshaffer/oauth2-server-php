@@ -231,4 +231,14 @@ class Redis implements AuthorizationCodeInterface,
         }
         return null;
     }
+
+    public function getJti($client_id, $subject, $audience, $expiration, $jti)
+    {
+        //TODO: Needs redis implementation.
+    }
+
+    public function setJti($client_id, $subject, $audience, $expiration, $jti)
+    {
+        //TODO: Needs redis implementation.
+    }
 }

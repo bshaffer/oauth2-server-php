@@ -24,8 +24,7 @@ class Mongo implements AuthorizationCodeInterface,
     {
         if ($connection instanceof \MongoDB) {
             $this->db = $connection;
-        }
-        else {
+        } else {
             if (!is_array($connection)) {
                 throw new \InvalidArgumentException('First argument to OAuth2_Storage_Mongo must be an instance of MongoDB or a configuration array');
             }
@@ -288,5 +287,15 @@ class Mongo implements AuthorizationCodeInterface,
         ));
 
         return $result;
+    }
+
+    public function getJti($client_id, $subject, $audience, $expiration, $jti)
+    {
+        //TODO: Needs mongodb implementation.
+    }
+
+    public function setJti($client_id, $subject, $audience, $expiration, $jti)
+    {
+        //TODO: Needs mongodb implementation.
     }
 }
