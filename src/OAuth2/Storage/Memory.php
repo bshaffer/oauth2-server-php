@@ -246,7 +246,6 @@ class Memory implements AuthorizationCodeInterface,
     public function getJti($client_id, $subject, $audience, $expires, $jti)
     {
         foreach ($this->jti as $storedJti) {
-
             if ($storedJti['issuer'] == $client_id && $storedJti['subject'] == $subject && $storedJti['audience'] == $audience && $storedJti['expires'] == $expires && $storedJti['jti'] == $jti) {
                 return array('issuer' => $storedJti['issuer'],
                              'subject' => $storedJti['subject'],
