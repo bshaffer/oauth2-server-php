@@ -153,6 +153,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
             //Reject if jti is used and jwt is still valid (exp parameter has not expired).
             if ($jti && $jti['expires'] > time()) {
                 $response->setError(400, 'invalid_grant', "JSON Token Identifier (jti) has already been used");
+                return null;
             } else {
                 $this->storage->setJti($jwt['iss'], $jwt['sub'], $jwt['aud'], $jwt['exp'], $jwt['jti']);
             }
