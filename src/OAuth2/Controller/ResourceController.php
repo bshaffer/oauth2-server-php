@@ -38,7 +38,7 @@ class ResourceController implements ResourceControllerInterface
 
     public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response, $scope = null)
     {
-        $token = $this->getAccessTokenData($request, $response, $scope);
+        $token = $this->getAccessTokenData($request, $response);
 
         // Check if we have token data
         if (is_null($token)) {
