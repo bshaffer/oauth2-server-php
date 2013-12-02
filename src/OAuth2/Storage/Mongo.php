@@ -292,10 +292,12 @@ class Mongo implements AuthorizationCodeInterface,
     public function getJti($client_id, $subject, $audience, $expiration, $jti)
     {
         //TODO: Needs mongodb implementation.
+        throw new \Exception('getJti() for the MongoDB driver is currently unimplemented.');
     }
 
     public function setJti($client_id, $subject, $audience, $expiration, $jti)
     {
         //TODO: Needs mongodb implementation.
+    	throw new \Exception('setJti() for the MongoDB driver is currently unimplemented.');
     }
 }

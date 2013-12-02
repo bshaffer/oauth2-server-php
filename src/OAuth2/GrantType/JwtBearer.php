@@ -146,13 +146,14 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         }
 
         // Check the jti (nonce)
+        // @see http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-13#section-4.1.7
         if (isset($jwt['jti'])) {
-
             $jti = $this->storage->getJti($jwt['iss'], $jwt['sub'], $jwt['aud'], $jwt['exp'], $jwt['jti']);
 
             //Reject if jti is used and jwt is still valid (exp parameter has not expired).
             if ($jti && $jti['expires'] > time()) {
                 $response->setError(400, 'invalid_grant', "JSON Token Identifier (jti) has already been used");
+                
                 return null;
             } else {
                 $this->storage->setJti($jwt['iss'], $jwt['sub'], $jwt['aud'], $jwt['exp'], $jwt['jti']);

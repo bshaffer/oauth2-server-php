@@ -235,10 +235,12 @@ class Redis implements AuthorizationCodeInterface,
     public function getJti($client_id, $subject, $audience, $expiration, $jti)
     {
         //TODO: Needs redis implementation.
+    	throw new \Exception('getJti() for the Redis driver is currently unimplemented.');
     }
 
     public function setJti($client_id, $subject, $audience, $expiration, $jti)
     {
         //TODO: Needs redis implementation.
+    	throw new \Exception('setJti() for the Redis driver is currently unimplemented.');
     }
 }

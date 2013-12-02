@@ -339,7 +339,7 @@ EOD;
             $params['nbf'] = $nbf;
         }
 
-        if ($jti){
+        if ($jti) {
             $params['jti'] = $jti;
         }
 
