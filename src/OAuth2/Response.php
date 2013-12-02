@@ -181,6 +181,7 @@ class Response implements ResponseInterface
                 // this only works for single-level arrays
                 $xml = new \SimpleXMLElement('<response/>');
                 array_walk($this->parameters, array($xml, 'addChild'));
+
                 return $xml->asXML();
         }
 

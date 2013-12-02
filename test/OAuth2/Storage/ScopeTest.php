@@ -11,11 +11,13 @@ class ScopeTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
 
         if (!$storage instanceof ScopeInterface) {
             $this->markTestSkipped('Skipping incompatible storage');
+
             return;
         }
 
@@ -31,11 +33,13 @@ class ScopeTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
 
         if (!$storage instanceof ScopeInterface) {
             $this->markTestSkipped('Skipping incompatible storage');
+
             return;
         }
 
@@ -49,11 +53,13 @@ class ScopeTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
 
         if (!$storage instanceof ScopeInterface) {
             $this->markTestSkipped('Skipping incompatible storage');
+
             return;
         }
 
@@ -70,11 +76,13 @@ class ScopeTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
 
         if (!$storage instanceof ScopeInterface) {
             $this->markTestSkipped('Skipping incompatible storage');
+
             return;
         }
 

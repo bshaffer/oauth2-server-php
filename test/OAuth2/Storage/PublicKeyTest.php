@@ -2,8 +2,6 @@
 
 namespace OAuth2\Storage;
 
-use OAuth2\Encryption\Jwt;
-
 class PublicKeyTest extends BaseTest
 {
     /** @dataProvider provideStorage */

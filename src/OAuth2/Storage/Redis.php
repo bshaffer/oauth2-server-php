@@ -32,7 +32,7 @@ class Redis implements AuthorizationCodeInterface,
      * Redis Storage!
      *
      * @param \Predis\Client $redis
-     * @param array $config
+     * @param array          $config
      */
     public function __construct($redis, $config=array())
     {
@@ -65,8 +65,9 @@ class Redis implements AuthorizationCodeInterface,
     {
         $this->cache[$key] = $value;
         $str = json_encode($value);
-        if ( $expire > 0 ) {
+        if ($expire > 0) {
             $seconds = $expire - time();
+
             return $this->redis->setex($key, $seconds, $str);
         } else {
             return $this->redis->set($key, $str);
@@ -76,6 +77,7 @@ class Redis implements AuthorizationCodeInterface,
     protected function expireValue($key)
     {
         unset($this->cache[$key]);
+
         return $this->redis->expire($key);
     }
 
@@ -98,6 +100,7 @@ class Redis implements AuthorizationCodeInterface,
     {
         $key = $this->config['code_key'] . $code;
         unset($this->cache[$key]);
+
         return $this->expireValue($key);
     }
 
@@ -105,6 +108,7 @@ class Redis implements AuthorizationCodeInterface,
     public function checkUserCredentials($username, $password)
     {
         $user = $this->getUserDetails($username);
+
         return $user && $user['password'] === $password;
     }
 
@@ -137,6 +141,7 @@ class Redis implements AuthorizationCodeInterface,
     public function checkClientCredentials($client_id, $client_secret = null)
     {
         $client = $this->getClientDetails($client_id);
+
         return isset($client['client_secret'])
             && $client['client_secret'] == $client_secret;
     }
@@ -210,6 +215,7 @@ class Redis implements AuthorizationCodeInterface,
             $result = $this->getValue($this->config['scope_key'].'supported:global');
         }
         $supportedScope = explode(' ', (string) $result);
+
         return (count(array_diff($scope, $supportedScope)) == 0);
     }
 
@@ -229,6 +235,7 @@ class Redis implements AuthorizationCodeInterface,
         if ( isset($jwt['subject']) && $jwt['subject'] == $subject ) {
             return $jwt['key'];
         }
+
         return null;
     }
 }

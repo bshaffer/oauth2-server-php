@@ -20,6 +20,7 @@ class Bootstrap
         if (!self::$instance) {
             self::$instance = new self();
         }
+
         return self::$instance;
     }
 
@@ -33,6 +34,7 @@ class Bootstrap
 
             $this->sqlite = new Pdo($pdo);
         }
+
         return $this->sqlite;
     }
 
@@ -56,6 +58,7 @@ class Bootstrap
 
             $this->mysql = new Pdo($pdo);
         }
+
         return $this->mysql;
     }
 
@@ -72,6 +75,7 @@ class Bootstrap
                 $this->mongo = new Mongo($db);
             }
         }
+
         return $this->mongo;
     }
 

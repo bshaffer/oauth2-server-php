@@ -93,6 +93,7 @@ class Memory implements AuthorizationCodeInterface,
     public function checkUserCredentials($username, $password)
     {
         $userDetails = $this->getUserDetails($username);
+
         return $userDetails && $userDetails['password'] && $userDetails['password'] === $password;
     }
 
@@ -220,7 +221,7 @@ class Memory implements AuthorizationCodeInterface,
     {
         if ($client_id && array_key_exists($client_id, $this->clientDefaultScopes)) {
            return implode(' ', $this->clientDefaultScopes[$client_id]);
-        }else{
+        } else {
            return $this->defaultScope;
         }
     }

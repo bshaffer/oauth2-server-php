@@ -9,6 +9,7 @@ class UserCredentialsTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
         // create a new user for testing

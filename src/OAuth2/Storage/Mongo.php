@@ -24,8 +24,7 @@ class Mongo implements AuthorizationCodeInterface,
     {
         if ($connection instanceof \MongoDB) {
             $this->db = $connection;
-        }
-        else {
+        } else {
             if (!is_array($connection)) {
                 throw new \InvalidArgumentException('First argument to OAuth2_Storage_Mongo must be an instance of MongoDB or a configuration array');
             }
@@ -60,6 +59,7 @@ class Mongo implements AuthorizationCodeInterface,
         if ($result = $this->collection('client_table')->findOne(array('client_id' => $client_id))) {
             return $result['client_secret'] == $client_secret;
         }
+
         return false;
     }
 
@@ -199,6 +199,7 @@ class Mongo implements AuthorizationCodeInterface,
         if ($user = $this->getUser($username)) {
             return $this->checkPassword($user, $password);
         }
+
         return false;
     }
 

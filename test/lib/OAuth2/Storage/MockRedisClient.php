@@ -61,33 +61,36 @@ class MockRedisClient
             'oauth_scopes:supported:Test Default Scope Client ID 2' => 'clientscope3',
             'oauth_scopes:default:Test Default Scope Client ID 2' => 'clientscope3',
         );
-        foreach ( $data as $name => $val ) {
+        foreach ($data as $name => $val) {
             $data[$name] = json_encode($val);
         }
         $this->data = $data;
     }
 
-    function get($key)
+    public function get($key)
     {
         return isset($this->data[$key]) ? $this->data[$key] : null;
     }
 
-    function set ($key, $value)
+    public function set ($key, $value)
     {
         $this->data[$key] = $value;
+
         return true;
     }
 
-    function setex($key, $expires, $value)
+    public function setex($key, $expires, $value)
     {
 
         $this->data[$key] = $value;
+
         return true;
     }
 
-    function expire($key)
+    public function expire($key)
     {
         unset($this->data[$key]);
+
         return true;
     }
 }

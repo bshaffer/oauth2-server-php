@@ -9,6 +9,7 @@ class ClientTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
         // nonexistant client_id
@@ -28,6 +29,7 @@ class ClientTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
 
@@ -45,6 +47,7 @@ class ClientTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
         // nonexistant client_id
@@ -61,6 +64,7 @@ class ClientTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
 

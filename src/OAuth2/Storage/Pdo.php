@@ -86,6 +86,7 @@ class Pdo implements AuthorizationCodeInterface,
         } else {
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (client_id, client_secret, redirect_uri, grant_types, user_id) VALUES (:client_id, :client_secret, :redirect_uri, :grant_types, :user_id)', $this->config['client_table']));
         }
+
         return $stmt->execute(compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'user_id'));
     }
 
@@ -127,6 +128,7 @@ class Pdo implements AuthorizationCodeInterface,
         } else {
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (access_token, client_id, expires, user_id, scope) VALUES (:access_token, :client_id, :expires, :user_id, :scope)', $this->config['access_token_table']));
         }
+
         return $stmt->execute(compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
@@ -155,6 +157,7 @@ class Pdo implements AuthorizationCodeInterface,
         } else {
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope)', $this->config['code_table']));
         }
+
         return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
     }
 
@@ -171,6 +174,7 @@ class Pdo implements AuthorizationCodeInterface,
         if ($user = $this->getUser($username)) {
             return $this->checkPassword($user, $password);
         }
+
         return false;
     }
 
@@ -242,6 +246,7 @@ class Pdo implements AuthorizationCodeInterface,
         } else {
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
         }
+
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }
 
@@ -279,6 +284,7 @@ class Pdo implements AuthorizationCodeInterface,
         $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));
 
         $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
+
         return $stmt->fetch();
     }
 
@@ -311,6 +317,7 @@ class Pdo implements AuthorizationCodeInterface,
         if ($result = $stmt->fetch()) {
             return $result['encryption_algorithm'];
         }
+
         return 'RS256';
     }
 }

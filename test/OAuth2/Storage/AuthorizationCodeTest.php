@@ -9,6 +9,7 @@ class AuthorizationCodeTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
         // nonexistant client_id
@@ -25,6 +26,7 @@ class AuthorizationCodeTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
         // assert code we are about to add does not exist

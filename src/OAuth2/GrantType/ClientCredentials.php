@@ -4,8 +4,6 @@ namespace OAuth2\GrantType;
 
 use OAuth2\ClientAssertionType\HttpBasic;
 use OAuth2\ResponseType\AccessTokenInterface;
-use OAuth2\Storage\ClientInterface;
-use OAuth2\Storage\ClientCredentialsInterface;
 
 /**
  * @author Brent Shaffer <bshafs at gmail dot com>
@@ -42,6 +40,7 @@ class ClientCredentials extends HttpBasic implements GrantTypeInterface
          * @see http://tools.ietf.org/html/rfc6749#section-4.4.3
          */
         $includeRefreshToken = false;
+
         return $accessToken->createAccessToken($client_id, $user_id, $scope, $includeRefreshToken);
     }
 
