@@ -288,6 +288,31 @@ class Pdo implements AuthorizationCodeInterface,
         return $stmt->fetch();
     }
 
+    public function getJti($client_id, $subject, $audience, $expires, $jti)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT* FROM %s WHERE issuer=:client_id AND subject=:subject AND audience=:audience AND expires=:expires AND jti=:jti', $this->config['jti_table']));
+
+        $stmt->execute(compact('client_id', 'subject', 'audience', 'expires', 'jti'));
+
+        if ($result = $stmt->fetch()) {
+            return array('issuer' => $result['issuer'],
+                         'subject' => $result['subject'],
+                         'audience' => $result['audience'],
+                         'expires' => $result['expires'],
+                         'jti' => $result['jti']
+                );
+        }
+
+        return null;
+    }
+
+    public function setJti($client_id, $subject, $audience, $expires, $jti)
+    {
+        $stmt = $this->db->prepare(sprintf('INSERT INTO %s (issuer, subject, audience, expires, jti) VALUES (:client_id, :subject, :audience, :expires, :jti)', $this->config['jti_table']));
+
+        return $stmt->execute(compact('client_id', 'subject', 'audience', 'expires', 'jti'));
+    }
+
     /* PublicKeyInterface */
     public function getPublicKey($client_id = null)
     {
