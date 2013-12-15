@@ -55,6 +55,7 @@ EOD;
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $client_id  = 'Test Client ID';
         $client_key = $storage->getClientKey($client_id, "testuser@ourdomain.com");
+
         return array(
             array($client_id, $client_key),
         );

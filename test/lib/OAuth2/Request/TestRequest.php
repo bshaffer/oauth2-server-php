@@ -58,6 +58,7 @@ class TestRequest implements RequestInterface
     {
         $request = new self();
         $request->setPost($params);
+
         return $request;
     }
 }

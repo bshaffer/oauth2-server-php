@@ -9,6 +9,7 @@ class ClientCredentialsTest extends BaseTest
     {
         if (is_null($storage)) {
             $this->markTestSkipped('Unable to load class Mongo_Client');
+
             return;
         }
         // nonexistant client_id

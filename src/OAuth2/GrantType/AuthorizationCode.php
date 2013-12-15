@@ -30,12 +30,14 @@ class AuthorizationCode implements GrantTypeInterface
     {
         if (!$request->request('code')) {
             $response->setError(400, 'invalid_request', 'Missing parameter: "code" is required');
+
             return false;
         }
 
         $code = $request->request('code');
         if (!$authCode = $this->storage->getAuthorizationCode($code)) {
             $response->setError(400, 'invalid_grant', 'Authorization code doesn\'t exist or is invalid for the client');
+
             return false;
         }
 
@@ -46,6 +48,7 @@ class AuthorizationCode implements GrantTypeInterface
         if (isset($authCode['redirect_uri']) && $authCode['redirect_uri']) {
             if (!$request->request('redirect_uri') || urldecode($request->request('redirect_uri')) != $authCode['redirect_uri']) {
                 $response->setError(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match", "#section-4.1.3");
+
                 return false;
             }
         }
@@ -56,6 +59,7 @@ class AuthorizationCode implements GrantTypeInterface
 
         if ($authCode["expires"] < time()) {
             $response->setError(400, 'invalid_grant', "The authorization code has expired");
+
             return false;
         }
 

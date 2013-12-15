@@ -48,6 +48,10 @@
         "Test Client ID Empty Secret": {
             "client_secret": ""
         },
+        "Client ID With User ID": {
+            "client_secret": "TestSecret",
+            "user_id": "brent@brentertainment.com"
+        },
         "oauth_test_client": {
             "client_secret": "testpass",
             "grant_types": "implicit password"
@@ -114,6 +118,15 @@
             "subject": "testuser@ourdomain.com"
         }
     },
+    "jti": [
+        {
+            "issuer": "Test Client ID",
+            "subject": "testuser@ourdomain.com",
+            "audience": "http://myapp.com/oauth/auth",
+            "expires": 99999999900,
+            "jti": "used_jti"
+        }
+    ],
     "client_supported_scopes" : {
         "Test Client ID" : ["clientscope1", "clientscope2"],
         "Test Client ID 2" : ["clientscope3"]

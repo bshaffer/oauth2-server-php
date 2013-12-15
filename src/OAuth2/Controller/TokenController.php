@@ -74,6 +74,7 @@ class TokenController implements TokenControllerInterface
         if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
             $response->setError(405, 'invalid_request', 'The request method must be POST when requesting an access token', '#section-3.2');
             $response->addHttpHeaders(array('Allow' => 'POST'));
+
             return null;
         }
 
@@ -82,11 +83,13 @@ class TokenController implements TokenControllerInterface
          */
         if (!$grantTypeIdentifier = $request->request('grant_type')) {
             $response->setError(400, 'invalid_request', 'The grant type was not specified in the request');
+
             return null;
         }
         if (!isset($this->grantTypes[$grantTypeIdentifier])) {
             /* TODO: If this is an OAuth2 supported grant type that we have chosen not to implement, throw a 501 Not Implemented instead */
             $response->setError(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantTypeIdentifier));
+
             return null;
         }
 
@@ -121,6 +124,7 @@ class TokenController implements TokenControllerInterface
             // validate the Client ID (if applicable)
             if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
                 $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier));
+
                 return null;
             }
         }
@@ -136,6 +140,7 @@ class TokenController implements TokenControllerInterface
             if (!$availableScope) {
                 if (false === $defaultScope = $this->scopeUtil->getDefaultScope($clientId)) {
                     $response->setError(400, 'invalid_scope', 'This application requires you specify a scope parameter');
+
                     return null;
                 }
             }
@@ -145,6 +150,7 @@ class TokenController implements TokenControllerInterface
         if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope, $clientId))
             || ($availableScope && !$this->scopeUtil->checkScope($requestedScope, $availableScope))) {
             $response->setError(400, 'invalid_scope', 'An unsupported scope was requested');
+
             return null;
         }
 

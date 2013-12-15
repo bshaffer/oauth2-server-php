@@ -47,6 +47,7 @@ class Scope implements ScopeInterface
     {
         $required_scope = explode(' ', trim($required_scope));
         $available_scope = explode(' ', trim($available_scope));
+
         return (count(array_diff($required_scope, $available_scope)) == 0);
     }
 

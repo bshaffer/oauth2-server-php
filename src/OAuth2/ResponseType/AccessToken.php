@@ -108,6 +108,7 @@ class AccessToken implements AccessTokenInterface
         } else {
             $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
         }
+
         return substr(hash('sha512', $randomData), 0, $tokenLen);
     }
 

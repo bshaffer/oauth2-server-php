@@ -22,7 +22,6 @@ class AuthorizationCode implements AuthorizationCodeInterface
         ), $config);
     }
 
-
     public function getAuthorizeResponse($params, $user_id = null)
     {
         // build the URL to redirect to
@@ -59,6 +58,7 @@ class AuthorizationCode implements AuthorizationCodeInterface
     {
         $code = $this->generateAuthorizationCode();
         $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->config['auth_code_lifetime'], $scope);
+
         return $code;
     }
 
@@ -90,6 +90,7 @@ class AuthorizationCode implements AuthorizationCodeInterface
         } else {
             $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
         }
+
         return substr(hash('sha512', $randomData), 0, $tokenLen);
     }
 }

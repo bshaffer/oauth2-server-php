@@ -5,8 +5,12 @@ namespace OAuth2\Storage;
 /**
  * Simple MongoDB storage for all storage types
  *
- * NOTE: This class should never be used in production, and is
- * a stub class for example use only
+ * NOTE: This class is meant to get users started
+ * quickly. If your application requires further
+ * customization, extend this class or create your own.
+ *
+ * NOTE: Passwords are stored in plaintext, which is never
+ * a good idea.  Be sure to override this for your application
  *
  * @author Julien Chaumond <chaumond@gmail.com>
  */
@@ -24,8 +28,7 @@ class Mongo implements AuthorizationCodeInterface,
     {
         if ($connection instanceof \MongoDB) {
             $this->db = $connection;
-        }
-        else {
+        } else {
             if (!is_array($connection)) {
                 throw new \InvalidArgumentException('First argument to OAuth2_Storage_Mongo must be an instance of MongoDB or a configuration array');
             }
@@ -60,6 +63,7 @@ class Mongo implements AuthorizationCodeInterface,
         if ($result = $this->collection('client_table')->findOne(array('client_id' => $client_id))) {
             return $result['client_secret'] == $client_secret;
         }
+
         return false;
     }
 
@@ -68,6 +72,33 @@ class Mongo implements AuthorizationCodeInterface,
         $result = $this->collection('client_table')->findOne(array('client_id' => $client_id));
 
         return is_null($result) ? false : $result;
+    }
+
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
+    {
+        if ($this->getClientDetails($client_id)) {
+            $this->collection('client_table')->update(
+                array('client_id' => $client_id),
+                array('$set' => array(
+                    'client_secret' => $client_secret,
+                    'redirect_uri'  => $redirect_uri,
+                    'grant_types'   => $grant_types,
+                    'user_id'       => $user_id,
+                ))
+            );
+        } else {
+            $this->collection('client_table')->insert(
+                array(
+                    'client_id'     => $client_id,
+                    'client_secret' => $client_secret,
+                    'redirect_uri'  => $redirect_uri,
+                    'grant_types'   => $grant_types,
+                    'user_id'       => $user_id,
+                )
+            );
+        }
+
+        return true;
     }
 
     public function checkRestrictedGrantType($client_id, $grant_type)
@@ -172,6 +203,7 @@ class Mongo implements AuthorizationCodeInterface,
         if ($user = $this->getUser($username)) {
             return $this->checkPassword($user, $password);
         }
+
         return false;
     }
 
@@ -261,5 +293,17 @@ class Mongo implements AuthorizationCodeInterface,
         ));
 
         return $result;
+    }
+
+    public function getJti($client_id, $subject, $audience, $expiration, $jti)
+    {
+        //TODO: Needs mongodb implementation.
+        throw new \Exception('getJti() for the MongoDB driver is currently unimplemented.');
+    }
+
+    public function setJti($client_id, $subject, $audience, $expiration, $jti)
+    {
+        //TODO: Needs mongodb implementation.
+    	throw new \Exception('setJti() for the MongoDB driver is currently unimplemented.');
     }
 }

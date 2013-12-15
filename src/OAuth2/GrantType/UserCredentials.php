@@ -31,11 +31,13 @@ class UserCredentials implements GrantTypeInterface
     {
         if (!$request->request("password") || !$request->request("username")) {
             $response->setError(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
+
             return null;
         }
 
         if (!$this->storage->checkUserCredentials($request->request("username"), $request->request("password"))) {
             $response->setError(400, 'invalid_grant', 'Invalid username and password combination');
+
             return null;
         }
 
@@ -43,6 +45,7 @@ class UserCredentials implements GrantTypeInterface
 
         if (empty($userInfo)) {
             $response->setError(400, 'invalid_grant', 'Unable to retrieve user information');
+
             return null;
         }
 

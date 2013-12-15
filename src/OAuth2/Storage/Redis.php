@@ -8,7 +8,7 @@ namespace OAuth2\Storage;
  * Register client:
  * <code>
  *  $storage = new OAuth2_Storage_Redis($redis);
- *  $storage->registerClient($client_id, $client_secret, $redirect_uri);
+ *  $storage->setClientDetails($client_id, $client_secret, $redirect_uri);
  * </code>
  */
 class Redis implements AuthorizationCodeInterface,
@@ -32,7 +32,7 @@ class Redis implements AuthorizationCodeInterface,
      * Redis Storage!
      *
      * @param \Predis\Client $redis
-     * @param array $config
+     * @param array          $config
      */
     public function __construct($redis, $config=array())
     {
@@ -65,8 +65,9 @@ class Redis implements AuthorizationCodeInterface,
     {
         $this->cache[$key] = $value;
         $str = json_encode($value);
-        if ( $expire > 0 ) {
+        if ($expire > 0) {
             $seconds = $expire - time();
+
             return $this->redis->setex($key, $seconds, $str);
         } else {
             return $this->redis->set($key, $str);
@@ -76,6 +77,7 @@ class Redis implements AuthorizationCodeInterface,
     protected function expireValue($key)
     {
         unset($this->cache[$key]);
+
         return $this->redis->expire($key);
     }
 
@@ -98,6 +100,7 @@ class Redis implements AuthorizationCodeInterface,
     {
         $key = $this->config['code_key'] . $code;
         unset($this->cache[$key]);
+
         return $this->expireValue($key);
     }
 
@@ -105,6 +108,7 @@ class Redis implements AuthorizationCodeInterface,
     public function checkUserCredentials($username, $password)
     {
         $user = $this->getUserDetails($username);
+
         return $user && $user['password'] === $password;
     }
 
@@ -137,6 +141,7 @@ class Redis implements AuthorizationCodeInterface,
     public function checkClientCredentials($client_id, $client_secret = null)
     {
         $client = $this->getClientDetails($client_id);
+
         return isset($client['client_secret'])
             && $client['client_secret'] == $client_secret;
     }
@@ -144,6 +149,14 @@ class Redis implements AuthorizationCodeInterface,
     public function getClientDetails($client_id)
     {
         return $this->getValue($this->config['client_key'] . $client_id);
+    }
+
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
+    {
+        return $this->setValue(
+            $this->config['client_key'] . $client_id,
+            compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'user_id')
+        );
     }
 
     public function checkRestrictedGrantType($client_id, $grant_type)
@@ -157,14 +170,6 @@ class Redis implements AuthorizationCodeInterface,
 
         // if grant_types are not defined, then none are restricted
         return true;
-    }
-
-    public function registerClient($client_id, $client_secret, $redirect_uri)
-    {
-        return $this->setValue(
-            $this->config['client_key'] . $client_id,
-            compact('client_id', 'client_secret', 'redirect_uri')
-        );
     }
 
     /* RefreshTokenInterface */
@@ -210,6 +215,7 @@ class Redis implements AuthorizationCodeInterface,
             $result = $this->getValue($this->config['scope_key'].'supported:global');
         }
         $supportedScope = explode(' ', (string) $result);
+
         return (count(array_diff($scope, $supportedScope)) == 0);
     }
 
@@ -229,6 +235,19 @@ class Redis implements AuthorizationCodeInterface,
         if ( isset($jwt['subject']) && $jwt['subject'] == $subject ) {
             return $jwt['key'];
         }
+
         return null;
+    }
+
+    public function getJti($client_id, $subject, $audience, $expiration, $jti)
+    {
+        //TODO: Needs redis implementation.
+    	throw new \Exception('getJti() for the Redis driver is currently unimplemented.');
+    }
+
+    public function setJti($client_id, $subject, $audience, $expiration, $jti)
+    {
+        //TODO: Needs redis implementation.
+    	throw new \Exception('setJti() for the Redis driver is currently unimplemented.');
     }
 }
