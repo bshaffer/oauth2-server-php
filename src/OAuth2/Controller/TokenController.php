@@ -214,19 +214,24 @@ class TokenController implements TokenControllerInterface
             return null;
         }
 
-        if (!$grantType->validateRequest($request, $response)) {
-            return false;
-        }
-
+        // Do not bother validating the user credentials if the client does not support the "password" 
+        // grant type.
         if (! $this->clientStorage->checkRestrictedGrantType($clientId, 'password')) {
             $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', 'password'));
             return false;
         }
 
+        // Attempt to validate the user credentials
+        if (!$grantType->validateRequest($request, $response)) {
+            return false;
+        }
+
+        // Attempt to validate the requested scope
         if (false === ($requestedScope = $this->getRequestedScope($clientId, $grantType, $request, $response))) {
             return false;
         }
 
+        // All is valid - create and return the access token
         return $grantType->createAccessToken($this->accessToken, $clientId, $grantType->getUserId(), $requestedScope);
     }
 
