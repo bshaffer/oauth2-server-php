@@ -204,7 +204,7 @@ class TokenController implements TokenControllerInterface
     {
         // If no ClientInterface instance was passed to the constructor, we'll
         // need to do a client assertion.
-        if ($this->clientStorage instanceof ClientInterface) {
+        if (is_null($this->clientStorage)) {
             return null;
         }
 
