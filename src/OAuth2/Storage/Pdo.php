@@ -67,7 +67,7 @@ class Pdo implements AuthorizationCodeInterface,
         $result = $stmt->fetch();
 
         // make this extensible
-        return $result['client_secret'] == $client_secret;
+        return $result && $result['client_secret'] == $client_secret;
     }
 
     public function getClientDetails($client_id)
