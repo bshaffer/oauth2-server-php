@@ -133,9 +133,9 @@ class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($response->getStatusCode(), 200);
         $this->assertNull($response->getParameter('error'));
         $this->assertNull($response->getParameter('error_description'));
-        $this->assertNotNUll($response->getParameter('access_token'));
-        $this->assertNotNUll($response->getParameter('expires_in'));
-        $this->assertNotNUll($response->getParameter('token_type'));
+        $this->assertNotNull($response->getParameter('access_token'), var_export($response, 1));
+        $this->assertNotNull($response->getParameter('expires_in'));
+        $this->assertNotNull($response->getParameter('token_type'));
     }
 
     public function testValidClientIdScope()
@@ -217,15 +217,15 @@ class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
         $server->addGrantType(new UserCredentials($storage));
 
         $request = TestRequest::createPost(array(
-            'grant_type' => 'password',        // valid grant type
-            'client_id'  => 'Test Client ID',  // valid client id
-            'username'   => 'johndoe',         // valid username
-            'password'   => 'password',        // valid password for username
+            'grant_type' => 'password',                          // valid grant type
+            'client_id'  => 'Test Client ID For Password Grant', // valid client id
+            'username'   => 'johndoe',                           // valid username
+            'password'   => 'password',                          // valid password for username
         ));
         $server->handleTokenRequest($request, $response = new Response());
 
         $this->assertTrue($response instanceof Response);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode(), var_export($response, 1));
         $this->assertNull($response->getParameter('error'));
         $this->assertNull($response->getParameter('error_description'));
         $this->assertNotNull($response->getParameter('access_token'));

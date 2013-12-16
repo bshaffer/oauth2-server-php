@@ -406,7 +406,14 @@ class Server implements ResourceControllerInterface,
             }
         }
 
-        return new TokenController($this->getAccessTokenResponseType(), $this->grantTypes, $this->clientAssertionType, $this->getScopeUtil());
+        $clientStorage = null;
+        if (isset($this->storages['client'])) {
+            $clientStorage = $this->storages['client'];
+        } elseif (isset($this->storages['client_credentials'])) {
+            $clientStorage = $this->storages['client_credentials'];
+        }
+
+        return new TokenController($this->getAccessTokenResponseType(), $this->grantTypes, $this->clientAssertionType, $this->getScopeUtil(), $clientStorage);
     }
 
     protected function createDefaultResourceController()
