@@ -6,6 +6,7 @@ use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
 use OAuth2\GrantType\AuthorizationCode;
 use OAuth2\GrantType\ClientCredentials;
+use OAuth2\GrantType\UserCredentials;
 use OAuth2\Scope;
 use OAuth2\Request\TestRequest;
 use OAuth2\Response;
@@ -203,6 +204,33 @@ class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $accessToken = new \OAuth2\ResponseType\AccessToken($storage);
         $controller = new TokenController($accessToken);
+    }
+
+    /**
+     * @group 257
+     */
+    public function testCanReceiveAccessTokenUsingPasswordGrantTypeWithoutClientSecret()
+    {
+        // add the test parameters in memory
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server = new Server($storage);
+        $server->addGrantType(new UserCredentials($storage));
+
+        $request = TestRequest::createPost(array(
+            'grant_type' => 'password',        // valid grant type
+            'client_id'  => 'Test Client ID',  // valid client id
+            'username'   => 'johndoe',         // valid username
+            'password'   => 'password',        // valid password for username
+        ));
+        $server->handleTokenRequest($request, $response = new Response());
+
+        $this->assertTrue($response instanceof Response);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertNull($response->getParameter('error'));
+        $this->assertNull($response->getParameter('error_description'));
+        $this->assertNotNull($response->getParameter('access_token'));
+        $this->assertNotNull($response->getParameter('expires_in'));
+        $this->assertNotNull($response->getParameter('token_type'));
     }
 
     private function getTestServer()

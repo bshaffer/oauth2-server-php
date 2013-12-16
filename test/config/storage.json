@@ -63,6 +63,9 @@
         },
         "testusername":  {
             "password": "testpass"
+        },
+        "johndoe": {
+            "password": "password"
         }
     },
     "refresh_tokens" : {
