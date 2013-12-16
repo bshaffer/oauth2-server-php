@@ -104,7 +104,7 @@ class CryptoToken extends AccessToken
         return $token;
     }
 
-    private function encodeToken(array $token, $client_id = null)
+    protected function encodeToken(array $token, $client_id = null)
     {
         $private_key = $this->publicKeyStorage->getPrivateKey($client_id);
         $algorithm   = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
