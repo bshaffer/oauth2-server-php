@@ -204,7 +204,7 @@ class TokenController implements TokenControllerInterface
     {
         // If no ClientInterface instance was passed to the constructor, we'll
         // need to do a client assertion.
-        if (! $this->clientStorage instanceof ClientInterface) {
+        if ($this->clientStorage instanceof ClientInterface) {
             return null;
         }
 
@@ -216,7 +216,7 @@ class TokenController implements TokenControllerInterface
 
         // Do not bother validating the user credentials if the client does not support the "password" 
         // grant type.
-        if (! $this->clientStorage->checkRestrictedGrantType($clientId, 'password')) {
+        if (!$this->clientStorage->checkRestrictedGrantType($clientId, 'password')) {
             $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', 'password'));
             return false;
         }
