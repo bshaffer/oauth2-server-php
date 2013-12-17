@@ -265,6 +265,35 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($config['allow_credentials_in_request_body'], false);
     }
 
+    public function testRefreshTokenConfig()
+    {
+        // create mock storage
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server1 = new Server(array($storage));
+        $server2 = new Server(array($storage), array('always_issue_new_refresh_token' => true));
+
+        $server1->getTokenController();
+        $refreshToken1 = $server1->getGrantType('refresh_token');
+
+        $server2->getTokenController();
+        $refreshToken2 = $server2->getGrantType('refresh_token');
+
+        $reflection1 = new \ReflectionClass($refreshToken1);
+        $prop1 = $reflection1->getProperty('config');
+        $prop1->setAccessible(true);
+
+        $reflection2 = new \ReflectionClass($refreshToken2);
+        $prop2 = $reflection2->getProperty('config');
+        $prop2->setAccessible(true);
+
+        // get the private "config" property
+        $config1 = $prop1->getValue($refreshToken1);
+        $config2 = $prop2->getValue($refreshToken2);
+
+        $this->assertEquals($config1['always_issue_new_refresh_token'], false);
+        $this->assertEquals($config2['always_issue_new_refresh_token'], true);
+    }
+
     /**
      * @expectedException InvalidArgumentException OAuth2\ResponseType\AuthorizationCodeInterface
      **/

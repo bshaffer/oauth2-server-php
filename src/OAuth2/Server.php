@@ -103,6 +103,7 @@ class Server implements ResourceControllerInterface,
             'require_exact_redirect_uri' => true,
             'allow_implicit'           => false,
             'allow_credentials_in_request_body' => true,
+            'always_issue_new_refresh_token' => false,
         ), $config);
 
         foreach ($grantTypes as $key => $grantType) {
@@ -462,7 +463,8 @@ class Server implements ResourceControllerInterface,
         }
 
         if (isset($this->storages['refresh_token'])) {
-            $grantTypes['refresh_token'] = new RefreshToken($this->storages['refresh_token']);
+            $config = array_intersect_key($this->config, array('always_issue_new_refresh_token' => ''));
+            $grantTypes['refresh_token'] = new RefreshToken($this->storages['refresh_token'], $config);
         }
 
         if (isset($this->storages['authorization_code'])) {
