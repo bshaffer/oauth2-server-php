@@ -23,6 +23,7 @@ interface AccessTokenInterface
      * is invalid:
      * - client_id: Stored client identifier.
      * - expires: Stored expiration in unix timestamp.
+     * - user_id: (optional) Stored user identifier.
      * - scope: (optional) Stored scope values in space-separated string.
      *
      * @ingroup oauth2_section_7
