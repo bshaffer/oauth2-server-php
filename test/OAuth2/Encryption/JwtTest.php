@@ -50,6 +50,14 @@ EOD;
         $this->assertEquals($params, $payload);
     }
 
+    public function testInvalidJwt()
+    {
+        $jwtUtil = new Jwt();
+
+        $this->assertFalse($jwtUtil->decode('goob'));
+        $this->assertFalse($jwtUtil->decode('go.o.b'));
+    }
+
     public function provideClientCredentials()
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
