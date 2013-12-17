@@ -67,11 +67,14 @@ class Redis implements AuthorizationCodeInterface,
         $str = json_encode($value);
         if ($expire > 0) {
             $seconds = $expire - time();
-
-            return $this->redis->setex($key, $seconds, $str);
+            $ret = $this->redis->setex($key, $seconds, $str);
         } else {
-            return $this->redis->set($key, $str);
+            $ret = $this->redis->set($key, $str);
         }
+
+        // check that the key was set properly
+        // if this fails, an exception will usually thrown, so this step isn't strictly necessary
+        return $ret->getPayload() == 'OK';
     }
 
     protected function expireValue($key)
@@ -238,6 +241,21 @@ class Redis implements AuthorizationCodeInterface,
         }
 
         return $result;
+    }
+
+    public function setScope($scope, $client_id = null, $type = 'supported')
+    {
+        if (!in_array($type, array('default', 'supported'))) {
+            throw new \InvalidArgumentException('"$type" must be one of "default", "supported"');
+        }
+
+        if (is_null($client_id)) {
+            $key = $this->config['scope_key'].$type.':global';
+        } else {
+            $key = $this->config['scope_key'].$type.':'.$client_id;
+        }
+
+        return $this->setValue($key, $scope);
     }
 
     /*JWTBearerInterface */
