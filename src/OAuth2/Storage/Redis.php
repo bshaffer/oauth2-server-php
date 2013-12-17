@@ -140,7 +140,9 @@ class Redis implements AuthorizationCodeInterface,
     /* ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
-        $client = $this->getClientDetails($client_id);
+        if (!$client = $this->getClientDetails($client_id)) {
+            return false;
+        }
 
         return isset($client['client_secret'])
             && $client['client_secret'] == $client_secret;
