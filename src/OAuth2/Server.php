@@ -103,6 +103,7 @@ class Server implements ResourceControllerInterface,
             'require_exact_redirect_uri' => true,
             'allow_implicit'           => false,
             'allow_credentials_in_request_body' => true,
+            'allow_public_clients'     => true,
         ), $config);
 
         foreach ($grantTypes as $key => $grantType) {
@@ -399,7 +400,7 @@ class Server implements ResourceControllerInterface,
                     if (!isset($this->storages['client_credentials'])) {
                         throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\ClientCredentialsInterface to use the token server");
                     }
-                    $config = array_intersect_key($this->config, array('allow_credentials_in_request_body' => ''));
+                    $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_credentials_in_request_body allow_public_clients')));
                     $this->clientAssertionType = new HttpBasic($this->storages['client_credentials'], $config);
                     break;
                 }
@@ -458,7 +459,8 @@ class Server implements ResourceControllerInterface,
         }
 
         if (isset($this->storages['client_credentials'])) {
-            $grantTypes['client_credentials'] = new ClientCredentials($this->storages['client_credentials']);
+            $config = array_intersect_key($this->config, array('allow_credentials_in_request_body' => ''));
+            $grantTypes['client_credentials'] = new ClientCredentials($this->storages['client_credentials'], $config);
         }
 
         if (isset($this->storages['refresh_token'])) {

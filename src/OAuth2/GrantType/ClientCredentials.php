@@ -17,10 +17,11 @@ class ClientCredentials extends HttpBasic implements GrantTypeInterface
 
     public function __construct(ClientCredentialsInterface $storage, array $config = array())
     {
-        if (isset($config['allow_public_clients']) && $config['allow_public_clients']) {
-            throw new \Exception('Unable to set "allow_public_clients" to true for ClientCredentials grant type');
-        }
-
+        /**
+         * The client credentials grant type MUST only be used by confidential clients
+         *
+         * @see http://tools.ietf.org/html/rfc6749#section-4.4
+         */
         $config['allow_public_clients'] = false;
 
         parent::__construct($storage, $config);
@@ -47,8 +48,9 @@ class ClientCredentials extends HttpBasic implements GrantTypeInterface
 
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
-        /*
+        /**
          * Client Credentials Grant does NOT include a refresh token
+         *
          * @see http://tools.ietf.org/html/rfc6749#section-4.4.3
          */
         $includeRefreshToken = false;

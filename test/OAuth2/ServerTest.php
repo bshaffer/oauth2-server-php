@@ -253,7 +253,10 @@ class ServerTest extends \PHPUnit_Framework_TestCase
     {
         // create mock storage
         $storage = Bootstrap::getInstance()->getMemoryStorage();
-        $server = new Server(array($storage), array('allow_credentials_in_request_body' => false));
+        $server = new Server(array($storage), array(
+            'allow_credentials_in_request_body' => false,
+            'allow_public_clients' => false
+        ));
         $server->getTokenController();
         $httpBasic = $server->getClientAssertionType();
 
@@ -263,6 +266,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
 
         $config = $prop->getValue($httpBasic); // get the private "storages" property
         $this->assertEquals($config['allow_credentials_in_request_body'], false);
+        $this->assertEquals($config['allow_public_clients'], false);
     }
 
     /**
