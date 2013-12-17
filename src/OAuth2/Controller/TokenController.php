@@ -5,10 +5,12 @@ namespace OAuth2\Controller;
 use OAuth2\ResponseType\AccessTokenInterface;
 use OAuth2\ClientAssertionType\ClientAssertionTypeInterface;
 use OAuth2\GrantType\GrantTypeInterface;
+use OAuth2\GrantType\UserCredentials;
 use OAuth2\ScopeInterface;
 use OAuth2\Scope;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
+use OAuth2\Storage\ClientInterface;
 
 /**
  * @see OAuth2_Controller_TokenControllerInterface
@@ -19,8 +21,9 @@ class TokenController implements TokenControllerInterface
     protected $grantTypes;
     protected $clientAssertionType;
     protected $scopeUtil;
+    protected $clientStorage;
 
-    public function __construct(AccessTokenInterface $accessToken, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null)
+    public function __construct(AccessTokenInterface $accessToken, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null, ClientInterface $clientStorage = null)
     {
         if (is_null($clientAssertionType)) {
             foreach ($grantTypes as $grantType) {
@@ -39,6 +42,8 @@ class TokenController implements TokenControllerInterface
             $scopeUtil = new Scope();
         }
         $this->scopeUtil = $scopeUtil;
+
+        $this->clientStorage = $clientStorage;
     }
 
     public function handleTokenRequest(RequestInterface $request, ResponseInterface $response)
@@ -95,6 +100,31 @@ class TokenController implements TokenControllerInterface
 
         $grantType = $this->grantTypes[$grantTypeIdentifier];
 
+        /* If we have a password (UserCredentials) grant type, attempt to
+         * validate it without resorting to HTTP authentication first, and
+         * return early if successful.
+         *
+         * @see http://aaronparecki.com/articles/2012/07/29/1/oauth2-simplified#others
+         * @see https://github.com/bshaffer/oauth2-server-php/issues/257
+         */
+        if ($grantType instanceof UserCredentials) {
+            $result = $this->validatePasswordGrantType($grantType, $request, $response);
+            switch ($result) {
+                case null:
+                    // A null result indicates we could not attempt the UserCredentials
+                    // validation yet. Continue on.
+                    break;
+                case false:
+                    // Failure to validate user credentials, failure to validate
+                    // client allows password grant, or failure to fetch the
+                    // requested scope; we're done.
+                    return null;
+                default:
+                    // We have an access token; return it!
+                    return $result;
+            }
+        }
+
         /* Retrieve the client information from the request
          * ClientAssertionTypes allow for grant types which also assert the client data
          * in which case ClientAssertion is handled in the validateRequest method
@@ -129,28 +159,7 @@ class TokenController implements TokenControllerInterface
             }
         }
 
-        /*
-         * Validate the scope of the token
-         * If the grant type returns a value for the scope,
-         * as is the case with the "Authorization Code" grant type,
-         * this value must be verified with the scope being requested
-         */
-        $availableScope = $grantType->getScope();
-        if (!$requestedScope = $this->scopeUtil->getScopeFromRequest($request)) {
-            if (!$availableScope) {
-                if (false === $defaultScope = $this->scopeUtil->getDefaultScope($clientId)) {
-                    $response->setError(400, 'invalid_scope', 'This application requires you specify a scope parameter');
-
-                    return null;
-                }
-            }
-            $requestedScope = $availableScope ? $availableScope : $defaultScope;
-        }
-
-        if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope, $clientId))
-            || ($availableScope && !$this->scopeUtil->checkScope($requestedScope, $availableScope))) {
-            $response->setError(400, 'invalid_scope', 'An unsupported scope was requested');
-
+        if (false === ($requestedScope = $this->getRequestedScope($clientId, $grantType, $request, $response))) {
             return null;
         }
 
@@ -172,5 +181,94 @@ class TokenController implements TokenControllerInterface
         }
 
         $this->grantTypes[$identifier] = $grantType;
+    }
+
+    /**
+     * Attempt to validate a password grant
+     *
+     * If we do not have client storage composed, or if no client_id was passed
+     * in the request, proceed with normal client assertions.
+     *
+     * Otherwise, attempt to validate the user credentials; if they are valid,
+     * check that the specified client_id allows this grant type, and then that
+     * the requested scope is valid.
+     *
+     * If all validations pass, return an access token.
+     *
+     * @param UserCredentials $grantType
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @return null|false|array null when no ClientInterface instance and/or client_id is present, indicating a client assertion is necessary; false if we failed to validate; an access token otherwise
+     */
+    protected function validatePasswordGrantType(UserCredentials $grantType, RequestInterface $request, ResponseInterface $response)
+    {
+        // If no ClientInterface instance was passed to the constructor, we'll
+        // need to do a client assertion.
+        if (is_null($this->clientStorage)) {
+            return null;
+        }
+
+        // If the client_id is not in the POST, then we'll need to do a client
+        // assertion
+        if (false === ($clientId = $request->request('client_id', false))) {
+            return null;
+        }
+
+        // Do not bother validating the user credentials if the client does not support the "password" 
+        // grant type.
+        if (!$this->clientStorage->checkRestrictedGrantType($clientId, 'password')) {
+            $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', 'password'));
+            return false;
+        }
+
+        // Attempt to validate the user credentials
+        if (!$grantType->validateRequest($request, $response)) {
+            return false;
+        }
+
+        // Attempt to validate the requested scope
+        if (false === ($requestedScope = $this->getRequestedScope($clientId, $grantType, $request, $response))) {
+            return false;
+        }
+
+        // All is valid - create and return the access token
+        return $grantType->createAccessToken($this->accessToken, $clientId, $grantType->getUserId(), $requestedScope);
+    }
+
+    /**
+     * Validate the scope of the token
+     *
+     * If the grant type returns a value for the scope,
+     * as is the case with the "Authorization Code" grant type,
+     * this value must be verified with the scope being requested
+     *
+     * @param string $clientId
+     * @param GrantTypeInterface $grantType
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @return false|null|string false on failure to resolve scope, null or string scope on success
+     */
+    protected function getRequestedScope($clientId, GrantTypeInterface $grantType, RequestInterface $request, ResponseInterface $response)
+    {
+        $availableScope = $grantType->getScope();
+        if (!$requestedScope = $this->scopeUtil->getScopeFromRequest($request)) {
+            if (!$availableScope) {
+                if (false === $defaultScope = $this->scopeUtil->getDefaultScope($clientId)) {
+                    $response->setError(400, 'invalid_scope', 'This application requires you specify a scope parameter');
+
+                    return false;
+                }
+            }
+            $requestedScope = $availableScope ? $availableScope : $defaultScope;
+        }
+
+        if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope, $clientId))
+            || ($availableScope && !$this->scopeUtil->checkScope($requestedScope, $availableScope))) {
+            $response->setError(400, 'invalid_scope', 'An unsupported scope was requested');
+
+            return false;
+        }
+
+        return $requestedScope;
     }
 }
