@@ -12,7 +12,7 @@ services: mongodb
 
 before_script:
   - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-  - composer.phar require predis/predis:dev-master
+  - composer require predis/predis:dev-master
 
 after_failure:
   - ps ax | grep mongo
