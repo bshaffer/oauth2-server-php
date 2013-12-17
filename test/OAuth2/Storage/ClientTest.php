@@ -8,7 +8,7 @@ class ClientTest extends BaseTest
     public function testGetClientDetails(ClientInterface $storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }
@@ -28,7 +28,7 @@ class ClientTest extends BaseTest
     public function testCheckRestrictedGrantType(ClientInterface $storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }
@@ -46,7 +46,7 @@ class ClientTest extends BaseTest
     public function testGetAccessToken(ClientInterface $storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }
@@ -63,7 +63,7 @@ class ClientTest extends BaseTest
     public function testSaveClient(ClientInterface $storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }

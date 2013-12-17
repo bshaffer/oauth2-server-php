@@ -10,14 +10,11 @@ class ScopeTest extends BaseTest
     public function testScopeExists($storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
-
-            return;
+            return $this->markTestSkipped('Skipped Storage');
         }
 
         if (!$storage instanceof ScopeInterface) {
-            $this->markTestSkipped('Skipping incompatible storage');
-
+            // incompatible storage
             return;
         }
 
@@ -32,14 +29,11 @@ class ScopeTest extends BaseTest
     public function testGetDefaultScope($storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
-
-            return;
+            return $this->markTestSkipped('Skipped Storage');
         }
 
         if (!$storage instanceof ScopeInterface) {
-            $this->markTestSkipped('Skipping incompatible storage');
-
+            // incompatible storage
             return;
         }
 
@@ -52,14 +46,11 @@ class ScopeTest extends BaseTest
     public function testClientScopeExists($storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
-
-            return;
+            return $this->markTestSkipped('Skipped Storage');
         }
 
         if (!$storage instanceof ScopeInterface) {
-            $this->markTestSkipped('Skipping incompatible storage');
-
+            // incompatible storage
             return;
         }
 
@@ -75,14 +66,11 @@ class ScopeTest extends BaseTest
     public function testGetDefaultClientScope($storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
-
-            return;
+            return $this->markTestSkipped('Skipped Storage');
         }
 
         if (!$storage instanceof ScopeInterface) {
-            $this->markTestSkipped('Skipping incompatible storage');
-
+            // incompatible storage
             return;
         }
 

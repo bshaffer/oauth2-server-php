@@ -8,7 +8,7 @@ class UserCredentialsTest extends BaseTest
     public function testCheckUserCredentials(UserCredentialsInterface $storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }

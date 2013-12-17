@@ -8,6 +8,7 @@ class Bootstrap
     private $mysql;
     private $sqlite;
     private $mongo;
+    private $redis;
     private $configDir;
 
     public function __construct()
@@ -45,7 +46,16 @@ class Bootstrap
 
     public function getRedisStorage()
     {
-        return new Redis(new MockRedisClient());
+        if (!$this->redis) {
+            if (class_exists('Predis\Client')) {
+                $redis = new \Predis\Client();
+                $redis->flushdb();
+                $this->redis = new Redis($redis);
+                $this->createRedisDb($this->redis);
+            }
+        }
+
+        return $this->redis;
     }
 
     public function getMysqlPdo()
@@ -157,6 +167,29 @@ class Bootstrap
         $db->oauth_access_tokens->insert(array('access_token' => "testtoken", 'client_id' => "Some Client"));
         $db->oauth_authorization_codes->insert(array('authorization_code' => "testcode", 'client_id' => "Some Client"));
         $db->oauth_users->insert(array('username' => "testuser", 'password' => "password"));
+    }
+
+    private function createRedisDb(Redis $storage)
+    {
+        $storage->setClientDetails("oauth_test_client", "testpass", "http://example.com", 'implicit password');
+        $storage->setAccessToken("testtoken", "Some Client", '', time() + 1000);
+        $storage->setAuthorizationCode("testcode", "Some Client", '', '', time() + 1000);
+        $storage->setUser("testuser", "password");
+
+        $storage->setScope('supportedscope1 supportedscope2 supportedscope3 supportedscope4');
+        $storage->setScope('defaultscope1 defaultscope2', null, 'default');
+
+        $storage->setScope('clientscope1 clientscope2', 'Test Client ID');
+        $storage->setScope('clientscope1 clientscope2', 'Test Client ID', 'default');
+
+        $storage->setScope('clientscope1 clientscope2 clientscope3', 'Test Client ID 2');
+        $storage->setScope('clientscope1 clientscope2', 'Test Client ID 2', 'default');
+
+        $storage->setScope('clientscope1 clientscope2', 'Test Default Scope Client ID');
+        $storage->setScope('clientscope1 clientscope2', 'Test Default Scope Client ID', 'default');
+
+        $storage->setScope('clientscope1 clientscope2 clientscope3', 'Test Default Scope Client ID 2');
+        $storage->setScope('clientscope3', 'Test Default Scope Client ID 2', 'default');
     }
 
     public function removeMongoDb(\MongoDB $db)
