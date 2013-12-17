@@ -264,7 +264,8 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $prop = $reflection->getProperty('config');
         $prop->setAccessible(true);
 
-        $config = $prop->getValue($httpBasic); // get the private "storages" property
+        $config = $prop->getValue($httpBasic); // get the private "config" property
+
         $this->assertEquals($config['allow_credentials_in_request_body'], false);
         $this->assertEquals($config['allow_public_clients'], false);
     }
