@@ -22,7 +22,8 @@ class HttpBasic implements ClientAssertionTypeInterface
     {
         $this->storage = $storage;
         $this->config = array_merge(array(
-            'allow_credentials_in_request_body' => true
+            'allow_credentials_in_request_body' => true,
+            'allow_public_clients' => true,
         ), $config);
     }
 
@@ -32,11 +33,23 @@ class HttpBasic implements ClientAssertionTypeInterface
             return false;
         }
 
-        if (!isset($clientData['client_id']) || !isset($clientData['client_secret'])) {
-            throw new \LogicException('the clientData array must have "client_id" and "client_secret" values set.');
+        if (!isset($clientData['client_id'])) {
+            throw new \LogicException('the clientData array must have "client_id" set');
         }
 
-        if ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
+        if (!isset($clientData['client_secret']) || $clientData['client_secret'] == '') {
+            if (!$this->config['allow_public_clients']) {
+                $response->setError(400, 'invalid_client', 'client credentials are required');
+
+                return false;
+            }
+
+            if (!$this->storage->isPublicClient($clientData['client_id'])) {
+                $response->setError(400, 'invalid_client', 'This client is invalid or must authenticate using a client secret');
+
+                return false;
+            }
+        } elseif ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
             $response->setError(400, 'invalid_client', 'The client credentials are invalid');
 
             return false;
@@ -70,7 +83,7 @@ class HttpBasic implements ClientAssertionTypeInterface
      * @code
      * return array(
      *     "client_id"     => CLIENT_ID,        // REQUIRED the client id
-     *     "client_secret" => CLIENT_SECRET,    // REQUIRED the client secret
+     *     "client_secret" => CLIENT_SECRET,    // OPTIONAL the client secret (may be omitted for public clients)
      * );
      * @endcode
      *
@@ -91,13 +104,13 @@ class HttpBasic implements ClientAssertionTypeInterface
                  * client_secret can be null if the client's password is an empty string
                  * @see http://tools.ietf.org/html/rfc6749#section-2.3.1
                  */
-
-                return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret', ''));
+                return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
             }
         }
 
         if ($response) {
-            $response->setError(400, 'invalid_client', 'Client credentials were not found in the headers or body');
+            $message = $this->config['allow_credentials_in_request_body'] ? ' or body' : '';
+            $response->setError(400, 'invalid_client', 'Client credentials were not found in the headers'.$message);
         }
 
         return null;

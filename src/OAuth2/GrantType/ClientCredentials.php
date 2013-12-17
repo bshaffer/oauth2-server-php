@@ -4,6 +4,7 @@ namespace OAuth2\GrantType;
 
 use OAuth2\ClientAssertionType\HttpBasic;
 use OAuth2\ResponseType\AccessTokenInterface;
+use OAuth2\Storage\ClientCredentialsInterface;
 
 /**
  * @author Brent Shaffer <bshafs at gmail dot com>
@@ -13,6 +14,18 @@ use OAuth2\ResponseType\AccessTokenInterface;
 class ClientCredentials extends HttpBasic implements GrantTypeInterface
 {
     private $clientData;
+
+    public function __construct(ClientCredentialsInterface $storage, array $config = array())
+    {
+        /**
+         * The client credentials grant type MUST only be used by confidential clients
+         *
+         * @see http://tools.ietf.org/html/rfc6749#section-4.4
+         */
+        $config['allow_public_clients'] = false;
+
+        parent::__construct($storage, $config);
+    }
 
     public function getQuerystringIdentifier()
     {
@@ -35,8 +48,9 @@ class ClientCredentials extends HttpBasic implements GrantTypeInterface
 
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
-        /*
+        /**
          * Client Credentials Grant does NOT include a refresh token
+         *
          * @see http://tools.ietf.org/html/rfc6749#section-4.4.3
          */
         $includeRefreshToken = false;
