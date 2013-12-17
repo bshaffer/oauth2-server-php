@@ -18,6 +18,8 @@ class Request implements RequestInterface
     public $headers;
     public $content;
 
+    private static $_instance;
+
     /**
      * Constructor.
      *
@@ -188,6 +190,10 @@ class Request implements RequestInterface
      */
     public static function createFromGlobals()
     {
+        if (self::$_instance !== null) {
+            return self::$_instance;
+        }
+
         $class = __CLASS__;
         $request = new $class($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER);
 
@@ -204,6 +210,8 @@ class Request implements RequestInterface
             $data = json_decode($request->getContent(), true);
             $request->request = $data;
         }
+
+        self::$_instance = $request;
 
         return $request;
     }
