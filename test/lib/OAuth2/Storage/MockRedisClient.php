@@ -13,6 +13,22 @@ class MockRedisClient
                 'redirect_uri' => '',
                 'grant_types' => 'implicit password',
             ),
+            'oauth_clients:Test Client ID' => array(
+                'client_id' => 'Test Client ID',
+                'client_secret' => "TestSecret"
+            ),
+            'oauth_clients:Test Client ID 2' => array(
+                'client_id' => 'Test Client ID 2',
+                'client_secret' => "TestSecret",
+            ),
+            'oauth_clients:Test Default Scope Client ID' => array(
+                'client_id' => 'Test Default Scope Client ID',
+                'client_secret' => "TestSecret",
+            ),
+            'oauth_clients:Test Default Scope Client ID 2' => array(
+                'client_id' => 'Test Default Scope Client ID 2',
+                'client_secret' => "TestSecret",
+            ),
             'oauth_access_tokens:testtoken' => array(
                 'access_token' => 'testtoken',
                 'client_id' => "Some Client",
@@ -33,35 +49,48 @@ class MockRedisClient
                 'password' => "password",
                 'first_name' => '',
                 'last_name' => ''
-            )
+            ),
+            'oauth_scopes:supported:global' => 'supportedscope1 supportedscope2 supportedscope3 supportedscope4',
+            'oauth_scopes:default:global' => 'defaultscope1 defaultscope2',
+            'oauth_scopes:supported:Test Client ID' => 'clientscope1 clientscope2',
+            'oauth_scopes:default:Test Client ID' => 'clientscope1 clientscope2',
+            'oauth_scopes:supported:Test Client ID 2' => 'clientscope3',
+            'oauth_scopes:default:Test Client ID 2' => 'clientscope3',
+            'oauth_scopes:supported:Test Default Scope Client ID' => 'clientscope1 clientscope2',
+            'oauth_scopes:default:Test Default Scope Client ID' => 'clientscope1 clientscope2',
+            'oauth_scopes:supported:Test Default Scope Client ID 2' => 'clientscope3',
+            'oauth_scopes:default:Test Default Scope Client ID 2' => 'clientscope3',
         );
-        foreach ( $data as $name => $val ) {
+        foreach ($data as $name => $val) {
             $data[$name] = json_encode($val);
         }
         $this->data = $data;
     }
 
-    function get($key)
+    public function get($key)
     {
         return isset($this->data[$key]) ? $this->data[$key] : null;
     }
 
-    function set ($key, $value)
+    public function set ($key, $value)
     {
         $this->data[$key] = $value;
+
         return true;
     }
 
-    function setex($key, $expires, $value)
+    public function setex($key, $expires, $value)
     {
 
         $this->data[$key] = $value;
+
         return true;
     }
 
-    function expire($key)
+    public function expire($key)
     {
         unset($this->data[$key]);
+
         return true;
     }
 }

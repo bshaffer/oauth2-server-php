@@ -6,7 +6,7 @@ namespace OAuth2\Encryption;
  * @link https://github.com/F21/jwt
  * @author F21
  */
-class Jwt
+class Jwt implements EncryptionInterface
 {
     public function encode($payload, $key, $algo = 'HS256')
     {
@@ -60,7 +60,7 @@ class Jwt
 
     private function verifySignature($signature, $input, $key, $algo = 'HS256')
     {
-        switch($algo){
+        switch ($algo) {
             case'HS256':
             case'HS384':
             case'HS512':
@@ -82,7 +82,7 @@ class Jwt
 
     private function sign($input, $key, $algo = 'HS256')
     {
-        switch($algo){
+        switch ($algo) {
             case 'HS256':
                 return hash_hmac('sha256', $input, $key, true);
 
@@ -121,6 +121,7 @@ class Jwt
         $b64 = str_replace(array('+', '/', '\r', '\n', '='),
                 array('-', '_'),
                 $b64);
+
         return $b64;
     }
 
@@ -129,6 +130,7 @@ class Jwt
         $b64 = str_replace(array('-', '_'),
                 array('+', '/'),
                 $b64);
+
         return base64_decode($b64);
     }
 }

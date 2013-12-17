@@ -16,7 +16,8 @@ class Memory implements AuthorizationCodeInterface,
     ClientCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
-    ScopeInterface
+    ScopeInterface,
+    PublicKeyInterface
 {
     private $authorizationCodes;
     private $userCredentials;
@@ -24,10 +25,12 @@ class Memory implements AuthorizationCodeInterface,
     private $refreshTokens;
     private $accessTokens;
     private $jwt;
+    private $jti;
     private $supportedScopes;
     private $clientSupportedScopes;
     private $clientDefaultScopes;
     private $defaultScope;
+    private $keys;
 
     public function __construct($params = array())
     {
@@ -38,10 +41,12 @@ class Memory implements AuthorizationCodeInterface,
             'refresh_tokens' => array(),
             'access_tokens' => array(),
             'jwt' => array(),
+            'jti' => array(),
             'default_scope' => null,
             'client_supported_scopes' => array(),
             'client_default_scopes' => array(),
             'supported_scopes' => array(),
+            'keys' => array(),
         ), $params);
 
         $this->authorizationCodes = $params['authorization_codes'];
@@ -50,10 +55,12 @@ class Memory implements AuthorizationCodeInterface,
         $this->refreshTokens = $params['refresh_tokens'];
         $this->accessTokens = $params['access_tokens'];
         $this->jwt = $params['jwt'];
+        $this->jti = $params['jti'];
         $this->supportedScopes = $params['supported_scopes'];
         $this->clientSupportedScopes = $params['client_supported_scopes'];
         $this->clientDefaultScopes = $params['client_default_scopes'];
         $this->defaultScope = $params['default_scope'];
+        $this->keys = $params['keys'];
     }
 
     /* AuthorizationCodeInterface */
@@ -89,6 +96,7 @@ class Memory implements AuthorizationCodeInterface,
     public function checkUserCredentials($username, $password)
     {
         $userDetails = $this->getUserDetails($username);
+
         return $userDetails && $userDetails['password'] && $userDetails['password'] === $password;
     }
 
@@ -150,9 +158,17 @@ class Memory implements AuthorizationCodeInterface,
         return true;
     }
 
-    public function setClientCredentials($client_credentials)
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
     {
-        $this->clientCredentials = $client_credentials;
+        $this->clientCredentials[$client_id] = array(
+            'client_id'     => $client_id,
+            'client_secret' => $client_secret,
+            'redirect_uri'  => $redirect_uri,
+            'grant_types'   => $grant_types,
+            'user_id'       => $user_id,
+        );
+
+        return true;
     }
 
     /* RefreshTokenInterface */
@@ -208,7 +224,7 @@ class Memory implements AuthorizationCodeInterface,
     {
         if ($client_id && array_key_exists($client_id, $this->clientDefaultScopes)) {
            return implode(' ', $this->clientDefaultScopes[$client_id]);
-        }else{
+        } else {
            return $this->defaultScope;
         }
     }
@@ -226,5 +242,69 @@ class Memory implements AuthorizationCodeInterface,
         }
 
         return false;
+    }
+
+    public function getJti($client_id, $subject, $audience, $expires, $jti)
+    {
+        foreach ($this->jti as $storedJti) {
+            if ($storedJti['issuer'] == $client_id && $storedJti['subject'] == $subject && $storedJti['audience'] == $audience && $storedJti['expires'] == $expires && $storedJti['jti'] == $jti) {
+                return array('issuer' => $storedJti['issuer'],
+                             'subject' => $storedJti['subject'],
+                             'audience' => $storedJti['audience'],
+                             'expires' => $storedJti['expires'],
+                             'jti' => $storedJti['jti']
+                );
+            }
+        }
+
+        return null;
+    }
+
+    public function setJti($client_id, $subject, $audience, $expires, $jti)
+    {
+        $this->jti[] = array('issuer' => $client_id, 'subject' => $subject, 'audience' => $audience, 'expires' => $expires, 'jti' => $jti);
+    }
+
+    /*PublicKeyInterface */
+    public function getPublicKey($client_id = null)
+    {
+        if (isset($this->keys[$client_id])) {
+            return $this->keys[$client_id]['public_key'];
+        }
+
+        // use a global encryption pair
+        if (isset($this->keys['public_key'])) {
+            return $this->keys['public_key'];
+        }
+
+        return false;
+    }
+
+    public function getPrivateKey($client_id = null)
+    {
+        if (isset($this->keys[$client_id])) {
+            return $this->keys[$client_id]['private_key'];
+        }
+
+        // use a global encryption pair
+        if (isset($this->keys['private_key'])) {
+            return $this->keys['private_key'];
+        }
+
+        return false;
+    }
+
+    public function getEncryptionAlgorithm($client_id = null)
+    {
+        if (isset($this->keys[$client_id]['encryption_algorithm'])) {
+            return $this->keys[$client_id]['encryption_algorithm'];
+        }
+
+        // use a global encryption algorithm
+        if (isset($this->keys['encryption_algorithm'])) {
+            return $this->keys['encryption_algorithm'];
+        }
+
+        return 'RS256';
     }
 }

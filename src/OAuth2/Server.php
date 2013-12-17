@@ -103,6 +103,7 @@ class Server implements ResourceControllerInterface,
             'require_exact_redirect_uri' => true,
             'allow_implicit'           => false,
             'allow_credentials_in_request_body' => true,
+            'always_issue_new_refresh_token' => false,
         ), $config);
 
         foreach ($grantTypes as $key => $grantType) {
@@ -121,6 +122,7 @@ class Server implements ResourceControllerInterface,
         if (is_null($this->authorizeController)) {
             $this->authorizeController = $this->createDefaultAuthorizeController();
         }
+
         return $this->authorizeController;
     }
 
@@ -129,6 +131,7 @@ class Server implements ResourceControllerInterface,
         if (is_null($this->tokenController)) {
             $this->tokenController = $this->createDefaultTokenController();
         }
+
         return $this->tokenController;
     }
 
@@ -137,6 +140,7 @@ class Server implements ResourceControllerInterface,
         if (is_null($this->resourceController)) {
             $this->resourceController = $this->createDefaultResourceController();
         }
+
         return $this->resourceController;
     }
 
@@ -188,6 +192,7 @@ class Server implements ResourceControllerInterface,
     {
         $this->response = is_null($response) ? new Response() : $response;
         $this->getTokenController()->handleTokenRequest($request, $this->response);
+
         return $this->response;
     }
 
@@ -195,6 +200,7 @@ class Server implements ResourceControllerInterface,
     {
         $this->response = is_null($response) ? new Response() : $response;
         $value = $this->getTokenController()->grantAccessToken($request, $this->response);
+
         return $value;
     }
 
@@ -230,6 +236,7 @@ class Server implements ResourceControllerInterface,
     {
         $this->response = $response;
         $this->getAuthorizeController()->handleAuthorizeRequest($request, $this->response, $is_authorized, $user_id);
+
         return $this->response;
     }
 
@@ -256,6 +263,7 @@ class Server implements ResourceControllerInterface,
     {
         $this->response = is_null($response) ? new Response() : $response;
         $value = $this->getAuthorizeController()->validateAuthorizeRequest($request, $this->response);
+
         return $value;
     }
 
@@ -263,6 +271,7 @@ class Server implements ResourceControllerInterface,
     {
         $this->response = is_null($response) ? new Response() : $response;
         $value = $this->getResourceController()->verifyResourceRequest($request, $this->response, $scope);
+
         return $value;
     }
 
@@ -270,6 +279,7 @@ class Server implements ResourceControllerInterface,
     {
         $this->response = is_null($response) ? new Response() : $response;
         $value = $this->getResourceController()->getAccessTokenData($request, $this->response);
+
         return $value;
     }
 
@@ -352,6 +362,7 @@ class Server implements ResourceControllerInterface,
             $storage = isset($this->storages['scope']) ? $this->storages['scope'] : null;
             $this->scopeUtil = new Scope($storage);
         }
+
         return $this->scopeUtil;
     }
 
@@ -372,6 +383,7 @@ class Server implements ResourceControllerInterface,
             $this->responseTypes = $this->getDefaultResponseTypes();
         }
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state require_exact_redirect_uri')));
+
         return new AuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->getScopeUtil());
     }
 
@@ -407,12 +419,14 @@ class Server implements ResourceControllerInterface,
             $this->tokenType = $this->getDefaultTokenType();
         }
         $config = array_intersect_key($this->config, array('www_realm' => ''));
+
         return new ResourceController($this->tokenType, $this->storages['access_token'], $config, $this->getScopeUtil());
     }
 
     protected function getDefaultTokenType()
     {
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'token_param_name token_bearer_header_name')));
+
         return new Bearer($config);
     }
 
@@ -449,7 +463,8 @@ class Server implements ResourceControllerInterface,
         }
 
         if (isset($this->storages['refresh_token'])) {
-            $grantTypes['refresh_token'] = new RefreshToken($this->storages['refresh_token']);
+            $config = array_intersect_key($this->config, array('always_issue_new_refresh_token' => ''));
+            $grantTypes['refresh_token'] = new RefreshToken($this->storages['refresh_token'], $config);
         }
 
         if (isset($this->storages['authorization_code'])) {

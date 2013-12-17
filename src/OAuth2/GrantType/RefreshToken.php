@@ -35,16 +35,19 @@ class RefreshToken implements GrantTypeInterface
     {
         if (!$request->request("refresh_token")) {
             $response->setError(400, 'invalid_request', 'Missing parameter: "refresh_token" is required');
+
             return null;
         }
 
         if (!$refreshToken = $this->storage->getRefreshToken($request->request("refresh_token"))) {
             $response->setError(400, 'invalid_grant', 'Invalid refresh token');
+
             return null;
         }
 
         if ($refreshToken["expires"] < time()) {
             $response->setError(400, 'invalid_grant', 'Refresh token has expired');
+
             return null;
         }
 

@@ -38,7 +38,7 @@ class ResourceController implements ResourceControllerInterface
 
     public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response, $scope = null)
     {
-        $token = $this->getAccessTokenData($request, $response, $scope);
+        $token = $this->getAccessTokenData($request, $response);
 
         // Check if we have token data
         if (is_null($token)) {
@@ -61,6 +61,7 @@ class ResourceController implements ResourceControllerInterface
                     $response->getParameter('error_description')
                 )
             ));
+
             return false;
         }
 
@@ -79,9 +80,9 @@ class ResourceController implements ResourceControllerInterface
             // Check token expiration (expires is a mandatory paramter)
             if (!$token = $this->tokenStorage->getAccessToken($token_param)) {
                 $response->setError(401, 'invalid_token', 'The access token provided is invalid');
-            } else if (!isset($token["expires"]) || !isset($token["client_id"])) {
+            } elseif (!isset($token["expires"]) || !isset($token["client_id"])) {
                 $response->setError(401, 'invalid_token', 'Malformed token (missing "expires" or "client_id")');
-            } else if (time() > $token["expires"]) {
+            } elseif (time() > $token["expires"]) {
                 $response->setError(401, 'invalid_token', 'The access token provided has expired');
             } else {
                 return $token;
@@ -98,6 +99,7 @@ class ResourceController implements ResourceControllerInterface
         }
 
         $response->addHttpHeaders(array('WWW-Authenticate' => $authHeader));
+
         return null;
     }
 

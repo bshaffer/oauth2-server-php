@@ -12,6 +12,8 @@ use OAuth2\ResponseType\AccessTokenInterface;
  */
 class ClientCredentials extends HttpBasic implements GrantTypeInterface
 {
+    private $clientData;
+
     public function getQuerystringIdentifier()
     {
         return 'client_credentials';
@@ -19,12 +21,16 @@ class ClientCredentials extends HttpBasic implements GrantTypeInterface
 
     public function getScope()
     {
-        return null;
+        $this->loadClientData();
+
+        return isset($this->clientData['scope']) ? $this->clientData['scope'] : null;
     }
 
     public function getUserId()
     {
-        return null;
+        $this->loadClientData();
+
+        return isset($this->clientData['user_id']) ? $this->clientData['user_id'] : null;
     }
 
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
@@ -34,6 +40,14 @@ class ClientCredentials extends HttpBasic implements GrantTypeInterface
          * @see http://tools.ietf.org/html/rfc6749#section-4.4.3
          */
         $includeRefreshToken = false;
+
         return $accessToken->createAccessToken($client_id, $user_id, $scope, $includeRefreshToken);
+    }
+
+    private function loadClientData()
+    {
+        if (!$this->clientData) {
+            $this->clientData = $this->storage->getClientDetails($this->getClientId());
+        }
     }
 }

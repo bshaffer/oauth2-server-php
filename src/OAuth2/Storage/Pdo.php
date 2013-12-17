@@ -19,7 +19,9 @@ class Pdo implements AuthorizationCodeInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
     RefreshTokenInterface,
-    JwtBearerInterface
+    JwtBearerInterface,
+    ScopeInterface,
+    PublicKeyInterface
 {
     protected $db;
     protected $config;
@@ -51,7 +53,9 @@ class Pdo implements AuthorizationCodeInterface,
             'refresh_token_table' => 'oauth_refresh_tokens',
             'code_table' => 'oauth_authorization_codes',
             'user_table' => 'oauth_users',
-            'jwt_table' => 'oauth_jwt',
+            'jwt_table'  => 'oauth_jwt',
+            'scope_table'  => 'oauth_scopes',
+            'public_key_table'  => 'oauth_public_keys',
         ), $config);
     }
 
@@ -63,7 +67,7 @@ class Pdo implements AuthorizationCodeInterface,
         $result = $stmt->fetch();
 
         // make this extensible
-        return $result['client_secret'] == $client_secret;
+        return $result && $result['client_secret'] == $client_secret;
     }
 
     public function getClientDetails($client_id)
@@ -72,6 +76,18 @@ class Pdo implements AuthorizationCodeInterface,
         $stmt->execute(compact('client_id'));
 
         return $stmt->fetch();
+    }
+
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
+    {
+        // if it exists, update it.
+        if ($this->getClientDetails($client_id)) {
+            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_secret=:client_secret, redirect_uri=:redirect_uri, grant_types=:grant_types, user_id=:user_id where client_id=:client_id', $this->config['client_table']));
+        } else {
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (client_id, client_secret, redirect_uri, grant_types, user_id) VALUES (:client_id, :client_secret, :redirect_uri, :grant_types, :user_id)', $this->config['client_table']));
+        }
+
+        return $stmt->execute(compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'user_id'));
     }
 
     public function checkRestrictedGrantType($client_id, $grant_type)
@@ -112,6 +128,7 @@ class Pdo implements AuthorizationCodeInterface,
         } else {
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (access_token, client_id, expires, user_id, scope) VALUES (:access_token, :client_id, :expires, :user_id, :scope)', $this->config['access_token_table']));
         }
+
         return $stmt->execute(compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
@@ -140,6 +157,7 @@ class Pdo implements AuthorizationCodeInterface,
         } else {
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope)', $this->config['code_table']));
         }
+
         return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
     }
 
@@ -156,6 +174,7 @@ class Pdo implements AuthorizationCodeInterface,
         if ($user = $this->getUser($username)) {
             return $this->checkPassword($user, $password);
         }
+
         return false;
     }
 
@@ -227,15 +246,103 @@ class Pdo implements AuthorizationCodeInterface,
         } else {
             $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
         }
+
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
     }
 
-    /* OAuth2_Storage_JWTBearerInterface */
+    /* ScopeInterface */
+    public function scopeExists($scope, $client_id = null)
+    {
+        $scope = explode(' ', $scope);
+        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type="supported" AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
+        $stmt->execute(compact('client_id'));
+
+        if ($result = $stmt->fetch()) {
+            $supportedScope = explode(' ', $result['scope']);
+        } else {
+            $supportedScope = array();
+        }
+
+        return (count(array_diff($scope, $supportedScope)) == 0);
+    }
+
+    public function getDefaultScope($client_id = null)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type="default" AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
+        $stmt->execute(compact('client_id'));
+
+        if ($result = $stmt->fetch()) {
+            return $result['scope'];
+        }
+
+        return null;
+    }
+
+    /* JWTBearerInterface */
     public function getClientKey($client_id, $subject)
     {
         $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));
 
         $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
+
         return $stmt->fetch();
+    }
+
+    public function getJti($client_id, $subject, $audience, $expires, $jti)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT* FROM %s WHERE issuer=:client_id AND subject=:subject AND audience=:audience AND expires=:expires AND jti=:jti', $this->config['jti_table']));
+
+        $stmt->execute(compact('client_id', 'subject', 'audience', 'expires', 'jti'));
+
+        if ($result = $stmt->fetch()) {
+            return array('issuer' => $result['issuer'],
+                         'subject' => $result['subject'],
+                         'audience' => $result['audience'],
+                         'expires' => $result['expires'],
+                         'jti' => $result['jti']
+                );
+        }
+
+        return null;
+    }
+
+    public function setJti($client_id, $subject, $audience, $expires, $jti)
+    {
+        $stmt = $this->db->prepare(sprintf('INSERT INTO %s (issuer, subject, audience, expires, jti) VALUES (:client_id, :subject, :audience, :expires, :jti)', $this->config['jti_table']));
+
+        return $stmt->execute(compact('client_id', 'subject', 'audience', 'expires', 'jti'));
+    }
+
+    /* PublicKeyInterface */
+    public function getPublicKey($client_id = null)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+
+        $stmt->execute(compact('client_id'));
+        if ($result = $stmt->fetch()) {
+            return $result['public_key'];
+        }
+    }
+
+    public function getPrivateKey($client_id = null)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT private_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+
+        $stmt->execute(compact('client_id'));
+        if ($result = $stmt->fetch()) {
+            return $result['private_key'];
+        }
+    }
+
+    public function getEncryptionAlgorithm($client_id = null)
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT encryption_algorithm FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+
+        $stmt->execute(compact('client_id'));
+        if ($result = $stmt->fetch()) {
+            return $result['encryption_algorithm'];
+        }
+
+        return 'RS256';
     }
 }

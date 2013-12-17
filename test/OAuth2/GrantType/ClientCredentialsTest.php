@@ -127,6 +127,27 @@ class ClientCredentialsTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($token['access_token']);
     }
 
+    public function testClientUserIdIsSetInAccessToken()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'client_credentials', // valid grant type
+            'client_id'     => 'Client ID With User ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+        ));
+        $token = $server->grantAccessToken($request, new Response());
+
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+
+        // verify the user_id was associated with the token
+        $storage = $server->getStorage('client');
+        $token = $storage->getAccessToken($token['access_token']);
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('user_id', $token);
+        $this->assertEquals($token['user_id'], 'brent@brentertainment.com');
+    }
+
     private function getTestServer()
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();

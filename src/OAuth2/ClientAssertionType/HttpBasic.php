@@ -38,11 +38,13 @@ class HttpBasic implements ClientAssertionTypeInterface
 
         if ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
             $response->setError(400, 'invalid_client', 'The client credentials are invalid');
+
             return false;
         }
 
         if (!$this->storage->checkRestrictedGrantType($clientData['client_id'], $request->request('grant_type'))) {
             $response->setError(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
+
             return false;
         }
 
@@ -89,6 +91,7 @@ class HttpBasic implements ClientAssertionTypeInterface
                  * client_secret can be null if the client's password is an empty string
                  * @see http://tools.ietf.org/html/rfc6749#section-2.3.1
                  */
+
                 return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret', ''));
             }
         }
