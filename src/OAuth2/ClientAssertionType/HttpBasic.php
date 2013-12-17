@@ -22,7 +22,8 @@ class HttpBasic implements ClientAssertionTypeInterface
     {
         $this->storage = $storage;
         $this->config = array_merge(array(
-            'allow_credentials_in_request_body' => true
+            'allow_credentials_in_request_body' => true,
+            'allow_public_clients' => true,
         ), $config);
     }
 
@@ -36,7 +37,19 @@ class HttpBasic implements ClientAssertionTypeInterface
             throw new \LogicException('the clientData array must have "client_id" and "client_secret" values set.');
         }
 
-        if ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
+        if ($clientData['client_secret'] == '') {
+            if (!$this->config['allow_public_clients']) {
+                $response->setError(400, 'invalid_client', 'client credentials are required');
+
+                return false;
+            }
+
+            if (!$this->storage->isPublicClient($clientData['client_id'])) {
+                $response->setError(400, 'invalid_client', 'This client is invalid or must authenticate using a client secret');
+
+                return false;
+            }
+        } elseif ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
             $response->setError(400, 'invalid_client', 'The client credentials are invalid');
 
             return false;

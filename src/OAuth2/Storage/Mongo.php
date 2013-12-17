@@ -67,6 +67,16 @@ class Mongo implements AuthorizationCodeInterface,
         return false;
     }
 
+    public function isPublicClient($client_id)
+    {
+        if (!$result = $this->collection('client_table')->findOne(array('client_id' => $client_id))) {
+            return false;
+        }
+
+        return empty($result['client_secret']);
+    }
+
+    /* ClientInterface */
     public function getClientDetails($client_id)
     {
         $result = $this->collection('client_table')->findOne(array('client_id' => $client_id));
@@ -304,6 +314,6 @@ class Mongo implements AuthorizationCodeInterface,
     public function setJti($client_id, $subject, $audience, $expiration, $jti)
     {
         //TODO: Needs mongodb implementation.
-    	throw new \Exception('setJti() for the MongoDB driver is currently unimplemented.');
+        throw new \Exception('setJti() for the MongoDB driver is currently unimplemented.');
     }
 }
