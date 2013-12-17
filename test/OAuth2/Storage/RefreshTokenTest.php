@@ -8,7 +8,7 @@ class RefreshTokenTest extends BaseTest
     public function testSetRefreshToken(RefreshTokenInterface $storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }

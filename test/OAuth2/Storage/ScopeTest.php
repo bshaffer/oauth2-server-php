@@ -10,7 +10,7 @@ class ScopeTest extends BaseTest
     public function testScopeExists($storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }
@@ -32,7 +32,7 @@ class ScopeTest extends BaseTest
     public function testGetDefaultScope($storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }
@@ -52,7 +52,7 @@ class ScopeTest extends BaseTest
     public function testClientScopeExists($storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }
@@ -75,7 +75,7 @@ class ScopeTest extends BaseTest
     public function testGetDefaultClientScope($storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }
