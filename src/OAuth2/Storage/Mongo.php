@@ -9,12 +9,9 @@ namespace OAuth2\Storage;
  * quickly. If your application requires further
  * customization, extend this class or create your own.
  *
- * NOTE: Passwords are stored in plaintext, which is never
- * a good idea.  Be sure to override this for your application
- *
  * @author Julien Chaumond <chaumond@gmail.com>
  */
-class Mongo implements AuthorizationCodeInterface,
+class Mongo extends AbstractStorage implements AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
@@ -49,6 +46,8 @@ class Mongo implements AuthorizationCodeInterface,
             'user_table' => 'oauth_users',
             'jwt_table' => 'oauth_jwt',
         ), $config);
+
+        parent::__construct($config);
     }
 
     // Helper function to access a MongoDB collection by `type`:
@@ -61,7 +60,7 @@ class Mongo implements AuthorizationCodeInterface,
     public function checkClientCredentials($client_id, $client_secret = null)
     {
         if ($result = $this->collection('client_table')->findOne(array('client_id' => $client_id))) {
-            return $result['client_secret'] == $client_secret;
+            return $this->checkCredential($result['client_secret'], $client_secret);
         }
 
         return false;
@@ -86,6 +85,9 @@ class Mongo implements AuthorizationCodeInterface,
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
     {
+        if (!empty($client_secret)) {
+            $client_secret = $this->bcrypt->create($client_secret);
+        }
         if ($this->getClientDetails($client_id)) {
             $this->collection('client_table')->update(
                 array('client_id' => $client_id),
@@ -211,7 +213,7 @@ class Mongo implements AuthorizationCodeInterface,
     public function checkUserCredentials($username, $password)
     {
         if ($user = $this->getUser($username)) {
-            return $this->checkPassword($user, $password);
+            return $this->checkCredential($user['password'], $password);
         }
 
         return false;
@@ -256,13 +258,6 @@ class Mongo implements AuthorizationCodeInterface,
         return true;
     }
 
-
-    // plaintext passwords are bad!  Override this for your application
-    protected function checkPassword($user, $password)
-    {
-        return $user['password'] == $password;
-    }
-
     public function getUser($username)
     {
         $result = $this->collection('user_table')->findOne(array('username' => $username));
@@ -272,6 +267,8 @@ class Mongo implements AuthorizationCodeInterface,
 
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
+        $password = $this->bcrypt->create($password);
+
         if ($this->getUser($username)) {
             $this->collection('user_table')->update(
                 array('username' => $username),

@@ -10,7 +10,7 @@ namespace OAuth2\Storage;
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class Memory implements AuthorizationCodeInterface,
+class Memory extends AbstractStorage implements AuthorizationCodeInterface,
     UserCredentialsInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
@@ -61,6 +61,8 @@ class Memory implements AuthorizationCodeInterface,
         $this->clientDefaultScopes = $params['client_default_scopes'];
         $this->defaultScope = $params['default_scope'];
         $this->keys = $params['keys'];
+
+        parent::__construct();
     }
 
     /* AuthorizationCodeInterface */

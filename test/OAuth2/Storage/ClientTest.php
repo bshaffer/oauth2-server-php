@@ -76,7 +76,7 @@ class ClientTest extends BaseTest
 
         // valid client_id
         $details = $storage->getClientDetails($clientId);
-        $this->assertEquals($details['client_secret'], 'somesecret');
+        $this->assertTrue($storage->checkCredential($details['client_secret'], 'somesecret'));
         $this->assertEquals($details['redirect_uri'], 'http://test.com');
         $this->assertEquals($details['grant_types'], 'client_credentials');
         $this->assertEquals($details['user_id'], 'brent@brentertainment.com');
