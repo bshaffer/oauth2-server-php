@@ -11,7 +11,7 @@ namespace OAuth2\Storage;
  *  $storage->setClientDetails($client_id, $client_secret, $redirect_uri);
  * </code>
  */
-class Redis implements AuthorizationCodeInterface,
+class Redis extends AbstractStorage implements AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
@@ -46,6 +46,8 @@ class Redis implements AuthorizationCodeInterface,
             'jwt_key' => 'oauth_jwt:',
             'scope_key' => 'oauth_scopes:',
         ), $config);
+
+        parent::__construct($config);
     }
 
     protected function getValue($key)
@@ -112,7 +114,7 @@ class Redis implements AuthorizationCodeInterface,
     {
         $user = $this->getUserDetails($username);
 
-        return $user && $user['password'] === $password;
+        return $user && $this->checkCredential($user['password'], $password);
     }
 
     public function getUserDetails($username)
@@ -134,6 +136,7 @@ class Redis implements AuthorizationCodeInterface,
 
     public function setUser($username, $password, $first_name = null, $last_name = null)
     {
+        $password = $this->bcrypt->create($password);
         return $this->setValue(
             $this->config['user_key'] . $username,
             compact('username', 'password', 'first_name', 'last_name')
@@ -148,7 +151,7 @@ class Redis implements AuthorizationCodeInterface,
         }
 
         return isset($client['client_secret'])
-            && $client['client_secret'] == $client_secret;
+            && $this->checkCredential($client['client_secret'], $client_secret);
     }
 
     public function isPublicClient($client_id)
@@ -168,6 +171,9 @@ class Redis implements AuthorizationCodeInterface,
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
     {
+        if (!empty($client_secret)) {
+            $client_secret = $this->bcrypt->create($client_secret);
+        }
         return $this->setValue(
             $this->config['client_key'] . $client_id,
             compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'user_id')

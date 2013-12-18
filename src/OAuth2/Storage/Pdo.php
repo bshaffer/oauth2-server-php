@@ -9,12 +9,9 @@ namespace OAuth2\Storage;
  * quickly. If your application requires further
  * customization, extend this class or create your own.
  *
- * NOTE: Passwords are stored in plaintext, which is never
- * a good idea.  Be sure to override this for your application
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class Pdo implements AuthorizationCodeInterface,
+class Pdo extends AbstractStorage implements AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
@@ -57,6 +54,8 @@ class Pdo implements AuthorizationCodeInterface,
             'scope_table'  => 'oauth_scopes',
             'public_key_table'  => 'oauth_public_keys',
         ), $config);
+
+        parent::__construct($config);                                                                                                
     }
 
     /* OAuth2\Storage\ClientCredentialsInterface */
@@ -67,7 +66,7 @@ class Pdo implements AuthorizationCodeInterface,
         $result = $stmt->fetch();
 
         // make this extensible
-        return $result && $result['client_secret'] == $client_secret;
+        return $result && $this->checkCredential($result['client_secret'], $client_secret);
     }
 
     public function isPublicClient($client_id)
@@ -93,6 +92,9 @@ class Pdo implements AuthorizationCodeInterface,
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
     {
+        if (!empty($client_secret)) {                                                                                                
+            $client_secret = $this->bcrypt->create($client_secret);                                                                  
+        }
         // if it exists, update it.
         if ($this->getClientDetails($client_id)) {
             $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_secret=:client_secret, redirect_uri=:redirect_uri, grant_types=:grant_types, user_id=:user_id where client_id=:client_id', $this->config['client_table']));
@@ -185,7 +187,7 @@ class Pdo implements AuthorizationCodeInterface,
     public function checkUserCredentials($username, $password)
     {
         if ($user = $this->getUser($username)) {
-            return $this->checkPassword($user, $password);
+            return $this->checkCredential($user['password'], $password);
         }
 
         return false;
@@ -227,12 +229,6 @@ class Pdo implements AuthorizationCodeInterface,
         return $stmt->execute(compact('refresh_token'));
     }
 
-    // plaintext passwords are bad!  Override this for your application
-    protected function checkPassword($user, $password)
-    {
-        return $user['password'] == sha1($password);
-    }
-
     public function getUser($username)
     {
         $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
@@ -250,8 +246,8 @@ class Pdo implements AuthorizationCodeInterface,
 
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
-        // do not store in plaintext
-        $password = sha1($password);
+        // do not store in plaintext, use bcrypt
+        $password = $this->bcrypt->create($password);
 
         // if it exists, update it.
         if ($this->getUser($username)) {
