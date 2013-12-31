@@ -51,13 +51,25 @@ class Bearer implements TokenTypeInterface
     {
         $headers = $request->headers('AUTHORIZATION');
 
-        // Check that exactly one method was used
+        /**
+         * Ensure more than one method is not used for including an
+         * access token
+         *
+         * @see http://tools.ietf.org/html/rfc6750#section-3.1
+         */
         $methodsUsed = !empty($headers) + !is_null($request->query($this->config['token_param_name'])) + !is_null($request->request($this->config['token_param_name']));
         if ($methodsUsed > 1) {
             $response->setError(400, 'invalid_request', 'Only one method may be used to authenticate at a time (Auth header, GET or POST)');
 
             return null;
         }
+
+        /**
+         * If no authentication is provided, set the status code
+         * to 401 and return no other error information
+         *
+         * @see http://tools.ietf.org/html/rfc6750#section-3.1
+         */
         if ($methodsUsed == 0) {
             $response->setStatusCode(401);
 
