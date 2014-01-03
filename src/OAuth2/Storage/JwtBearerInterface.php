@@ -26,7 +26,7 @@ interface JwtBearerInterface
     public function getClientKey($client_id, $subject);
 
     /**
-     * Get a jti (JSON token identifier)by matching against the client_id, subject, audience and expiration.
+     * Get a jti (JSON token identifier) by matching against the client_id, subject, audience and expiration.
      *
      * @param $client_id
      * Client identifier to match.
@@ -55,7 +55,6 @@ interface JwtBearerInterface
 
     /**
      * Store a used jti so that we can check against it to prevent replay attacks.
-
      * @param $client_id
      * Client identifier to insert.
      *

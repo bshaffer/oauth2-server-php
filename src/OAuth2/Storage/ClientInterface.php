@@ -29,12 +29,21 @@ interface ClientInterface
      *     "client_id"    => CLIENT_ID,         // OPTIONAL the client id
      *     "grant_types"  => GRANT_TYPES,       // OPTIONAL an array of restricted grant types
      *     "user_id"      => USER_ID,           // OPTIONAL the user identifier associated with this client
+     *     "scope"        => SCOPE,             // OPTIONAL the scopes allowed for this client
      * );
      * @endcode
      *
      * @ingroup oauth2_section_4
      */
     public function getClientDetails($client_id);
+
+    /**
+     * Get the scope associated with this client
+     *
+     * @return
+     * STRING the space-delineated scope list for the specified client_id
+     */
+    public function getClientScope($client_id);
 
     /**
      * Check restricted grant types of corresponding client identifier.

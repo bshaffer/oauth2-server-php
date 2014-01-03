@@ -55,12 +55,6 @@ class HttpBasic implements ClientAssertionTypeInterface
             return false;
         }
 
-        if (!$this->storage->checkRestrictedGrantType($clientData['client_id'], $request->request('grant_type'))) {
-            $response->setError(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
-
-            return false;
-        }
-
         $this->clientData = $clientData;
 
         return true;

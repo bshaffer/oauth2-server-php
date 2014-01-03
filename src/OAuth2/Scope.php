@@ -56,15 +56,13 @@ class Scope implements ScopeInterface
      *
      * @param $scope
      *   A space-separated string of scopes.
-     * @param $client_id
-     *   The requesting client.
      *
      * @return
      *   TRUE if it exists, FALSE otherwise.
      */
-    public function scopeExists($scope, $client_id = null)
+    public function scopeExists($scope)
     {
-        return $this->storage->scopeExists($scope, $client_id);
+        return $this->storage->scopeExists($scope);
     }
 
     public function getScopeFromRequest(RequestInterface $request)
@@ -73,8 +71,8 @@ class Scope implements ScopeInterface
         return $request->request('scope', $request->query('scope'));
     }
 
-    public function getDefaultScope($client_id = null)
+    public function getDefaultScope()
     {
-        return $this->storage->getDefaultScope($client_id);
+        return $this->storage->getDefaultScope();
     }
 }

@@ -27,8 +27,6 @@ class Memory implements AuthorizationCodeInterface,
     private $jwt;
     private $jti;
     private $supportedScopes;
-    private $clientSupportedScopes;
-    private $clientDefaultScopes;
     private $defaultScope;
     private $keys;
 
@@ -43,8 +41,6 @@ class Memory implements AuthorizationCodeInterface,
             'jwt' => array(),
             'jti' => array(),
             'default_scope' => null,
-            'client_supported_scopes' => array(),
-            'client_default_scopes' => array(),
             'supported_scopes' => array(),
             'keys' => array(),
         ), $params);
@@ -57,8 +53,6 @@ class Memory implements AuthorizationCodeInterface,
         $this->jwt = $params['jwt'];
         $this->jti = $params['jti'];
         $this->supportedScopes = $params['supported_scopes'];
-        $this->clientSupportedScopes = $params['client_supported_scopes'];
-        $this->clientDefaultScopes = $params['client_default_scopes'];
         $this->defaultScope = $params['default_scope'];
         $this->keys = $params['keys'];
     }
@@ -151,6 +145,7 @@ class Memory implements AuthorizationCodeInterface,
             'client_id'     => $client_id,
             'client_secret' => null,
             'redirect_uri'  => null,
+            'scope'         => null,
         ), $this->clientCredentials[$client_id]);
 
         return $clientDetails;
@@ -217,26 +212,16 @@ class Memory implements AuthorizationCodeInterface,
         return true;
     }
 
-    public function scopeExists($scope, $client_id = null)
+    public function scopeExists($scope)
     {
         $scope = explode(' ', trim($scope));
 
-        if (!is_null($client_id) && array_key_exists($client_id, $this->clientSupportedScopes)) {
-            $allowedScopes = array_merge($this->supportedScopes, $this->clientSupportedScopes[$client_id]);
-        } else {
-            $allowedScopes = $this->supportedScopes;
-        }
-
-        return (count(array_diff($scope, $allowedScopes)) == 0);
+        return (count(array_diff($scope, $this->supportedScopes)) == 0);
     }
 
-    public function getDefaultScope($client_id = null)
+    public function getDefaultScope()
     {
-        if ($client_id && array_key_exists($client_id, $this->clientDefaultScopes)) {
-           return implode(' ', $this->clientDefaultScopes[$client_id]);
-        } else {
-           return $this->defaultScope;
-        }
+        return $this->defaultScope;
     }
 
     /*JWTBearerInterface */
@@ -254,15 +239,29 @@ class Memory implements AuthorizationCodeInterface,
         return false;
     }
 
+    public function getClientScope($client_id)
+    {
+        if (!$clientDetails = $this->getClientDetails($client_id)) {
+            return false;
+        }
+
+        if (isset($clientDetails['scope'])) {
+            return $clientDetails['scope'];
+        }
+
+        return null;
+    }
+
     public function getJti($client_id, $subject, $audience, $expires, $jti)
     {
         foreach ($this->jti as $storedJti) {
             if ($storedJti['issuer'] == $client_id && $storedJti['subject'] == $subject && $storedJti['audience'] == $audience && $storedJti['expires'] == $expires && $storedJti['jti'] == $jti) {
-                return array('issuer' => $storedJti['issuer'],
-                             'subject' => $storedJti['subject'],
-                             'audience' => $storedJti['audience'],
-                             'expires' => $storedJti['expires'],
-                             'jti' => $storedJti['jti']
+                return array(
+                    'issuer' => $storedJti['issuer'],
+                    'subject' => $storedJti['subject'],
+                    'audience' => $storedJti['audience'],
+                    'expires' => $storedJti['expires'],
+                    'jti' => $storedJti['jti']
                 );
             }
         }

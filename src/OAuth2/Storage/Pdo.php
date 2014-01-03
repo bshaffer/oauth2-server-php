@@ -264,28 +264,30 @@ class Pdo implements AuthorizationCodeInterface,
     }
 
     /* ScopeInterface */
-    public function scopeExists($scope, $client_id = null)
+    public function scopeExists($scope)
     {
         $scope = explode(' ', $scope);
-        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type=:type AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
-        $stmt->execute(array('client_id' => $client_id, 'type'=> 'supported'));
+        $stmt = $this->db->prepare(sprintf('SELECT count(scope) as count FROM %s WHERE scope IN ("%s")', $this->config['scope_table'], implode('","', $scope)));
+        $stmt->execute();
 
         if ($result = $stmt->fetch()) {
-            $supportedScope = explode(' ', $result['scope']);
-        } else {
-            $supportedScope = array();
+            return $result['count'] == count($scope);
         }
 
-        return (count(array_diff($scope, $supportedScope)) == 0);
+        return false;
     }
 
-    public function getDefaultScope($client_id = null)
+    public function getDefaultScope()
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type=:type AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
-        $stmt->execute(array('client_id' => $client_id, 'type' => 'default'));
+        $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s WHERE is_default=:is_default', $this->config['scope_table']));
+        $stmt->execute(array('is_default' => true));
 
-        if ($result = $stmt->fetch()) {
-            return $result['scope'];
+        if ($result = $stmt->fetchAll()) {
+            $defaultScope = array_map(function ($row) {
+                return $row['scope'];
+            }, $result);
+
+            return implode(' ', $defaultScope);
         }
 
         return null;
@@ -301,6 +303,19 @@ class Pdo implements AuthorizationCodeInterface,
         return $stmt->fetch();
     }
 
+    public function getClientScope($client_id)
+    {
+        if (!$clientDetails = $this->getClientDetails($client_id)) {
+            return false;
+        }
+
+        if (isset($clientDetails['scope'])) {
+            return $clientDetails['scope'];
+        }
+
+        return null;
+    }
+
     public function getJti($client_id, $subject, $audience, $expires, $jti)
     {
         $stmt = $this->db->prepare($sql = sprintf('SELECT* FROM %s WHERE issuer=:client_id AND subject=:subject AND audience=:audience AND expires=:expires AND jti=:jti', $this->config['jti_table']));
@@ -308,12 +323,13 @@ class Pdo implements AuthorizationCodeInterface,
         $stmt->execute(compact('client_id', 'subject', 'audience', 'expires', 'jti'));
 
         if ($result = $stmt->fetch()) {
-            return array('issuer' => $result['issuer'],
-                         'subject' => $result['subject'],
-                         'audience' => $result['audience'],
-                         'expires' => $result['expires'],
-                         'jti' => $result['jti']
-                );
+            return array(
+                'issuer' => $result['issuer'],
+                'subject' => $result['subject'],
+                'audience' => $result['audience'],
+                'expires' => $result['expires'],
+                'jti' => $result['jti'],
+            );
         }
 
         return null;

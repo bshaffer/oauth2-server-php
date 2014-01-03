@@ -305,6 +305,19 @@ class Mongo implements AuthorizationCodeInterface,
         return $result;
     }
 
+    public function getClientScope($client_id)
+    {
+        if (!$clientDetails = $this->getClientDetails($client_id)) {
+            return false;
+        }
+
+        if (isset($clientDetails['scope'])) {
+            return $clientDetails['scope'];
+        }
+
+        return null;
+    }
+
     public function getJti($client_id, $subject, $audience, $expiration, $jti)
     {
         //TODO: Needs mongodb implementation.

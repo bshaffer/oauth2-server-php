@@ -134,18 +134,13 @@
             "jti": "used_jti"
         }
     ],
-    "client_supported_scopes" : {
-        "Test Client ID" : ["clientscope1", "clientscope2"],
-        "Test Client ID 2" : ["clientscope3"]
-    },
-    "client_default_scopes" : {
-        "Test Default Scope Client ID" : ["clientscope1", "clientscope2"],
-        "Test Default Scope Client ID 2" : ["clientscope3"]
-    },
     "supported_scopes" : [
         "scope1",
         "scope2",
         "scope3",
+        "clientscope1",
+        "clientscope2",
+        "clientscope3",
         "supportedscope1",
         "supportedscope2",
         "supportedscope3",

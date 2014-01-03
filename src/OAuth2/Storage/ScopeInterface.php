@@ -16,13 +16,11 @@ interface ScopeInterface
      *
      * @param $scope
      * A space-separated string of scopes.
-     * @param $client_id
-     * The requesting client.
      *
      * @return
      * TRUE if it exists, FALSE otherwise.
      */
-    public function scopeExists($scope, $client_id = null);
+    public function scopeExists($scope);
 
     /**
      * The default scope to use in the event the client
@@ -41,5 +39,5 @@ interface ScopeInterface
      * ex:
      *     null
      */
-    public function getDefaultScope($client_id = null);
+    public function getDefaultScope();
 }
