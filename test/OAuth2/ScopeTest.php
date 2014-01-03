@@ -39,12 +39,5 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($scopeUtil->getDefaultScope(), 'base');
         $this->assertTrue($scopeUtil->scopeExists('only-this-one', 'client_id'));
-
-        //Test getting default scopes with a client_id
-        $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
-        $scopeUtil = new Scope($memoryStorage);
-        $this->assertEquals($scopeUtil->getDefaultScope('Test Default Scope Client ID'), 'clientscope1 clientscope2');
-        $this->assertEquals($scopeUtil->getDefaultScope('Test Default Scope Client ID 2'), 'clientscope3');
-        $this->assertEquals($scopeUtil->getDefaultScope('Test Default Scope Client ID That Does Not Exist'), null);
     }
 }

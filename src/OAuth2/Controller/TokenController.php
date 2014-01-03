@@ -7,6 +7,7 @@ use OAuth2\ClientAssertionType\ClientAssertionTypeInterface;
 use OAuth2\GrantType\GrantTypeInterface;
 use OAuth2\ScopeInterface;
 use OAuth2\Scope;
+use OAuth2\Storage\ClientInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 
@@ -19,8 +20,9 @@ class TokenController implements TokenControllerInterface
     protected $grantTypes;
     protected $clientAssertionType;
     protected $scopeUtil;
+    protected $clientStorage;
 
-    public function __construct(AccessTokenInterface $accessToken, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null)
+    public function __construct(AccessTokenInterface $accessToken, ClientInterface $clientStorage, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null)
     {
         if (is_null($clientAssertionType)) {
             foreach ($grantTypes as $grantType) {
@@ -31,6 +33,7 @@ class TokenController implements TokenControllerInterface
         }
         $this->clientAssertionType = $clientAssertionType;
         $this->accessToken = $accessToken;
+        $this->clientStorage = $clientStorage;
         foreach ($grantTypes as $grantType) {
             $this->addGrantType($grantType);
         }
@@ -78,7 +81,8 @@ class TokenController implements TokenControllerInterface
             return null;
         }
 
-        /* Determine grant type from request
+        /**
+         * Determine grant type from request
          * and validate the request for that grant type
          */
         if (!$grantTypeIdentifier = $request->request('grant_type')) {
@@ -96,7 +100,8 @@ class TokenController implements TokenControllerInterface
 
         $grantType = $this->grantTypes[$grantTypeIdentifier];
 
-        /* Retrieve the client information from the request
+        /**
+         * Retrieve the client information from the request
          * ClientAssertionTypes allow for grant types which also assert the client data
          * in which case ClientAssertion is handled in the validateRequest method
          *
@@ -110,7 +115,8 @@ class TokenController implements TokenControllerInterface
             $clientId = $this->clientAssertionType->getClientId();
         }
 
-        /* Retrieve the grant type information from the request
+        /**
+         * Retrieve the grant type information from the request
          * The GrantTypeInterface object handles all validation
          * If the object is an instance of ClientAssertionTypeInterface,
          * That logic is handled here as well
@@ -130,29 +136,66 @@ class TokenController implements TokenControllerInterface
             }
         }
 
-        /*
-         * Validate the scope of the token
-         * If the grant type returns a value for the scope,
-         * as is the case with the "Authorization Code" grant type,
-         * this value must be verified with the scope being requested
+        /**
+         * Validate the client can use the requested grant type
          */
+        if (!$this->clientStorage->checkRestrictedGrantType($clientId, $grantTypeIdentifier)) {
+            $response->setError(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
+
+            return false;
+        }
+
+        /**
+         * Validate the scope of the token
+         *
+         * requestedScope - the scope specified in the token request
+         * availableScope - the scope associated with the grant type
+         *  ex: in the case of the "Authorization Code" grant type,
+         *  the scope is specified in the authorize request
+         *
+         * @see http://tools.ietf.org/html/rfc6749#section-3.3
+         */
+
+        $requestedScope = $this->scopeUtil->getScopeFromRequest($request);
         $availableScope = $grantType->getScope();
-        if (!$requestedScope = $this->scopeUtil->getScopeFromRequest($request)) {
-            if (!$availableScope) {
-                if (false === $defaultScope = $this->scopeUtil->getDefaultScope($clientId)) {
-                    $response->setError(400, 'invalid_scope', 'This application requires you specify a scope parameter');
+
+        if ($requestedScope) {
+            // validate the requested scope
+            if ($availableScope) {
+                if (!$this->scopeUtil->checkScope($requestedScope, $availableScope)) {
+                    $response->setError(400, 'invalid_scope', 'The scope requested is invalid for this request');
+
+                    return null;
+                }
+            } else {
+                // validate the client has access to this scope
+                if ($clientScope = $this->clientStorage->getClientScope($clientId)) {
+                    if (!$this->scopeUtil->checkScope($requestedScope, $clientScope)) {
+                        $response->setError(400, 'invalid_scope', 'The scope requested is invalid for this client');
+
+                        return false;
+                    }
+                } elseif (!$this->scopeUtil->scopeExists($requestedScope)) {
+                    $response->setError(400, 'invalid_scope', 'An unsupported scope was requested');
 
                     return null;
                 }
             }
-            $requestedScope = $availableScope ? $availableScope : $defaultScope;
-        }
+        } elseif ($availableScope) {
+            // use the scope associated with this grant type
+            $requestedScope = $availableScope;
+        } else {
+            // use a globally-defined default scope
+            $defaultScope = $this->scopeUtil->getDefaultScope();
 
-        if (($requestedScope && !$this->scopeUtil->scopeExists($requestedScope, $clientId))
-            || ($availableScope && !$this->scopeUtil->checkScope($requestedScope, $availableScope))) {
-            $response->setError(400, 'invalid_scope', 'An unsupported scope was requested');
+            // "false" means default scopes are not allowed
+            if (false === $defaultScope) {
+                $response->setError(400, 'invalid_scope', 'This application requires you specify a scope parameter');
 
-            return null;
+                return null;
+            }
+
+            $requestedScope = $defaultScope;
         }
 
         return $grantType->createAccessToken($this->accessToken, $clientId, $grantType->getUserId(), $requestedScope);
@@ -165,7 +208,7 @@ class TokenController implements TokenControllerInterface
      * the grant type to add for the specified identifier
      * @param identifier - string
      * a string passed in as "grant_type" in the response that will call this grantType
-     **/
+     */
     public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
     {
         if (is_null($identifier) || is_numeric($identifier)) {
