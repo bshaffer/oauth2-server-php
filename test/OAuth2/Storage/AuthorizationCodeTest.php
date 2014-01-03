@@ -8,7 +8,7 @@ class AuthorizationCodeTest extends BaseTest
     public function testGetAuthorizationCode(AuthorizationCodeInterface $storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }
@@ -25,7 +25,7 @@ class AuthorizationCodeTest extends BaseTest
     public function testSetAuthorizationCode(AuthorizationCodeInterface $storage = null)
     {
         if (is_null($storage)) {
-            $this->markTestSkipped('Unable to load class Mongo_Client');
+            $this->markTestSkipped('Skipped Storage');
 
             return;
         }

@@ -8,10 +8,13 @@ php:
 env:
   - SKIP_MONGO_TESTS=1
 
-services: mongodb
+services:
+  - mongodb
+  - redis-server
 
 before_script:
   - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - composer require predis/predis:dev-master
 
 after_failure:
   - ps ax | grep mongo

@@ -59,7 +59,7 @@ class Pdo implements AuthorizationCodeInterface,
         ), $config);
     }
 
-    /* OAuth2_Storage_ClientCredentialsInterface */
+    /* OAuth2\Storage\ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
@@ -70,6 +70,19 @@ class Pdo implements AuthorizationCodeInterface,
         return $result && $result['client_secret'] == $client_secret;
     }
 
+    public function isPublicClient($client_id)
+    {
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
+        $stmt->execute(compact('client_id'));
+
+        if (!$result = $stmt->fetch()) {
+            return false;
+        }
+
+        return empty($result['client_secret']);;
+    }
+
+    /* OAuth2\Storage\ClientInterface */
     public function getClientDetails($client_id)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
@@ -103,7 +116,7 @@ class Pdo implements AuthorizationCodeInterface,
         return true;
     }
 
-    /* OAuth2_Storage_AccessTokenInterface */
+    /* OAuth2\Storage\AccessTokenInterface */
     public function getAccessToken($access_token)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = :access_token', $this->config['access_token_table']));
@@ -132,7 +145,7 @@ class Pdo implements AuthorizationCodeInterface,
         return $stmt->execute(compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
-    /* OAuth2_Storage_AuthorizationCodeInterface */
+    /* OAuth2\Storage\AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = :code', $this->config['code_table']));
@@ -168,7 +181,7 @@ class Pdo implements AuthorizationCodeInterface,
         return $stmt->execute(compact('code'));
     }
 
-    /* OAuth2_Storage_UserCredentialsInterface */
+    /* OAuth2\Storage\UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
         if ($user = $this->getUser($username)) {
@@ -183,7 +196,7 @@ class Pdo implements AuthorizationCodeInterface,
         return $this->getUser($username);
     }
 
-    /* OAuth2_Storage_RefreshTokenInterface */
+    /* OAuth2\Storage\RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
     {
         $stmt = $this->db->prepare(sprintf('SELECT * FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
@@ -254,8 +267,8 @@ class Pdo implements AuthorizationCodeInterface,
     public function scopeExists($scope, $client_id = null)
     {
         $scope = explode(' ', $scope);
-        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type="supported" AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
-        $stmt->execute(compact('client_id'));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type=:type AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
+        $stmt->execute(array('client_id' => $client_id, 'type'=> 'supported'));
 
         if ($result = $stmt->fetch()) {
             $supportedScope = explode(' ', $result['scope']);
@@ -268,8 +281,8 @@ class Pdo implements AuthorizationCodeInterface,
 
     public function getDefaultScope($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type="default" AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
-        $stmt->execute(compact('client_id'));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT scope FROM %s WHERE type=:type AND (client_id=:client_id OR client_id IS NULL) ORDER BY client_id IS NOT NULL DESC', $this->config['scope_table']));
+        $stmt->execute(array('client_id' => $client_id, 'type' => 'default'));
 
         if ($result = $stmt->fetch()) {
             return $result['scope'];

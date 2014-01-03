@@ -27,6 +27,10 @@ class Jwt implements EncryptionInterface
 
     public function decode($jwt, $key = null, $verify = true)
     {
+        if (!strpos($jwt, '.')) {
+            return false;
+        }
+
         $tks = explode('.', $jwt);
 
         if (count($tks) != 3) {

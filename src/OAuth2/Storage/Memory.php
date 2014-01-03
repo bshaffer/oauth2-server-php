@@ -131,6 +131,16 @@ class Memory implements AuthorizationCodeInterface,
         return isset($this->clientCredentials[$client_id]['client_secret']) && $this->clientCredentials[$client_id]['client_secret'] === $client_secret;
     }
 
+    public function isPublicClient($client_id)
+    {
+        if (!isset($this->clientCredentials[$client_id])) {
+            return false;
+        }
+
+        return empty($this->clientCredentials[$client_id]['client_secret']);
+    }
+
+    /* ClientInterface */
     public function getClientDetails($client_id)
     {
         if (!isset($this->clientCredentials[$client_id])) {

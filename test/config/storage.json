@@ -48,6 +48,10 @@
         "Test Client ID Empty Secret": {
             "client_secret": ""
         },
+         "Test Client ID For Password Grant": {
+            "grant_types": "password",
+            "client_secret": ""
+        },
         "Client ID With User ID": {
             "client_secret": "TestSecret",
             "user_id": "brent@brentertainment.com"
@@ -63,6 +67,9 @@
         },
         "testusername":  {
             "password": "testpass"
+        },
+        "johndoe": {
+            "password": "password"
         }
     },
     "refresh_tokens" : {
