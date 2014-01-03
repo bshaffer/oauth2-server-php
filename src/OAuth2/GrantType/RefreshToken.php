@@ -62,11 +62,6 @@ class RefreshToken implements GrantTypeInterface
         return $this->refreshToken['client_id'];
     }
 
-    public function requiresClientAuth()
-    {
-        return false;
-    }
-
     public function getUserId()
     {
         return isset($this->refreshToken['user_id']) ? $this->refreshToken['user_id'] : null;
