@@ -163,13 +163,14 @@ class Memory implements AuthorizationCodeInterface,
         return true;
     }
 
-    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
     {
         $this->clientCredentials[$client_id] = array(
             'client_id'     => $client_id,
             'client_secret' => $client_secret,
             'redirect_uri'  => $redirect_uri,
             'grant_types'   => $grant_types,
+            'scope'         => $scope,
             'user_id'       => $user_id,
         );
 
