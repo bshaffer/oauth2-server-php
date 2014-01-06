@@ -84,7 +84,7 @@ class Mongo implements AuthorizationCodeInterface,
         return is_null($result) ? false : $result;
     }
 
-    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
     {
         if ($this->getClientDetails($client_id)) {
             $this->collection('client_table')->update(
@@ -93,6 +93,7 @@ class Mongo implements AuthorizationCodeInterface,
                     'client_secret' => $client_secret,
                     'redirect_uri'  => $redirect_uri,
                     'grant_types'   => $grant_types,
+                    'scope'         => $scope,
                     'user_id'       => $user_id,
                 ))
             );
@@ -103,6 +104,7 @@ class Mongo implements AuthorizationCodeInterface,
                     'client_secret' => $client_secret,
                     'redirect_uri'  => $redirect_uri,
                     'grant_types'   => $grant_types,
+                    'scope'         => $scope,
                     'user_id'       => $user_id,
                 )
             );
@@ -303,6 +305,19 @@ class Mongo implements AuthorizationCodeInterface,
         ));
 
         return $result;
+    }
+
+    public function getClientScope($client_id)
+    {
+        if (!$clientDetails = $this->getClientDetails($client_id)) {
+            return false;
+        }
+
+        if (isset($clientDetails['scope'])) {
+            return $clientDetails['scope'];
+        }
+
+        return null;
     }
 
     public function getJti($client_id, $subject, $audience, $expiration, $jti)

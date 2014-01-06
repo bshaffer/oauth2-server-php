@@ -166,11 +166,11 @@ class Redis implements AuthorizationCodeInterface,
         return $this->getValue($this->config['client_key'] . $client_id);
     }
 
-    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $user_id = null)
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
     {
         return $this->setValue(
             $this->config['client_key'] . $client_id,
-            compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'user_id')
+            compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id')
         );
     }
 
@@ -264,6 +264,19 @@ class Redis implements AuthorizationCodeInterface,
         $jwt = $this->getValue($this->config['jwt_key'] . $client_id);
         if ( isset($jwt['subject']) && $jwt['subject'] == $subject ) {
             return $jwt['key'];
+        }
+
+        return null;
+    }
+
+    public function getClientScope($client_id)
+    {
+        if (!$clientDetails = $this->getClientDetails($client_id)) {
+            return false;
+        }
+
+        if (isset($clientDetails['scope'])) {
+            return $clientDetails['scope'];
         }
 
         return null;

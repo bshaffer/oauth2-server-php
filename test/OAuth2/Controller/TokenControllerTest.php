@@ -147,14 +147,14 @@ class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
             'code'       => 'testcode',
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
-            'scope' => 'clientscope1 clientscope2 scope1 scope2 scope3'
+            'scope' => 'clientscope1 clientscope2'
         ));
         $server->handleTokenRequest($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 200);
         $this->assertNull($response->getParameter('error'));
         $this->assertNull($response->getParameter('error_description'));
-        $this->assertEquals('clientscope1 clientscope2 scope1 scope2 scope3', $response->getParameter('scope'));
+        $this->assertEquals('clientscope1 clientscope2', $response->getParameter('scope'));
     }
 
     public function testInvalidClientIdScope()
@@ -163,16 +163,16 @@ class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
         $server = $this->getTestServer();
         $request = TestRequest::createPost(array(
             'grant_type' => 'authorization_code', // valid grant type
-            'code'       => 'testcode',
+            'code'       => 'testcode-with-scope',
             'client_id' => 'Test Client ID', // valid client id
             'client_secret' => 'TestSecret', // valid client secret
-            'scope' => 'clientscope3 scope1'
+            'scope' => 'clientscope3'
         ));
         $server->handleTokenRequest($request, $response = new Response());
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
+        $this->assertEquals($response->getParameter('error_description'), 'The scope requested is invalid for this request');
     }
 
     public function testEnforceScope()
@@ -227,7 +227,7 @@ class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $accessToken = new \OAuth2\ResponseType\AccessToken($storage);
-        $controller = new TokenController($accessToken);
+        $controller = new TokenController($accessToken, $storage);
     }
 
     private function getTestServer()

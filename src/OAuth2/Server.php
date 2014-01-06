@@ -378,7 +378,7 @@ class Server implements ResourceControllerInterface,
     protected function createDefaultAuthorizeController()
     {
         if (!isset($this->storages['client'])) {
-                throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\ClientInterface to use the authorize server");
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\ClientInterface to use the authorize server");
         }
         if (0 == count($this->responseTypes)) {
             $this->responseTypes = $this->getDefaultResponseTypes();
@@ -408,7 +408,11 @@ class Server implements ResourceControllerInterface,
             }
         }
 
-        return new TokenController($this->getAccessTokenResponseType(), $this->grantTypes, $this->clientAssertionType, $this->getScopeUtil());
+        if (!isset($this->storages['client'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\ClientInterface to use the token server");
+        }
+
+        return new TokenController($this->getAccessTokenResponseType(), $this->storages['client'], $this->grantTypes, $this->clientAssertionType, $this->getScopeUtil());
     }
 
     protected function createDefaultResourceController()
