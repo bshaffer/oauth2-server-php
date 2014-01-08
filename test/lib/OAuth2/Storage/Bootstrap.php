@@ -49,13 +49,27 @@ class Bootstrap
         if (!$this->redis) {
             if (class_exists('Predis\Client')) {
                 $redis = new \Predis\Client();
-                $redis->flushdb();
-                $this->redis = new Redis($redis);
-                $this->createRedisDb($this->redis);
+                if ($this->testRedisConnection($redis)) {
+                    $redis->flushdb();
+                    $this->redis = new Redis($redis);
+                    $this->createRedisDb($this->redis);
+                }
             }
         }
 
         return $this->redis;
+    }
+
+    private function testRedisConnection(\Predis\Client $redis)
+    {
+        try {
+            $redis->connect();
+        } catch (\Predis\CommunicationException $exception) {
+            // we were unable to connect to the redis server
+            return false;
+        }
+
+        return true;
     }
 
     public function getMysqlPdo()
@@ -77,16 +91,29 @@ class Bootstrap
         if (!$this->mongo) {
             $skipMongo = isset($_SERVER['SKIP_MONGO_TESTS']) && $_SERVER['SKIP_MONGO_TESTS'];
             if (!$skipMongo && class_exists('MongoClient')) {
-                $m = new \MongoClient();
-                $db = $m->oauth2_server_php;
-                $this->removeMongoDb($db);
-                $this->createMongoDb($db);
+                $mongo = new \MongoClient('mongodb://localhost:27017', array('connect' => false));
+                if ($this->testMongoConnection($mongo)) {
+                    $db = $mongo->oauth2_server_php;
+                    $this->removeMongoDb($db);
+                    $this->createMongoDb($db);
 
-                $this->mongo = new Mongo($db);
+                    $this->mongo = new Mongo($db);
+                }
             }
         }
 
         return $this->mongo;
+    }
+
+    private function testMongoConnection(\MongoClient $mongo)
+    {
+        try {
+            $mongo->connect();
+        } catch (\MongoConnectionException $e) {
+            return false;
+        }
+
+        return true;
     }
 
     private function createSqliteDb(\PDO $pdo)
