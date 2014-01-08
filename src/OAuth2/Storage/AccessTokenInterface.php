@@ -25,6 +25,7 @@ interface AccessTokenInterface
      * - expires: Stored expiration in unix timestamp.
      * - user_id: (optional) Stored user identifier.
      * - scope: (optional) Stored scope values in space-separated string.
+     * - id_token: (optional) Stored id_token.
      *
      * @ingroup oauth2_section_7
      */
@@ -45,8 +46,10 @@ interface AccessTokenInterface
      * Expiration to be stored as a Unix timestamp.
      * @param string $scope
      * (optional) Scopes to be stored in space-separated string.
+     * @param string $id_token
+     * (optional) The id_token to be stored.
      *
      * @ingroup oauth2_section_4
      */
-    public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null);
+    public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null, $id_token = null);
 }
