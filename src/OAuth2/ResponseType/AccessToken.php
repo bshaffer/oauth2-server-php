@@ -15,6 +15,21 @@ class AccessToken implements AccessTokenInterface
     protected $refreshStorage;
     protected $config;
 
+    /**
+     * @param OAuth2\Storage\AccessTokenInterface $tokenStorage
+     * REQUIRED Storage class for saving access token information
+     * @param OAuth2\Storage\RefreshTokenInterface $refreshStorage
+     * OPTIONAL Storage class for saving refresh token information
+     * @param array $config
+     * OPTIONAL Configuration options for the server
+     * @code
+     * $config = array(
+     *   'token_type' => 'bearer',              // token type identifier
+     *   'access_lifetime' => 3600,             // time before access token expires
+     *   'refresh_token_lifetime' => 1209600,   // time before refresh token expires
+     * );
+     * @endcode
+     */
     public function __construct(AccessTokenStorageInterface $tokenStorage, RefreshTokenInterface $refreshStorage = null, array $config = array())
     {
         $this->tokenStorage = $tokenStorage;
