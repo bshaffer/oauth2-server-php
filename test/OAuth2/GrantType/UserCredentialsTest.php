@@ -53,7 +53,7 @@ class UserCredentialsTest extends \PHPUnit_Framework_TestCase
         ));
         $token = $server->grantAccessToken($request, $response = new Response());
 
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getStatusCode(), 401);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
         $this->assertEquals($response->getParameter('error_description'), 'Invalid username and password combination');
     }
@@ -70,7 +70,7 @@ class UserCredentialsTest extends \PHPUnit_Framework_TestCase
         ));
         $token = $server->grantAccessToken($request, $response = new Response());
 
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getStatusCode(), 401);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
         $this->assertEquals($response->getParameter('error_description'), 'Invalid username and password combination');
     }
