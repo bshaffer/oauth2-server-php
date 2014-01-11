@@ -277,7 +277,7 @@ class Pdo implements AuthorizationCodeInterface,
         return false;
     }
 
-    public function getDefaultScope()
+    public function getDefaultScope($client_id = null)
     {
         $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s WHERE is_default=:is_default', $this->config['scope_table']));
         $stmt->execute(array('is_default' => true));

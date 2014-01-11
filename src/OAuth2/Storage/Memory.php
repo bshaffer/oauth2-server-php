@@ -27,6 +27,7 @@ class Memory implements AuthorizationCodeInterface,
     private $jwt;
     private $jti;
     private $supportedScopes;
+    private $clientDefaultScopes;
     private $defaultScope;
     private $keys;
 
@@ -40,8 +41,9 @@ class Memory implements AuthorizationCodeInterface,
             'access_tokens' => array(),
             'jwt' => array(),
             'jti' => array(),
-            'default_scope' => null,
             'supported_scopes' => array(),
+            'client_default_scopes' => array(),
+            'default_scope' => null,
             'keys' => array(),
         ), $params);
 
@@ -53,6 +55,7 @@ class Memory implements AuthorizationCodeInterface,
         $this->jwt = $params['jwt'];
         $this->jti = $params['jti'];
         $this->supportedScopes = $params['supported_scopes'];
+        $this->clientDefaultScopes = $params['client_default_scopes'];
         $this->defaultScope = $params['default_scope'];
         $this->keys = $params['keys'];
     }
@@ -220,8 +223,12 @@ class Memory implements AuthorizationCodeInterface,
         return (count(array_diff($scope, $this->supportedScopes)) == 0);
     }
 
-    public function getDefaultScope()
+    public function getDefaultScope($client_id = null)
     {
+        if(isset($this->clientDefaultScopes[$client_id])){
+            return $this->clientDefaultScopes[$client_id];
+        }
+        
         return $this->defaultScope;
     }
 

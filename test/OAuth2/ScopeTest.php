@@ -27,9 +27,11 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
         $scopeUtil = new Scope(array(
             'default_scope' => 'default',
             'supported_scopes' => array('this', 'that', 'another'),
+            'client_default_scopes' => array('Test Client ID With Default Scope' => 'default this that')
         ));
         $this->assertEquals($scopeUtil->getDefaultScope(), 'default');
-        $this->assertTrue($scopeUtil->scopeExists('this that another', 'client_id'));
+        $this->assertEquals($scopeUtil->getDefaultScope('Test Client ID With Default Scope'), 'default this that');
+        $this->assertTrue($scopeUtil->scopeExists('this that another'));
 
         $memoryStorage = new Memory(array(
             'default_scope' => 'base',
@@ -38,6 +40,6 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
         $scopeUtil = new Scope($memoryStorage);
 
         $this->assertEquals($scopeUtil->getDefaultScope(), 'base');
-        $this->assertTrue($scopeUtil->scopeExists('only-this-one', 'client_id'));
+        $this->assertTrue($scopeUtil->scopeExists('only-this-one'));
     }
 }

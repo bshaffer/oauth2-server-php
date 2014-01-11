@@ -45,5 +45,6 @@ class ScopeTest extends BaseTest
         // test getting default scope
         $scopeUtil = new Scope($storage);
         $this->assertEquals($scopeUtil->getDefaultScope(), 'defaultscope1 defaultscope2');
+        $this->assertEquals($scopeUtil->getDefaultScope("Test Client ID With Default Scope"), 'clientdefaultscope1 clientdefaultscope2');
     }
 }
