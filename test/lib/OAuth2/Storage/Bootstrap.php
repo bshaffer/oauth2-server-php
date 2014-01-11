@@ -218,7 +218,7 @@ class Bootstrap
         $pdo->exec('CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires DATETIME, scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_scopes (scope TEXT, is_default BOOLEAN)');
         $pdo->exec('CREATE TABLE oauth_public_keys (client_id TEXT, public_key TEXT, private_key TEXT, encryption_algorithm VARCHAR(100) DEFAULT "RS256")');
-        $pdo->exec('CREATE TABLE oauth_client_default_scopes (client_id TEXT, scope TEXT');
+        $pdo->exec('CREATE TABLE oauth_client_default_scopes (client_id TEXT, scope TEXT)');
         
         // set up scopes
         foreach (explode(' ', 'supportedscope1 supportedscope2 supportedscope3 supportedscope4 clientscope1 clientscope2 clientscope3') as $supportedScope) {
@@ -289,6 +289,8 @@ class Bootstrap
 
         $storage->setScope('clientscope1 clientscope2 clientscope3', 'Test Default Scope Client ID 2');
         $storage->setScope('clientscope3', 'Test Default Scope Client ID 2', 'default');
+        
+        $storage->setClientDefaultScope('Test Client ID With Default Scope', 'clientdefaultscope1 clientdefaultscope2');
     }
 
     public function removeMongoDb(\MongoDB $db)
