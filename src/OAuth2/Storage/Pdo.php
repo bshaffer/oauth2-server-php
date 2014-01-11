@@ -55,6 +55,7 @@ class Pdo implements AuthorizationCodeInterface,
             'user_table' => 'oauth_users',
             'jwt_table'  => 'oauth_jwt',
             'scope_table'  => 'oauth_scopes',
+            'client_default_scope_table' => 'oauth_client_default_scopes',
             'public_key_table'  => 'oauth_public_keys',
         ), $config);
     }
@@ -279,6 +280,18 @@ class Pdo implements AuthorizationCodeInterface,
 
     public function getDefaultScope($client_id = null)
     {
+        if($client_id){
+            $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s WHERE client_id=:client_id', $this->config['client_default_scope_table']));
+            $stmt->execute(array('client_id' => $client_id));
+            
+            if ($result = $stmt->fetchAll()) {
+                
+                if(!empty($result)){
+                    return $result[0]['scope'];
+                }
+            }
+        }
+        
         $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s WHERE is_default=:is_default', $this->config['scope_table']));
         $stmt->execute(array('is_default' => true));
 
