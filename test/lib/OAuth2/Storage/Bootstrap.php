@@ -211,14 +211,13 @@ class Bootstrap
 
     public function runPdoSql(\PDO $pdo)
     {
-        $pdo->exec('CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT, grant_types TEXT, scope TEXT, user_id TEXT)');
+        $pdo->exec('CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT, grant_types TEXT, scope TEXT, user_id TEXT, default_scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires DATETIME, scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires DATETIME, scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT, scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires DATETIME, scope TEXT)');
         $pdo->exec('CREATE TABLE oauth_scopes (scope TEXT, is_default BOOLEAN)');
         $pdo->exec('CREATE TABLE oauth_public_keys (client_id TEXT, public_key TEXT, private_key TEXT, encryption_algorithm VARCHAR(100) DEFAULT "RS256")');
-        $pdo->exec('CREATE TABLE oauth_client_default_scopes (client_id TEXT, scope TEXT)');
         
         // set up scopes
         foreach (explode(' ', 'supportedscope1 supportedscope2 supportedscope3 supportedscope4 clientscope1 clientscope2 clientscope3') as $supportedScope) {
@@ -241,7 +240,7 @@ class Bootstrap
         $pdo->exec('INSERT INTO oauth_users (username, password) VALUES ("testuser", "password")');
         $pdo->exec('INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES ("ClientID_One", "client_1_public", "client_1_private", "RS256")');
         $pdo->exec('INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES ("ClientID_Two", "client_2_public", "client_2_private", "RS256")');
-        $pdo->exec('INSERT INTO oauth_client_default_scopes (client_id, scope) VALUES ("Test Client ID With Default Scope", "clientdefaultscope1 clientdefaultscope2")');
+        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, scope, default_scope) VALUES ("Test Client ID With Default Scope", "TestSecret", "clientdefaultscope1 clientdefaultscope2 clientdefaultscope3", "clientdefaultscope1 clientdefaultscope2")');
         $pdo->exec(sprintf('INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES (NULL, "%s", "%s", "RS256")', file_get_contents($this->configDir.'/keys/id_rsa.pub'), file_get_contents($this->configDir.'/keys/id_rsa')));
     }
 
