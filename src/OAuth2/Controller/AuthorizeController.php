@@ -90,7 +90,7 @@ class AuthorizeController implements AuthorizeControllerInterface
             'scope'         => $this->scope,
             'state'         => $this->state,
             'client_id'     => $this->client_id,
-            'redirect_uri'  => $this->redirect_uri,
+            'redirect_uri'  => $this->redirect_uri ? $this->redirect_uri: $registered_redirect_uri,
             'response_type' => $this->response_type,
         );
 
