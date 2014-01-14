@@ -7,7 +7,7 @@ use OAuth2\Storage\ScopeInterface as ScopeStorageInterface;
 /**
  * Class to handle scope implementation logic
  *
- * @see OAuth2_Storage_ScopeInterface
+ * @see OAuth2\Storage\ScopeInterface
  */
 interface ScopeInterface extends ScopeStorageInterface
 {
@@ -30,7 +30,7 @@ interface ScopeInterface extends ScopeStorageInterface
     /**
      * Return scope info from request
      *
-     * @param OAuth2_RequestInterface
+     * @param OAuth2\RequestInterface
      * Request object to check
      *
      * @return

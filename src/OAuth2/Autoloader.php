@@ -20,7 +20,7 @@ class Autoloader
         $this->dir = $dir;
     }
     /**
-     * Registers OAuth2_Autoloader as an SPL autoloader.
+     * Registers OAuth2\Autoloader as an SPL autoloader.
      */
     public static function register($dir = null)
     {

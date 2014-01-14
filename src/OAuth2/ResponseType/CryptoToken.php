@@ -72,7 +72,7 @@ class CryptoToken extends AccessToken
         /*
          * Issue a refresh token also, if we support them
          *
-         * Refresh Tokens are considered supported if an instance of OAuth2_Storage_RefreshTokenInterface
+         * Refresh Tokens are considered supported if an instance of OAuth2\Storage\RefreshTokenInterface
          * is supplied in the constructor
          */
         if ($includeRefreshToken && $this->refreshStorage) {

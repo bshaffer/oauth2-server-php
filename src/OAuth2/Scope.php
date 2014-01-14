@@ -6,7 +6,7 @@ use OAuth2\Storage\Memory;
 use OAuth2\Storage\ScopeInterface as ScopeStorageInterface;
 
 /**
-* @see OAuth2_ScopeInterface
+* @see OAuth2\ScopeInterface
 */
 class Scope implements ScopeInterface
 {

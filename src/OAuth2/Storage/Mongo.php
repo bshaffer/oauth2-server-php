@@ -30,7 +30,7 @@ class Mongo implements AuthorizationCodeInterface,
             $this->db = $connection;
         } else {
             if (!is_array($connection)) {
-                throw new \InvalidArgumentException('First argument to OAuth2_Storage_Mongo must be an instance of MongoDB or a configuration array');
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Mongo must be an instance of MongoDB or a configuration array');
             }
             $server = sprintf('mongodb://%s:%d', $connection['host'], $connection['port']);
             $m = new \MongoClient($server);
