@@ -10,6 +10,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
         $sqlite = Bootstrap::getInstance()->getSqlitePdo();
         $mongo = Bootstrap::getInstance()->getMongo();
         $redis = Bootstrap::getInstance()->getRedisStorage();
+        $cassandra = Bootstrap::getInstance()->getCassandraStorage();
 
         /* hack until we can fix "default_scope" dependencies in other tests */
         // $memory = Bootstrap::getInstance()->getMemoryStorage();
@@ -23,7 +24,8 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
             array($sqlite),
             array($mysql),
             array($mongo),
-            array($redis)
+            array($redis),
+            array($cassandra),
         );
     }
 }

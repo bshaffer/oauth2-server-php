@@ -9,6 +9,7 @@ class Bootstrap
     private $sqlite;
     private $mongo;
     private $redis;
+    private $cassandra;
     private $configDir;
 
     public function __construct()
@@ -114,6 +115,79 @@ class Bootstrap
         }
 
         return true;
+    }
+
+    public function getCassandraStorage()
+    {
+        if (!$this->cassandra) {
+            if (class_exists('phpcassa\ColumnFamily')) {
+                $cassandra = new \phpcassa\Connection\ConnectionPool('oauth2_test', array('127.0.0.1:9160'));
+                if ($this->testCassandraConnection($cassandra)) {
+                    $this->removeCassandraDb();
+                    $this->cassandra = new Cassandra($cassandra);
+                    $this->createCassandraDb($this->cassandra);
+                }
+            }
+
+        }
+
+        return $this->cassandra;
+    }
+
+    private function testCassandraConnection(\phpcassa\Connection\ConnectionPool $cassandra)
+    {
+        try {
+            new \phpcassa\SystemManager('localhost:9160');
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function removeCassandraDb()
+    {
+        $sys = new \phpcassa\SystemManager('localhost:9160');
+
+        try {
+            $sys->drop_keyspace('oauth2_test');
+        } catch (\cassandra\InvalidRequestException $e) {
+
+        }
+    }
+
+    private function createCassandraDb(Cassandra $storage)
+    {
+        // create the cassandra keyspace and column family
+        $sys = new \phpcassa\SystemManager('localhost:9160');
+
+        $sys->create_keyspace('oauth2_test', array(
+            "strategy_class" => \phpcassa\Schema\StrategyClass::SIMPLE_STRATEGY,
+            "strategy_options" => array('replication_factor' => '1')
+        ));
+
+        $sys->create_column_family('oauth2_test', 'auth');
+
+        // populate the data
+        $storage->setClientDetails("oauth_test_client", "testpass", "http://example.com", 'implicit password');
+        $storage->setAccessToken("testtoken", "Some Client", '', time() + 1000);
+        $storage->setAuthorizationCode("testcode", "Some Client", '', '', time() + 1000);
+        $storage->setUser("testuser", "password");
+
+        $storage->setScope('supportedscope1 supportedscope2 supportedscope3 supportedscope4');
+        $storage->setScope('defaultscope1 defaultscope2', null, 'default');
+
+        $storage->setScope('clientscope1 clientscope2', 'Test Client ID');
+        $storage->setScope('clientscope1 clientscope2', 'Test Client ID', 'default');
+
+        $storage->setScope('clientscope1 clientscope2 clientscope3', 'Test Client ID 2');
+        $storage->setScope('clientscope1 clientscope2', 'Test Client ID 2', 'default');
+
+        $storage->setScope('clientscope1 clientscope2', 'Test Default Scope Client ID');
+        $storage->setScope('clientscope1 clientscope2', 'Test Default Scope Client ID', 'default');
+
+        $storage->setScope('clientscope1 clientscope2 clientscope3', 'Test Default Scope Client ID 2');
+        $storage->setScope('clientscope3', 'Test Default Scope Client ID 2', 'default');
     }
 
     private function createSqliteDb(\PDO $pdo)
