@@ -3,7 +3,7 @@
 namespace OAuth2;
 
 /**
- * OAuth2_Request
+ * OAuth2\Request
  * This class is taken from the Symfony2 Framework and is part of the Symfony package.
  * See Symfony\Component\HttpFoundation\Request (https://github.com/symfony/symfony)
  */

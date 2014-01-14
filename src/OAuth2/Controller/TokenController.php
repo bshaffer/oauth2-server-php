@@ -12,7 +12,7 @@ use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 
 /**
- * @see OAuth2_Controller_TokenControllerInterface
+ * @see OAuth2\Controller\TokenControllerInterface
  */
 class TokenController implements TokenControllerInterface
 {
@@ -27,7 +27,7 @@ class TokenController implements TokenControllerInterface
         if (is_null($clientAssertionType)) {
             foreach ($grantTypes as $grantType) {
                 if (!$grantType instanceof ClientAssertionTypeInterface) {
-                    throw new \InvalidArgumentException('You must supply an instance of OAuth2\ClientAssertionTypeInterface or only use grant types which implement OAuth2\ClientAssertionTypeInterface');
+                    throw new \InvalidArgumentException('You must supply an instance of OAuth2\ClientAssertionType\ClientAssertionTypeInterface or only use grant types which implement OAuth2\ClientAssertionType\ClientAssertionTypeInterface');
                 }
             }
         }

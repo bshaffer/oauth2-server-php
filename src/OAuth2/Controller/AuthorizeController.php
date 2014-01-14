@@ -9,7 +9,7 @@ use OAuth2\ResponseInterface;
 use OAuth2\Scope;
 
 /**
- * @see OAuth2_Controller_AuthorizeControllerInterface
+ * @see OAuth2\Controller\AuthorizeControllerInterface
  */
 class AuthorizeController implements AuthorizeControllerInterface
 {
@@ -25,10 +25,10 @@ class AuthorizeController implements AuthorizeControllerInterface
     protected $scopeUtil;
 
     /**
-     * @param OAuth2_Storage_ClientInterface $clientStorage
-     * REQUIRED Instance of OAuth2_Storage_ClientInterface to retrieve client information
+     * @param OAuth2\Storage\ClientInterface $clientStorage
+     * REQUIRED Instance of OAuth2\Storage\ClientInterface to retrieve client information
      * @param array $responseTypes
-     * OPTIONAL Array of OAuth2_ResponseTypeInterface objects.  Valid array
+     * OPTIONAL Array of OAuth2\ResponseType\ResponseTypeInterface objects.  Valid array
      * keys are "code" and "token"
      * @param array $config
      * OPTIONAL Configuration options for the server
@@ -40,8 +40,8 @@ class AuthorizeController implements AuthorizeControllerInterface
      *   'redirect_status_code' => 302,        // HTTP status code to use for redirect responses
      * );
      * @endcode
-     * @param OAuth2_ScopeInterface $scopeUtil
-     * OPTIONAL Instance of OAuth2_ScopeInterface to validate the requested scope
+     * @param OAuth2\ScopeInterface $scopeUtil
+     * OPTIONAL Instance of OAuth2\ScopeInterface to validate the requested scope
      */
     public function __construct(ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), ScopeInterface $scopeUtil = null)
     {

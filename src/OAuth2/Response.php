@@ -6,7 +6,7 @@ namespace OAuth2;
  * Class to handle OAuth2 Responses in a graceful way.  Use this interface
  * to output the proper OAuth2 responses.
  *
- * @see OAuth2_ResponseInterface
+ * @see OAuth2\ResponseInterface
  *
  * This class borrows heavily from the Symfony2 Framework and is part of the symfony package
  * @see Symfony\Component\HttpFoundation\Request (https://github.com/symfony/symfony)

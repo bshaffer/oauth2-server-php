@@ -10,7 +10,7 @@ use OAuth2\ResponseInterface;
 use OAuth2\Scope;
 
 /**
- * @see OAuth2_Controller_ResourceControllerInterface
+ * @see OAuth2\Controller\ResourceControllerInterface
  */
 class ResourceController implements ResourceControllerInterface
 {

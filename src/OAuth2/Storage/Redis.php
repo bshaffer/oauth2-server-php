@@ -7,7 +7,7 @@ namespace OAuth2\Storage;
  *
  * Register client:
  * <code>
- *  $storage = new OAuth2_Storage_Redis($redis);
+ *  $storage = new OAuth2\Storage\Redis($redis);
  *  $storage->setClientDetails($client_id, $client_secret, $redirect_uri);
  * </code>
  */
