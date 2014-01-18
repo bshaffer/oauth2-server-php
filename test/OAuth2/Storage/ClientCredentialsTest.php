@@ -7,11 +7,12 @@ class ClientCredentialsTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testCheckClientCredentials(ClientCredentialsInterface $storage = null)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
 
             return;
         }
+
         // nonexistant client_id
         $pass = $storage->checkClientCredentials('fakeclient', 'testpass');
         $this->assertFalse($pass);

@@ -7,11 +7,12 @@ class AccessTokenTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testSetAccessToken(AccessTokenInterface $storage = null)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
 
             return;
         }
+
         // assert token we are about to add does not exist
         $token = $storage->getAccessToken('newtoken');
         $this->assertFalse($token);

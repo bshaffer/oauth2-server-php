@@ -9,6 +9,13 @@ class CryptoTokenTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testSetAccessToken($storage)
     {
+        if (!$storage instanceof PublicKey) {
+            // incompatible storage
+            return;
+        }
+
+        $crypto = new CryptoToken($storage);
+
         $publicKeyStorage = Bootstrap::getInstance()->getMemoryStorage();
         $encryptionUtil = new Jwt();
 
@@ -18,11 +25,11 @@ class CryptoTokenTest extends BaseTest
             'scope'   => 'foo',
         );
 
-        $token = $encryptionUtil->encode($cryptoToken, $publicKeyStorage->getPrivateKey(), $publicKeyStorage->getEncryptionAlgorithm());
+        $token = $encryptionUtil->encode($cryptoToken, $storage->getPrivateKey(), $storage->getEncryptionAlgorithm());
 
         $this->assertNotNull($token);
 
-        $tokenData = $storage->getAccessToken($token);
+        $tokenData = $crypto->getAccessToken($token);
 
         $this->assertTrue(is_array($tokenData));
 
@@ -30,16 +37,5 @@ class CryptoTokenTest extends BaseTest
         $this->assertEquals($tokenData['access_token'], $cryptoToken['access_token']);
         $this->assertEquals($tokenData['expires'], $cryptoToken['expires']);
         $this->assertEquals($tokenData['scope'], $cryptoToken['scope']);
-    }
-
-    // @TODO - use the BaseTest provideStorage, and add support for storages which omit certain interfaces
-    public function provideStorage()
-    {
-        $memory = Bootstrap::getInstance()->getMemoryStorage();
-        $storage = new CryptoToken($memory);
-
-        return array(
-            array($storage)
-        );
     }
 }
