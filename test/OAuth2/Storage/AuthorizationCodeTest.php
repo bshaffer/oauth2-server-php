@@ -7,11 +7,12 @@ class AuthorizationCodeTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testGetAuthorizationCode(AuthorizationCodeInterface $storage = null)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
 
             return;
         }
+
         // nonexistant client_id
         $details = $storage->getAuthorizationCode('faketoken');
         $this->assertFalse($details);
@@ -24,11 +25,12 @@ class AuthorizationCodeTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testSetAuthorizationCode(AuthorizationCodeInterface $storage = null)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
 
             return;
         }
+
         // assert code we are about to add does not exist
         $code = $storage->getAuthorizationCode('newcode');
         $this->assertFalse($code);

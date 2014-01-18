@@ -7,11 +7,12 @@ class ClientTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testGetClientDetails(ClientInterface $storage = null)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
 
             return;
         }
+
         // nonexistant client_id
         $details = $storage->getClientDetails('fakeclient');
         $this->assertFalse($details);
@@ -27,8 +28,8 @@ class ClientTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testCheckRestrictedGrantType(ClientInterface $storage = null)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
 
             return;
         }
@@ -45,11 +46,12 @@ class ClientTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testGetAccessToken(ClientInterface $storage = null)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
 
             return;
         }
+
         // nonexistant client_id
         $details = $storage->getAccessToken('faketoken');
         $this->assertFalse($details);
@@ -62,8 +64,8 @@ class ClientTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testSaveClient(ClientInterface $storage = null)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
 
             return;
         }

@@ -9,8 +9,10 @@ class ScopeTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testScopeExists($storage = null)
     {
-        if (is_null($storage)) {
-            return $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
+
+            return;
         }
 
         if (!$storage instanceof ScopeInterface) {
@@ -29,8 +31,10 @@ class ScopeTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testGetDefaultScope($storage = null)
     {
-        if (is_null($storage)) {
-            return $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
+
+            return;
         }
 
         if (!$storage instanceof ScopeInterface) {

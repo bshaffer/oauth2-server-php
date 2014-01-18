@@ -6,11 +6,25 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
 {
     public function provideStorage()
     {
-        $mysql = Bootstrap::getInstance()->getMysqlPdo();
-        $sqlite = Bootstrap::getInstance()->getSqlitePdo();
-        $mongo = Bootstrap::getInstance()->getMongo();
-        $redis = Bootstrap::getInstance()->getRedisStorage();
-        $cassandra = Bootstrap::getInstance()->getCassandraStorage();
+        if (!$mysql = Bootstrap::getInstance()->getMysqlPdo()) {
+            $mysql = new NullStorage('MySQL');
+        }
+
+        if (!$sqlite = Bootstrap::getInstance()->getSqlitePdo()) {
+            $sqlite = new NullStorage('SQLite');
+        }
+
+        if (!$mongo = Bootstrap::getInstance()->getMongo()) {
+            $mongo = new NullStorage('MongoDB');
+        }
+
+        if (!$redis = Bootstrap::getInstance()->getRedisStorage()) {
+            $redis = new NullStorage('Redis');
+        }
+
+        if (!$cassandra = Bootstrap::getInstance()->getCassandraStorage()) {
+            $cassandra = new NullStorage('Cassandra');
+        }
 
         /* hack until we can fix "default_scope" dependencies in other tests */
         // $memory = Bootstrap::getInstance()->getMemoryStorage();
