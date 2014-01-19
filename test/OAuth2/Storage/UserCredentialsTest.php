@@ -7,11 +7,12 @@ class UserCredentialsTest extends BaseTest
     /** @dataProvider provideStorage */
     public function testCheckUserCredentials(UserCredentialsInterface $storage = null)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage);
 
             return;
         }
+
         // create a new user for testing
         $success = $storage->setUser('testusername', 'testpass', 'Test', 'User');
         $this->assertTrue($success);
