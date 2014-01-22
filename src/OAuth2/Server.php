@@ -111,6 +111,15 @@ class Server implements ResourceControllerInterface,
             $this->addStorage($service, $key);
         }
 
+        if (!empty($this->config['use_crypto_tokens']) && isset($this->storages['public_key'])) {
+            $tokenStorage = null;
+            if (!empty($this->config['store_encrypted_token_string']) && isset($this->storages['access_token'])) {
+                $tokenStorage = $this->storages['access_token'];
+            }
+            // wrap the access token storage as required.
+            $this->storages['access_token'] = new CryptoTokenStorage($this->storages['public_key'], $tokenStorage);
+        }
+
         foreach ($grantTypes as $key => $grantType) {
             $this->addGrantType($grantType, $key);
         }
@@ -329,14 +338,6 @@ class Server implements ResourceControllerInterface,
                     $this->storages[$type] = $storage;
                     $set = true;
                 }
-            }
-            if (!empty($this->config['use_crypto_tokens']) && isset($this->storages['public_key'])) {
-                $tokenStorage = null;
-                if (!empty($this->config['store_encrypted_token_string']) && isset($this->storages['access_token'])) {
-                    $tokenStorage = $this->storages['access_token'];
-                }
-                // wrap the access token storage as required.
-                $this->storages['access_token'] = new CryptoTokenStorage($this->storages['public_key'], $tokenStorage);
             }
 
             if (!$set) {
