@@ -111,14 +111,8 @@ class Server implements ResourceControllerInterface,
         foreach ($storage as $key => $service) {
             $this->addStorage($service, $key);
         }
-
-        if (!empty($this->config['use_crypto_tokens']) && isset($this->storages['public_key'])) {
-            $tokenStorage = null;
-            if (!empty($this->config['store_encrypted_token_string']) && isset($this->storages['access_token'])) {
-                $tokenStorage = $this->storages['access_token'];
-            }
-            // wrap the access token storage as required.
-            $this->storages['access_token'] = new CryptoTokenStorage($this->storages['public_key'], $tokenStorage);
+        if (!empty($this->config['use_crypto_tokens'])) {
+            $this->createDefaultCryptoTokenStorage();
         }
 
         foreach ($grantTypes as $key => $grantType) {
@@ -345,6 +339,19 @@ class Server implements ResourceControllerInterface,
                 throw new \InvalidArgumentException(sprintf('storage of class "%s" must implement one of [%s]', get_class($storage), implode(', ', $this->storageMap)));
             }
         }
+    }
+
+    protected function createDefaultCryptoTokenStorage()
+    {
+        if (!isset($this->storages['public_key'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use crypto tokens");
+        }
+        $tokenStorage = null;
+        if (!empty($this->config['store_encrypted_token_string']) && isset($this->storages['access_token'])) {
+            $tokenStorage = $this->storages['access_token'];
+        }
+        // wrap the access token storage as required.
+        $this->storages['access_token'] = new CryptoTokenStorage($this->storages['public_key'], $tokenStorage);
     }
 
     public function addResponseType(ResponseTypeInterface $responseType, $key = null)
