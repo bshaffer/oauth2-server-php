@@ -93,6 +93,7 @@ class Server implements ResourceControllerInterface,
         // merge all config values.  These get passed to our controller objects
         $this->config = array_merge(array(
             'use_crypto_tokens'        => false,
+            'store_encrypted_token_string' => true,
             'access_lifetime'          => 3600,
             'www_realm'                => 'Service',
             'token_param_name'         => 'access_token',
