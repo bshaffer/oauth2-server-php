@@ -511,23 +511,33 @@ class Server implements ResourceControllerInterface,
         }
 
         if (!empty($this->config['use_crypto_tokens'])) {
-            if (!isset($this->storages['public_key'])) {
-                throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use crypto tokens");
-            }
-            $tokenStorage = null;
-            if (!empty($this->config['store_encrypted_token_string'])) {
-                $tokenStorage = $this->storages['access_token'];
-            }
-            $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string')));
-
-            return new CryptoToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config);
+            return $this->createDefaultCryptoToken($refreshStorage);
         }
         else {
-            $config = array_intersect_key($this->config, array_flip(explode(' ', 'access_lifetime refresh_token_lifetime')));
-            $config['token_type'] = $this->tokenType ? $this->tokenType->getTokenType() :  $this->getDefaultTokenType()->getTokenType();
-
-            return new AccessToken($this->storages['access_token'], $refreshStorage, $config);
+            return $this->createDefaultAccessToken($refreshStorage);
         }
+    }
+
+    protected function createDefaultCryptoToken($refreshStorage = null)
+    {
+        if (!isset($this->storages['public_key'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use crypto tokens");
+        }
+        $tokenStorage = null;
+        if (!empty($this->config['store_encrypted_token_string'])) {
+            $tokenStorage = $this->storages['access_token'];
+        }
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string')));
+
+        return new CryptoToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config);
+    }
+
+    protected function createDefaultAccessToken($refreshStorage = null)
+    {
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'access_lifetime refresh_token_lifetime')));
+        $config['token_type'] = $this->tokenType ? $this->tokenType->getTokenType() :  $this->getDefaultTokenType()->getTokenType();
+
+        return new AccessToken($this->storages['access_token'], $refreshStorage, $config);
     }
 
     public function getResponse()
