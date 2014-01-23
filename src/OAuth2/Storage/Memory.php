@@ -220,7 +220,7 @@ class Memory implements AuthorizationCodeInterface,
         return (count(array_diff($scope, $this->supportedScopes)) == 0);
     }
 
-    public function getDefaultScope()
+    public function getDefaultScope($client_id = null)
     {
         return $this->defaultScope;
     }
