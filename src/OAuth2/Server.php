@@ -22,6 +22,7 @@ use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\RefreshToken;
 use OAuth2\GrantType\AuthorizationCode;
 use OAuth2\Storage\CryptoToken as CryptoTokenStorage;
+use OAuth2\Storage\CryptoTokenInterface;
 
 /**
 * Server class for OAuth2
@@ -428,12 +429,13 @@ class Server implements ResourceControllerInterface,
 
     protected function createDefaultResourceController()
     {
-        if (!isset($this->storages['access_token'])) {
-            if ($this->config['use_crypto_tokens']) {
+        if ($this->config['use_crypto_tokens']) {
+            // overwrites access token storage with crypto token storage if "use_crypto_tokens" is set
+            if (!isset($this->storages['access_token']) || !$this->storages['access_token'] instanceof CryptoTokenInterface) {
                 $this->storages['access_token'] = $this->createDefaultCryptoTokenStorage();
-            } else {
-                throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\AccessTokenInterface to use the resource server");
             }
+        } elseif (!isset($this->storages['access_token'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\AccessTokenInterface or use CryptoTokens to use the resource server");
         }
 
         if (!$this->tokenType) {
