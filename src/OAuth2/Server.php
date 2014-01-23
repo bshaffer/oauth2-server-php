@@ -13,6 +13,7 @@ use OAuth2\ClientAssertionType\HttpBasic;
 use OAuth2\ResponseType\ResponseTypeInterface;
 use OAuth2\ResponseType\AuthorizationCode as AuthorizationCodeResponseType;
 use OAuth2\ResponseType\AccessToken;
+use OAuth2\ResponseType\CryptoToken;
 use OAuth2\TokenType\TokenTypeInterface;
 use OAuth2\TokenType\Bearer;
 use OAuth2\GrantType\GrantTypeInterface;
@@ -20,6 +21,8 @@ use OAuth2\GrantType\UserCredentials;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\RefreshToken;
 use OAuth2\GrantType\AuthorizationCode;
+use OAuth2\Storage\CryptoToken as CryptoTokenStorage;
+use OAuth2\Storage\CryptoTokenInterface;
 
 /**
 * Server class for OAuth2
@@ -57,6 +60,7 @@ class Server implements ResourceControllerInterface,
         'client' => 'OAuth2\Storage\ClientInterface',
         'refresh_token' => 'OAuth2\Storage\RefreshTokenInterface',
         'user_credentials' => 'OAuth2\Storage\UserCredentialsInterface',
+        'public_key' => 'OAuth2\Storage\PublicKeyInterface',
         'jwt_bearer' => 'OAuth2\Storage\JWTBearerInterface',
         'scope' => 'OAuth2\Storage\ScopeInterface',
     );
@@ -95,6 +99,8 @@ class Server implements ResourceControllerInterface,
 
         // merge all config values.  These get passed to our controller objects
         $this->config = array_merge(array(
+            'use_crypto_tokens'        => false,
+            'store_encrypted_token_string' => true,
             'access_lifetime'          => 3600,
             'www_realm'                => 'Service',
             'token_param_name'         => 'access_token',
@@ -412,17 +418,30 @@ class Server implements ResourceControllerInterface,
             throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\ClientInterface to use the token server");
         }
 
-        return new TokenController($this->getAccessTokenResponseType(), $this->storages['client'], $this->grantTypes, $this->clientAssertionType, $this->getScopeUtil());
+        if ($this->config['use_crypto_tokens']) {
+            $accessTokenResponseType = $this->getCryptoTokenResponseType();
+        } else {
+            $accessTokenResponseType = $this->getAccessTokenResponseType();
+        }
+
+        return new TokenController($accessTokenResponseType, $this->storages['client'], $this->grantTypes, $this->clientAssertionType, $this->getScopeUtil());
     }
 
     protected function createDefaultResourceController()
     {
-        if (!isset($this->storages['access_token'])) {
-            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\AccessTokenInterface to use the resource server");
+        if ($this->config['use_crypto_tokens']) {
+            // overwrites access token storage with crypto token storage if "use_crypto_tokens" is set
+            if (!isset($this->storages['access_token']) || !$this->storages['access_token'] instanceof CryptoTokenInterface) {
+                $this->storages['access_token'] = $this->createDefaultCryptoTokenStorage();
+            }
+        } elseif (!isset($this->storages['access_token'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\AccessTokenInterface or use CryptoTokens to use the resource server");
         }
+
         if (!$this->tokenType) {
             $this->tokenType = $this->getDefaultTokenType();
         }
+
         $config = array_intersect_key($this->config, array('www_realm' => ''));
 
         return new ResourceController($this->tokenType, $this->storages['access_token'], $config, $this->getScopeUtil());
@@ -439,8 +458,12 @@ class Server implements ResourceControllerInterface,
     {
         $responseTypes = array();
 
-        if (isset($this->storages['access_token'])) {
-            $responseTypes['token'] = $this->getAccessTokenResponseType();
+        if ($this->config['allow_implicit']) {
+            if ($this->config['use_crypto_tokens']) {
+                $responseTypes['token'] = $this->getCryptoTokenResponseType();
+            } elseif (isset($this->storages['access_token'])) {
+                $responseTypes['token'] = $this->getAccessTokenResponseType();
+            }
         }
 
         if (isset($this->storages['authorization_code'])) {
@@ -449,7 +472,7 @@ class Server implements ResourceControllerInterface,
         }
 
         if (count($responseTypes) == 0) {
-            throw new \LogicException("You must supply an array of response_types in the constructor or implement a OAuth2\Storage\AccessTokenInterface or OAuth2\Storage\AuthorizationCodeInterface storage object");
+            throw new \LogicException("You must supply an array of response_types in the constructor or implement a OAuth2\Storage\AuthorizationCodeInterface storage object or set 'allow_implicit' to true and implement a OAuth2\Storage\AccessTokenInterface storage object");
         }
 
         return $responseTypes;
@@ -489,13 +512,70 @@ class Server implements ResourceControllerInterface,
         if (isset($this->responseTypes['token'])) {
             return $this->responseTypes['token'];
         }
-        if (!isset($this->storages['access_token'])) {
-            throw new \LogicException("You must supply a response type implementing OAuth2\ResponseType\AccessTokenInterface, or a storage object implementing OAuth2\Storage\AccessTokenInterface to use the token server");
+
+        return $this->createDefaultAccessTokenResponseType();
+    }
+
+    protected function getCryptoTokenResponseType()
+    {
+        if (isset($this->responseTypes['token'])) {
+            return $this->responseTypes['token'];
         }
+
+        return $this->createDefaultCryptoTokenResponseType();
+    }
+
+    /**
+     * For Resource Controller
+     */
+    protected function createDefaultCryptoTokenStorage()
+    {
+        if (!isset($this->storages['public_key'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use crypto tokens");
+        }
+        $tokenStorage = null;
+        if (!empty($this->config['store_encrypted_token_string']) && isset($this->storages['access_token'])) {
+            $tokenStorage = $this->storages['access_token'];
+        }
+        // wrap the access token storage as required.
+        return new CryptoTokenStorage($this->storages['public_key'], $tokenStorage);
+    }
+
+    /**
+     * For Authorize and Token Controllers
+     */
+    protected function createDefaultCryptoTokenResponseType()
+    {
+        if (!isset($this->storages['public_key'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use crypto tokens");
+        }
+
+        $tokenStorage = null;
+        if (isset($this->storages['access_token'])) {
+            $tokenStorage = $this->storages['access_token'];
+        }
+
         $refreshStorage = null;
         if (isset($this->storages['refresh_token'])) {
             $refreshStorage = $this->storages['refresh_token'];
         }
+
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string')));
+
+        return new CryptoToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config);
+    }
+
+    protected function createDefaultAccessTokenResponseType()
+    {
+        if (!isset($this->storages['access_token'])) {
+            throw new \LogicException("You must supply a response type implementing OAuth2\ResponseType\AccessTokenInterface, or a storage object implementing OAuth2\Storage\AccessTokenInterface to use the token server");
+        }
+
+        $refreshStorage = null;
+        if (isset($this->storages['refresh_token'])) {
+            $refreshStorage = $this->storages['refresh_token'];
+        }
+
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'access_lifetime refresh_token_lifetime')));
         $config['token_type'] = $this->tokenType ? $this->tokenType->getTokenType() :  $this->getDefaultTokenType()->getTokenType();
 
