@@ -186,7 +186,7 @@ class TokenController implements TokenControllerInterface
             $requestedScope = $availableScope;
         } else {
             // use a globally-defined default scope
-            $defaultScope = $this->scopeUtil->getDefaultScope();
+            $defaultScope = $this->scopeUtil->getDefaultScope($clientId);
 
             // "false" means default scopes are not allowed
             if (false === $defaultScope) {

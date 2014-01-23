@@ -55,10 +55,10 @@ class Scope implements ScopeInterface
      * Check if the provided scope exists in storage.
      *
      * @param $scope
-     *   A space-separated string of scopes.
+     * A space-separated string of scopes.
      *
      * @return
-     *   TRUE if it exists, FALSE otherwise.
+     * TRUE if it exists, FALSE otherwise.
      */
     public function scopeExists($scope)
     {
@@ -71,8 +71,8 @@ class Scope implements ScopeInterface
         return $request->request('scope', $request->query('scope'));
     }
 
-    public function getDefaultScope()
+    public function getDefaultScope($client_id = null)
     {
-        return $this->storage->getDefaultScope();
+        return $this->storage->getDefaultScope($client_id);
     }
 }
