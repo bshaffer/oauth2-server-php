@@ -96,23 +96,24 @@ class Cassandra implements AuthorizationCodeInterface,
         $cf = new ColumnFamily($this->cassandra, $cf_name);
 
         if ($expire > 0) {
+         
             try {
                 $seconds = $expire - time();
                 // __data key set as C* requires a field, note: max TTL can only be 630720000 seconds
                 $cf->insert($key, array_map('__backend_data_encode', $value), null, $seconds);
-            } catch(\Exception $e) {
+            } catch(\cassandra\InvalidRequestException $e) {
                 return false;
             }
         } else {
             try {
                 // __data key set as C* requires a field
                 $cf->insert($key, array_map('__backend_data_encode', $value));
-            } catch(\Exception $e) {
+            } catch(\cassandra\InvalidRequestException $e) {
                 return false;
             }
         }
 
-        return true;
+        return $value;
     }
 
     protected function expireValue($key)
@@ -126,7 +127,7 @@ class Cassandra implements AuthorizationCodeInterface,
         try {
             // __data key set as C* requires a field
             $cf->remove($key);
-        } catch(\Exception $e) {
+        } catch(\cassandra\InvalidRequestException $e) {
             return false;
         }
 
