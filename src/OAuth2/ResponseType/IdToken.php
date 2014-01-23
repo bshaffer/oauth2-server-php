@@ -8,81 +8,78 @@ use OAuth2\Storage\IdTokenInterface as IdTokenStorageInterface;
 use OAuth2\Storage\RefreshTokenInterface;
 use OAuth2\Storage\PublicKeyInterface;
 
-class IdToken extends AccessToken implements IdTokenInterface
+class IdToken implements IdTokenInterface
 {
     protected $publicKeyStorage;
     protected $encryptionUtil;
+    protected $tokenStorage;
 
-    public function __construct(IdTokenStorageInterface $tokenStorage, PublicKeyInterface $publicKeyStorage = null, RefreshTokenInterface $refreshStorage = null, array $config = array(), EncryptionInterface $encryptionUtil = null)
+    public function __construct(IdTokenStorageInterface $tokenStorage, PublicKeyInterface $publicKeyStorage = null, array $config = array(), EncryptionInterface $encryptionUtil = null)
     {
+        // @TODO: find a good way to remove super globals
+        if (!isset($config['issuer'])) {
+            throw new \LogicException('config parameter "issuer" must be set');
+        }
+
         $this->publicKeyStorage = $publicKeyStorage;
         if (is_null($encryptionUtil)) {
             $encryptionUtil = new Jwt();
         }
         $this->encryptionUtil = $encryptionUtil;
-        parent::__construct($tokenStorage, $refreshStorage, $config);
+        $this->tokenStorage   = $tokenStorage;
     }
 
-    /**
-     * Handle the creation of id token, also issue refresh token if supported / desirable.
-     *
-     * @param $client_id
-     * Client identifier related to the access token.
-     * @param $user_id
-     * User ID associated with the access token
-     * @param $scope
-     * (optional) Scopes to be stored in space-separated string.
-     * @param bool $includeRefreshToken
-     * If true, a new refresh_token will be added to the response
-     *
-     * @see http://tools.ietf.org/html/rfc6749#section-5
-     * @ingroup oauth2_section_5
-     */
-    public function createAccessToken($client_id, $user_id, $scope = null, $includeRefreshToken = true)
+    public function getAuthorizeResponse($params, $user_id = null)
     {
-        // token to encrypt
-        $iat = time();
-        $expires = $iat + $this->config['access_lifetime'];
-        $accessToken = $this->generateAccessToken();
-        $prefix = (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on') ? 'https://' : 'http://';
+        // build the URL to redirect to
+        $result = array('query' => array());
 
+        $params += array('scope' => null, 'state' => null);
+
+        // create id token parameters
+        $iss = $this->config['issuer'];
+        $sub = $user_id;
+        $aud = $params['client_id'];
+        $iat = time();
+        $exp = $iat + $this->config['id_lifetime'];
+        $auth_time = $iat;
+
+        // create access token hash
+        $accessToken = $this->generateAccessToken();
+        $at_hash = substr($accessToken, 0, strlen($accessToken) / 2);
+
+        $id_token = $this->createIdToken($iss, $sub, $aud, $iat, $exp, $auth_time, $at_hash);
+
+        $result["fragment"] = array('id_token' => $id_token);
+
+        if (isset($params['state'])) {
+            $result["fragment"]["state"] = $params['state'];
+        }
+
+        return array($params['redirect_uri'], $result);
+    }
+
+    public function createIdToken($iss, $sub, $aud, $iat, $exp, $auth_time, $at_hash = null)
+    {
         $idToken = array(
-            'iss'        => $prefix . $_SERVER['SERVER_NAME'],
-            'sub'        => $user_id,
-            'aud'        => $client_id,
-            'exp'        => $expires,
+            'iss'        => $iss,
+            'sub'        => $sub,
+            'aud'        => $aud,
+            'exp'        => $exp,
             'iat'        => $iat,
-            'auth_time'  => $iat,
-            'at_hash'    => substr($accessToken, 0, strlen($accessToken) / 2),
+            'auth_time'  => $auth_time,
         );
+
+        if ($at_hash) {
+            $token['at_hash'] = $at_hash;
+        }
 
         /*
          * Encode the token data into a single id_token string.
          */
-        $idToken = $this->encodeToken($idToken, $client_id);
-        $this->tokenStorage->setAccessToken($accessToken, $client_id, $user_id, $this->config['access_lifetime'] ? $expires : null, $scope, $idToken);
+        $idToken = $this->encodeToken($token, $client_id);
 
-        // Token to return to the client.
-        $token = array(
-            'access_token' => $this->generateAccessToken(),
-            'id_token' => $idToken,
-            'expires_in' => $this->config['access_lifetime'],
-            'token_type' => $this->config['token_type'],
-            'scope' => $scope
-        );
-
-        /*
-         * Issue a refresh token also, if we support them
-         *
-         * Refresh Tokens are considered supported if an instance of OAuth2_Storage_RefreshTokenInterface
-         * is supplied in the constructor
-         */
-        if ($includeRefreshToken && $this->refreshStorage) {
-            $token["refresh_token"] = $this->generateRefreshToken();
-            $this->refreshStorage->setRefreshToken($idToken['refresh_token'], $client_id, $user_id, time() + $this->config['refresh_token_lifetime'], $scope);
-        }
-
-        return $token;
+        return $idToken;
     }
 
     protected function encodeToken(array $token, $client_id = null)

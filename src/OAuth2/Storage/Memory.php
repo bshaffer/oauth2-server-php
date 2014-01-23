@@ -13,6 +13,7 @@ namespace OAuth2\Storage;
 class Memory implements AuthorizationCodeInterface,
     UserCredentialsInterface,
     AccessTokenInterface,
+    IdTokenInterface,
     ClientCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
@@ -206,9 +207,9 @@ class Memory implements AuthorizationCodeInterface,
         return isset($this->accessTokens[$access_token]) ? $this->accessTokens[$access_token] : false;
     }
 
-    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
+    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null, $id_token = null)
     {
-        $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope');
+        $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope', 'id_token');
 
         return true;
     }
