@@ -56,9 +56,6 @@ class Cassandra implements AuthorizationCodeInterface,
         }
 
         $this->config = array_merge(array(
-            // cassandra config
-            'column_family' => 'auth',
-
             // key names
             'client_key' => 'oauth_clients:',
             'access_token_key' => 'oauth_access_tokens:',
@@ -76,36 +73,40 @@ class Cassandra implements AuthorizationCodeInterface,
             return $this->cache[$key];
         }
 
-        $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
+        preg_match("/^(.+?)\:(.+)$/", $key, $parts);
+        list($cf_key, $cf_name, $key) = $parts;
+
+        $cf = new \phpcassa\ColumnFamily($this->cassandra, $cf_name);
 
         try {
-            $value = array_shift($cf->get($key, new ColumnSlice("", "")));
+            $value = array_map('__backend_data_decode', $cf->get($key, new ColumnSlice("", "")));
+            return $value;
         } catch (\cassandra\NotFoundException $e) {
             return false;
         }
-
-        return json_decode($value, true);
     }
 
     protected function setValue($key, $value, $expire = 0)
     {
         $this->cache[$key] = $value;
 
-        $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
+        preg_match("/^(.+?)\:(.+)$/", $key, $parts);
+        list($cf_key, $cf_name, $key) = $parts;
 
-        $str = json_encode($value);
+        $cf = new ColumnFamily($this->cassandra, $cf_name);
+
         if ($expire > 0) {
             try {
                 $seconds = $expire - time();
                 // __data key set as C* requires a field, note: max TTL can only be 630720000 seconds
-                $cf->insert($key, array('__data' => $str), null, $seconds);
+                $cf->insert($key, array_map('__backend_data_encode', $value), null, $seconds);
             } catch(\Exception $e) {
                 return false;
             }
         } else {
             try {
                 // __data key set as C* requires a field
-                $cf->insert($key, array('__data' => $str));
+                $cf->insert($key, array_map('__backend_data_encode', $value));
             } catch(\Exception $e) {
                 return false;
             }
@@ -118,10 +119,13 @@ class Cassandra implements AuthorizationCodeInterface,
     {
         unset($this->cache[$key]);
 
-        $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
+        preg_match("/^(.+?)\:(.+)$/", $key, $parts);
+        list($cf_key, $cf_name, $key) = $parts;
+
+        $cf = new ColumnFamily($this->cassandra, $cf_name);
         try {
             // __data key set as C* requires a field
-            $cf->remove($key, array('__data'));
+            $cf->remove($key);
         } catch(\Exception $e) {
             return false;
         }
@@ -340,3 +344,26 @@ class Cassandra implements AuthorizationCodeInterface,
     }
 }
 
+
+function __backend_data_encode($value)
+{
+    //print_r($value);
+    if (gettype($value) == "array" || gettype($value) == "object")
+    {
+        return '_json:' . json_encode($value);
+    }
+    
+    return $value;
+
+}
+
+function __backend_data_decode($value)
+{
+    //print_r($value);
+    if (strpos($value, '_json:') !== false)
+    {
+        return json_decode(substr($value, 6), true);
+    }
+
+    return $value;
+}
