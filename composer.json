@@ -13,7 +13,8 @@
     ],
     "homepage": "http://github.com/bshaffer/oauth2-server-php",
     "require":{
-        "php":">=5.3.9"
+        "php":">=5.3.9",
+        "thobbs/phpcassa": "dev-master"
     },
     "autoload": {
         "psr-0": { "OAuth2": "src/" }
