@@ -168,7 +168,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         $state = $request->query('state');
 
         // type and client_id are required
-        if (!$response_type || !in_array($response_type, array(self::RESPONSE_TYPE_AUTHORIZATION_CODE, self::RESPONSE_TYPE_ACCESS_TOKEN))) {
+        if (!$response_type || !in_array($response_type, array(self::RESPONSE_TYPE_AUTHORIZATION_CODE, self::RESPONSE_TYPE_ACCESS_TOKEN, self::RESPONSE_TYPE_ID_TOKEN, self::RESPONSE_TYPE_TOKEN_ID_TOKEN))) {
             $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_request', 'Invalid or missing response type', null);
 
             return false;
@@ -189,9 +189,7 @@ class AuthorizeController implements AuthorizeControllerInterface
 
                 return false;
             }
-        }
-
-        if ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN) {
+        } else {
             if (!$this->config['allow_implicit']) {
                 $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'unsupported_response_type', 'implicit grant type not supported', null);
 
