@@ -119,7 +119,7 @@ class Jwt implements EncryptionInterface
         return $signature;
     }
 
-    private function urlSafeB64Encode($data)
+    public function urlSafeB64Encode($data)
     {
         $b64 = base64_encode($data);
         $b64 = str_replace(array('+', '/', '\r', '\n', '='),
@@ -129,7 +129,7 @@ class Jwt implements EncryptionInterface
         return $b64;
     }
 
-    private function urlSafeB64Decode($b64)
+    public function urlSafeB64Decode($b64)
     {
         $b64 = str_replace(array('-', '_'),
                 array('+', '/'),
