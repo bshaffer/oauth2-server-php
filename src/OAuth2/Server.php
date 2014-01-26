@@ -14,6 +14,8 @@ use OAuth2\ResponseType\ResponseTypeInterface;
 use OAuth2\ResponseType\AuthorizationCode as AuthorizationCodeResponseType;
 use OAuth2\ResponseType\AccessToken;
 use OAuth2\ResponseType\CryptoToken;
+use OAuth2\ResponseType\IdToken;
+use OAuth2\ResponseType\TokenIdToken;
 use OAuth2\TokenType\TokenTypeInterface;
 use OAuth2\TokenType\Bearer;
 use OAuth2\GrantType\GrantTypeInterface;
@@ -69,7 +71,7 @@ class Server implements ResourceControllerInterface,
         'token' => 'OAuth2\ResponseType\AccessTokenInterface',
         'code' => 'OAuth2\ResponseType\AuthorizationCodeInterface',
         'id_token' => 'OAuth2\ResponseType\IdTokenInterface',
-        'token id_token' => 'OAuth2\ResponseType\IdTokenInterface',
+        'token id_token' => 'OAuth2\ResponseType\ResponseTypeInterface',
     );
 
     /**
@@ -104,6 +106,8 @@ class Server implements ResourceControllerInterface,
         $this->config = array_merge(array(
             'use_crypto_tokens'        => false,
             'store_encrypted_token_string' => true,
+            'use_openid_connect'       => false,
+            'id_lifetime'              => 3600,
             'access_lifetime'          => 3600,
             'www_realm'                => 'Service',
             'token_param_name'         => 'access_token',
@@ -403,7 +407,11 @@ class Server implements ResourceControllerInterface,
         if (0 == count($this->responseTypes)) {
             $this->responseTypes = $this->getDefaultResponseTypes();
         }
-        $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state require_exact_redirect_uri')));
+        if (!isset($this->responseTypes['id_token']) && $this->config['use_openid_connect']) {
+            throw new \LogicException("You must supply a response type object implementing OAuth2\ResponseType\IdTokenInterface to use openid connect");
+        }
+
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'use_openid_connect allow_implicit enforce_state require_exact_redirect_uri')));
 
         return new AuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->getScopeUtil());
     }
@@ -477,6 +485,13 @@ class Server implements ResourceControllerInterface,
                 $responseTypes['token'] = $this->getCryptoTokenResponseType();
             } elseif (isset($this->storages['access_token'])) {
                 $responseTypes['token'] = $this->getAccessTokenResponseType();
+            }
+
+            if ($this->config['use_openid_connect']) {
+                $responseTypes['id_token'] = $this->createDefaultIdTokenResponseType();
+                if (isset($this->storages['access_token'])) {
+                    $responseTypes['token id_token'] = new TokenIdToken($responseTypes['token'], $responseTypes['id_token']);
+                }
             }
         }
 
@@ -594,6 +609,19 @@ class Server implements ResourceControllerInterface,
         $config['token_type'] = $this->tokenType ? $this->tokenType->getTokenType() :  $this->getDefaultTokenType()->getTokenType();
 
         return new AccessToken($this->storages['access_token'], $refreshStorage, $config);
+    }
+
+    protected function createDefaultIdTokenResponseType()
+    {
+        if (!isset($this->storages['id_token'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\IdTokenInterface to use openid connect");
+        }
+        if (!isset($this->storages['public_key'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use openid connect");
+        }
+
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'id_lifetime')));
+        return new IdToken($this->storages['id_token'], $this->storages['public_key'], $config);
     }
 
     public function getResponse()

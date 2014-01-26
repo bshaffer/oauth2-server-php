@@ -18,6 +18,7 @@ class AuthorizeController implements AuthorizeControllerInterface
     private $client_id;
     private $redirect_uri;
     private $response_type;
+    private $nonce;
 
     protected $clientStorage;
     protected $responseTypes;
@@ -92,11 +93,16 @@ class AuthorizeController implements AuthorizeControllerInterface
             'client_id'     => $this->client_id,
             'redirect_uri'  => $this->redirect_uri,
             'response_type' => $this->response_type,
+            'nonce'         => $this->nonce,
         );
 
         $authResult = $this->responseTypes[$this->response_type]->getAuthorizeResponse($params, $user_id);
-
         list($redirect_uri, $uri_params) = $authResult;
+        // Generate and save an id token for the token request.
+        if ($this->needsIdToken($this->scope) && $this->response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
+            $code = $uri_params['query']['code'];
+            $this->responseTypes['id_token']->createIdToken($this->client_id, $user_id, $this->nonce, $code);
+        }
 
         if (empty($redirect_uri) && !empty($registered_redirect_uri)) {
             $redirect_uri = $registered_redirect_uri;
@@ -235,10 +241,19 @@ class AuthorizeController implements AuthorizeControllerInterface
             return false;
         }
 
+        $nonce = $request->query('nonce');
+        // Validate required nonce for "id_token" and "token id_token"
+        if (!$nonce && in_array($response_type, array(self::RESPONSE_TYPE_ID_TOKEN, self::RESPONSE_TYPE_TOKEN_ID_TOKEN))) {
+            $response->setError(400, 'invalid_nonce', 'This application requires you specify a nonce parameter');
+
+            return false;
+        }
+
         // save the input data and return true
         $this->scope         = $requestedScope;
         $this->state         = $state;
         $this->client_id     = $client_id;
+        $this->nonce         = $nonce;
         // Only save the SUPPLIED redirect URI (@see http://tools.ietf.org/html/rfc6749#section-4.1.3)
         $this->redirect_uri  = $supplied_redirect_uri;
         $this->response_type = $response_type;
@@ -319,6 +334,24 @@ class AuthorizeController implements AuthorizeControllerInterface
         }
 
         return false;
+    }
+
+    /**
+     * Returns whether the current request needs to generate an id token.
+     *
+     * ID Tokens are a part of the OpenID Connect specification, so this
+     * method checks whether OpenID Connect is enabled in the server settings
+     * and whether the openid scope was requested.
+     *
+     * @param $request_scope
+     *  A space-separated string of scopes.
+     *
+     * @return
+     *   TRUE if an id token is needed, FALSE otherwise.
+     */
+    public function needsIdToken($request_scope) {
+        $scopes = explode(' ', trim($request_scope));
+        return $this->config['use_openid_connect'] && in_array('openid', $scopes);
     }
 
     /**
