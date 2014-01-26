@@ -225,12 +225,12 @@ class Redis implements AuthorizationCodeInterface,
     }
 
     /* ScopeInterface */
-    public function scopeExists($scope, $client_id = null)
+    public function scopeExists($scope)
     {
         $scope = explode(' ', $scope);
-        if (is_null($client_id) || !$result = $this->getValue($this->config['scope_key'].'supported:'.$client_id)) {
-            $result = $this->getValue($this->config['scope_key'].'supported:global');
-        }
+
+        $result = $this->getValue($this->config['scope_key'].'supported:global');
+
         $supportedScope = explode(' ', (string) $result);
 
         return (count(array_diff($scope, $supportedScope)) == 0);
