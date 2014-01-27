@@ -71,7 +71,7 @@ class Server implements ResourceControllerInterface,
         'token' => 'OAuth2\ResponseType\AccessTokenInterface',
         'code' => 'OAuth2\ResponseType\AuthorizationCodeInterface',
         'id_token' => 'OAuth2\ResponseType\IdTokenInterface',
-        'token id_token' => 'OAuth2\ResponseType\ResponseTypeInterface',
+        'token id_token' => 'OAuth2\ResponseType\TokenIdTokenInterface',
     );
 
     /**
