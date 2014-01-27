@@ -1,5 +1,5 @@
 {
-    "name": "bshaffer/oauth2-server-php",
+    "name": "commonledger/oauth2-server-php",
     "description":"OAuth2 Server for PHP",
     "keywords":["oauth","oauth2","auth"],
     "type":"library",
@@ -11,9 +11,10 @@
             "homepage":"http://brentertainment.com"
         }
     ],
-    "homepage": "http://github.com/bshaffer/oauth2-server-php",
+    "homepage": "http://github.com/commonledger/oauth2-server-php",
     "require":{
-        "php":">=5.3.9"
+        "php":">=5.3.9",
+        "thobbs/phpcassa": "dev-master"
     },
     "autoload": {
         "psr-0": { "OAuth2": "src/" }
