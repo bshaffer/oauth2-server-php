@@ -95,14 +95,14 @@ class AuthorizeController implements AuthorizeControllerInterface
             'response_type' => $this->response_type,
             'nonce'         => $this->nonce,
         );
+        // Generate an id token if needed.
+        if ($this->needsIdToken($this->scope) && $this->response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
+            $params['id_token'] = $this->responseTypes['id_token']->createIdToken($this->client_id, $user_id, $this->nonce);
+        }
 
         $authResult = $this->responseTypes[$this->response_type]->getAuthorizeResponse($params, $user_id);
+
         list($redirect_uri, $uri_params) = $authResult;
-        // Generate and save an id token for the token request.
-        if ($this->needsIdToken($this->scope) && $this->response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
-            $code = $uri_params['query']['code'];
-            $this->responseTypes['id_token']->createIdToken($this->client_id, $user_id, $this->nonce, $code);
-        }
 
         if (empty($redirect_uri) && !empty($registered_redirect_uri)) {
             $redirect_uri = $registered_redirect_uri;

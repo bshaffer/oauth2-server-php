@@ -13,7 +13,6 @@ namespace OAuth2\Storage;
 class Memory implements AuthorizationCodeInterface,
     UserCredentialsInterface,
     AccessTokenInterface,
-    IdTokenInterface,
     ClientCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
@@ -25,7 +24,6 @@ class Memory implements AuthorizationCodeInterface,
     public $clientCredentials;
     public $refreshTokens;
     public $accessTokens;
-    public $idTokens;
     public $jwt;
     public $jti;
     public $supportedScopes;
@@ -71,9 +69,9 @@ class Memory implements AuthorizationCodeInterface,
         ), $this->authorizationCodes[$code]);
     }
 
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null)
+    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
-        $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope');
+        $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token');
 
         return true;
     }
@@ -225,20 +223,6 @@ class Memory implements AuthorizationCodeInterface,
     public function getDefaultScope($client_id = null)
     {
         return $this->defaultScope;
-    }
-
-    /* IdTokenInterface */
-    public function getIdToken($code)
-    {
-        return isset($this->idTokens[$code]) ? $this->idTokens[$code] : false;
-    }
-
-    public function setIdToken($id_token, $client_id, $user_id, $expires, $code = null)
-    {
-        $key = isset($code) ? $code : count($this->idTokens);
-        $this->idTokens[$key] = compact('id_token', 'client_id', 'user_id', 'expires');
-
-        return true;
     }
 
     /*JWTBearerInterface */

@@ -16,12 +16,11 @@ interface IdTokenInterface extends ResponseTypeInterface
      * @param string $client_id The client id.
      * @param string $user_id The user id.
      * @param string $nonce OPTIONAL The nonce.
-     * @param string $code OPTIONAL The authorization code, if known.
      * @param string $access_token OPTIONAL The access token, if known.
      *
      * @return string The ID Token represented as a JSON Web Token (JWT).
      *
      * @see http://openid.net/specs/openid-connect-core-1_0.html#IDToken
      */
-    public function createIdToken($client_id, $user_id, $nonce = null, $code = null, $access_token = null);
+    public function createIdToken($client_id, $user_id, $nonce = null, $access_token = null);
 }
