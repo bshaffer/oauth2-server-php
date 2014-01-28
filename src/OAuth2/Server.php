@@ -620,7 +620,7 @@ class Server implements ResourceControllerInterface,
             throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use openid connect");
         }
 
-        $config = array_intersect_key($this->config, array_flip(explode(' ', 'id_lifetime')));
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'issuer id_lifetime')));
         return new IdToken($this->storages['id_token'], $this->storages['public_key'], $config);
     }
 
