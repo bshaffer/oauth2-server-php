@@ -486,12 +486,12 @@ class Server implements ResourceControllerInterface,
             } elseif (isset($this->storages['access_token'])) {
                 $responseTypes['token'] = $this->getAccessTokenResponseType();
             }
+        }
 
-            if ($this->config['use_openid_connect']) {
-                $responseTypes['id_token'] = $this->createDefaultIdTokenResponseType();
-                if (isset($this->storages['access_token'])) {
-                    $responseTypes['token id_token'] = new TokenIdToken($responseTypes['token'], $responseTypes['id_token']);
-                }
+        if ($this->config['use_openid_connect']) {
+            $responseTypes['id_token'] = $this->createDefaultIdTokenResponseType();
+            if ($this->config['allow_implicit']) {
+                $responseTypes['token id_token'] = new TokenIdToken($responseTypes['token'], $responseTypes['id_token']);
             }
         }
 
