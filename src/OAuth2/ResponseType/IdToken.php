@@ -4,20 +4,17 @@ namespace OAuth2\ResponseType;
 
 use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\Encryption\Jwt;
-use OAuth2\Storage\IdTokenInterface as IdTokenStorageInterface;
 use OAuth2\Storage\RefreshTokenInterface;
 use OAuth2\Storage\PublicKeyInterface;
 
 class IdToken implements IdTokenInterface
 {
-    protected $tokenStorage;
     protected $publicKeyStorage;
     protected $config;
     protected $encryptionUtil;
 
-    public function __construct(IdTokenStorageInterface $tokenStorage, PublicKeyInterface $publicKeyStorage = null, array $config = array(), EncryptionInterface $encryptionUtil = null)
+    public function __construct(PublicKeyInterface $publicKeyStorage = null, array $config = array(), EncryptionInterface $encryptionUtil = null)
     {
-        $this->tokenStorage   = $tokenStorage;
         $this->publicKeyStorage = $publicKeyStorage;
         if (is_null($encryptionUtil)) {
             $encryptionUtil = new Jwt();
@@ -48,7 +45,7 @@ class IdToken implements IdTokenInterface
         return array($params['redirect_uri'], $result);
     }
 
-    public function createIdToken($client_id, $user_id, $nonce = null, $code = null, $access_token = null)
+    public function createIdToken($client_id, $user_id, $nonce = null, $access_token = null)
     {
         $token = array(
             'iss'        => $this->config['issuer'],
@@ -65,11 +62,7 @@ class IdToken implements IdTokenInterface
             $token['at_hash'] = $this->createAtHash($access_token, $client_id);
         }
 
-        // encode the id_token and save it.
-        $id_token = $this->encodeToken($token, $client_id);
-        $this->tokenStorage->setIdToken($id_token, $client_id, $user_id, $token['exp'], $code);
-
-        return $id_token;
+        return $this->encodeToken($token, $client_id);
     }
 
     protected function createAtHash($access_token, $client_id = null) {

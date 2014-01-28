@@ -26,9 +26,11 @@ interface AuthorizationCodeInterface extends ResponseTypeInterface
      * user-agent to when the end-user authorization step is completed.
      * @param $scope
      * (optional) Scopes to be stored in space-separated string.
+     * @param $id_token
+     * (optional) The OpenID Connect id_token.
      *
      * @see http://tools.ietf.org/html/rfc6749#section-4
      * @ingroup oauth2_section_4
      */
-    public function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null);
+    public function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null, $id_token = null);
 }

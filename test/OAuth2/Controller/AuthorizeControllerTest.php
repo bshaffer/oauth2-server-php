@@ -355,9 +355,9 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('code', $query);
 
         // ensure no id_token was saved, since the openid scope wasn't requested
-        $storage = $server->getStorage('id_token');
-        $token = $storage->getIdToken($query['code']);
-        $this->assertTrue(empty($token));
+        $storage = $server->getStorage('authorization_code');
+        $code = $storage->getAuthorizationCode($query['code']);
+        $this->assertTrue(empty($code['id_token']));
 
         // ensure no error was returned
         $this->assertFalse(isset($query['error']));
@@ -448,9 +448,9 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse(isset($query['error_description']));
 
         // confirm that the id_token has been created.
-        $storage = $server->getStorage('id_token');
-        $token = $storage->getIdToken($query['code']);
-        $this->assertTrue(!empty($token));
+        $storage = $server->getStorage('authorization_code');
+        $code = $storage->getAuthorizationCode($query['code']);
+        $this->assertTrue(!empty($code['id_token']));
     }
 
     public function testCreateController()
