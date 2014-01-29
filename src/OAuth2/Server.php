@@ -406,7 +406,7 @@ class Server implements ResourceControllerInterface,
         if (0 == count($this->responseTypes)) {
             $this->responseTypes = $this->getDefaultResponseTypes();
         }
-        if (!isset($this->responseTypes['id_token']) && $this->config['use_openid_connect']) {
+        if ($this->config['use_openid_connect'] && !isset($this->responseTypes['id_token'])) {
             throw new \LogicException("You must supply a response type object implementing OAuth2\ResponseType\IdTokenInterface to use openid connect");
         }
 
