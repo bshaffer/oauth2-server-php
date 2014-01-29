@@ -136,6 +136,7 @@ class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($response->getParameter('access_token'));
         $this->assertNotNull($response->getParameter('expires_in'));
         $this->assertNotNull($response->getParameter('token_type'));
+        $this->assertNotNull($response->getParameter('id_token'));
     }
 
     public function testValidClientIdScope()

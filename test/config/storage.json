@@ -4,7 +4,8 @@
             "client_id": "Test Client ID",
             "user_id": "",
             "redirect_uri": "",
-            "expires": "9999999999"
+            "expires": "9999999999",
+            "id_token": "IDTOKEN"
         },
         "testcode-with-scope": {
             "client_id": "Test Client ID",
