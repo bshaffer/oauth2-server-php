@@ -101,12 +101,11 @@ class IdTokenTest extends \PHPUnit_Framework_TestCase
         $memoryStorage->supportedScopes[] = 'openid';
 
         $storage = array(
-            'id_token' => $memoryStorage,
             'client' => $memoryStorage,
             'scope' => $memoryStorage,
         );
         $responseTypes = array(
-            'id_token' => new IdToken($memoryStorage, $memoryStorage, $config),
+            'id_token' => new IdToken($memoryStorage, $config),
         );
 
         $server = new Server($storage, $config, array(), $responseTypes);

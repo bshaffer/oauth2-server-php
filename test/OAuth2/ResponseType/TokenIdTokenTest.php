@@ -82,13 +82,12 @@ class TokenIdTokenTest extends \PHPUnit_Framework_TestCase
 
         $storage = array(
             'access_token' => $memoryStorage,
-            'id_token' => $memoryStorage,
             'client' => $memoryStorage,
             'scope' => $memoryStorage,
         );
         $responseTypes = array(
             'token' => new AccessToken($memoryStorage, $memoryStorage),
-            'id_token' => new IdToken($memoryStorage, $memoryStorage, $config),
+            'id_token' => new IdToken($memoryStorage, $config),
         );
         $responseTypes['token id_token'] = new TokenIdToken($responseTypes['token'], $responseTypes['id_token']);
 
