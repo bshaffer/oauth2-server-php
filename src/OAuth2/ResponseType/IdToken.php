@@ -65,7 +65,8 @@ class IdToken implements IdTokenInterface
         return $this->encodeToken($token, $client_id);
     }
 
-    protected function createAtHash($access_token, $client_id = null) {
+    protected function createAtHash($access_token, $client_id = null)
+    {
         // maps HS256 and RS256 to sha256, etc.
         $algorithm = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
         $hash_algorithm = 'sha' . substr($algorithm, 2);

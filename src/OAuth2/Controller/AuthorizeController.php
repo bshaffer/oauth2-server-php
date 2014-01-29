@@ -349,7 +349,8 @@ class AuthorizeController implements AuthorizeControllerInterface
      * @return
      *   TRUE if an id token is needed, FALSE otherwise.
      */
-    public function needsIdToken($request_scope) {
+    public function needsIdToken($request_scope)
+    {
         $scopes = explode(' ', trim($request_scope));
         return $this->config['use_openid_connect'] && in_array('openid', $scopes);
     }
