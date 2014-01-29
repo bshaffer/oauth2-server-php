@@ -62,7 +62,18 @@ class Scope implements ScopeInterface
      */
     public function scopeExists($scope)
     {
-        return $this->storage->scopeExists($scope);
+        // Check reserved scopes first.
+        $scope = explode(' ', trim($scope));
+        $reservedScope = $this->getReservedScopes();
+        $nonReservedScopes = array_diff($scope, $reservedScope);
+        if (count($nonReservedScopes) == 0) {
+            return true;
+        }
+        else {
+            // Check the storage for non-reserved scopes.
+            $nonReservedScopes = implode(' ', $nonReservedScopes);
+            return $this->storage->scopeExists($nonReservedScopes);
+        }
     }
 
     public function getScopeFromRequest(RequestInterface $request)
@@ -74,5 +85,19 @@ class Scope implements ScopeInterface
     public function getDefaultScope($client_id = null)
     {
         return $this->storage->getDefaultScope($client_id);
+    }
+
+    /**
+     * Get reserved scopes needed by the server.
+     *
+     * In case OpenID Connect is used, these scopes must include:
+     * 'openid', 'email', 'profile', 'address', 'phone', offline_access'.
+     *
+     * @return
+     * An array of reserved scopes.
+     */
+    public function getReservedScopes()
+    {
+        return array('openid', 'email', 'profile', 'address', 'phone', 'offline_access');
     }
 }
