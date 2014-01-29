@@ -466,7 +466,6 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
             'issuer' => 'bojanz',
         );
         $storage = Bootstrap::getInstance()->getMemoryStorage();
-        $storage->supportedScopes[] = 'openid';
         $server = new Server($storage, $config);
 
         // Add the two types supported for authorization grant
