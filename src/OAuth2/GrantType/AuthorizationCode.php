@@ -93,7 +93,14 @@ class AuthorizationCode implements GrantTypeInterface
 
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
-        $token = $accessToken->createAccessToken($client_id, $user_id, $scope);
+        $includeRefreshToken = true;
+        if (isset($this->authCode['id_token'])) {
+            // OpenID Connect requests include the refresh token only if the
+            // offline_access scope has been requested and granted.
+            $scopes = explode(' ', trim($scope));
+            $includeRefreshToken = in_array('offline_access', $scopes);
+        }
+        $token = $accessToken->createAccessToken($client_id, $user_id, $scope, $includeRefreshToken);
         if (isset($this->authCode['id_token'])) {
             $token['id_token'] = $this->authCode['id_token'];
         }
