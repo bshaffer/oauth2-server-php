@@ -131,7 +131,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         // @see http://tools.ietf.org/html/rfc6749#section-3.1.2
         // @see http://tools.ietf.org/html/rfc6749#section-4.1.2.1
         // @see http://tools.ietf.org/html/rfc6749#section-4.2.2.1
-        if ($supplied_redirect_uri = $request->query('redirect_uri')) {
+        if ($registered_redirect_uri == $request->query('redirect_uri')) {
             // validate there is no fragment supplied
             $parts = parse_url($supplied_redirect_uri);
             if (isset($parts['fragment']) && $parts['fragment']) {
