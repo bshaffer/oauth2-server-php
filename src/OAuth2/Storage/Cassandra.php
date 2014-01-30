@@ -6,15 +6,25 @@ use phpcassa\ColumnSlice;
 use phpcassa\Connection\ConnectionPool;
 
 /**
- * cassandra storage for all storage types, requires phpcassa
+ * Cassandra storage for all storage types
  *
  * To use, install "thobbs/phpcassa" via composer
+ * <code>
+ *  composer require thobbs/phpcassa:dev-master
+ * </code>
  *
- * Register client:
+ * Once this is done, instantiate the
+ * <code>
+ *  $cassandra = new \phpcassa\Connection\ConnectionPool('oauth2_server', array('127.0.0.1:9160'));
+ * </code>
+ *
+ * Then, register the storage client:
  * <code>
  *  $storage = new OAuth2\Storage\Cassandra($cassandra);
  *  $storage->setClientDetails($client_id, $client_secret, $redirect_uri);
  * </code>
+ *
+ * @see test/lib/OAuth2/Storage/Bootstrap::getCassandraStorage
  */
 class Cassandra implements AuthorizationCodeInterface,
     AccessTokenInterface,
