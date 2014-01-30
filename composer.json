@@ -17,5 +17,9 @@
     },
     "autoload": {
         "psr-0": { "OAuth2": "src/" }
+    },
+    "suggest": {
+        "predis/predis": "Required to use the Redis storage engine",
+        "thobbs/phpcassa": "Required to use the Cassandra storage engine"
     }
 }
