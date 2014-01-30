@@ -5,10 +5,10 @@ namespace OAuth2\Storage;
 class AccessTokenTest extends BaseTest
 {
     /** @dataProvider provideStorage */
-    public function testSetAccessToken(AccessTokenInterface $storage = null)
+    public function testSetAccessToken(AccessTokenInterface $storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }

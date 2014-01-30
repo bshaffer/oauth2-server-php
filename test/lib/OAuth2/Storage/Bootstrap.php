@@ -54,7 +54,11 @@ class Bootstrap
                     $redis->flushdb();
                     $this->redis = new Redis($redis);
                     $this->createRedisDb($this->redis);
+                } else {
+                    $this->redis = new NullStorage('Redis', 'Unable to connect to redis server on port 6379');
                 }
+            } else {
+                $this->redis = new NullStorage('Redis', 'Missing redis library. Please run "composer.phar require predis/predis:dev-master"');
             }
         }
 
@@ -99,7 +103,11 @@ class Bootstrap
                     $this->createMongoDb($db);
 
                     $this->mongo = new Mongo($db);
+                } else {
+                    $this->mongo = new NullStorage('Mongo', 'Unable to connect to mongo server on "localhost:27017"');
                 }
+            } else {
+                $this->mongo = new NullStorage('Mongo', 'Missing mongo php extension. Please install mongo.so');
             }
         }
 
@@ -126,9 +134,12 @@ class Bootstrap
                     $this->removeCassandraDb();
                     $this->cassandra = new Cassandra($cassandra);
                     $this->createCassandraDb($this->cassandra);
+                } else {
+                    $this->cassandra = new NullStorage('Cassandra', 'Unable to connect to cassandra server on "127.0.0.1:9160"');
                 }
+            } else {
+                $this->cassandra = new NullStorage('Cassandra', 'Missing cassandra library. Please run "composer.phar require thobbs/phpcassa:dev-master"');
             }
-
         }
 
         return $this->cassandra;

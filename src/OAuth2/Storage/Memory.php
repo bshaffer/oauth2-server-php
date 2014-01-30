@@ -19,16 +19,16 @@ class Memory implements AuthorizationCodeInterface,
     ScopeInterface,
     PublicKeyInterface
 {
-    private $authorizationCodes;
-    private $userCredentials;
-    private $clientCredentials;
-    private $refreshTokens;
-    private $accessTokens;
-    private $jwt;
-    private $jti;
-    private $supportedScopes;
-    private $defaultScope;
-    private $keys;
+    public $authorizationCodes;
+    public $userCredentials;
+    public $clientCredentials;
+    public $refreshTokens;
+    public $accessTokens;
+    public $jwt;
+    public $jti;
+    public $supportedScopes;
+    public $defaultScope;
+    public $keys;
 
     public function __construct($params = array())
     {

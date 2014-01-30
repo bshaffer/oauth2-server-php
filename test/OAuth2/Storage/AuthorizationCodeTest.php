@@ -5,10 +5,10 @@ namespace OAuth2\Storage;
 class AuthorizationCodeTest extends BaseTest
 {
     /** @dataProvider provideStorage */
-    public function testGetAuthorizationCode(AuthorizationCodeInterface $storage = null)
+    public function testGetAuthorizationCode(AuthorizationCodeInterface $storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
@@ -23,10 +23,10 @@ class AuthorizationCodeTest extends BaseTest
     }
 
     /** @dataProvider provideStorage */
-    public function testSetAuthorizationCode(AuthorizationCodeInterface $storage = null)
+    public function testSetAuthorizationCode(AuthorizationCodeInterface $storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }

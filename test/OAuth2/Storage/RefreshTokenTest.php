@@ -5,10 +5,10 @@ namespace OAuth2\Storage;
 class RefreshTokenTest extends BaseTest
 {
     /** @dataProvider provideStorage */
-    public function testSetRefreshToken(RefreshTokenInterface $storage = null)
+    public function testSetRefreshToken(RefreshTokenInterface $storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
