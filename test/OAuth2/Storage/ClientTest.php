@@ -5,10 +5,10 @@ namespace OAuth2\Storage;
 class ClientTest extends BaseTest
 {
     /** @dataProvider provideStorage */
-    public function testGetClientDetails(ClientInterface $storage = null)
+    public function testGetClientDetails(ClientInterface $storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
@@ -26,10 +26,10 @@ class ClientTest extends BaseTest
     }
 
     /** @dataProvider provideStorage */
-    public function testCheckRestrictedGrantType(ClientInterface $storage = null)
+    public function testCheckRestrictedGrantType(ClientInterface $storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
@@ -44,10 +44,10 @@ class ClientTest extends BaseTest
     }
 
     /** @dataProvider provideStorage */
-    public function testGetAccessToken(ClientInterface $storage = null)
+    public function testGetAccessToken(ClientInterface $storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
@@ -62,10 +62,10 @@ class ClientTest extends BaseTest
     }
 
     /** @dataProvider provideStorage */
-    public function testSaveClient(ClientInterface $storage = null)
+    public function testSaveClient(ClientInterface $storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
