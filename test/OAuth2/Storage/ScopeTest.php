@@ -7,10 +7,10 @@ use OAuth2\Scope;
 class ScopeTest extends BaseTest
 {
     /** @dataProvider provideStorage */
-    public function testScopeExists($storage = null)
+    public function testScopeExists($storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
@@ -29,10 +29,10 @@ class ScopeTest extends BaseTest
     }
 
     /** @dataProvider provideStorage */
-    public function testGetDefaultScope($storage = null)
+    public function testGetDefaultScope($storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }

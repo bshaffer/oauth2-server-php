@@ -8,7 +8,7 @@ class PublicKeyTest extends BaseTest
     public function testSetAccessToken($storage)
     {
         if ($storage instanceof NullStorage) {
-            $this->markTestSkipped('Skipped Storage: ' . $storage);
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
