@@ -91,13 +91,13 @@ class Scope implements ScopeInterface
      * Get reserved scopes needed by the server.
      *
      * In case OpenID Connect is used, these scopes must include:
-     * 'openid', 'email', 'profile', 'address', 'phone', offline_access'.
+     * 'openid', offline_access'.
      *
      * @return
      * An array of reserved scopes.
      */
     public function getReservedScopes()
     {
-        return array('openid', 'email', 'profile', 'address', 'phone', 'offline_access');
+        return array('openid', 'offline_access');
     }
 }
