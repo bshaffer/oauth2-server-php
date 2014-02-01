@@ -13,7 +13,7 @@ class IdToken implements IdTokenInterface
     protected $config;
     protected $encryptionUtil;
 
-    public function __construct(PublicKeyInterface $publicKeyStorage = null, array $config = array(), EncryptionInterface $encryptionUtil = null)
+    public function __construct(PublicKeyInterface $publicKeyStorage, array $config = array(), EncryptionInterface $encryptionUtil = null)
     {
         $this->publicKeyStorage = $publicKeyStorage;
         if (is_null($encryptionUtil)) {
