@@ -62,6 +62,7 @@ class Server implements ResourceControllerInterface,
         'client' => 'OAuth2\Storage\ClientInterface',
         'refresh_token' => 'OAuth2\Storage\RefreshTokenInterface',
         'user_credentials' => 'OAuth2\Storage\UserCredentialsInterface',
+        'user_claims' => 'OAuth2\Storage\UserClaimsInterface',
         'public_key' => 'OAuth2\Storage\PublicKeyInterface',
         'jwt_bearer' => 'OAuth2\Storage\JWTBearerInterface',
         'scope' => 'OAuth2\Storage\ScopeInterface',
@@ -612,12 +613,15 @@ class Server implements ResourceControllerInterface,
 
     protected function createDefaultIdTokenResponseType()
     {
+        if (!isset($this->storages['user_claims'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\UserClaimsInterface to use openid connect");
+        }
         if (!isset($this->storages['public_key'])) {
             throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use openid connect");
         }
 
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'issuer id_lifetime')));
-        return new IdToken($this->storages['public_key'], $config);
+        return new IdToken($this->storages['user_claims'], $this->storages['public_key'], $config);
     }
 
     public function getResponse()

@@ -12,6 +12,7 @@ namespace OAuth2\Storage;
  */
 class Memory implements AuthorizationCodeInterface,
     UserCredentialsInterface,
+    UserClaimsInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     RefreshTokenInterface,
@@ -117,6 +118,22 @@ class Memory implements AuthorizationCodeInterface,
             'first_name' => null,
             'last_name'  => null,
         ), $this->userCredentials[$username]);
+    }
+
+    /* UserClaimsInterface */
+    public function getUserClaims($user_id, $scope)
+    {
+        // A real implementation would fetch the user information from a
+        // separate storage, and then return the appropriate claims.
+        // For test purposes it's okay to return the same data for all users.
+        $scope = explode(' ', trim($scope));
+        $claims = array();
+        if (in_array('email', $scope)) {
+            $claims['email'] = 'testuser@ourdomain.com';
+            $claims['email_verified'] = false;
+        }
+
+        return $claims;
     }
 
     /* ClientCredentialsInterface */

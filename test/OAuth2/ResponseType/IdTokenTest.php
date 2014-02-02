@@ -40,7 +40,7 @@ class IdTokenTest extends \PHPUnit_Framework_TestCase
             'response_type' => 'id_token',
             'redirect_uri'  => 'http://adobe.com',
             'client_id'     => 'Test Client ID',
-            'scope'         => 'openid',
+            'scope'         => 'openid email',
             'state'         => 'test',
             'nonce'         => 'test',
         ));
@@ -81,10 +81,13 @@ class IdTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('exp', $claims);
         $this->assertArrayHasKey('auth_time', $claims);
         $this->assertArrayHasKey('nonce', $claims);
+        $this->assertArrayHasKey('email', $claims);
+        $this->assertArrayHasKey('email_verified', $claims);
 
         $this->assertEquals($claims['iss'], 'test');
         $this->assertEquals($claims['aud'], 'Test Client ID');
         $this->assertEquals($claims['nonce'], 'test');
+        $this->assertEquals($claims['email'], 'testuser@ourdomain.com');
         $duration = $claims['exp'] - $claims['iat'];
         $this->assertEquals($duration, 3600);
     }
@@ -98,12 +101,13 @@ class IdTokenTest extends \PHPUnit_Framework_TestCase
         );
 
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
+        $memoryStorage->supportedScopes[] = 'email';
         $storage = array(
             'client' => $memoryStorage,
             'scope' => $memoryStorage,
         );
         $responseTypes = array(
-            'id_token' => new IdToken($memoryStorage, $config),
+            'id_token' => new IdToken($memoryStorage, $memoryStorage, $config),
         );
 
         $server = new Server($storage, $config, array(), $responseTypes);

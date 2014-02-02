@@ -78,18 +78,13 @@ class TokenIdTokenTest extends \PHPUnit_Framework_TestCase
         );
 
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
-        $storage = array(
-            'access_token' => $memoryStorage,
-            'client' => $memoryStorage,
-            'scope' => $memoryStorage,
-        );
         $responseTypes = array(
             'token' => new AccessToken($memoryStorage, $memoryStorage),
-            'id_token' => new IdToken($memoryStorage, $config),
+            'id_token' => new IdToken($memoryStorage, $memoryStorage, $config),
         );
         $responseTypes['token id_token'] = new TokenIdToken($responseTypes['token'], $responseTypes['id_token']);
 
-        $server = new Server($storage, $config, array(), $responseTypes);
+        $server = new Server($memoryStorage, $config, array(), $responseTypes);
         $server->addGrantType(new ClientCredentials($memoryStorage));
 
         return $server;
