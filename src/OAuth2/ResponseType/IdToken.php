@@ -6,15 +6,18 @@ use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\Encryption\Jwt;
 use OAuth2\Storage\RefreshTokenInterface;
 use OAuth2\Storage\PublicKeyInterface;
+use OAuth2\Storage\UserClaimsInterface;
 
 class IdToken implements IdTokenInterface
 {
+    protected $userClaimsStorage;
     protected $publicKeyStorage;
     protected $config;
     protected $encryptionUtil;
 
-    public function __construct(PublicKeyInterface $publicKeyStorage, array $config = array(), EncryptionInterface $encryptionUtil = null)
+    public function __construct(UserClaimsInterface $userClaimsStorage, PublicKeyInterface $publicKeyStorage, array $config = array(), EncryptionInterface $encryptionUtil = null)
     {
+        $this->userClaimsStorage = $userClaimsStorage;
         $this->publicKeyStorage = $publicKeyStorage;
         if (is_null($encryptionUtil)) {
             $encryptionUtil = new Jwt();
@@ -36,7 +39,8 @@ class IdToken implements IdTokenInterface
         $params += array('scope' => null, 'state' => null);
 
         // create the id token.
-        $id_token = $this->createIdToken($params['client_id'], $user_id, $params['nonce']);
+        $userClaims = $this->userClaimsStorage->getUserClaims($user_id, $params['scope']);
+        $id_token = $this->createIdToken($params['client_id'], $user_id, $params['nonce'], $userClaims);
         $result["fragment"] = array('id_token' => $id_token);
         if (isset($params['state'])) {
             $result["fragment"]["state"] = $params['state'];
@@ -45,7 +49,7 @@ class IdToken implements IdTokenInterface
         return array($params['redirect_uri'], $result);
     }
 
-    public function createIdToken($client_id, $user_id, $nonce = null, $access_token = null)
+    public function createIdToken($client_id, $user_id, $nonce = null, $userClaims = null, $access_token = null)
     {
         $token = array(
             'iss'        => $this->config['issuer'],
@@ -60,6 +64,9 @@ class IdToken implements IdTokenInterface
         }
         if ($access_token) {
             $token['at_hash'] = $this->createAtHash($access_token, $client_id);
+        }
+        if ($userClaims) {
+            $token += $userClaims;
         }
 
         return $this->encodeToken($token, $client_id);
