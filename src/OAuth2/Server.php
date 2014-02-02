@@ -4,6 +4,8 @@ namespace OAuth2;
 
 use OAuth2\Controller\ResourceControllerInterface;
 use OAuth2\Controller\ResourceController;
+use OAuth2\Controller\UserInfoControllerInterface;
+use OAuth2\Controller\UserInfoController;
 use OAuth2\Controller\AuthorizeControllerInterface;
 use OAuth2\Controller\AuthorizeController;
 use OAuth2\Controller\TokenControllerInterface;
@@ -47,6 +49,7 @@ class Server implements ResourceControllerInterface,
     protected $authorizeController;
     protected $tokenController;
     protected $resourceController;
+    protected $userInfoController;
 
     // config classes
     protected $grantTypes;
@@ -158,6 +161,15 @@ class Server implements ResourceControllerInterface,
         return $this->resourceController;
     }
 
+    public function getUserInfoController()
+    {
+        if (is_null($this->userInfoController)) {
+            $this->userInfoController = $this->createDefaultUserInfoController();
+        }
+
+        return $this->userInfoController;
+    }
+
     /**
      * every getter deserves a setter
      */
@@ -180,6 +192,37 @@ class Server implements ResourceControllerInterface,
     public function setResourceController(ResourceControllerInterface $resourceController)
     {
         $this->resourceController = $resourceController;
+    }
+
+    /**
+     * every getter deserves a setter
+     */
+    public function setUserInfoController(UserInfoControllerInterface $userInfoController)
+    {
+        $this->userInfoController = $userInfoController;
+    }
+
+    /**
+     * Return claims about the authenticated end-user.
+     * This would be called from the "/UserInfo" endpoint as defined in the spec.
+     *
+     * @param $request - OAuth2\RequestInterface
+     * Request object to grant access token
+     *
+     * @param $response - OAuth2\ResponseInterface
+     * Response object containing error messages (failure) or user claims (success)
+     *
+     * @throws InvalidArgumentException
+     * @throws LogicException
+     *
+     * @see http://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+     */
+    public function handleUserInfoRequest(RequestInterface $request, ResponseInterface $response = null)
+    {
+        $this->response = is_null($response) ? new Response() : $response;
+        $this->getUserInfoController()->handleUserInfoRequest($request, $this->response);
+
+        return $this->response;
     }
 
     /**
@@ -467,6 +510,30 @@ class Server implements ResourceControllerInterface,
         $config = array_intersect_key($this->config, array('www_realm' => ''));
 
         return new ResourceController($this->tokenType, $this->storages['access_token'], $config, $this->getScopeUtil());
+    }
+
+    protected function createDefaultUserInfoController()
+    {
+        if ($this->config['use_crypto_tokens']) {
+            // overwrites access token storage with crypto token storage if "use_crypto_tokens" is set
+            if (!isset($this->storages['access_token']) || !$this->storages['access_token'] instanceof CryptoTokenInterface) {
+                $this->storages['access_token'] = $this->createDefaultCryptoTokenStorage();
+            }
+        } elseif (!isset($this->storages['access_token'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\AccessTokenInterface or use CryptoTokens to use the UserInfo server");
+        }
+
+        if (!isset($this->storages['user_claims'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\UserClaimsInterface to use the UserInfo server");
+        }
+
+        if (!$this->tokenType) {
+            $this->tokenType = $this->getDefaultTokenType();
+        }
+
+        $config = array_intersect_key($this->config, array('www_realm' => ''));
+
+        return new UserInfoController($this->tokenType, $this->storages['access_token'], $this->storages['user_claims'], $config, $this->getScopeUtil());
     }
 
     protected function getDefaultTokenType()

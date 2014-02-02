@@ -102,6 +102,13 @@
             "expires": 99999999900,
             "scope": "testscope"
         },
+        "accesstoken-openid-connect": {
+            "access_token": "accesstoken-openid-connect",
+            "client_id": "Test Client ID",
+            "user_id": "test-username",
+            "expires": 99999999900,
+            "scope": "openid email"
+        },
         "accesstoken-malformed": {
             "access_token": "accesstoken-mallformed",
             "expires": 99999999900,
