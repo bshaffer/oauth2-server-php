@@ -187,6 +187,48 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse(isset($storages['authorization_code']));
     }
 
+    public function testAddingClientStorageSetsClientCredentialsStorageByDefault()
+    {
+        $server = new Server();
+        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $server->addStorage($memory, 'client');
+
+        $client_credentials = $server->getStorage('client_credentials');
+
+        $this->assertNotNull($client_credentials);
+        $this->assertEquals($client_credentials, $memory);
+    }
+
+    public function testAddingClientCredentialsStorageSetsClientStorageByDefault()
+    {
+        $server = new Server();
+        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $server->addStorage($memory, 'client_credentials');
+
+        $client = $server->getStorage('client');
+
+        $this->assertNotNull($client);
+        $this->assertEquals($client, $memory);
+    }
+
+    public function testSettingClientStorageByDefaultDoesNotOverrideSetStorage()
+    {
+        $server = new Server();
+        $pdo = $this->getMockBuilder('OAuth2\Storage\Pdo')
+            ->disableOriginalConstructor()->getMock();
+
+        $memory = $this->getMock('OAuth2\Storage\Memory');
+
+        $server->addStorage($pdo, 'client');
+        $server->addStorage($memory, 'client_credentials');
+
+        $client = $server->getStorage('client');
+        $client_credentials = $server->getStorage('client_credentials');
+
+        $this->assertEquals($client, $pdo);
+        $this->assertEquals($client_credentials, $memory);
+    }
+
     public function testAddingResponseType()
     {
         $storage = $this->getMock('OAuth2\Storage\Memory');

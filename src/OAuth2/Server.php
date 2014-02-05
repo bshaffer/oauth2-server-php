@@ -322,6 +322,17 @@ class Server implements ResourceControllerInterface,
                 throw new \InvalidArgumentException(sprintf('storage of type "%s" must implement interface "%s"', $key, $this->storageMap[$key]));
             }
             $this->storages[$key] = $storage;
+
+            // special logic to handle "client" and "client_credentials" strangeness
+            if ($key === 'client' && !isset($this->storages['client_credentials'])) {
+                if ($storage instanceof \OAuth2\Storage\ClientCredentialsInterface) {
+                    $this->storages['client_credentials'] = $storage;
+                }
+            } elseif ($key === 'client_credentials' && !isset($this->storages['client'])) {
+                if ($storage instanceof \OAuth2\Storage\ClientInterface) {
+                    $this->storages['client'] = $storage;
+                }
+            }
         } elseif (!is_null($key) && !is_numeric($key)) {
             throw new \InvalidArgumentException(sprintf('unknown storage key "%s", must be one of [%s]', $key, implode(', ', array_keys($this->storageMap))));
         } else {
