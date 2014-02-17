@@ -77,7 +77,11 @@ class CryptoToken extends AccessToken
          */
         if ($includeRefreshToken && $this->refreshStorage) {
             $cryptoToken["refresh_token"] = $this->generateRefreshToken();
-            $this->refreshStorage->setRefreshToken($cryptoToken['refresh_token'], $client_id, $user_id, time() + $this->config['refresh_token_lifetime'], $scope);
+            $expires = 0;
+            if ($this->config['refresh_token_lifetime'] > 0) {
+                $expires = time() + $this->config['refresh_token_lifetime'];
+            }
+            $this->refreshStorage->setRefreshToken($cryptoToken['refresh_token'], $client_id, $user_id, $expires, $scope);
         }
 
         /*
