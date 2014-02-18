@@ -1,6 +1,6 @@
 <?php
 
-namespace OAuth2\Controller;
+namespace OAuth2\OpenID\Controller;
 
 use OAuth2\TokenType\TokenTypeInterface;
 use OAuth2\Storage\AccessTokenInterface;

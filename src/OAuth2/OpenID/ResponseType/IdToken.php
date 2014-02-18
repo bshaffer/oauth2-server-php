@@ -1,6 +1,6 @@
 <?php
 
-namespace OAuth2\ResponseType;
+namespace OAuth2\OpenID\ResponseType;
 
 use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\Encryption\Jwt;

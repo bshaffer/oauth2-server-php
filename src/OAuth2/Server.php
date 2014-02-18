@@ -16,8 +16,8 @@ use OAuth2\ResponseType\ResponseTypeInterface;
 use OAuth2\ResponseType\AuthorizationCode as AuthorizationCodeResponseType;
 use OAuth2\ResponseType\AccessToken;
 use OAuth2\ResponseType\CryptoToken;
-use OAuth2\ResponseType\IdToken;
-use OAuth2\ResponseType\TokenIdToken;
+use OAuth2\OpenID\ResponseType\IdToken;
+use OAuth2\OpenID\ResponseType\TokenIdToken;
 use OAuth2\TokenType\TokenTypeInterface;
 use OAuth2\TokenType\Bearer;
 use OAuth2\GrantType\GrantTypeInterface;
@@ -73,8 +73,8 @@ class Server implements ResourceControllerInterface,
     protected $responseTypeMap = array(
         'token' => 'OAuth2\ResponseType\AccessTokenInterface',
         'code' => 'OAuth2\ResponseType\AuthorizationCodeInterface',
-        'id_token' => 'OAuth2\ResponseType\IdTokenInterface',
-        'token id_token' => 'OAuth2\ResponseType\TokenIdTokenInterface',
+        'id_token' => 'OAuth2\OpenID\ResponseType\IdTokenInterface',
+        'token id_token' => 'OAuth2\OpenID\ResponseType\TokenIdTokenInterface',
     );
 
     /**

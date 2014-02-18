@@ -1,6 +1,6 @@
 <?php
 
-namespace OAuth2\Controller;
+namespace OAuth2\OpenID\Controller;
 
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;

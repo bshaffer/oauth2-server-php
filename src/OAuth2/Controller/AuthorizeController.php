@@ -73,6 +73,27 @@ class AuthorizeController implements AuthorizeControllerInterface
             return;
         }
 
+        if (!$params = $this->buildAuthorizeParameters($request, $response, $user_id)) {
+            return;
+        }
+
+        $authResult = $this->responseTypes[$this->response_type]->getAuthorizeResponse($params, $user_id);
+
+        list($redirect_uri, $uri_params) = $authResult;
+
+        if (empty($redirect_uri) && !empty($registered_redirect_uri)) {
+            $redirect_uri = $registered_redirect_uri;
+        }
+
+        $uri = $this->buildUri($redirect_uri, $uri_params);
+
+        // return redirect response
+        $response->setRedirect($this->config['redirect_status_code'], $uri);
+    }
+
+
+    protected function buildAuthorizeParameters($request, $response, $user_id)
+    {
         // If no redirect_uri is passed in the request, use client's registered one
         if (empty($this->redirect_uri)) {
             $clientData              = $this->clientStorage->getClientDetails($this->client_id);
@@ -95,23 +116,8 @@ class AuthorizeController implements AuthorizeControllerInterface
             'response_type' => $this->response_type,
             'nonce'         => $this->nonce,
         );
-        // Generate an id token if needed.
-        if ($this->needsIdToken($this->scope) && $this->response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
-            $params['id_token'] = $this->responseTypes['id_token']->createIdToken($this->client_id, $user_id, $this->nonce);
-        }
 
-        $authResult = $this->responseTypes[$this->response_type]->getAuthorizeResponse($params, $user_id);
-
-        list($redirect_uri, $uri_params) = $authResult;
-
-        if (empty($redirect_uri) && !empty($registered_redirect_uri)) {
-            $redirect_uri = $registered_redirect_uri;
-        }
-
-        $uri = $this->buildUri($redirect_uri, $uri_params);
-
-        // return redirect response
-        $response->setRedirect($this->config['redirect_status_code'], $uri);
+        return $params;
     }
 
     public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response)
@@ -174,7 +180,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         $state = $request->query('state');
 
         // type and client_id are required
-        if (!$response_type || !in_array($response_type, array(self::RESPONSE_TYPE_AUTHORIZATION_CODE, self::RESPONSE_TYPE_ACCESS_TOKEN, self::RESPONSE_TYPE_ID_TOKEN, self::RESPONSE_TYPE_TOKEN_ID_TOKEN))) {
+        if (!$response_type || !in_array($response_type, $this->getValidResponseTypes())) {
             $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_request', 'Invalid or missing response type', null);
 
             return false;
@@ -298,6 +304,14 @@ class AuthorizeController implements AuthorizeControllerInterface
             . ((isset($parse_url["query"]) && !empty($parse_url['query'])) ? "?" . $parse_url["query"] : "")
             . ((isset($parse_url["fragment"])) ? "#" . $parse_url["fragment"] : "")
         ;
+    }
+
+    protected function getValidResponseTypes()
+    {
+        return array(
+            self::RESPONSE_TYPE_ACCESS_TOKEN,
+            self::RESPONSE_TYPE_AUTHORIZATION_CODE,
+        );
     }
 
     /**

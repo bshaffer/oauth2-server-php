@@ -1,9 +1,9 @@
 <?php
 
-namespace OAuth2\ResponseType;
+namespace OAuth2\OpenID\ResponseType;
 
-use OAuth2\ResponseType\AccessToken;
-use OAuth2\ResponseType\IdToken;
+use OAuth2\OpenID\ResponseType\AccessToken;
+use OAuth2\OpenID\ResponseType\IdToken;
 
 class TokenIdToken implements TokenIdTokenInterface
 {
