@@ -300,7 +300,7 @@ class Pdo implements AuthorizationCodeInterface,
 
         $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
 
-        return $stmt->fetch();
+        return $stmt->fetchColumn();
     }
 
     public function getClientScope($client_id)
