@@ -77,14 +77,14 @@
             "refresh_token": "test-refreshtoken",
             "client_id": "Test Client ID",
             "user_id": "test-username",
-            "expires": 99999999900,
+            "expires": 0,
             "scope": null
         },
         "test-refreshtoken-with-scope": {
             "refresh_token": "test-refreshtoken",
             "client_id": "Test Client ID",
             "user_id": "test-username",
-            "expires": 99999999900,
+            "expires": 0,
             "scope": "scope1 scope2"
         }
     },

@@ -56,7 +56,7 @@ class RefreshToken implements GrantTypeInterface
             return null;
         }
 
-        if ($refreshToken["expires"] < time()) {
+        if ($refreshToken['expires'] > 0 && $refreshToken["expires"] < time()) {
             $response->setError(400, 'invalid_grant', 'Refresh token has expired');
 
             return null;
