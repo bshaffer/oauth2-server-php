@@ -304,7 +304,7 @@ class Mongo implements AuthorizationCodeInterface,
             'subject' => $subject
         ));
 
-        return $result;
+        return is_null($result) ? false : $result['key'];
     }
 
     public function getClientScope($client_id)

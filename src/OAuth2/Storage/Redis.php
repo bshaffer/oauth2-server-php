@@ -263,12 +263,23 @@ class Redis implements AuthorizationCodeInterface,
     /*JWTBearerInterface */
     public function getClientKey($client_id, $subject)
     {
-        $jwt = $this->getValue($this->config['jwt_key'] . $client_id);
-        if ( isset($jwt['subject']) && $jwt['subject'] == $subject ) {
+        if (!$jwt = $this->getValue($this->config['jwt_key'] . $client_id)) {
+            return false;
+        }
+
+        if (isset($jwt['subject']) && $jwt['subject'] == $subject) {
             return $jwt['key'];
         }
 
         return null;
+    }
+
+    public function setClientKey($client_id, $key, $subject = null)
+    {
+        return $this->setValue($this->config['jwt_key'] . $client_id, array(
+            'key' => $key,
+            'subject' => $subject
+        ));
     }
 
     public function getClientScope($client_id)
