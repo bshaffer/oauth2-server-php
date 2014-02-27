@@ -29,8 +29,11 @@ class Pdo implements AuthorizationCodeInterface,
     public function __construct($connection, $config = array())
     {
         if (!$connection instanceof \PDO) {
+            if (is_string($connection)) {
+                $connection = array('dsn' => $connection);
+            }
             if (!is_array($connection)) {
-                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Pdo must be an instance of PDO or a configuration array');
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Pdo must be an instance of PDO, a DSN string, or a configuration array');
             }
             if (!isset($connection['dsn'])) {
                 throw new \InvalidArgumentException('configuration array must contain "dsn"');
