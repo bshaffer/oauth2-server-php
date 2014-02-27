@@ -83,7 +83,7 @@ class Redis implements AuthorizationCodeInterface,
     {
         unset($this->cache[$key]);
 
-        return $this->redis->delete($key);
+        return $this->redis->del($key);
     }
 
     /* AuthorizationCodeInterface */
