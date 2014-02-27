@@ -160,7 +160,7 @@ class AuthorizationCodeTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
+        $this->assertEquals($response->getParameter('error_description'), 'The scope requested is invalid for this request');
     }
 
     public function testValidCodeInvalidScope()
@@ -177,7 +177,7 @@ class AuthorizationCodeTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($response->getStatusCode(), 400);
         $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
+        $this->assertEquals($response->getParameter('error_description'), 'The scope requested is invalid for this request');
     }
 
     public function testValidClientDifferentCode()

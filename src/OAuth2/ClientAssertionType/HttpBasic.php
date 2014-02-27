@@ -18,6 +18,18 @@ class HttpBasic implements ClientAssertionTypeInterface
     protected $storage;
     protected $config;
 
+    /**
+     * @param OAuth2\Storage\ClientCredentialsInterface $clientStorage
+     * REQUIRED Storage class for retrieving client credentials information
+     * @param array $config
+     * OPTIONAL Configuration options for the server
+     * @code
+     * $config = array(
+     *   'allow_credentials_in_request_body' => true, // whether to look for credentials in the POST body in addition to the Authorize HTTP Header
+     *   'allow_public_clients'  => true              // if true, "public clients" (clients without a secret) may be authenticated
+     * );
+     * @endcode
+     */
     public function __construct(ClientCredentialsInterface $storage, array $config = array())
     {
         $this->storage = $storage;
@@ -51,12 +63,6 @@ class HttpBasic implements ClientAssertionTypeInterface
             }
         } elseif ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
             $response->setError(400, 'invalid_client', 'The client credentials are invalid');
-
-            return false;
-        }
-
-        if (!$this->storage->checkRestrictedGrantType($clientData['client_id'], $request->request('grant_type'))) {
-            $response->setError(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
 
             return false;
         }

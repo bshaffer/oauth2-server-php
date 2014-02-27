@@ -16,6 +16,10 @@ class AuthorizationCode implements GrantTypeInterface
     protected $storage;
     protected $authCode;
 
+    /**
+     * @param OAuth2\Storage\AuthorizationCodeInterface $storage
+     * REQUIRED Storage class for retrieving authorization code information
+     */
     public function __construct(AuthorizationCodeInterface $storage)
     {
         $this->storage = $storage;

@@ -9,7 +9,7 @@ use OAuth2\ResponseInterface;
 use OAuth2\Scope;
 
 /**
- * @see OAuth2_Controller_AuthorizeControllerInterface
+ * @see OAuth2\Controller\AuthorizeControllerInterface
  */
 class AuthorizeController implements AuthorizeControllerInterface
 {
@@ -25,10 +25,10 @@ class AuthorizeController implements AuthorizeControllerInterface
     protected $scopeUtil;
 
     /**
-     * @param OAuth2_Storage_ClientInterface $clientStorage
-     * REQUIRED Instance of OAuth2_Storage_ClientInterface to retrieve client information
+     * @param OAuth2\Storage\ClientInterface $clientStorage
+     * REQUIRED Instance of OAuth2\Storage\ClientInterface to retrieve client information
      * @param array $responseTypes
-     * OPTIONAL Array of OAuth2_ResponseTypeInterface objects.  Valid array
+     * OPTIONAL Array of OAuth2\ResponseType\ResponseTypeInterface objects.  Valid array
      * keys are "code" and "token"
      * @param array $config
      * OPTIONAL Configuration options for the server
@@ -40,8 +40,8 @@ class AuthorizeController implements AuthorizeControllerInterface
      *   'redirect_status_code' => 302,        // HTTP status code to use for redirect responses
      * );
      * @endcode
-     * @param OAuth2_ScopeInterface $scopeUtil
-     * OPTIONAL Instance of OAuth2_ScopeInterface to validate the requested scope
+     * @param OAuth2\ScopeInterface $scopeUtil
+     * OPTIONAL Instance of OAuth2\ScopeInterface to validate the requested scope
      */
     public function __construct(ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), ScopeInterface $scopeUtil = null)
     {
@@ -166,9 +166,6 @@ class AuthorizeController implements AuthorizeControllerInterface
         // Select the redirect URI
         $response_type = $request->query('response_type');
         $state = $request->query('state');
-        if (!$scope = $this->scopeUtil->getScopeFromRequest($request)) {
-            $scope = $this->scopeUtil->getDefaultScope($client_id);
-        }
 
         // type and client_id are required
         if (!$response_type || !in_array($response_type, array(self::RESPONSE_TYPE_AUTHORIZATION_CODE, self::RESPONSE_TYPE_ACCESS_TOKEN))) {
@@ -207,17 +204,30 @@ class AuthorizeController implements AuthorizeControllerInterface
             }
         }
 
-        // Validate that the requested scope is supported
-        if (false === $scope) {
-            $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_client', 'This application requires you specify a scope parameter', null);
+        // validate requested scope if it exists
+        $requestedScope = $this->scopeUtil->getScopeFromRequest($request);
 
-            return false;
-        }
+        if ($requestedScope) {
+            // restrict scope by client specific scope if applicable,
+            // otherwise verify the scope exists
+            $clientScope = $this->clientStorage->getClientScope($client_id);
+            if ((is_null($clientScope) && !$this->scopeUtil->scopeExists($requestedScope))
+                || ($clientScope && !$this->scopeUtil->checkScope($requestedScope, $clientScope))) {
+                $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_scope', 'An unsupported scope was requested', null);
 
-        if (!is_null($scope) && !$this->scopeUtil->scopeExists($scope, $client_id)) {
-            $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_scope', 'An unsupported scope was requested', null);
+                return false;
+            }
+        } else {
+            // use a globally-defined default scope
+            $defaultScope = $this->scopeUtil->getDefaultScope($client_id);
 
-            return false;
+            if (false === $defaultScope) {
+                $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_client', 'This application requires you specify a scope parameter', null);
+
+                return false;
+            }
+
+            $requestedScope = $defaultScope;
         }
 
         // Validate state parameter exists (if configured to enforce this)
@@ -228,7 +238,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         }
 
         // save the input data and return true
-        $this->scope         = $scope;
+        $this->scope         = $requestedScope;
         $this->state         = $state;
         $this->client_id     = $client_id;
         // Only save the SUPPLIED redirect URI (@see http://tools.ietf.org/html/rfc6749#section-4.1.3)

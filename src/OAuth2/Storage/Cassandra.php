@@ -1,19 +1,32 @@
 <?php
 
 namespace OAuth2\Storage;
+use phpcassa\ColumnFamily;
+use phpcassa\ColumnSlice;
+use phpcassa\Connection\ConnectionPool;
 
 /**
- * redis storage for all storage types
+ * Cassandra storage for all storage types
  *
- * To use, install "predis/predis" via composer
- *
- * Register client:
+ * To use, install "thobbs/phpcassa" via composer
  * <code>
- *  $storage = new OAuth2\Storage\Redis($redis);
+ *  composer require thobbs/phpcassa:dev-master
+ * </code>
+ *
+ * Once this is done, instantiate the
+ * <code>
+ *  $cassandra = new \phpcassa\Connection\ConnectionPool('oauth2_server', array('127.0.0.1:9160'));
+ * </code>
+ *
+ * Then, register the storage client:
+ * <code>
+ *  $storage = new OAuth2\Storage\Cassandra($cassandra);
  *  $storage->setClientDetails($client_id, $client_secret, $redirect_uri);
  * </code>
+ *
+ * @see test/lib/OAuth2/Storage/Bootstrap::getCassandraStorage
  */
-class Redis implements AuthorizationCodeInterface,
+class Cassandra implements AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
@@ -24,22 +37,39 @@ class Redis implements AuthorizationCodeInterface,
 
     private $cache;
 
-    /* The redis client */
-    protected $redis;
+    /* The cassandra client */
+    protected $cassandra;
 
     /* Configuration array */
     protected $config;
 
     /**
-     * Redis Storage!
+     * Cassandra Storage! uses phpCassa
      *
-     * @param \Predis\Client $redis
-     * @param array          $config
+     * @param \phpcassa\ConnectionPool $cassandra
+     * @param array $config
      */
-    public function __construct($redis, $config=array())
+    public function __construct($connection = array(), array $config = array())
     {
-        $this->redis = $redis;
+        if ($connection instanceof ConnectionPool) {
+            $this->cassandra = $connection;
+        } else {
+            if (!is_array($connection)) {
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Mongo must be an instance of MongoDB or a configuration array');
+            }
+            $connection = array_merge(array(
+                'keyspace' => 'oauth2',
+                'servers'  => null,
+            ), $connection);
+
+            $this->cassandra = new ConnectionPool($connection['keyspace'], $connection['servers']);
+        }
+
         $this->config = array_merge(array(
+            // cassandra config
+            'column_family' => 'auth',
+
+            // key names
             'client_key' => 'oauth_clients:',
             'access_token_key' => 'oauth_access_tokens:',
             'refresh_token_key' => 'oauth_refresh_tokens:',
@@ -52,38 +82,61 @@ class Redis implements AuthorizationCodeInterface,
 
     protected function getValue($key)
     {
-        if ( isset($this->cache[$key]) ) {
+        if (isset($this->cache[$key])) {
             return $this->cache[$key];
         }
-        $value = $this->redis->get($key);
-        if ( isset($value) ) {
-            return json_decode($value, true);
-        } else {
+
+        $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
+
+        try {
+            $value = array_shift($cf->get($key, new ColumnSlice("", "")));
+        } catch (\cassandra\NotFoundException $e) {
             return false;
         }
+
+        return json_decode($value, true);
     }
 
-    protected function setValue($key, $value, $expire=0)
+    protected function setValue($key, $value, $expire = 0)
     {
         $this->cache[$key] = $value;
+
+        $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
+
         $str = json_encode($value);
         if ($expire > 0) {
-            $seconds = $expire - time();
-            $ret = $this->redis->setex($key, $seconds, $str);
+            try {
+                $seconds = $expire - time();
+                // __data key set as C* requires a field, note: max TTL can only be 630720000 seconds
+                $cf->insert($key, array('__data' => $str), null, $seconds);
+            } catch(\Exception $e) {
+                return false;
+            }
         } else {
-            $ret = $this->redis->set($key, $str);
+            try {
+                // __data key set as C* requires a field
+                $cf->insert($key, array('__data' => $str));
+            } catch(\Exception $e) {
+                return false;
+            }
         }
 
-        // check that the key was set properly
-        // if this fails, an exception will usually thrown, so this step isn't strictly necessary
-        return is_bool($ret) ? $ret : $ret->getPayload() == 'OK';
+        return true;
     }
 
     protected function expireValue($key)
     {
         unset($this->cache[$key]);
 
-        return $this->redis->del($key);
+        $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
+        try {
+            // __data key set as C* requires a field
+            $cf->remove($key, array('__data'));
+        } catch(\Exception $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /* AuthorizationCodeInterface */
@@ -267,7 +320,7 @@ class Redis implements AuthorizationCodeInterface,
             return false;
         }
 
-        if (isset($jwt['subject']) && $jwt['subject'] == $subject) {
+        if (isset($jwt['subject']) && $jwt['subject'] == $subject ) {
             return $jwt['key'];
         }
 
@@ -282,6 +335,7 @@ class Redis implements AuthorizationCodeInterface,
         ));
     }
 
+    /*ScopeInterface */
     public function getClientScope($client_id)
     {
         if (!$clientDetails = $this->getClientDetails($client_id)) {
@@ -297,13 +351,14 @@ class Redis implements AuthorizationCodeInterface,
 
     public function getJti($client_id, $subject, $audience, $expiration, $jti)
     {
-        //TODO: Needs redis implementation.
-        throw new \Exception('getJti() for the Redis driver is currently unimplemented.');
+        //TODO: Needs cassandra implementation.
+        throw new \Exception('getJti() for the Cassandra driver is currently unimplemented.');
     }
 
     public function setJti($client_id, $subject, $audience, $expiration, $jti)
     {
-        //TODO: Needs redis implementation.
-        throw new \Exception('setJti() for the Redis driver is currently unimplemented.');
+        //TODO: Needs cassandra implementation.
+        throw new \Exception('setJti() for the Cassandra driver is currently unimplemented.');
     }
 }
+

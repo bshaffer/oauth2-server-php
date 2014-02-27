@@ -49,10 +49,23 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($server->getAuthorizeController());
     }
 
+    /**
+     * @expectedException LogicException allow_implicit
+     **/
+    public function testGetAuthorizeControllerWithClientStorageAndAccessTokenStorageThrowsException()
+    {
+        // must set AuthorizationCode or AccessToken / implicit
+        $server = new Server();
+        $server->addStorage($this->getMock('OAuth2\Storage\ClientInterface'));
+        $server->addStorage($this->getMock('OAuth2\Storage\AccessTokenInterface'));
+
+        $this->assertNotNull($server->getAuthorizeController());
+    }
+
     public function testGetAuthorizeControllerWithClientStorageAndAccessTokenStorage()
     {
-        // must set AccessToken or AuthorizationCode
-        $server = new Server();
+        // must set AuthorizationCode or AccessToken / implicit
+        $server = new Server(array(), array('allow_implicit' => true));
         $server->addStorage($this->getMock('OAuth2\Storage\ClientInterface'));
         $server->addStorage($this->getMock('OAuth2\Storage\AccessTokenInterface'));
 
@@ -172,6 +185,48 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, count($storages));
         $this->assertTrue(isset($storages['access_token']));
         $this->assertFalse(isset($storages['authorization_code']));
+    }
+
+    public function testAddingClientStorageSetsClientCredentialsStorageByDefault()
+    {
+        $server = new Server();
+        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $server->addStorage($memory, 'client');
+
+        $client_credentials = $server->getStorage('client_credentials');
+
+        $this->assertNotNull($client_credentials);
+        $this->assertEquals($client_credentials, $memory);
+    }
+
+    public function testAddingClientCredentialsStorageSetsClientStorageByDefault()
+    {
+        $server = new Server();
+        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $server->addStorage($memory, 'client_credentials');
+
+        $client = $server->getStorage('client');
+
+        $this->assertNotNull($client);
+        $this->assertEquals($client, $memory);
+    }
+
+    public function testSettingClientStorageByDefaultDoesNotOverrideSetStorage()
+    {
+        $server = new Server();
+        $pdo = $this->getMockBuilder('OAuth2\Storage\Pdo')
+            ->disableOriginalConstructor()->getMock();
+
+        $memory = $this->getMock('OAuth2\Storage\Memory');
+
+        $server->addStorage($pdo, 'client');
+        $server->addStorage($memory, 'client_credentials');
+
+        $client = $server->getStorage('client');
+        $client_credentials = $server->getStorage('client_credentials');
+
+        $this->assertEquals($client, $pdo);
+        $this->assertEquals($client_credentials, $memory);
     }
 
     public function testAddingResponseType()
@@ -308,4 +363,55 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $server->addResponseType($this->getMock('OAuth2\ResponseType\ResponseTypeInterface'));
     }
 
+    /**
+     * @expectedException LogicException OAuth2\Storage\PublicKeyInterface
+     **/
+    public function testUsingCryptoTokensWithoutPublicKeyStorageThrowsException()
+    {
+        $server = new Server(array(), array('use_crypto_tokens' => true));
+        $server->addGrantType($this->getMock('OAuth2\GrantType\GrantTypeInterface'));
+        $server->addStorage($this->getMock('OAuth2\Storage\ClientCredentialsInterface'));
+        $server->addStorage($this->getMock('OAuth2\Storage\ClientCredentialsInterface'));
+
+        $server->getTokenController();
+    }
+
+    public function testUsingJustCryptoTokenStorageWithResourceControllerIsOkay()
+    {
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $server = new Server(array($pubkey), array('use_crypto_tokens' => true));
+
+        $this->assertNotNull($server->getResourceController());
+        $this->assertInstanceOf('OAuth2\Storage\PublicKeyInterface', $server->getStorage('public_key'));
+    }
+
+    /**
+     * @expectedException LogicException OAuth2\Storage\ClientInterface
+     **/
+    public function testUsingJustCryptoTokenStorageWithAuthorizeControllerThrowsException()
+    {
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $server = new Server(array($pubkey), array('use_crypto_tokens' => true));
+        $this->assertNotNull($server->getAuthorizeController());
+    }
+
+    /**
+     * @expectedException LogicException grant_types
+     **/
+    public function testUsingJustCryptoTokenStorageWithTokenControllerThrowsException()
+    {
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $server = new Server(array($pubkey), array('use_crypto_tokens' => true));
+        $server->getTokenController();
+    }
+
+    public function testUsingCryptoTokenAndClientStorageWithAuthorizeControllerIsOk()
+    {
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $server = new Server(array($pubkey, $client), array('use_crypto_tokens' => true, 'allow_implicit' => true));
+        $this->assertNotNull($server->getAuthorizeController());
+
+        $this->assertInstanceOf('OAuth2\ResponseType\CryptoToken', $server->getResponseType('token'));
+    }
 }

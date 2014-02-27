@@ -6,7 +6,7 @@ namespace OAuth2;
  * Interface which represents an object response.  Meant to handle and display the proper OAuth2 Responses
  * for errors and successes
  *
- * @see OAuth2_Response
+ * @see OAuth2\Response
  */
 interface ResponseInterface
 {

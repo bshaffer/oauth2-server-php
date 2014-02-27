@@ -10,20 +10,19 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
         $sqlite = Bootstrap::getInstance()->getSqlitePdo();
         $mongo = Bootstrap::getInstance()->getMongo();
         $redis = Bootstrap::getInstance()->getRedisStorage();
+        $cassandra = Bootstrap::getInstance()->getCassandraStorage();
+        $memory = Bootstrap::getInstance()->getMemoryStorage();
 
         /* hack until we can fix "default_scope" dependencies in other tests */
-        // $memory = Bootstrap::getInstance()->getMemoryStorage();
-        $memoryConfig = json_decode(file_get_contents(__DIR__.'/../../../config/storage.json'), true);
-        $memoryConfig['default_scope'] = 'defaultscope1 defaultscope2';
-        $memory = new Memory($memoryConfig);
+        $memory->defaultScope = 'defaultscope1 defaultscope2';
 
-        // will add multiple storage types later
         return array(
             array($memory),
             array($sqlite),
             array($mysql),
             array($mongo),
-            array($redis)
+            array($redis),
+            array($cassandra),
         );
     }
 }

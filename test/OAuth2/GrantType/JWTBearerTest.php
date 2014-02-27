@@ -237,7 +237,8 @@ EOD;
         $server = $this->getTestServer();
         $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
-            'assertion' => $this->getJWT(null, null, null, 'Test Client ID', 'scope1'), // valid assertion
+            'assertion'  => $this->getJWT(null, null, null, 'Test Client ID'), // valid assertion
+            'scope'      => 'scope1', // valid scope
         ));
         $token = $server->grantAccessToken($request, new Response());
 
@@ -252,7 +253,8 @@ EOD;
         $server = $this->getTestServer();
         $request = TestRequest::createPost(array(
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
-            'assertion' => $this->getJWT(null, null, null, 'Test Client ID', 'invalid-scope'), // valid assertion with invalid scope
+            'assertion'  => $this->getJWT(null, null, null, 'Test Client ID'), // valid assertion
+            'scope'      => 'invalid-scope', // invalid scope
         ));
         $token = $server->grantAccessToken($request, $response = new Response());
 
@@ -266,7 +268,7 @@ EOD;
         $server = $this->getTestServer();
         $request = TestRequest::createPost(array(
                 'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
-                'assertion' => $this->getJWT(null, null, 'testuser@ourdomain.com', 'Test Client ID', null, 'unused_jti'), // valid assertion with invalid scope
+                'assertion' => $this->getJWT(null, null, 'testuser@ourdomain.com', 'Test Client ID', 'unused_jti'), // valid assertion with invalid scope
         ));
         $token = $server->grantAccessToken($request, $response = new Response());
 
@@ -279,7 +281,7 @@ EOD;
         $server = $this->getTestServer();
         $request = TestRequest::createPost(array(
                 'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
-                'assertion' => $this->getJWT(99999999900, null, 'testuser@ourdomain.com', 'Test Client ID', null, 'used_jti'), // valid assertion with invalid scope
+                'assertion' => $this->getJWT(99999999900, null, 'testuser@ourdomain.com', 'Test Client ID', 'used_jti'), // valid assertion with invalid scope
         ));
         $token = $server->grantAccessToken($request, $response = new Response());
 
@@ -293,7 +295,7 @@ EOD;
         $server = $this->getTestServer();
         $request = TestRequest::createPost(array(
                 'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
-                'assertion' => $this->getJWT(99999999900, null, 'testuser@ourdomain.com', 'Test Client ID', null, 'totally_new_jti'), // valid assertion with invalid scope
+                'assertion' => $this->getJWT(99999999900, null, 'testuser@ourdomain.com', 'Test Client ID', 'totally_new_jti'), // valid assertion with invalid scope
         ));
         $token = $server->grantAccessToken($request, $response = new Response());
 
@@ -316,7 +318,7 @@ EOD;
      * @param $iss The issuer, usually the client_id.
      * @return string
      */
-    private function getJWT($exp = null, $nbf = null, $sub = null, $iss = 'Test Client ID', $scope = null, $jti = null)
+    private function getJWT($exp = null, $nbf = null, $sub = null, $iss = 'Test Client ID', $jti = null)
     {
         if (!$exp) {
             $exp = time() + 1000;
@@ -332,7 +334,6 @@ EOD;
             'iat' => time(),
             'sub' => $sub,
             'aud' => 'http://myapp.com/oauth/auth',
-            'scope' => $scope,
         );
 
         if ($nbf) {

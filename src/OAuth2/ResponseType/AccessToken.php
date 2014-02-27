@@ -15,6 +15,21 @@ class AccessToken implements AccessTokenInterface
     protected $refreshStorage;
     protected $config;
 
+    /**
+     * @param OAuth2\Storage\AccessTokenInterface $tokenStorage
+     * REQUIRED Storage class for saving access token information
+     * @param OAuth2\Storage\RefreshTokenInterface $refreshStorage
+     * OPTIONAL Storage class for saving refresh token information
+     * @param array $config
+     * OPTIONAL Configuration options for the server
+     * @code
+     * $config = array(
+     *   'token_type' => 'bearer',              // token type identifier
+     *   'access_lifetime' => 3600,             // time before access token expires
+     *   'refresh_token_lifetime' => 1209600,   // time before refresh token expires
+     * );
+     * @endcode
+     */
     public function __construct(AccessTokenStorageInterface $tokenStorage, RefreshTokenInterface $refreshStorage = null, array $config = array())
     {
         $this->tokenStorage = $tokenStorage;
@@ -78,12 +93,16 @@ class AccessToken implements AccessTokenInterface
         /*
          * Issue a refresh token also, if we support them
          *
-         * Refresh Tokens are considered supported if an instance of OAuth2_Storage_RefreshTokenInterface
+         * Refresh Tokens are considered supported if an instance of OAuth2\Storage\RefreshTokenInterface
          * is supplied in the constructor
          */
         if ($includeRefreshToken && $this->refreshStorage) {
             $token["refresh_token"] = $this->generateRefreshToken();
-            $this->refreshStorage->setRefreshToken($token['refresh_token'], $client_id, $user_id, time() + $this->config['refresh_token_lifetime'], $scope);
+            $expires = 0;
+            if ($this->config['refresh_token_lifetime'] > 0) {
+                $expires = time() + $this->config['refresh_token_lifetime'];
+            }
+            $this->refreshStorage->setRefreshToken($token['refresh_token'], $client_id, $user_id, $expires, $scope);
         }
 
         return $token;

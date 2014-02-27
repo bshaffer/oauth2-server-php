@@ -75,6 +75,7 @@ class CryptoTokenTest extends \PHPUnit_Framework_TestCase
 
         $storage = array(
             'access_token' => new CryptoTokenStorage($memoryStorage),
+            'client' => $memoryStorage,
             'client_credentials' => $memoryStorage,
         );
         $server = new Server($storage);

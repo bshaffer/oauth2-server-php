@@ -9,7 +9,7 @@ use OAuth2\Storage\ClientCredentialsInterface;
 /**
  * @author Brent Shaffer <bshafs at gmail dot com>
  *
- * @see OAuth2_ClientAssertionType_HttpBasic
+ * @see OAuth2\ClientAssertionType_HttpBasic
  */
 class ClientCredentials extends HttpBasic implements GrantTypeInterface
 {

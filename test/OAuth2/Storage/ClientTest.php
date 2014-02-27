@@ -5,13 +5,14 @@ namespace OAuth2\Storage;
 class ClientTest extends BaseTest
 {
     /** @dataProvider provideStorage */
-    public function testGetClientDetails(ClientInterface $storage = null)
+    public function testGetClientDetails(ClientInterface $storage)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
+
         // nonexistant client_id
         $details = $storage->getClientDetails('fakeclient');
         $this->assertFalse($details);
@@ -25,10 +26,10 @@ class ClientTest extends BaseTest
     }
 
     /** @dataProvider provideStorage */
-    public function testCheckRestrictedGrantType(ClientInterface $storage = null)
+    public function testCheckRestrictedGrantType(ClientInterface $storage)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
@@ -43,13 +44,14 @@ class ClientTest extends BaseTest
     }
 
     /** @dataProvider provideStorage */
-    public function testGetAccessToken(ClientInterface $storage = null)
+    public function testGetAccessToken(ClientInterface $storage)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
+
         // nonexistant client_id
         $details = $storage->getAccessToken('faketoken');
         $this->assertFalse($details);
@@ -60,10 +62,10 @@ class ClientTest extends BaseTest
     }
 
     /** @dataProvider provideStorage */
-    public function testSaveClient(ClientInterface $storage = null)
+    public function testSaveClient(ClientInterface $storage)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
@@ -71,7 +73,7 @@ class ClientTest extends BaseTest
         $clientId = 'some-client-'.rand();
 
         // create a new client
-        $success = $storage->setClientDetails($clientId, 'somesecret', 'http://test.com', 'client_credentials', 'brent@brentertainment.com');
+        $success = $storage->setClientDetails($clientId, 'somesecret', 'http://test.com', 'client_credentials', 'clientscope1', 'brent@brentertainment.com');
         $this->assertTrue($success);
 
         // valid client_id
@@ -79,6 +81,7 @@ class ClientTest extends BaseTest
         $this->assertEquals($details['client_secret'], 'somesecret');
         $this->assertEquals($details['redirect_uri'], 'http://test.com');
         $this->assertEquals($details['grant_types'], 'client_credentials');
+        $this->assertEquals($details['scope'], 'clientscope1');
         $this->assertEquals($details['user_id'], 'brent@brentertainment.com');
     }
 }

@@ -17,6 +17,10 @@ class UserCredentials implements GrantTypeInterface
 
     protected $storage;
 
+    /**
+     * @param OAuth2\Storage\UserCredentialsInterface $storage
+     * REQUIRED Storage class for retrieving user credentials information
+     */
     public function __construct(UserCredentialsInterface $storage)
     {
         $this->storage = $storage;
@@ -36,7 +40,7 @@ class UserCredentials implements GrantTypeInterface
         }
 
         if (!$this->storage->checkUserCredentials($request->request("username"), $request->request("password"))) {
-            $response->setError(400, 'invalid_grant', 'Invalid username and password combination');
+            $response->setError(401, 'invalid_grant', 'Invalid username and password combination');
 
             return null;
         }

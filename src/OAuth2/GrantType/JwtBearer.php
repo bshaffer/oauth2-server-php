@@ -28,11 +28,11 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Creates an instance of the JWT bearer grant type.
      *
-     * @param OAuth2_Storage_JWTBearerInterface $storage
+     * @param OAuth2\Storage\JWTBearerInterface $storage
      * A valid storage interface that implements storage hooks for the JWT bearer grant type.
      * @param string $audience
      * The audience to validate the token against. This is usually the full URI of the OAuth token requests endpoint.
-     * @param OAuth2_Encryption_JWT OPTIONAL $jwtUtil
+     * @param OAuth2\Encryption\JWT OPTIONAL $jwtUtil
      * The class used to decode, encode and verify JWTs.
      */
     public function __construct(JwtBearerInterface $storage, $audience, Jwt $jwtUtil = null)
@@ -53,7 +53,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
      * @return
      * The string identifier for grant_type.
      *
-     * @see OAuth2_GrantTypeInterface::getQuerystringIdentifier()
+     * @see OAuth2\GrantType\GrantTypeInterface::getQuerystringIdentifier()
      */
     public function getQuerystringIdentifier()
     {
@@ -66,7 +66,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
      * @return
      * TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.
      *
-     * @see OAuth2_GrantTypeInterface::getTokenData()
+     * @see OAuth2\GrantType\GrantTypeInterface::getTokenData()
      */
     public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
@@ -163,7 +163,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
             //Reject if jti is used and jwt is still valid (exp parameter has not expired).
             if ($jti && $jti['expires'] > time()) {
                 $response->setError(400, 'invalid_grant', "JSON Token Identifier (jti) has already been used");
-                
+
                 return null;
             } else {
                 $this->storage->setJti($jwt['iss'], $jwt['sub'], $jwt['aud'], $jwt['exp'], $jwt['jti']);
@@ -202,14 +202,14 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
 
     public function getScope()
     {
-        return $this->jwt['scope'];
+        return null;
     }
 
     /**
      * Creates an access token that is NOT associated with a refresh token.
      * If a subject (sub) the name of the user/account we are accessing data on behalf of.
      *
-     * @see OAuth2_GrantTypeInterface::createAccessToken()
+     * @see OAuth2\GrantType\GrantTypeInterface::createAccessToken()
      */
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {

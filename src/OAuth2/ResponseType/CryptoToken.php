@@ -72,12 +72,16 @@ class CryptoToken extends AccessToken
         /*
          * Issue a refresh token also, if we support them
          *
-         * Refresh Tokens are considered supported if an instance of OAuth2_Storage_RefreshTokenInterface
+         * Refresh Tokens are considered supported if an instance of OAuth2\Storage\RefreshTokenInterface
          * is supplied in the constructor
          */
         if ($includeRefreshToken && $this->refreshStorage) {
             $cryptoToken["refresh_token"] = $this->generateRefreshToken();
-            $this->refreshStorage->setRefreshToken($cryptoToken['refresh_token'], $client_id, $user_id, time() + $this->config['refresh_token_lifetime'], $scope);
+            $expires = 0;
+            if ($this->config['refresh_token_lifetime'] > 0) {
+                $expires = time() + $this->config['refresh_token_lifetime'];
+            }
+            $this->refreshStorage->setRefreshToken($cryptoToken['refresh_token'], $client_id, $user_id, $expires, $scope);
         }
 
         /*

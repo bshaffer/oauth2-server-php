@@ -5,13 +5,14 @@ namespace OAuth2\Storage;
 class UserCredentialsTest extends BaseTest
 {
     /** @dataProvider provideStorage */
-    public function testCheckUserCredentials(UserCredentialsInterface $storage = null)
+    public function testCheckUserCredentials(UserCredentialsInterface $storage)
     {
-        if (is_null($storage)) {
-            $this->markTestSkipped('Skipped Storage');
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
 
             return;
         }
+
         // create a new user for testing
         $success = $storage->setUser('testusername', 'testpass', 'Test', 'User');
         $this->assertTrue($success);

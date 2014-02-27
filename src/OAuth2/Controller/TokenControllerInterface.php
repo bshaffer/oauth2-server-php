@@ -21,9 +21,9 @@ interface TokenControllerInterface
      * handleTokenRequest
      *
      * @param $request
-     * OAuth2_RequestInterface - The current http request
+     * OAuth2\RequestInterface - The current http request
      * @param $response
-     * OAuth2_ResponseInterface - An instance of OAuth2_ResponseInterface to contain the response data
+     * OAuth2\ResponseInterface - An instance of OAuth2\ResponseInterface to contain the response data
      *
      */
     public function handleTokenRequest(RequestInterface $request, ResponseInterface $response);
