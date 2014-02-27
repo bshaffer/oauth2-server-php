@@ -189,21 +189,6 @@ EOD;
         $this->assertEquals($response->getParameter('error_description'), 'Invalid issuer (iss) or subject (sub) provided');
     }
 
-    public function testBadSubject()
-    {
-        $server = $this->getTestServer();
-        $request = TestRequest::createPost(array(
-            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',  // valid grant type
-            'assertion' => $this->getJWT(null, null, 'anotheruser@ourdomain,com'),
-        ));
-
-        $server->grantAccessToken($request, $response = new Response());
-
-        $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_grant');
-        $this->assertEquals($response->getParameter('error_description'), 'Invalid issuer (iss) or subject (sub) provided');
-    }
-
     public function testMissingKey()
     {
         $server = $this->getTestServer();

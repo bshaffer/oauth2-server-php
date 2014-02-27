@@ -314,24 +314,20 @@ class Cassandra implements AuthorizationCodeInterface,
     }
 
     /*JWTBearerInterface */
-    public function getClientKey($client_id, $subject)
+    public function getClientKey($client_id, $subject = null)
     {
         if (!$jwt = $this->getValue($this->config['jwt_key'] . $client_id)) {
             return false;
         }
 
-        if (isset($jwt['subject']) && $jwt['subject'] == $subject ) {
-            return $jwt['key'];
-        }
-
-        return null;
+        return $jwt['public_key'];
     }
 
     public function setClientKey($client_id, $key, $subject = null)
     {
         return $this->setValue($this->config['jwt_key'] . $client_id, array(
-            'key' => $key,
-            'subject' => $subject
+            'public_key' => $key,
+            'subject'    => $subject
         ));
     }
 

@@ -297,14 +297,11 @@ class Mongo implements AuthorizationCodeInterface,
         return true;
     }
 
-    public function getClientKey($client_id, $subject)
+    public function getClientKey($client_id, $subject = null)
     {
-        $result = $this->collection('jwt_table')->findOne(array(
-            'client_id' => $client_id,
-            'subject' => $subject
-        ));
+        $result = $this->collection('jwt_table')->findOne(array('client_id' => $client_id));
 
-        return is_null($result) ? false : $result['key'];
+        return is_null($result) ? false : $result['public_key'];
     }
 
     public function getClientScope($client_id)

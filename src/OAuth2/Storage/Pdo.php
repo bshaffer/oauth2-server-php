@@ -294,11 +294,13 @@ class Pdo implements AuthorizationCodeInterface,
     }
 
     /* JWTBearerInterface */
-    public function getClientKey($client_id, $subject)
+    public function getClientKey($client_id, $subject = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));
+        $sql = sprintf('SELECT public_key from %s where client_id=:client_id', $this->config['jwt_table']);
 
-        $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute(array('client_id' => $client_id));
 
         return $stmt->fetchColumn();
     }

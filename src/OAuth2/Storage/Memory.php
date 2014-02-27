@@ -226,15 +226,14 @@ class Memory implements AuthorizationCodeInterface,
     }
 
     /*JWTBearerInterface */
-    public function getClientKey($client_id, $subject)
+    public function getClientKey($client_id, $subject = null)
     {
         if (isset($this->jwt[$client_id])) {
-            $jwt = $this->jwt[$client_id];
-            if ($jwt) {
-                if ($jwt["subject"] == $subject) {
-                    return $jwt["key"];
-                }
+            if (!$jwt = $this->jwt[$client_id]) {
+                return false;
             }
+
+            return $jwt['public_key'];
         }
 
         return false;

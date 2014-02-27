@@ -109,23 +109,23 @@
     },
     "jwt": {
         "Test Client ID": {
-            "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5/SxVlE8gnpFqCxgl2wjhzY7u\ncEi00s0kUg3xp7lVEvgLgYcAnHiWp+gtSjOFfH2zsvpiWm6Lz5f743j/FEzHIO1o\nwR0p4d9pOaJK07d01+RzoQLOIQAgXrr4T1CCWUesncwwPBVCyy2Mw3Nmhmr9MrF8\nUlvdRKBxriRnlP3qJQIDAQAB\n-----END PUBLIC KEY-----",
+            "public_key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5/SxVlE8gnpFqCxgl2wjhzY7u\ncEi00s0kUg3xp7lVEvgLgYcAnHiWp+gtSjOFfH2zsvpiWm6Lz5f743j/FEzHIO1o\nwR0p4d9pOaJK07d01+RzoQLOIQAgXrr4T1CCWUesncwwPBVCyy2Mw3Nmhmr9MrF8\nUlvdRKBxriRnlP3qJQIDAQAB\n-----END PUBLIC KEY-----",
             "subject": "testuser@ourdomain.com"
         },
         "Test Client ID PHP-5.2": {
-            "key": "mysecretkey",
+            "public_key": "mysecretkey",
             "subject": "testuser@ourdomain.com"
         },
         "Missing Key Client": {
-            "key": null,
+            "public_key": null,
             "subject": "testuser@ourdomain.com"
         },
         "Missing Key Client PHP-5.2": {
-            "key": null,
+            "public_key": null,
             "subject": "testuser@ourdomain.com"
         },
         "oauth_test_client": {
-            "key": "-----BEGIN CERTIFICATE-----\nMIICiDCCAfGgAwIBAgIBADANBgkqhkiG9w0BAQQFADA9MQswCQYDVQQGEwJVUzEL\nMAkGA1UECBMCVVQxITAfBgNVBAoTGFZpZ25ldHRlIENvcnBvcmF0aW9uIFNCWDAe\nFw0xMTEwMTUwMzE4MjdaFw0zMTEwMTAwMzE4MjdaMD0xCzAJBgNVBAYTAlVTMQsw\nCQYDVQQIEwJVVDEhMB8GA1UEChMYVmlnbmV0dGUgQ29ycG9yYXRpb24gU0JYMIGf\nMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8fpi06NfVYHAOAnxNMVnTXr/ptsLs\nNjP+uAt2eO0cc5J9H5XV8lFVujOrRu/JWi1TDmAvOaf/6A3BphIA1Pwp0AAqlZdw\nizIum8j0KzpsGYH5qReNQDwF3oUSKMsQCCGCDHrDYifG/pRi9bN1ZVjEXPr35HJu\nBe+FQpZTs8DewwIDAQABo4GXMIGUMB0GA1UdDgQWBBRe8hrEXm+Yim4YlD5Nx+1K\nvCYs9DBlBgNVHSMEXjBcgBRe8hrEXm+Yim4YlD5Nx+1KvCYs9KFBpD8wPTELMAkG\nA1UEBhMCVVMxCzAJBgNVBAgTAlVUMSEwHwYDVQQKExhWaWduZXR0ZSBDb3Jwb3Jh\ndGlvbiBTQliCAQAwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQQFAAOBgQBjhyRD\nlM7vnLn6drgQVftW5V9nDFAyPAuiGvMIKFSbiAf1PxXCRn5sfJquwWKsJUi4ZGNl\naViXdFmN6/F13PSM+yg63tpKy0fYqMbTM+Oe5WuSHkSW1VuYNHV+24adgNk/FRDL\nFRrlM1f6s9VTLWvwGItjfrof0Ba8Uq7ZDSb9Xg==\n-----END CERTIFICATE-----",
+            "public_key": "-----BEGIN CERTIFICATE-----\nMIICiDCCAfGgAwIBAgIBADANBgkqhkiG9w0BAQQFADA9MQswCQYDVQQGEwJVUzEL\nMAkGA1UECBMCVVQxITAfBgNVBAoTGFZpZ25ldHRlIENvcnBvcmF0aW9uIFNCWDAe\nFw0xMTEwMTUwMzE4MjdaFw0zMTEwMTAwMzE4MjdaMD0xCzAJBgNVBAYTAlVTMQsw\nCQYDVQQIEwJVVDEhMB8GA1UEChMYVmlnbmV0dGUgQ29ycG9yYXRpb24gU0JYMIGf\nMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8fpi06NfVYHAOAnxNMVnTXr/ptsLs\nNjP+uAt2eO0cc5J9H5XV8lFVujOrRu/JWi1TDmAvOaf/6A3BphIA1Pwp0AAqlZdw\nizIum8j0KzpsGYH5qReNQDwF3oUSKMsQCCGCDHrDYifG/pRi9bN1ZVjEXPr35HJu\nBe+FQpZTs8DewwIDAQABo4GXMIGUMB0GA1UdDgQWBBRe8hrEXm+Yim4YlD5Nx+1K\nvCYs9DBlBgNVHSMEXjBcgBRe8hrEXm+Yim4YlD5Nx+1KvCYs9KFBpD8wPTELMAkG\nA1UEBhMCVVMxCzAJBgNVBAgTAlVUMSEwHwYDVQQKExhWaWduZXR0ZSBDb3Jwb3Jh\ndGlvbiBTQliCAQAwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQQFAAOBgQBjhyRD\nlM7vnLn6drgQVftW5V9nDFAyPAuiGvMIKFSbiAf1PxXCRn5sfJquwWKsJUi4ZGNl\naViXdFmN6/F13PSM+yg63tpKy0fYqMbTM+Oe5WuSHkSW1VuYNHV+24adgNk/FRDL\nFRrlM1f6s9VTLWvwGItjfrof0Ba8Uq7ZDSb9Xg==\n-----END CERTIFICATE-----",
             "subject": "test_subject"
         }
     },
