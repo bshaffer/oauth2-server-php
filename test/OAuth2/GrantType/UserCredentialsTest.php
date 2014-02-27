@@ -128,6 +128,40 @@ class UserCredentialsTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error_description'), 'An unsupported scope was requested');
     }
 
+    public function testNoSecretWithPublicClient()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type' => 'password', // valid grant type
+            'client_id' => 'Test Client ID Empty Secret', // valid public client
+            'username' => 'test-username', // valid username
+            'password' => 'testpass', // valid password
+        ));
+
+
+        $token = $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+    }
+
+    public function testNoSecretWithConfidentialClient()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type' => 'password', // valid grant type
+            'client_id' => 'Test Client ID', // valid public client
+            'username' => 'test-username', // valid username
+            'password' => 'testpass', // valid password
+        ));
+
+        $token = $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getParameter('error'), 'invalid_client');
+        $this->assertEquals($response->getParameter('error_description'), 'This client is invalid or must authenticate using a client secret');
+    }
+
     private function getTestServer()
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
