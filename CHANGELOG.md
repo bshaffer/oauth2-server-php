@@ -4,8 +4,9 @@ CHANGELOG for 1.x
 This changelog references the relevant changes (bug and security fixes) done
 in 1.x minor versions.
 
-To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-server-php/commit/XXX where XXX is the change hash
+To see the files changed for a given bug, go to https://github.com/bshaffer/oauth2-server-php/issues/### where ### is the bug number
 To get the diff between two versions, go to https://github.com/bshaffer/oauth2-server-php/compare/v1.0...v1.1
+To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-server-php/commit/XXX where XXX is the change hash
 
 * 1.3 (2014-02-27)
 
@@ -14,7 +15,7 @@ To get the diff between two versions, go to https://github.com/bshaffer/oauth2-s
   * bug #311 adds cassandra storage
   * bug #298 fixes response code for user credentials grant type
   * bug #318 adds 'use_crypto_tokens' config to Server class for better DX
-  * bug #320 pass client_id to getDefaultScope
+  * [BC] bug #320 pass client_id to getDefaultScope
   * bug #324 better feedback when running tests
   * bug #335 adds support for non-expiring refresh tokens
   * bug #333 fixes Pdo storage for getClientKey
