@@ -88,9 +88,9 @@ class Bearer implements TokenTypeInterface
         }
 
         if ($request->request($this->config['token_param_name'])) {
-            // POST: Get the token from POST data
-            if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
-                $response->setError(400, 'invalid_request', 'When putting the token in the body, the method must be POST');
+            // // POST: Get the token from POST data
+            if (!in_array(strtolower($request->server('REQUEST_METHOD')), array('post', 'put'))) {
+                $response->setError(400, 'invalid_request', 'When putting the token in the body, the method must be POST or PUT', '#section-2.2');
 
                 return null;
             }
