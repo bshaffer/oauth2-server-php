@@ -27,9 +27,9 @@ class AuthorizationCode implements AuthorizationCodeInterface
         // build the URL to redirect to
         $result = array('query' => array());
 
-        $params += array('scope' => null, 'state' => null, 'id_token' => null);
+        $params += array('scope' => null, 'state' => null);
 
-        $result['query']['code'] = $this->createAuthorizationCode($params['client_id'], $user_id, $params['redirect_uri'], $params['scope'], $params['id_token']);
+        $result['query']['code'] = $this->createAuthorizationCode($params['client_id'], $user_id, $params['redirect_uri'], $params['scope']);
 
         if (isset($params['state'])) {
             $result['query']['state'] = $params['state'];
@@ -50,16 +50,14 @@ class AuthorizationCode implements AuthorizationCodeInterface
      * user-agent to when the end-user authorization step is completed.
      * @param $scope
      * (optional) Scopes to be stored in space-separated string.
-     * @param $id_token
-     * (optional) The OpenID Connect id_token.
      *
      * @see http://tools.ietf.org/html/rfc6749#section-4
      * @ingroup oauth2_section_4
      */
-    public function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null, $id_token = null)
+    public function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null)
     {
         $code = $this->generateAuthorizationCode();
-        $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->config['auth_code_lifetime'], $scope, $id_token);
+        $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->config['auth_code_lifetime'], $scope);
 
         return $code;
     }

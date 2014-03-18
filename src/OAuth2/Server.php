@@ -42,7 +42,8 @@ use OAuth2\Storage\CryptoTokenInterface;
 */
 class Server implements ResourceControllerInterface,
     AuthorizeControllerInterface,
-    TokenControllerInterface
+    TokenControllerInterface,
+    UserInfoControllerInterface
 {
     // misc properties
     protected $response;
