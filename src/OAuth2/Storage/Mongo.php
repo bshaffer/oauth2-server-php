@@ -2,6 +2,8 @@
 
 namespace OAuth2\Storage;
 
+use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
+
 /**
  * Simple MongoDB storage for all storage types
  *
@@ -19,7 +21,8 @@ class Mongo implements AuthorizationCodeInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
     RefreshTokenInterface,
-    JwtBearerInterface
+    JwtBearerInterface,
+    OpenIDAuthorizationCodeInterface
 {
     protected $db;
     protected $config;

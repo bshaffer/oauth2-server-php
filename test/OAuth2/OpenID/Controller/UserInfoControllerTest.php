@@ -10,7 +10,6 @@ use OAuth2\Response;
 
 class UserInfoControllerTest extends \PHPUnit_Framework_TestCase
 {
-
     public function testValidToken()
     {
         $server = $this->getTestServer();

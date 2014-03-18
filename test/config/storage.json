@@ -25,6 +25,13 @@
             "user_id": "",
             "redirect_uri": "",
             "expires": "9999999999"
+        },
+        "testcode-openid": {
+            "client_id": "Test Client ID",
+            "user_id": "",
+            "redirect_uri": "",
+            "expires": "9999999999",
+            "id_token": "test_id_token"
         }
     },
     "client_credentials" : {

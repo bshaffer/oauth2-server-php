@@ -3,12 +3,19 @@
 namespace OAuth2\OpenID\Storage;
 
 use OAuth2\Storage\BaseTest;
+use OAuth2\Storage\NullStorage;
 
-class CryptoTokenTest extends BaseTest
+class UserClaimsTest extends BaseTest
 {
     /** @dataProvider provideStorage */
     public function testGetUserClaims($storage)
     {
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
+
+            return;
+        }
+
         if (!$storage instanceof UserClaimsInterface) {
             // incompatible storage
             return;

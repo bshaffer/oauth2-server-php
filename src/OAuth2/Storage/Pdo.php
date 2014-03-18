@@ -3,6 +3,7 @@
 namespace OAuth2\Storage;
 
 use OAuth2\OpenID\Storage\UserClaimsInterface;
+use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 /**
  * Simple PDO storage for all storage types
  *
@@ -23,7 +24,8 @@ class Pdo implements AuthorizationCodeInterface,
     JwtBearerInterface,
     ScopeInterface,
     PublicKeyInterface,
-    UserClaimsInterface
+    UserClaimsInterface,
+    OpenIDAuthorizationCodeInterface
 {
     protected $db;
     protected $config;

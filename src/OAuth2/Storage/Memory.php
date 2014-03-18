@@ -3,6 +3,7 @@
 namespace OAuth2\Storage;
 
 use OAuth2\OpenID\Storage\UserClaimsInterface;
+use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 
 /**
  * Simple in-memory storage for all storage types
@@ -20,7 +21,8 @@ class Memory implements AuthorizationCodeInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     ScopeInterface,
-    PublicKeyInterface
+    PublicKeyInterface,
+    OpenIDAuthorizationCodeInterface
 {
     public $authorizationCodes;
     public $userCredentials;

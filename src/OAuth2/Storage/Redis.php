@@ -2,6 +2,8 @@
 
 namespace OAuth2\Storage;
 
+use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
+
 /**
  * redis storage for all storage types
  *
@@ -19,7 +21,8 @@ class Redis implements AuthorizationCodeInterface,
     UserCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
-    ScopeInterface
+    ScopeInterface,
+    OpenIDAuthorizationCodeInterface
 {
 
     private $cache;

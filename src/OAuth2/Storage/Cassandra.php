@@ -1,9 +1,11 @@
 <?php
 
 namespace OAuth2\Storage;
+
 use phpcassa\ColumnFamily;
 use phpcassa\ColumnSlice;
 use phpcassa\Connection\ConnectionPool;
+use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 
 /**
  * Cassandra storage for all storage types
@@ -32,7 +34,8 @@ class Cassandra implements AuthorizationCodeInterface,
     UserCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
-    ScopeInterface
+    ScopeInterface,
+    OpenIDAuthorizationCodeInterface
 {
 
     private $cache;

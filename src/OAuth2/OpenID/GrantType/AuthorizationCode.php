@@ -2,7 +2,7 @@
 
 namespace OAuth2\OpenID\GrantType;
 
-use OAuth2\GrantType\AuthorizationCode as BaseAuthorizationCode
+use OAuth2\GrantType\AuthorizationCode as BaseAuthorizationCode;
 use OAuth2\Storage\AuthorizationCodeInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
 use OAuth2\RequestInterface;

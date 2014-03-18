@@ -540,4 +540,43 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenInterface', $server->getResponseType('id_token'));
         $this->assertInstanceOf('OAuth2\OpenID\ResponseType\TokenIdTokenInterface', $server->getResponseType('token id_token'));
     }
+
+    /**
+     * @expectedException LogicException OAuth2\OpenID\Storage\AuthorizationCodeInterface
+     **/
+    public function testUsingOpenIDConnectWithAuthorizationCodeStorageThrowsException()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientCredentialsInterface');
+        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
+        $authcode = $this->getMock('OAuth2\Storage\AuthorizationCodeInterface');
+
+        $server = new Server(array($client, $userclaims, $pubkey, $token, $authcode), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy'
+        ));
+
+        $server->getTokenController();
+
+        $this->assertInstanceOf('OAuth2\OpenID\GrantType\AuthorizationCode', $server->getGrantType('authorization_code'));
+    }
+
+    public function testUsingOpenIDConnectWithOpenIDAuthorizationCodeStorageCreatesOpenIDAuthorizationCodeGrantType()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientCredentialsInterface');
+        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
+        $authcode = $this->getMock('OAuth2\OpenID\Storage\AuthorizationCodeInterface');
+
+        $server = new Server(array($client, $userclaims, $pubkey, $token, $authcode), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy'
+        ));
+
+        $server->getTokenController();
+
+        $this->assertInstanceOf('OAuth2\OpenID\GrantType\AuthorizationCode', $server->getGrantType('authorization_code'));
+    }
 }

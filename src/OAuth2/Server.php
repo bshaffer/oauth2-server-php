@@ -7,6 +7,9 @@ use OAuth2\Controller\ResourceController;
 use OAuth2\OpenID\Controller\UserInfoControllerInterface;
 use OAuth2\OpenID\Controller\UserInfoController;
 use OAuth2\OpenID\Controller\AuthorizeController as OpenIDAuthorizeController;
+use OAuth2\OpenID\ResponseType\AuthorizationCode as OpenIDAuthorizationCodeResponseType;
+use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
+use OAuth2\OpenID\GrantType\AuthorizationCode as OpenIDAuthorizationCodeGrantType;
 use OAuth2\Controller\AuthorizeControllerInterface;
 use OAuth2\Controller\AuthorizeController;
 use OAuth2\Controller\TokenControllerInterface;
@@ -564,7 +567,14 @@ class Server implements ResourceControllerInterface,
 
         if (isset($this->storages['authorization_code'])) {
             $config = array_intersect_key($this->config, array_flip(explode(' ', 'enforce_redirect auth_code_lifetime')));
-            $responseTypes['code'] = new AuthorizationCodeResponseType($this->storages['authorization_code'], $config);
+            if ($this->config['use_openid_connect']) {
+                if (!$this->storages['authorization_code'] instanceof OpenIDAuthorizationCodeInterface) {
+                    throw new \LogicException("Your authorization_code storage must implement OAuth2\OpenID\Storage\AuthorizationCodeInterface to work when 'use_openid_connect' is true");
+                }
+                $responseTypes['code'] = new OpenIDAuthorizationCodeResponseType($this->storages['authorization_code'], $config);
+            } else {
+                $responseTypes['code'] = new AuthorizationCodeResponseType($this->storages['authorization_code'], $config);
+            }
         }
 
         if (count($responseTypes) == 0) {
@@ -593,7 +603,14 @@ class Server implements ResourceControllerInterface,
         }
 
         if (isset($this->storages['authorization_code'])) {
-            $grantTypes['authorization_code'] = new AuthorizationCode($this->storages['authorization_code']);
+            if ($this->config['use_openid_connect']) {
+                if (!$this->storages['authorization_code'] instanceof OpenIDAuthorizationCodeInterface) {
+                    throw new \LogicException("Your authorization_code storage must implement OAuth2\OpenID\Storage\AuthorizationCodeInterface to work when 'use_openid_connect' is true");
+                }
+                $grantTypes['authorization_code'] = new OpenIDAuthorizationCodeGrantType($this->storages['authorization_code']);
+            } else {
+                $grantTypes['authorization_code'] = new AuthorizationCode($this->storages['authorization_code']);
+            }
         }
 
         if (count($grantTypes) == 0) {
