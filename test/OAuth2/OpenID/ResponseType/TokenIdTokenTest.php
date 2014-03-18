@@ -1,46 +1,26 @@
 <?php
 
-namespace OAuth2\ResponseType;
+namespace OAuth2\OpenID\ResponseType;
 
 use OAuth2\Server;
 use OAuth2\Request;
 use OAuth2\Response;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\GrantType\ClientCredentials;
+use OAuth2\ResponseType\AccessToken;
 
-class IdTokenTest extends \PHPUnit_Framework_TestCase
+class TokenIdTokenTest extends \PHPUnit_Framework_TestCase
 {
-    public function testValidateAuthorizeRequest()
-    {
-        $query = array(
-            'response_type' => 'id_token',
-            'redirect_uri'  => 'http://adobe.com',
-            'client_id'     => 'Test Client ID',
-            'scope'         => 'openid',
-            'state'         => 'test',
-        );
-
-        // attempt to do the request without a nonce.
-        $server = $this->getTestServer(array('allow_implicit' => true));
-        $request = new Request($query);
-        $valid = $server->validateAuthorizeRequest($request, $response = new Response());
-
-        // Add a nonce and retry.
-        $query['nonce'] = 'test';
-        $request = new Request($query);
-        $valid = $server->validateAuthorizeRequest($request, $response = new Response());
-        $this->assertTrue($valid);
-    }
 
     public function testHandleAuthorizeRequest()
     {
         // add the test parameters in memory
         $server = $this->getTestServer(array('allow_implicit' => true));
         $request = new Request(array(
-            'response_type' => 'id_token',
+            'response_type' => 'token id_token',
             'redirect_uri'  => 'http://adobe.com',
             'client_id'     => 'Test Client ID',
-            'scope'         => 'openid email',
+            'scope'         => 'openid',
             'state'         => 'test',
             'nonce'         => 'test',
         ));
@@ -59,7 +39,7 @@ class IdTokenTest extends \PHPUnit_Framework_TestCase
         parse_str($parts['fragment'], $params);
         $this->assertNotNull($params);
         $this->assertArrayHasKey('id_token', $params);
-        $this->assertArrayNotHasKey('access_token', $params);
+        $this->assertArrayHasKey('access_token', $params);
         $this->validateIdToken($params['id_token']);
     }
 
@@ -81,13 +61,11 @@ class IdTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('exp', $claims);
         $this->assertArrayHasKey('auth_time', $claims);
         $this->assertArrayHasKey('nonce', $claims);
-        $this->assertArrayHasKey('email', $claims);
-        $this->assertArrayHasKey('email_verified', $claims);
+        $this->assertArrayHasKey('at_hash', $claims);
 
         $this->assertEquals($claims['iss'], 'test');
         $this->assertEquals($claims['aud'], 'Test Client ID');
         $this->assertEquals($claims['nonce'], 'test');
-        $this->assertEquals($claims['email'], 'testuser@ourdomain.com');
         $duration = $claims['exp'] - $claims['iat'];
         $this->assertEquals($duration, 3600);
     }
@@ -101,16 +79,13 @@ class IdTokenTest extends \PHPUnit_Framework_TestCase
         );
 
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
-        $memoryStorage->supportedScopes[] = 'email';
-        $storage = array(
-            'client' => $memoryStorage,
-            'scope' => $memoryStorage,
-        );
         $responseTypes = array(
+            'token' => new AccessToken($memoryStorage, $memoryStorage),
             'id_token' => new IdToken($memoryStorage, $memoryStorage, $config),
         );
+        $responseTypes['token id_token'] = new TokenIdToken($responseTypes['token'], $responseTypes['id_token']);
 
-        $server = new Server($storage, $config, array(), $responseTypes);
+        $server = new Server($memoryStorage, $config, array(), $responseTypes);
         $server->addGrantType(new ClientCredentials($memoryStorage));
 
         return $server;

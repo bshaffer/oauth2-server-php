@@ -1,6 +1,6 @@
 <?php
 
-namespace OAuth2\Controller;
+namespace OAuth2\OpenID\Controller;
 
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
@@ -17,11 +17,12 @@ class UserInfoControllerTest extends \PHPUnit_Framework_TestCase
         $request = Request::createFromGlobals();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-openid-connect';
         $response = new Response();
+
         $server->handleUserInfoRequest($request, $response);
         $parameters = $response->getParameters();
-        $this->assertEquals($parameters['sub'], 'test-username');
-        $this->assertEquals($parameters['email'], 'testuser@ourdomain.com');
-        $this->assertEquals($parameters['email_verified'], false);
+        $this->assertEquals($parameters['sub'], 'testuser');
+        $this->assertEquals($parameters['email'], 'testuser@test.com');
+        $this->assertEquals($parameters['email_verified'], true);
     }
 
     private function getTestServer($config = array())

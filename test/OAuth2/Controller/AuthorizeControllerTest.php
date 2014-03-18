@@ -418,7 +418,11 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 
     public function testSuccessfulOpenidConnectRequest()
     {
-        $server = $this->getTestServer();
+        $server = $this->getTestServer(array(
+            'use_openid_connect' => true,
+            'issuer' => 'bojanz',
+        ));
+
         $request = new Request(array(
             'client_id'     => 'Test Client ID',
             'redirect_uri'  => 'http://adobe.com',
@@ -461,10 +465,6 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 
     private function getTestServer($config = array())
     {
-        $config += array(
-            'use_openid_connect' => true,
-            'issuer' => 'bojanz',
-        );
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $server = new Server($storage, $config);
 

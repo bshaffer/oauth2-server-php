@@ -3,6 +3,8 @@
 namespace OAuth2\OpenID\Controller;
 
 use OAuth2\Controller\AuthorizeController as BaseAuthorizeController;
+use OAuth2\RequestInterface;
+use OAuth2\ResponseInterface;
 
 /**
  * @see OAuth2\Controller\AuthorizeControllerInterface
@@ -11,9 +13,9 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
 {
     private $nonce;
 
-    protected function buildAuthorizeResponse($request, $response, $user_id)
+    protected function buildAuthorizeParameters($request, $response, $user_id)
     {
-        if (!$params = parent::buildAuthorizeResponse($request, $response, $user_id)) {
+        if (!$params = parent::buildAuthorizeParameters($request, $response, $user_id)) {
             return;
         }
 
@@ -21,6 +23,9 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
         if ($this->needsIdToken($this->getScope()) && $this->getResponseType() == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
             $params['id_token'] = $this->responseTypes['id_token']->createIdToken($this->getClientId(), $user_id, $this->nonce);
         }
+
+        // add the nonce to return with the redirect URI
+        $params['nonce'] = $this->nonce;
 
         return $params;
     }
@@ -34,7 +39,7 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
         $nonce = $request->query('nonce');
 
         // Validate required nonce for "id_token" and "token id_token"
-        if (!$nonce && in_array($response_type, array(self::RESPONSE_TYPE_ID_TOKEN, self::RESPONSE_TYPE_TOKEN_ID_TOKEN))) {
+        if (!$nonce && in_array($this->getResponseType(), array(self::RESPONSE_TYPE_ID_TOKEN, self::RESPONSE_TYPE_TOKEN_ID_TOKEN))) {
             $response->setError(400, 'invalid_nonce', 'This application requires you specify a nonce parameter');
 
             return false;
@@ -70,7 +75,12 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
      */
     public function needsIdToken($request_scope)
     {
-        $scopes = explode(' ', trim($request_scope));
-        return $this->config['use_openid_connect'] && in_array('openid', $scopes);
+        // see if the "openid" scope exists in the requested scope
+        return $this->scopeUtil->checkScope('openid', $request_scope);
+    }
+
+    public function getNonce()
+    {
+        return $this->nonce;
     }
 }

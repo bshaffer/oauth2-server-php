@@ -2,6 +2,7 @@
 
 namespace OAuth2\Storage;
 
+use OAuth2\OpenID\Storage\UserClaimsInterface;
 /**
  * Simple PDO storage for all storage types
  *
@@ -21,7 +22,8 @@ class Pdo implements AuthorizationCodeInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     ScopeInterface,
-    PublicKeyInterface
+    PublicKeyInterface,
+    UserClaimsInterface
 {
     protected $db;
     protected $config;
@@ -197,6 +199,45 @@ class Pdo implements AuthorizationCodeInterface,
     public function getUserDetails($username)
     {
         return $this->getUser($username);
+    }
+
+    /* UserClaimsInterface */
+    public function getUserClaims($user_id, $claims)
+    {
+        if (!$userDetails = $this->getUserDetails($user_id)) {
+            return false;
+        }
+
+        $claims = explode(' ', trim($claims));
+        $userClaims = array();
+
+        // for each requested claim, if the user has the claim, set it in the response
+        $validClaims = explode(' ', self::VALID_CLAIMS);
+        foreach ($validClaims as $validClaim) {
+            if (in_array($validClaim, $claims)) {
+                if ($validClaim == 'address') {
+                    // address is an object with subfields
+                    $userClaims['address'] = $this->getUserClaim($validClaim, $userDetails['address'] ?: $userDetails);
+                } else {
+                    $userClaims = array_merge($this->getUserClaim($validClaim, $userDetails));
+                }
+            }
+        }
+
+        return $userClaims;
+    }
+
+    protected function getUserClaim($claim, $userDetails)
+    {
+        $userClaims = array();
+        $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($claim)));
+        $claimValues = explode(' ', $claimValuesString);
+
+        foreach ($claimValues as $value) {
+            $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
+        }
+
+        return $userClaims;
     }
 
     /* OAuth2\Storage\RefreshTokenInterface */

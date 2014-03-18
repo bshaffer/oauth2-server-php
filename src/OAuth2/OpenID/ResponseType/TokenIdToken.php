@@ -2,15 +2,15 @@
 
 namespace OAuth2\OpenID\ResponseType;
 
-use OAuth2\OpenID\ResponseType\AccessToken;
-use OAuth2\OpenID\ResponseType\IdToken;
+use OAuth2\ResponseType\AccessTokenInterface;
+use OAuth2\ResponseType\ResponseTypeInterface;
 
 class TokenIdToken implements TokenIdTokenInterface
 {
     protected $accessToken;
     protected $idToken;
 
-    public function __construct(AccessToken $accessToken, IdToken $idToken)
+    public function __construct(AccessTokenInterface $accessToken, IdToken $idToken)
     {
         $this->accessToken = $accessToken;
         $this->idToken = $idToken;

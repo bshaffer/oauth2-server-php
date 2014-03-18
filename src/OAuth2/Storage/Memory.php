@@ -2,6 +2,8 @@
 
 namespace OAuth2\Storage;
 
+use OAuth2\OpenID\Storage\UserClaimsInterface;
+
 /**
  * Simple in-memory storage for all storage types
  *
@@ -121,19 +123,42 @@ class Memory implements AuthorizationCodeInterface,
     }
 
     /* UserClaimsInterface */
-    public function getUserClaims($user_id, $scope)
+    public function getUserClaims($user_id, $claims)
     {
-        // A real implementation would fetch the user information from a
-        // separate storage, and then return the appropriate claims.
-        // For test purposes it's okay to return the same data for all users.
-        $scope = explode(' ', trim($scope));
-        $claims = array();
-        if (in_array('email', $scope)) {
-            $claims['email'] = 'testuser@ourdomain.com';
-            $claims['email_verified'] = false;
+        if (!$userDetails = $this->getUserDetails($user_id)) {
+            return false;
         }
 
-        return $claims;
+        $claims = explode(' ', trim($claims));
+        $userClaims = array();
+
+        // for each requested claim, if the user has the claim, set it in the response
+        $validClaims = explode(' ', self::VALID_CLAIMS);
+        foreach ($validClaims as $validClaim) {
+            if (in_array($validClaim, $claims)) {
+                if ($validClaim == 'address') {
+                    // address is an object with subfields
+                    $userClaims['address'] = $this->getUserClaim($validClaim, $userDetails['address'] ?: $userDetails);
+                } else {
+                    $userClaims = array_merge($this->getUserClaim($validClaim, $userDetails));
+                }
+            }
+        }
+
+        return $userClaims;
+    }
+
+    protected function getUserClaim($claim, $userDetails)
+    {
+        $userClaims = array();
+        $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($claim)));
+        $claimValues = explode(' ', $claimValuesString);
+
+        foreach ($claimValues as $value) {
+            $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
+        }
+
+        return $userClaims;
     }
 
     /* ClientCredentialsInterface */
