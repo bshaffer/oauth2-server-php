@@ -405,7 +405,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $server->getTokenController();
     }
 
-    public function testUsingCryptoTokenAndClientStorageWithAuthorizeControllerIsOk()
+    public function testUsingCryptoTokenAndClientStorageWithAuthorizeControllerIsOkay()
     {
         $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
         $client = $this->getMock('OAuth2\Storage\ClientInterface');
@@ -413,5 +413,170 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($server->getAuthorizeController());
 
         $this->assertInstanceOf('OAuth2\ResponseType\CryptoToken', $server->getResponseType('token'));
+    }
+
+    /**
+     * @expectedException LogicException UserClaims
+     **/
+    public function testUsingOpenIDConnectWithoutUserClaimsThrowsException()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $server = new Server($client, array('use_openid_connect' => true));
+
+        $server->getAuthorizeController();
+    }
+
+    /**
+     * @expectedException LogicException PublicKeyInterface
+     **/
+    public function testUsingOpenIDConnectWithoutPublicKeyThrowsException()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->getMock('OAuth2\OPenID\Storage\UserClaimsInterface');
+        $server = new Server(array($client, $userclaims), array('use_openid_connect' => true));
+
+        $server->getAuthorizeController();
+    }
+
+    /**
+     * @expectedException LogicException issuer
+     **/
+    public function testUsingOpenIDConnectWithoutIssuerThrowsException()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $server = new Server(array($client, $userclaims, $pubkey), array('use_openid_connect' => true));
+
+        $server->getAuthorizeController();
+    }
+
+    public function testUsingOpenIDConnectWithIssuerPublicKeyAndUserClaimsIsOkay()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $server = new Server(array($client, $userclaims, $pubkey), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy',
+        ));
+
+        $server->getAuthorizeController();
+
+        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenInterface', $server->getResponseType('id_token'));
+        $this->assertNull($server->getResponseType('token id_token'));
+    }
+
+    /**
+     * @expectedException LogicException OAuth2\ResponseType\AccessTokenInterface
+     **/
+    public function testUsingOpenIDConnectWithAllowImplicitWithoutTokenStorageThrowsException()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $server = new Server(array($client, $userclaims, $pubkey), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy',
+            'allow_implicit' => true,
+        ));
+
+        $server->getAuthorizeController();
+    }
+
+    public function testUsingOpenIDConnectWithAllowImplicitAndUseCryptoTokensIsOkay()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $server = new Server(array($client, $userclaims, $pubkey), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy',
+            'allow_implicit' => true,
+            'use_crypto_tokens' => true,
+        ));
+
+        $server->getAuthorizeController();
+
+        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenInterface', $server->getResponseType('id_token'));
+        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\TokenIdTokenInterface', $server->getResponseType('token id_token'));
+    }
+
+    public function testUsingOpenIDConnectWithAllowImplicitAndAccessTokenStorageIsOkay()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
+        $server = new Server(array($client, $userclaims, $pubkey, $token), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy',
+            'allow_implicit' => true,
+        ));
+
+        $server->getAuthorizeController();
+
+        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenInterface', $server->getResponseType('id_token'));
+        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\TokenIdTokenInterface', $server->getResponseType('token id_token'));
+    }
+
+    public function testUsingOpenIDConnectWithAllowImplicitAndAccessTokenResponseTypeIsOkay()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        // $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
+        $server = new Server(array($client, $userclaims, $pubkey), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy',
+            'allow_implicit' => true,
+        ));
+
+        $token = $this->getMock('OAuth2\ResponseType\AccessTokenInterface');
+        $server->addResponseType($token, 'token');
+
+        $server->getAuthorizeController();
+
+        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenInterface', $server->getResponseType('id_token'));
+        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\TokenIdTokenInterface', $server->getResponseType('token id_token'));
+    }
+
+    /**
+     * @expectedException LogicException OAuth2\OpenID\Storage\AuthorizationCodeInterface
+     **/
+    public function testUsingOpenIDConnectWithAuthorizationCodeStorageThrowsException()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientCredentialsInterface');
+        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
+        $authcode = $this->getMock('OAuth2\Storage\AuthorizationCodeInterface');
+
+        $server = new Server(array($client, $userclaims, $pubkey, $token, $authcode), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy'
+        ));
+
+        $server->getTokenController();
+
+        $this->assertInstanceOf('OAuth2\OpenID\GrantType\AuthorizationCode', $server->getGrantType('authorization_code'));
+    }
+
+    public function testUsingOpenIDConnectWithOpenIDAuthorizationCodeStorageCreatesOpenIDAuthorizationCodeGrantType()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientCredentialsInterface');
+        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
+        $authcode = $this->getMock('OAuth2\OpenID\Storage\AuthorizationCodeInterface');
+
+        $server = new Server(array($client, $userclaims, $pubkey, $token, $authcode), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy'
+        ));
+
+        $server->getTokenController();
+
+        $this->assertInstanceOf('OAuth2\OpenID\GrantType\AuthorizationCode', $server->getGrantType('authorization_code'));
     }
 }

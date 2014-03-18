@@ -4,7 +4,8 @@
             "client_id": "Test Client ID",
             "user_id": "",
             "redirect_uri": "",
-            "expires": "9999999999"
+            "expires": "9999999999",
+            "id_token": "IDTOKEN"
         },
         "testcode-with-scope": {
             "client_id": "Test Client ID",
@@ -24,6 +25,13 @@
             "user_id": "",
             "redirect_uri": "",
             "expires": "9999999999"
+        },
+        "testcode-openid": {
+            "client_id": "Test Client ID",
+            "user_id": "",
+            "redirect_uri": "",
+            "expires": "9999999999",
+            "id_token": "test_id_token"
         }
     },
     "client_credentials" : {
@@ -68,6 +76,11 @@
         "testusername":  {
             "password": "testpass"
         },
+        "testuser": {
+            "password": "password",
+            "email": "testuser@test.com",
+            "email_verified": true
+        },
         "johndoe": {
             "password": "password"
         }
@@ -100,6 +113,13 @@
             "client_id": "Test Client ID",
             "expires": 99999999900,
             "scope": "testscope"
+        },
+        "accesstoken-openid-connect": {
+            "access_token": "accesstoken-openid-connect",
+            "client_id": "Test Client ID",
+            "user_id": "testuser",
+            "expires": 99999999900,
+            "scope": "openid email"
         },
         "accesstoken-malformed": {
             "access_token": "accesstoken-mallformed",

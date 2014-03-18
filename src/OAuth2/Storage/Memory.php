@@ -2,6 +2,9 @@
 
 namespace OAuth2\Storage;
 
+use OAuth2\OpenID\Storage\UserClaimsInterface;
+use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
+
 /**
  * Simple in-memory storage for all storage types
  *
@@ -12,12 +15,14 @@ namespace OAuth2\Storage;
  */
 class Memory implements AuthorizationCodeInterface,
     UserCredentialsInterface,
+    UserClaimsInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     ScopeInterface,
-    PublicKeyInterface
+    PublicKeyInterface,
+    OpenIDAuthorizationCodeInterface
 {
     public $authorizationCodes;
     public $userCredentials;
@@ -69,9 +74,9 @@ class Memory implements AuthorizationCodeInterface,
         ), $this->authorizationCodes[$code]);
     }
 
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null)
+    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
-        $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope');
+        $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token');
 
         return true;
     }
@@ -117,6 +122,45 @@ class Memory implements AuthorizationCodeInterface,
             'first_name' => null,
             'last_name'  => null,
         ), $this->userCredentials[$username]);
+    }
+
+    /* UserClaimsInterface */
+    public function getUserClaims($user_id, $claims)
+    {
+        if (!$userDetails = $this->getUserDetails($user_id)) {
+            return false;
+        }
+
+        $claims = explode(' ', trim($claims));
+        $userClaims = array();
+
+        // for each requested claim, if the user has the claim, set it in the response
+        $validClaims = explode(' ', self::VALID_CLAIMS);
+        foreach ($validClaims as $validClaim) {
+            if (in_array($validClaim, $claims)) {
+                if ($validClaim == 'address') {
+                    // address is an object with subfields
+                    $userClaims['address'] = $this->getUserClaim($validClaim, $userDetails['address'] ?: $userDetails);
+                } else {
+                    $userClaims = array_merge($this->getUserClaim($validClaim, $userDetails));
+                }
+            }
+        }
+
+        return $userClaims;
+    }
+
+    protected function getUserClaim($claim, $userDetails)
+    {
+        $userClaims = array();
+        $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($claim)));
+        $claimValues = explode(' ', $claimValuesString);
+
+        foreach ($claimValues as $value) {
+            $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
+        }
+
+        return $userClaims;
     }
 
     /* ClientCredentialsInterface */
@@ -206,9 +250,9 @@ class Memory implements AuthorizationCodeInterface,
         return isset($this->accessTokens[$access_token]) ? $this->accessTokens[$access_token] : false;
     }
 
-    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
+    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null, $id_token = null)
     {
-        $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope');
+        $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope', 'id_token');
 
         return true;
     }

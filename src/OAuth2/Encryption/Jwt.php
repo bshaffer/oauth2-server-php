@@ -13,8 +13,8 @@ class Jwt implements EncryptionInterface
         $header = array('typ' => 'JWT', 'alg' => $algo);
 
         $segments = array(
-            $this->urlsafeB64Encode(json_encode($header)),
-            $this->urlsafeB64Encode(json_encode($payload))
+            $this->urlSafeB64Encode(json_encode($header)),
+            $this->urlSafeB64Encode(json_encode($payload))
         );
 
         $signing_input = implode('.', $segments);
@@ -39,15 +39,15 @@ class Jwt implements EncryptionInterface
 
         list($headb64, $payloadb64, $cryptob64) = $tks;
 
-        if (null === ($header = json_decode($this->urlsafeB64Decode($headb64), true))) {
+        if (null === ($header = json_decode($this->urlSafeB64Decode($headb64), true))) {
             return false;
         }
 
-        if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64), true)) {
+        if (null === $payload = json_decode($this->urlSafeB64Decode($payloadb64), true)) {
             return false;
         }
 
-        $sig = $this->urlsafeB64Decode($cryptob64);
+        $sig = $this->urlSafeB64Decode($cryptob64);
 
         if ($verify) {
             if (!isset($header['alg'])) {
@@ -119,7 +119,7 @@ class Jwt implements EncryptionInterface
         return $signature;
     }
 
-    private function urlSafeB64Encode($data)
+    public function urlSafeB64Encode($data)
     {
         $b64 = base64_encode($data);
         $b64 = str_replace(array('+', '/', '\r', '\n', '='),
@@ -129,7 +129,7 @@ class Jwt implements EncryptionInterface
         return $b64;
     }
 
-    private function urlSafeB64Decode($b64)
+    public function urlSafeB64Decode($b64)
     {
         $b64 = str_replace(array('-', '_'),
                 array('+', '/'),

@@ -78,6 +78,7 @@ class AuthorizeController implements AuthorizeControllerInterface
             $registered_redirect_uri = $clientData['redirect_uri'];
         }
 
+        // the user declined access to the client's application
         if ($is_authorized === false) {
             $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
             $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, 'access_denied', "The user denied access to your application");
@@ -85,14 +86,10 @@ class AuthorizeController implements AuthorizeControllerInterface
             return;
         }
 
-        // @TODO: we should be explicit with this in the future
-        $params = array(
-            'scope'         => $this->scope,
-            'state'         => $this->state,
-            'client_id'     => $this->client_id,
-            'redirect_uri'  => $this->redirect_uri,
-            'response_type' => $this->response_type,
-        );
+        // build the parameters to set in the redirect URI
+        if (!$params = $this->buildAuthorizeParameters($request, $response, $user_id)) {
+            return;
+        }
 
         $authResult = $this->responseTypes[$this->response_type]->getAuthorizeResponse($params, $user_id);
 
@@ -106,6 +103,24 @@ class AuthorizeController implements AuthorizeControllerInterface
 
         // return redirect response
         $response->setRedirect($this->config['redirect_status_code'], $uri);
+    }
+
+    /*
+     * We have made this protected so this class can be extended to add/modify
+     * these parameters
+     */
+    protected function buildAuthorizeParameters($request, $response, $user_id)
+    {
+        // @TODO: we should be explicit with this in the future
+        $params = array(
+            'scope'         => $this->scope,
+            'state'         => $this->state,
+            'client_id'     => $this->client_id,
+            'redirect_uri'  => $this->redirect_uri,
+            'response_type' => $this->response_type,
+        );
+
+        return $params;
     }
 
     public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response)
@@ -168,7 +183,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         $state = $request->query('state');
 
         // type and client_id are required
-        if (!$response_type || !in_array($response_type, array(self::RESPONSE_TYPE_AUTHORIZATION_CODE, self::RESPONSE_TYPE_ACCESS_TOKEN))) {
+        if (!$response_type || !in_array($response_type, $this->getValidResponseTypes())) {
             $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_request', 'Invalid or missing response type', null);
 
             return false;
@@ -189,9 +204,7 @@ class AuthorizeController implements AuthorizeControllerInterface
 
                 return false;
             }
-        }
-
-        if ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN) {
+        } else {
             if (!$this->config['allow_implicit']) {
                 $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'unsupported_response_type', 'implicit grant type not supported', null);
 
@@ -285,6 +298,14 @@ class AuthorizeController implements AuthorizeControllerInterface
             . ((isset($parse_url["query"]) && !empty($parse_url['query'])) ? "?" . $parse_url["query"] : "")
             . ((isset($parse_url["fragment"])) ? "#" . $parse_url["fragment"] : "")
         ;
+    }
+
+    protected function getValidResponseTypes()
+    {
+        return array(
+            self::RESPONSE_TYPE_ACCESS_TOKEN,
+            self::RESPONSE_TYPE_AUTHORIZATION_CODE,
+        );
     }
 
     /**
