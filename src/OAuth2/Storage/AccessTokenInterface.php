@@ -25,6 +25,7 @@ interface AccessTokenInterface
      * - expires: Stored expiration in unix timestamp.
      * - user_id: (optional) Stored user identifier.
      * - scope: (optional) Stored scope values in space-separated string.
+     * - id_token: (optional) Stored id_token.
      *
      * @ingroup oauth2_section_7
      */

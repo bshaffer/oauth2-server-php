@@ -354,6 +354,11 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($query);
         $this->assertArrayHasKey('code', $query);
 
+        // ensure no id_token was saved, since the openid scope wasn't requested
+        $storage = $server->getStorage('authorization_code');
+        $code = $storage->getAuthorizationCode($query['code']);
+        $this->assertTrue(empty($code['id_token']));
+
         // ensure no error was returned
         $this->assertFalse(isset($query['error']));
         $this->assertFalse(isset($query['error_description']));
@@ -411,6 +416,43 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($query['state'], 'test');
     }
 
+    public function testSuccessfulOpenidConnectRequest()
+    {
+        $server = $this->getTestServer();
+        $request = new Request(array(
+            'client_id'     => 'Test Client ID',
+            'redirect_uri'  => 'http://adobe.com',
+            'response_type' => 'code',
+            'state'         => 'xyz',
+            'scope'         => 'openid',
+        ));
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
+
+        $this->assertEquals($response->getStatusCode(), 302);
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
+
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        $this->assertArrayHasKey('query', $parts);
+        $this->assertFalse(isset($parts['fragment']));
+
+        // assert fragment is in "application/x-www-form-urlencoded" format
+        parse_str($parts['query'], $query);
+        $this->assertNotNull($query);
+        $this->assertArrayHasKey('code', $query);
+
+        // ensure no error was returned
+        $this->assertFalse(isset($query['error']));
+        $this->assertFalse(isset($query['error_description']));
+
+        // confirm that the id_token has been created.
+        $storage = $server->getStorage('authorization_code');
+        $code = $storage->getAuthorizationCode($query['code']);
+        $this->assertTrue(!empty($code['id_token']));
+    }
+
     public function testCreateController()
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
@@ -419,6 +461,10 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 
     private function getTestServer($config = array())
     {
+        $config += array(
+            'use_openid_connect' => true,
+            'issuer' => 'bojanz',
+        );
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $server = new Server($storage, $config);
 

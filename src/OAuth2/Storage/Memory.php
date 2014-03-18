@@ -12,6 +12,7 @@ namespace OAuth2\Storage;
  */
 class Memory implements AuthorizationCodeInterface,
     UserCredentialsInterface,
+    UserClaimsInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     RefreshTokenInterface,
@@ -69,9 +70,9 @@ class Memory implements AuthorizationCodeInterface,
         ), $this->authorizationCodes[$code]);
     }
 
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null)
+    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
-        $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope');
+        $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token');
 
         return true;
     }
@@ -117,6 +118,22 @@ class Memory implements AuthorizationCodeInterface,
             'first_name' => null,
             'last_name'  => null,
         ), $this->userCredentials[$username]);
+    }
+
+    /* UserClaimsInterface */
+    public function getUserClaims($user_id, $scope)
+    {
+        // A real implementation would fetch the user information from a
+        // separate storage, and then return the appropriate claims.
+        // For test purposes it's okay to return the same data for all users.
+        $scope = explode(' ', trim($scope));
+        $claims = array();
+        if (in_array('email', $scope)) {
+            $claims['email'] = 'testuser@ourdomain.com';
+            $claims['email_verified'] = false;
+        }
+
+        return $claims;
     }
 
     /* ClientCredentialsInterface */
@@ -206,9 +223,9 @@ class Memory implements AuthorizationCodeInterface,
         return isset($this->accessTokens[$access_token]) ? $this->accessTokens[$access_token] : false;
     }
 
-    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
+    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null, $id_token = null)
     {
-        $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope');
+        $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope', 'id_token');
 
         return true;
     }
