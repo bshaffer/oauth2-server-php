@@ -17,8 +17,8 @@ class JwtBearerTest extends BaseTest
         $key = $storage->getClientKey('this-is-not-real', 'nor-is-this');
         $this->assertFalse($key);
 
-        // valid client_id and subject
-        $key = $storage->getClientKey('oauth_test_client', 'test_subject');
+        // valid client_id
+        $key = $storage->getClientKey('oauth_test_client');
         $this->assertNotNull($key);
         $this->assertEquals($key, Bootstrap::getInstance()->getTestPublicKey());
     }

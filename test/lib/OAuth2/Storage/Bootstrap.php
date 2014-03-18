@@ -298,9 +298,9 @@ class Bootstrap
         ));
 
         $db->oauth_jwt->insert(array(
-            'client_id' => 'oauth_test_client',
-            'key'       => $this->getTestPublicKey(),
-            'subject'   => 'test_subject',
+            'client_id'  => 'oauth_test_client',
+            'public_key' => $this->getTestPublicKey(),
+            'subject'    => 'test_subject',
         ));
     }
 
