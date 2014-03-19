@@ -4,6 +4,8 @@ php:
   - 5.3
   - 5.4
   - 5.5
+  - 5.6
+  - hhvm
 
 env:
   - SKIP_MONGO_TESTS=1
@@ -14,7 +16,7 @@ services:
   - cassandra
 
 before_script:
-  - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+#  - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   - composer require predis/predis:dev-master
   - composer require thobbs/phpcassa:dev-master
 
