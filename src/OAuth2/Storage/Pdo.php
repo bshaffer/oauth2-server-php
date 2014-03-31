@@ -168,6 +168,26 @@ class Pdo implements AuthorizationCodeInterface,
 
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
+        if (func_num_args() > 6) {
+            // we are calling with an id token
+            return call_user_func_array(array($this, 'setAuthorizationCodeWithIdToken'), func_get_args());
+        }
+
+        // convert expires to datestring
+        $expires = date('Y-m-d H:i:s', $expires);
+
+        // if it exists, update it.
+        if ($this->getAuthorizationCode($code)) {
+            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_id=:client_id, user_id=:user_id, redirect_uri=:redirect_uri, expires=:expires, scope=:scope where authorization_code=:code', $this->config['code_table']));
+        } else {
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope)', $this->config['code_table']));
+        }
+
+        return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
+    }
+
+    private function setAuthorizationCodeWithIdToken($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
+    {
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
 

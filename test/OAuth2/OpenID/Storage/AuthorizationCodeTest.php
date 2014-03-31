@@ -65,4 +65,31 @@ class AuthorizationCodeTest extends BaseTest
         $this->assertEquals($code['expires'], $expires);
         $this->assertEquals($code['id_token'], $new_id_token);
     }
+
+        /** @dataProvider provideStorage */
+    public function testRemoveIdTokenFromAuthorizationCode($storage)
+    {
+        // add new code
+        $expires = time() + 20;
+        $scope = null;
+        $id_token = 'fake_id_token_to_remove';
+        $authcode = 'new-openid-code-'.rand();
+        $success = $storage->setAuthorizationCode($authcode, 'client ID', 'SOMEUSERID', 'http://example.com', $expires, $scope, $id_token);
+        $this->assertTrue($success);
+
+        // verify params were set
+        $code = $storage->getAuthorizationCode($authcode);
+        $this->assertNotNull($code);
+        $this->assertArrayHasKey('id_token', $code);
+        $this->assertEquals($code['id_token'], $id_token);
+
+        // remove the id_token
+        $success = $storage->setAuthorizationCode($authcode, 'client ID', 'SOMEUSERID', 'http://example.com', $expires, $scope, null);
+
+        // verify the "id_token" is now null
+        $code = $storage->getAuthorizationCode($authcode);
+        $this->assertNotNull($code);
+        $this->assertArrayHasKey('id_token', $code);
+        $this->assertEquals($code['id_token'], null);
+    }
 }
