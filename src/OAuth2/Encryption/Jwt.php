@@ -10,7 +10,7 @@ class Jwt implements EncryptionInterface
 {
     public function encode($payload, $key, $algo = 'HS256')
     {
-        $header = array('typ' => 'JWT', 'alg' => $algo);
+        $header = $this->generateJwtHeader($payload, $algo);
 
         $segments = array(
             $this->urlSafeB64Encode(json_encode($header)),
@@ -137,5 +137,16 @@ class Jwt implements EncryptionInterface
                 $b64);
 
         return base64_decode($b64);
+    }
+
+    /**
+     * Override to create a custom header
+     */
+    protected function generateJwtHeader($payload, $algorithm)
+    {
+        return array(
+            'typ' => 'JWT',
+            'alg' => $algorithm,
+        );
     }
 }
