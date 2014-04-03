@@ -515,7 +515,7 @@ class Server implements ResourceControllerInterface,
             $this->tokenType = $this->getDefaultTokenType();
         }
 
-        $config = array_intersect_key($this->config, array('www_realm' => ''));
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'www_realm access_lifetime')));
 
         return new ResourceController($this->tokenType, $this->storages['access_token'], $config, $this->getScopeUtil());
     }
