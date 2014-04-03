@@ -82,7 +82,7 @@ class ResourceController implements ResourceControllerInterface
                 $response->setError(401, 'invalid_token', 'The access token provided is invalid');
             } elseif (!isset($token["expires"]) || !isset($token["client_id"])) {
                 $response->setError(401, 'invalid_token', 'Malformed token (missing "expires" or "client_id")');
-            } elseif (time() > $token["expires"]) {
+            } elseif ($this->config['access_lifetime'] !== false && time() > $token["expires"]) {
                 $response->setError(401, 'invalid_token', 'The access token provided has expired');
             } else {
                 return $token;
