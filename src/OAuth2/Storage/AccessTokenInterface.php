@@ -21,8 +21,8 @@ interface AccessTokenInterface
      * @return
      * An associative array as below, and return NULL if the supplied oauth_token
      * is invalid:
-     * - client_id: Stored client identifier.
      * - expires: Stored expiration in unix timestamp.
+     * - client_id: (optional) Stored client identifier.
      * - user_id: (optional) Stored user identifier.
      * - scope: (optional) Stored scope values in space-separated string.
      * - id_token: (optional) Stored id_token (if "use_openid_connect" is true).

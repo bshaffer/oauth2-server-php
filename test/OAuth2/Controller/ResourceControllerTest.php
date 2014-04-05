@@ -133,7 +133,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($response->getStatusCode(), 401);
         $this->assertEquals($response->getParameter('error'), 'invalid_token');
-        $this->assertEquals($response->getParameter('error_description'), 'Malformed token (missing "expires" or "client_id")');
+        $this->assertEquals($response->getParameter('error_description'), 'Malformed token (missing "expires")');
     }
 
     public function testValidToken()
