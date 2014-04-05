@@ -333,8 +333,9 @@ class Pdo implements AuthorizationCodeInterface,
     public function scopeExists($scope)
     {
         $scope = explode(' ', $scope);
-        $stmt = $this->db->prepare(sprintf('SELECT count(scope) as count FROM %s WHERE scope IN ("%s")', $this->config['scope_table'], implode('","', $scope)));
-        $stmt->execute();
+        $whereIn = implode(',', array_fill(0, count($scope), '?'));
+        $stmt = $this->db->prepare(sprintf('SELECT count(scope) as count FROM %s WHERE scope IN (%s)', $this->config['scope_table'], $whereIn));
+        $stmt->execute($scope);
 
         if ($result = $stmt->fetch()) {
             return $result['count'] == count($scope);

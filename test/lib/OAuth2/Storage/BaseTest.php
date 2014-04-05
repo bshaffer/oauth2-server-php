@@ -7,6 +7,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
     public function provideStorage()
     {
         $mysql = Bootstrap::getInstance()->getMysqlPdo();
+        $postgres = Bootstrap::getInstance()->getPostgresPdo();
         $sqlite = Bootstrap::getInstance()->getSqlitePdo();
         $mongo = Bootstrap::getInstance()->getMongo();
         $redis = Bootstrap::getInstance()->getRedisStorage();
@@ -20,6 +21,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
             array($memory),
             array($sqlite),
             array($mysql),
+            array($postgres),
             array($mongo),
             array($redis),
             array($cassandra),
