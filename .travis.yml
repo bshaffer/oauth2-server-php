@@ -16,11 +16,6 @@ services:
   - cassandra
 
 before_script:
-#  - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - psql -c 'create database oauth2_server_php;' -U postgres
   - composer require predis/predis:dev-master
   - composer require thobbs/phpcassa:dev-master
-
-after_failure:
-  - ps ax | grep mongo
-  - cat /etc/mongodb.conf
-  - cat /var/log/mongodb/mongodb.log
