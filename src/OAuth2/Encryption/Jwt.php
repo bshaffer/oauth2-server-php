@@ -123,7 +123,7 @@ class Jwt implements EncryptionInterface
     public function urlSafeB64Encode($data)
     {
         $b64 = base64_encode($data);
-        $b64 = str_replace(array('+', '/', '\r', '\n', '='),
+        $b64 = str_replace(array('+', '/', "\r", "\n", '='),
                 array('-', '_'),
                 $b64);
 
