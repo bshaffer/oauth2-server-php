@@ -26,6 +26,19 @@ class Bearer implements TokenTypeInterface
     }
 
     /**
+     * Check if the request has supplied token
+     *
+     * @see https://github.com/bshaffer/oauth2-server-php/issues/349#issuecomment-37993588
+     */
+    public function requestHasToken(RequestInterface $request)
+    {
+        $headers = $request->headers('AUTHORIZATION');
+
+        // check the header, then the querystring, then the request body
+        return !empty($headers) || (bool)($request->request($this->config['token_param_name'])) || (bool)($request->query($this->config['token_param_name']));
+    }
+
+    /**
      * This is a convenience function that can be used to get the token, which can then
      * be passed to getAccessTokenData(). The constraints specified by the draft are
      * attempted to be adheared to in this method.
