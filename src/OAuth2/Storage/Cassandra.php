@@ -30,8 +30,8 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
  */
 class Cassandra implements AuthorizationCodeInterface,
     AccessTokenInterface,
+    ClientCredentialsInterface,
     ResourceOwnerPasswordCredentialsInterface,
-    UserCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     ScopeInterface,
