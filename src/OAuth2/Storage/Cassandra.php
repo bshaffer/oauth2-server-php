@@ -30,7 +30,7 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
  */
 class Cassandra implements AuthorizationCodeInterface,
     AccessTokenInterface,
-    ClientCredentialsInterface,
+    ResourceOwnerPasswordCredentialsInterface,
     UserCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
@@ -198,7 +198,7 @@ class Cassandra implements AuthorizationCodeInterface,
         );
     }
 
-    /* ClientCredentialsInterface */
+    /* ResourceOwnerPasswordCredentialsInterface, */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
         if (!$client = $this->getClientDetails($client_id)) {
