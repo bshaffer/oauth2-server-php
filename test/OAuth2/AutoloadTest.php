@@ -10,7 +10,7 @@ class AutoloadTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(class_exists('OAuth2\Server'));
         $this->assertTrue(class_exists('OAuth2\Request'));
         $this->assertTrue(class_exists('OAuth2\Response'));
-        $this->assertTrue(class_exists('OAuth2\GrantType\UserCredentials'));
+        $this->assertTrue(class_exists('OAuth2\GrantType\ResourceOwnerPasswordCredentials'));
         $this->assertTrue(interface_exists('OAuth2\Storage\AccessTokenInterface'));
     }
 }

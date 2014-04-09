@@ -2,7 +2,7 @@
 
 namespace OAuth2\GrantType;
 
-use OAuth2\Storage\UserCredentialsInterface;
+use OAuth2\Storage\ResourceOwnerPasswordCredentialsInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
@@ -10,19 +10,14 @@ use OAuth2\ResponseInterface;
 /**
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
- * @deprecated This grant type class has been renamed to ResourceOwnerPassowrdCredentials
  */
-class UserCredentials implements GrantTypeInterface
+class ResourceOwnerPasswordCredentials implements GrantTypeInterface
 {
     private $userInfo;
 
     protected $storage;
 
-    /**
-     * @param OAuth2\Storage\UserCredentialsInterface $storage
-     * REQUIRED Storage class for retrieving user credentials information
-     */
-    public function __construct(UserCredentialsInterface $storage)
+    public function __construct(ResourceOwnerPasswordCredentialsInterface $storage)
     {
         $this->storage = $storage;
     }
@@ -36,13 +31,11 @@ class UserCredentials implements GrantTypeInterface
     {
         if (!$request->request("password") || !$request->request("username")) {
             $response->setError(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
-
             return null;
         }
 
         if (!$this->storage->checkUserCredentials($request->request("username"), $request->request("password"))) {
-            $response->setError(401, 'invalid_grant', 'Invalid username and password combination');
-
+            $response->setError(400, 'invalid_grant', 'Invalid username and password combination');
             return null;
         }
 
@@ -50,12 +43,11 @@ class UserCredentials implements GrantTypeInterface
 
         if (empty($userInfo)) {
             $response->setError(400, 'invalid_grant', 'Unable to retrieve user information');
-
             return null;
         }
 
         if (!isset($userInfo['user_id'])) {
-            throw new \LogicException("you must set the user_id on the array returned by getUserDetails");
+            throw new LogicException("you must set the user_id on the array returned by getUserDetails");
         }
 
         $this->userInfo = $userInfo;

@@ -19,7 +19,7 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
 class Pdo implements AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
-    UserCredentialsInterface,
+    ResourceOwnerPasswordCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     ScopeInterface,
@@ -208,7 +208,7 @@ class Pdo implements AuthorizationCodeInterface,
         return $stmt->execute(compact('code'));
     }
 
-    /* OAuth2\Storage\UserCredentialsInterface */
+    /* OAuth2\Storage\ResourceOwnerPasswordCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
         if ($user = $this->getUser($username)) {
