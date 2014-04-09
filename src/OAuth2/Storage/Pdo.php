@@ -208,7 +208,6 @@ class Pdo implements AuthorizationCodeInterface,
         return $stmt->execute(compact('code'));
     }
 
-
     /* OAuth2\Storage\ResourceOwnerPasswordCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
