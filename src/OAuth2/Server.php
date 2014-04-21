@@ -373,7 +373,7 @@ class Server implements ResourceControllerInterface,
     {
         // if explicitly set to a valid key, do not "magically" set below
         if (isset($this->storageMap[$key])) {
-            if (!$storage instanceof $this->storageMap[$key]) {
+            if (!is_null($storage) && !$storage instanceof $this->storageMap[$key]) {
                 throw new \InvalidArgumentException(sprintf('storage of type "%s" must implement interface "%s"', $key, $this->storageMap[$key]));
             }
             $this->storages[$key] = $storage;

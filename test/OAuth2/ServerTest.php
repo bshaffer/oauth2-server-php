@@ -199,6 +199,40 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($client_credentials, $memory);
     }
 
+    public function testAddStorageWithNullValue()
+    {
+        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $server = new Server($memory);
+        $server->addStorage(null, 'refresh_token');
+
+        $client_credentials = $server->getStorage('client_credentials');
+
+        $this->assertNotNull($client_credentials);
+        $this->assertEquals($client_credentials, $memory);
+
+        $refresh_token = $server->getStorage('refresh_token');
+
+        $this->assertNull($refresh_token);
+    }
+
+    public function testNewServerWithNullStorageValue()
+    {
+        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $server = new Server(array(
+            'client_credentials' => $memory,
+            'refresh_token'      => null,
+        ));
+
+        $client_credentials = $server->getStorage('client_credentials');
+
+        $this->assertNotNull($client_credentials);
+        $this->assertEquals($client_credentials, $memory);
+
+        $refresh_token = $server->getStorage('refresh_token');
+
+        $this->assertNull($refresh_token);
+    }
+
     public function testAddingClientCredentialsStorageSetsClientStorageByDefault()
     {
         $server = new Server();
