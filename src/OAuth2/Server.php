@@ -350,7 +350,7 @@ class Server implements ResourceControllerInterface,
         if (is_string($key)) {
             $this->grantTypes[$key] = $grantType;
         } else {
-            $this->grantTypes[] = $grantType;
+            $this->grantTypes[$grantType->getQuerystringIdentifier()] = $grantType;
         }
 
         // persist added grant type down to TokenController

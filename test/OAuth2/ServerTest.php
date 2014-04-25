@@ -613,4 +613,31 @@ class ServerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertInstanceOf('OAuth2\OpenID\GrantType\AuthorizationCode', $server->getGrantType('authorization_code'));
     }
+
+    public function testAddGrantTypeWithoutKey()
+    {
+        $server = new Server();
+        $server->addGrantType(new \OAuth2\GrantType\AuthorizationCode($this->getMock('OAuth2\Storage\AuthorizationCodeInterface')));
+
+        $grantTypes = $server->getGrantTypes();
+        $this->assertEquals('authorization_code', key($grantTypes));
+    }
+
+    public function testAddGrantTypeWithKey()
+    {
+        $server = new Server();
+        $server->addGrantType(new \OAuth2\GrantType\AuthorizationCode($this->getMock('OAuth2\Storage\AuthorizationCodeInterface')), 'ac');
+
+        $grantTypes = $server->getGrantTypes();
+        $this->assertEquals('ac', key($grantTypes));
+    }
+
+    public function testAddGrantTypeWithKeyNotString()
+    {
+        $server = new Server();
+        $server->addGrantType(new \OAuth2\GrantType\AuthorizationCode($this->getMock('OAuth2\Storage\AuthorizationCodeInterface')), 42);
+
+        $grantTypes = $server->getGrantTypes();
+        $this->assertEquals('authorization_code', key($grantTypes));
+    }
 }
