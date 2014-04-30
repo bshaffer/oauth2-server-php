@@ -36,6 +36,45 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNUll($response->getParameter('access_token'));
     }
 
+    public function testHeadersReturnsValueByKey()
+    {
+        $request = new Request(
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            array('AUTHORIZATION' => 'Basic secret')
+        );
+
+        $this->assertEquals('Basic secret', $request->headers('AUTHORIZATION'));
+    }
+
+    public function testHeadersReturnsDefaultIfHeaderNotPresent()
+    {
+        $request = new Request();
+
+        $this->assertEquals('Bearer', $request->headers('AUTHORIZATION', 'Bearer'));
+    }
+
+    public function testHeadersIsCaseInsensitive()
+    {
+        $request = new Request(
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            array('AUTHORIZATION' => 'Basic secret')
+        );
+
+        $this->assertEquals('Basic secret', $request->headers('Authorization'));
+    }
+
     private function getTestServer($config = array())
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();

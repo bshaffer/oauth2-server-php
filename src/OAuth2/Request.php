@@ -80,7 +80,9 @@ class Request implements RequestInterface
 
     public function headers($name, $default = null)
     {
-        return isset($this->headers[$name]) ? $this->headers[$name] : $default;
+        $headers = array_change_key_case($this->headers);
+        $name = strtolower($name);
+        return isset($headers[$name]) ? $headers[$name] : $default;
     }
 
     public function getAllQueryParameters()
