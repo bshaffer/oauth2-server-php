@@ -296,7 +296,8 @@ class Pdo implements AuthorizationCodeInterface,
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {
-        return $user['password'] == sha1($password);
+        return check_password($password, $user['password']);
+        //return $user['password'] == sha1($password);
     }
 
     public function getUser($username)
