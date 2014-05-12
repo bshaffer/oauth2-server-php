@@ -116,6 +116,7 @@ class Server implements ResourceControllerInterface,
             'store_encrypted_token_string' => true,
             'use_openid_connect'       => false,
             'id_lifetime'              => 3600,
+            'id_auth_time'             => null,
             'access_lifetime'          => 3600,
             'www_realm'                => 'Service',
             'token_param_name'         => 'access_token',
@@ -718,7 +719,7 @@ class Server implements ResourceControllerInterface,
             throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use openid connect");
         }
 
-        $config = array_intersect_key($this->config, array_flip(explode(' ', 'issuer id_lifetime')));
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'issuer id_lifetime id_auth_time')));
         return new IdToken($this->storages['user_claims'], $this->storages['public_key'], $config);
     }
 

@@ -29,6 +29,7 @@ class IdToken implements IdTokenInterface
         }
         $this->config = array_merge(array(
             'id_lifetime' => 3600,
+            'id_auth_time' => null
         ), $config);
     }
 
@@ -57,7 +58,7 @@ class IdToken implements IdTokenInterface
             'aud'        => $client_id,
             'iat'        => time(),
             'exp'        => time() + $this->config['id_lifetime'],
-            'auth_time'  => time(),
+            'auth_time'  => $this->config['id_auth_time'] ?: time(),
         );
         if ($nonce) {
             $token['nonce'] = $nonce;
