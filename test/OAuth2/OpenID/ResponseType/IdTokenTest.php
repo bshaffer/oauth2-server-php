@@ -7,6 +7,7 @@ use OAuth2\Request;
 use OAuth2\Response;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\GrantType\ClientCredentials;
+use OAuth2\Encryption\Jwt;
 
 class IdTokenTest extends \PHPUnit_Framework_TestCase
 {
@@ -64,6 +65,70 @@ class IdTokenTest extends \PHPUnit_Framework_TestCase
         $this->validateIdToken($params['id_token']);
     }
 
+    public function testPassInAuthTime()
+    {
+        $server = $this->getTestServer(array('allow_implicit' => true));
+        $request = new Request(array(
+            'response_type' => 'id_token',
+            'redirect_uri'  => 'http://adobe.com',
+            'client_id'     => 'Test Client ID',
+            'scope'         => 'openid email',
+            'state'         => 'test',
+            'nonce'         => 'test',
+        ));
+
+        // test with a scalar user id
+        $user_id = 'testuser123';
+        $server->handleAuthorizeRequest($request, $response = new Response(), true, $user_id);
+
+        list($header, $payload, $signature) = $this->extractTokenDataFromResponse($response);
+
+        $this->assertTrue(is_array($payload));
+        $this->assertArrayHasKey('sub', $payload);
+        $this->assertEquals($user_id, $payload['sub']);
+        $this->assertArrayHasKey('auth_time', $payload);
+
+        // test with an array of user info
+        $userInfo = array(
+            'user_id' => 'testuser1234',
+            'auth_time' => date('Y-m-d H:i:s', strtotime('20 minutes ago')
+        ));
+
+        $server->handleAuthorizeRequest($request, $response = new Response(), true, $userInfo);
+
+        list($header, $payload, $signature) = $this->extractTokenDataFromResponse($response);
+
+        $this->assertTrue(is_array($payload));
+        $this->assertArrayHasKey('sub', $payload);
+        $this->assertEquals($userInfo['user_id'], $payload['sub']);
+        $this->assertArrayHasKey('auth_time', $payload);
+        $this->assertEquals($userInfo['auth_time'], $payload['auth_time']);
+    }
+
+    private function extractTokenDataFromResponse(Response $response)
+    {
+        $this->assertEquals($response->getStatusCode(), 302);
+        $location = $response->getHttpHeader('Location');
+        $this->assertNotContains('error', $location);
+
+        $parts = parse_url($location);
+        $this->assertArrayHasKey('fragment', $parts);
+        $this->assertFalse(isset($parts['query']));
+
+        parse_str($parts['fragment'], $params);
+        $this->assertNotNull($params);
+        $this->assertArrayHasKey('id_token', $params);
+        $this->assertArrayNotHasKey('access_token', $params);
+
+        list($headb64, $payloadb64, $signature) = explode('.', $params['id_token']);
+
+        $jwt = new Jwt();
+        $header = json_decode($jwt->urlSafeB64Decode($headb64), true);
+        $payload = json_decode($jwt->urlSafeB64Decode($payloadb64), true);
+
+        return array($header, $payload, $signature);
+    }
+
     private function validateIdToken($id_token)
     {
         $parts = explode('.', $id_token);
@@ -71,7 +136,7 @@ class IdTokenTest extends \PHPUnit_Framework_TestCase
             // Each part is a base64url encoded json string.
             $part = str_replace(array('-', '_'), array('+', '/'), $part);
             $part = base64_decode($part);
-            $part = json_decode($part, TRUE);
+            $part = json_decode($part, true);
         }
         list($header, $claims, $signature) = $parts;
 
