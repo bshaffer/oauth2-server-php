@@ -25,5 +25,5 @@ interface IdTokenInterface extends ResponseTypeInterface
      *
      * @see http://openid.net/specs/openid-connect-core-1_0.html#IDToken
      */
-    public function createIdToken($client_id, $user_id, $nonce = null, $userClaims = null, $access_token = null);
+    public function createIdToken($client_id, $userInfo, $nonce = null, $userClaims = null, $access_token = null);
 }
