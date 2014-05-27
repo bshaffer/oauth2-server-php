@@ -13,6 +13,49 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
 {
     private $nonce;
 
+    public function handleAuthorizeRequest(RequestInterface $request, ResponseInterface $response, $is_authorized, $user_id = null)
+    {
+        if (!is_bool($is_authorized)) {
+            throw new \InvalidArgumentException('Argument "is_authorized" must be a boolean.  This method must know if the user has granted access to the client.');
+        }
+
+        // We repeat this, because we need to re-validate. The request could be POSTed
+        // by a 3rd-party (because we are not internally enforcing NONCEs, etc)
+        if (!$this->validateAuthorizeRequest($request, $response)) {
+            return;
+        }
+
+        // If no redirect_uri is passed in the request, use client's registered one
+        if (empty($this->redirect_uri)) {
+            $clientData              = $this->clientStorage->getClientDetails($this->client_id);
+            $registered_redirect_uri = $clientData['redirect_uri'];
+        }
+
+        // the user declined access to the client's application
+        if ($is_authorized === false) {
+            $prompt = $request->query('prompt', 'consent');
+            if ($prompt == 'none') {
+                if (is_null($user_id)) {
+                    $error = 'login_required';
+                    $error_message = 'The user must log in';
+                } else {
+                    $error = 'interaction_required';
+                    $error_message = 'The user must grant access to your application';
+                }
+            } else {
+                $error = 'consent_required';
+                $error_message = 'The user denied access to your application';
+            }
+
+            $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
+            $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, $error, $error_message);
+
+            return;
+        }
+
+        parent::handleAuthorizeRequest($request, $response, $is_authorized, $user_id);
+    }
+
     protected function buildAuthorizeParameters($request, $response, $user_id)
     {
         if (!$params = parent::buildAuthorizeParameters($request, $response, $user_id)) {
