@@ -46,8 +46,9 @@ class Pdo implements AuthorizationCodeInterface,
             $connection = array_merge(array(
                 'username' => null,
                 'password' => null,
+                'options' => array(),
             ), $connection);
-            $connection = new \PDO($connection['dsn'], $connection['username'], $connection['password']);
+            $connection = new \PDO($connection['dsn'], $connection['username'], $connection['password'], $connection['options']);
         }
         $this->db = $connection;
 
