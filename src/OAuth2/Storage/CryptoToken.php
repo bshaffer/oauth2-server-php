@@ -16,28 +16,11 @@ class CryptoToken implements CryptoTokenInterface
     protected $encryptionUtil;
 
     /**
-     * @param string $publicKey
-     * the public key encryption to use
-     *
-     * @param string $privateKey (optional)
-     * (optional) the private key to use to sign tokens
-     * this is only required for token granting, and can be omitted for resource servers,
-     * as only the publc key is required for crypto token verification
-     *
-     * @param array $config
-     * (optional) configuration array. Valid parameters are
-     * - encryption_algorithm
-     *  the algorithm to use for encryption. This is passed to the
-     *  EncryptionInterface object.
-     *  @see OAuth2\Encryption\Jwt::verifySignature
-     *
-     * @param OAuth2\Storage\AccessTokenInterface $tokenStorage
-     * (optional) persist the access token to another storage. This is useful if
-     * you want to retain access token grant information somewhere, but
-     * is not necessary when using this grant type.
-     *
-     * @param OAuth2\Encryption\EncryptionInterface $encryptionUtil
-     * (optional) class to use for "encode" and "decode" functions.
+     * @param OAuth2\Encryption\PublicKeyInterface  $publicKeyStorage the public key encryption to use
+     * @param OAuth2\Storage\AccessTokenInterface   $tokenStorage     OPTIONAL persist the access token to another storage. This is useful if
+     *                                                                you want to retain access token grant information somewhere, but
+     *                                                                is not necessary when using this grant type.
+     * @param OAuth2\Encryption\EncryptionInterface $encryptionUtil   OPTIONAL class to use for "encode" and "decode" functions.
      */
     public function __construct(PublicKeyInterface $publicKeyStorage, AccessTokenInterface $tokenStorage = null, EncryptionInterface $encryptionUtil = null)
     {

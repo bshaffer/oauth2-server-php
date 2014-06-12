@@ -29,12 +29,9 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Creates an instance of the JWT bearer grant type.
      *
-     * @param OAuth2\Storage\JWTBearerInterface $storage
-     * A valid storage interface that implements storage hooks for the JWT bearer grant type.
-     * @param string $audience
-     * The audience to validate the token against. This is usually the full URI of the OAuth token requests endpoint.
-     * @param OAuth2\Encryption\JWT OPTIONAL $jwtUtil
-     * The class used to decode, encode and verify JWTs.
+     * @param OAuth2\Storage\JWTBearerInterface $storage  A valid storage interface that implements storage hooks for the JWT bearer grant type.
+     * @param string                            $audience The audience to validate the token against. This is usually the full URI of the OAuth token requests endpoint.
+     * @param OAuth2\Encryption\JWT             $jwtUtil  OPTONAL The class used to decode, encode and verify JWTs.
      */
     public function __construct(JwtBearerInterface $storage, $audience, EncryptionInterface $jwtUtil = null)
     {

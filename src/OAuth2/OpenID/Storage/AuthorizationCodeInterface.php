@@ -23,20 +23,13 @@ interface AuthorizationCodeInterface extends BaseAuthorizationCodeInterface
      *
      * Required for OAuth2::GRANT_TYPE_AUTH_CODE.
      *
-     * @param $code
-     * Authorization code to be stored.
-     * @param $client_id
-     * Client identifier to be stored.
-     * @param $user_id
-     * User identifier to be stored.
-     * @param string $redirect_uri
-     * Redirect URI(s) to be stored in a space-separated string.
-     * @param int $expires
-     * Expiration to be stored as a Unix timestamp.
-     * @param string $scope
-     * (optional) Scopes to be stored in space-separated string.
-     * @param string $id_token
-     * (optional) The OpenID Connect id_token.
+     * @param $code                authorization code to be stored.
+     * @param $client_id           client identifier to be stored.
+     * @param $user_id             user identifier to be stored.
+     * @param string $redirect_uri redirect URI(s) to be stored in a space-separated string.
+     * @param int    $expires      expiration to be stored as a Unix timestamp.
+     * @param string $scope        OPTIONAL scopes to be stored in space-separated string.
+     * @param string $id_token     OPTIONAL the OpenID Connect id_token.
      *
      * @ingroup oauth2_section_4
      */
