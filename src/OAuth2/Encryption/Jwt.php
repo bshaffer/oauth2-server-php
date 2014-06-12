@@ -10,11 +10,11 @@ class Jwt implements EncryptionInterface
 {
     public function encode($payload, $key, $algo = 'HS256')
     {
-        $header = array('typ' => 'JWT', 'alg' => $algo);
+        $header = $this->generateJwtHeader($payload, $algo);
 
         $segments = array(
-            $this->urlsafeB64Encode(json_encode($header)),
-            $this->urlsafeB64Encode(json_encode($payload))
+            $this->urlSafeB64Encode(json_encode($header)),
+            $this->urlSafeB64Encode(json_encode($payload))
         );
 
         $signing_input = implode('.', $segments);
@@ -39,15 +39,15 @@ class Jwt implements EncryptionInterface
 
         list($headb64, $payloadb64, $cryptob64) = $tks;
 
-        if (null === ($header = json_decode($this->urlsafeB64Decode($headb64), true))) {
+        if (null === ($header = json_decode($this->urlSafeB64Decode($headb64), true))) {
             return false;
         }
 
-        if (null === $payload = json_decode($this->urlsafeB64Decode($payloadb64), true)) {
+        if (null === $payload = json_decode($this->urlSafeB64Decode($payloadb64), true)) {
             return false;
         }
 
-        $sig = $this->urlsafeB64Decode($cryptob64);
+        $sig = $this->urlSafeB64Decode($cryptob64);
 
         if ($verify) {
             if (!isset($header['alg'])) {
@@ -64,6 +64,7 @@ class Jwt implements EncryptionInterface
 
     private function verifySignature($signature, $input, $key, $algo = 'HS256')
     {
+        // use constants when possible, for HipHop support
         switch ($algo) {
             case'HS256':
             case'HS384':
@@ -71,13 +72,13 @@ class Jwt implements EncryptionInterface
                 return $this->sign($input, $key, $algo) === $signature;
 
             case 'RS256':
-                return openssl_verify($input, $signature, $key, 'sha256') === 1;
+                return openssl_verify($input, $signature, $key, defined('OPENSSL_ALGO_SHA256') ? OPENSSL_ALGO_SHA256 : 'sha256')  === 1;
 
             case 'RS384':
-                return @openssl_verify($input, $signature, $key, 'sha384') === 1;
+                return @openssl_verify($input, $signature, $key, defined('OPENSSL_ALGO_SHA384') ? OPENSSL_ALGO_SHA384 : 'sha384') === 1;
 
             case 'RS512':
-                return @openssl_verify($input, $signature, $key, 'sha512') === 1;
+                return @openssl_verify($input, $signature, $key, defined('OPENSSL_ALGO_SHA512') ? OPENSSL_ALGO_SHA512 : 'sha512') === 1;
 
             default:
                 throw new \InvalidArgumentException("Unsupported or invalid signing algorithm.");
@@ -97,13 +98,13 @@ class Jwt implements EncryptionInterface
                 return hash_hmac('sha512', $input, $key, true);
 
             case 'RS256':
-                return $this->generateRSASignature($input, $key, 'sha256');
+                return $this->generateRSASignature($input, $key, defined('OPENSSL_ALGO_SHA256') ? OPENSSL_ALGO_SHA256 : 'sha256');
 
             case 'RS384':
-                return $this->generateRSASignature($input, $key, 'sha384');
+                return $this->generateRSASignature($input, $key, defined('OPENSSL_ALGO_SHA384') ? OPENSSL_ALGO_SHA384 : 'sha384');
 
             case 'RS512':
-                return $this->generateRSASignature($input, $key, 'sha512');
+                return $this->generateRSASignature($input, $key, defined('OPENSSL_ALGO_SHA512') ? OPENSSL_ALGO_SHA512 : 'sha512');
 
             default:
                 throw new \Exception("Unsupported or invalid signing algorithm.");
@@ -119,22 +120,33 @@ class Jwt implements EncryptionInterface
         return $signature;
     }
 
-    private function urlSafeB64Encode($data)
+    public function urlSafeB64Encode($data)
     {
         $b64 = base64_encode($data);
-        $b64 = str_replace(array('+', '/', '\r', '\n', '='),
+        $b64 = str_replace(array('+', '/', "\r", "\n", '='),
                 array('-', '_'),
                 $b64);
 
         return $b64;
     }
 
-    private function urlSafeB64Decode($b64)
+    public function urlSafeB64Decode($b64)
     {
         $b64 = str_replace(array('-', '_'),
                 array('+', '/'),
                 $b64);
 
         return base64_decode($b64);
+    }
+
+    /**
+     * Override to create a custom header
+     */
+    protected function generateJwtHeader($payload, $algorithm)
+    {
+        return array(
+            'typ' => 'JWT',
+            'alg' => $algorithm,
+        );
     }
 }

@@ -7,6 +7,7 @@ class Bootstrap
     protected static $instance;
     private $mysql;
     private $sqlite;
+    private $postgres;
     private $mongo;
     private $redis;
     private $cassandra;
@@ -38,6 +39,38 @@ class Bootstrap
         }
 
         return $this->sqlite;
+    }
+
+    public function getPostgresPdo()
+    {
+        if (!$this->postgres) {
+            if (in_array('pgsql', \PDO::getAvailableDrivers())) {
+                $this->removePostgresDb();
+                $this->createPostgresDb();
+                if ($pdo = $this->getPostgresDriver()) {
+                    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+                    $this->populatePostgresDb($pdo);
+                    $this->postgres = new Pdo($pdo);
+                } else {
+                    $this->postgres = new NullStorage('Postgres', 'Unable to connect to postgres on localhost with user "postgres"');
+                }
+            } else {
+                $this->postgres = new NullStorage('Postgres', 'Missing postgres PDO extension.');
+            }
+        }
+
+        return $this->postgres;
+    }
+
+    public function getPostgresDriver()
+    {
+        try {
+            $pdo = new \PDO('pgsql:host=localhost;dbname=oauth2_server_php', 'postgres');
+
+            return $pdo;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
     }
 
     public function getMemoryStorage()
@@ -222,46 +255,77 @@ class Bootstrap
         $this->runPdoSql($pdo);
     }
 
-    public function runPdoSql(\PDO $pdo)
-    {
-        $pdo->exec('CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT, grant_types TEXT, scope TEXT, user_id TEXT, public_key TEXT)');
-        $pdo->exec('CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires DATETIME, scope TEXT)');
-        $pdo->exec('CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires DATETIME, scope TEXT)');
-        $pdo->exec('CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT, scope TEXT)');
-        $pdo->exec('CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires DATETIME, scope TEXT)');
-        $pdo->exec('CREATE TABLE oauth_scopes (scope TEXT, is_default BOOLEAN)');
-        $pdo->exec('CREATE TABLE oauth_public_keys (client_id TEXT, public_key TEXT, private_key TEXT, encryption_algorithm VARCHAR(100) DEFAULT "RS256")');
-        $pdo->exec('CREATE TABLE oauth_jwt (client_id VARCHAR(80), subject VARCHAR(80), public_key VARCHAR(2000))');
-
-        // set up scopes
-        foreach (explode(' ', 'supportedscope1 supportedscope2 supportedscope3 supportedscope4 clientscope1 clientscope2 clientscope3') as $supportedScope) {
-            $pdo->exec(sprintf('INSERT INTO oauth_scopes (scope) VALUES ("%s")', $supportedScope));
-        }
-
-        foreach (array('defaultscope1', 'defaultscope2') as $defaultScope) {
-            $pdo->exec(sprintf('INSERT INTO oauth_scopes (scope, is_default) VALUES ("%s", 1)', $defaultScope));
-        }
-
-        // set up clients
-        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, scope) VALUES ("Test Client ID", "TestSecret", "clientscope1 clientscope2")');
-        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, scope) VALUES ("Test Client ID 2", "TestSecret", "clientscope1 clientscope2 clientscope3")');
-        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, scope) VALUES ("Test Default Scope Client ID", "TestSecret", "clientscope1 clientscope2")');
-        $pdo->exec('INSERT INTO oauth_clients (client_id, client_secret, grant_types) VALUES ("oauth_test_client", "testpass", "implicit password")');
-
-        // set up misc
-        $pdo->exec('INSERT INTO oauth_access_tokens (access_token, client_id) VALUES ("testtoken", "Some Client")');
-        $pdo->exec('INSERT INTO oauth_authorization_codes (authorization_code, client_id) VALUES ("testcode", "Some Client")');
-        $pdo->exec('INSERT INTO oauth_users (username, password) VALUES ("testuser", "password")');
-        $pdo->exec('INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES ("ClientID_One", "client_1_public", "client_1_private", "RS256")');
-        $pdo->exec('INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES ("ClientID_Two", "client_2_public", "client_2_private", "RS256")');
-        $pdo->exec(sprintf('INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES (NULL, "%s", "%s", "RS256")', $this->getTestPublicKey(), $this->getTestPrivateKey()));
-        $pdo->exec(sprintf('INSERT INTO oauth_jwt (client_id, subject, public_key) VALUES ("oauth_test_client", "test_subject", "%s")', $this->getTestPublicKey()));
-    }
-
-    public function removeMysqlDb(\PDO $pdo)
+    private function removeMysqlDb(\PDO $pdo)
     {
         $pdo->exec('DROP DATABASE IF EXISTS oauth2_server_php');
     }
+
+    private function createPostgresDb()
+    {
+        `createdb -O postgres oauth2_server_php`;
+    }
+
+    private function populatePostgresDb(\PDO $pdo)
+    {
+        $this->runPdoSql($pdo);
+    }
+
+    private function removePostgresDb()
+    {
+        `dropdb oauth2_server_php`;
+    }
+
+    public function runPdoSql(\PDO $pdo)
+    {
+        $pdo->exec('CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT, grant_types TEXT, scope TEXT, user_id TEXT, public_key TEXT)');
+        $pdo->exec('CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT)');
+        $pdo->exec('CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires TIMESTAMP, scope TEXT, id_token TEXT)');
+        $pdo->exec('CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT, scope TEXT, email TEXT, email_verified BOOLEAN)');
+        $pdo->exec('CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT)');
+        $pdo->exec('CREATE TABLE oauth_scopes (scope TEXT, is_default BOOLEAN)');
+        $pdo->exec('CREATE TABLE oauth_public_keys (client_id TEXT, public_key TEXT, private_key TEXT, encryption_algorithm VARCHAR(100) DEFAULT \'RS256\')');
+        $pdo->exec('CREATE TABLE oauth_jwt (client_id VARCHAR(80), subject VARCHAR(80), public_key VARCHAR(2000))');
+
+        // set up scopes
+        $sql = 'INSERT INTO oauth_scopes (scope) VALUES (?)';
+        foreach (explode(' ', 'supportedscope1 supportedscope2 supportedscope3 supportedscope4 clientscope1 clientscope2 clientscope3') as $supportedScope) {
+            $pdo->prepare($sql)->execute(array($supportedScope));
+        }
+
+        $sql = 'INSERT INTO oauth_scopes (scope, is_default) VALUES (?, ?)';
+        foreach (array('defaultscope1', 'defaultscope2') as $defaultScope) {
+            $pdo->prepare($sql)->execute(array($defaultScope, true));
+        }
+
+        // set up clients
+        $sql = 'INSERT INTO oauth_clients (client_id, client_secret, scope, grant_types) VALUES (?, ?, ?, ?)';
+        $pdo->prepare($sql)->execute(array('Test Client ID', 'TestSecret', 'clientscope1 clientscope2', null));
+        $pdo->prepare($sql)->execute(array('Test Client ID 2', 'TestSecret', 'clientscope1 clientscope2 clientscope3', null));
+        $pdo->prepare($sql)->execute(array('Test Default Scope Client ID', 'TestSecret', 'clientscope1 clientscope2', null));
+        $pdo->prepare($sql)->execute(array('oauth_test_client', 'testpass', null, 'implicit password'));
+
+        // set up misc
+        $sql = 'INSERT INTO oauth_access_tokens (access_token, client_id, user_id) VALUES (?, ?, ?)';
+        $pdo->prepare($sql)->execute(array('testtoken', 'Some Client', null));
+        $pdo->prepare($sql)->execute(array('accesstoken-openid-connect', 'Some Client', 'testuser'));
+
+        $sql = 'INSERT INTO oauth_authorization_codes (authorization_code, client_id) VALUES (?, ?)';
+        $pdo->prepare($sql)->execute(array('testcode', 'Some Client'));
+
+        $sql = 'INSERT INTO oauth_users (username, password, email, email_verified) VALUES (?, ?, ?, ?)';
+        $pdo->prepare($sql)->execute(array('testuser', 'password', 'testuser@test.com', true));
+
+        $sql = 'INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES (?, ?, ?, ?)';
+        $pdo->prepare($sql)->execute(array('ClientID_One', 'client_1_public', 'client_1_private', 'RS256'));
+        $pdo->prepare($sql)->execute(array('ClientID_Two', 'client_2_public', 'client_2_private', 'RS256'));
+
+        $sql = 'INSERT INTO oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES (?, ?, ?, ?)';
+        $pdo->prepare($sql)->execute(array(null, $this->getTestPublicKey(), $this->getTestPrivateKey(), 'RS256'));
+
+        $sql = 'INSERT INTO oauth_jwt (client_id, subject, public_key) VALUES (?, ?, ?)';
+        $pdo->prepare($sql)->execute(array('oauth_test_client', 'test_subject', $this->getTestPublicKey()));
+    }
+
 
     public function getSqliteDir()
     {

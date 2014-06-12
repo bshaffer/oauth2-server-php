@@ -2,12 +2,13 @@
 
 namespace OAuth2\Request;
 
+use OAuth2\Request;
 use OAuth2\RequestInterface;
 
 /**
 *
 */
-class TestRequest implements RequestInterface
+class TestRequest extends Request implements RequestInterface
 {
     public $query, $request, $server, $headers;
 
@@ -16,6 +17,7 @@ class TestRequest implements RequestInterface
         $this->query = $_GET;
         $this->request = $_POST;
         $this->server  = $_SERVER;
+        $this->headers = array();
     }
 
     public function query($name, $default = null)
@@ -31,11 +33,6 @@ class TestRequest implements RequestInterface
     public function server($name, $default = null)
     {
         return isset($this->server[$name]) ? $this->server[$name] : $default;
-    }
-
-    public function headers($name, $default = null)
-    {
-        return isset($this->headers[$name]) ? $this->headers[$name] : $default;
     }
 
     public function getAllQueryParameters()

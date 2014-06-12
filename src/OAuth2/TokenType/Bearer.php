@@ -26,6 +26,19 @@ class Bearer implements TokenTypeInterface
     }
 
     /**
+     * Check if the request has supplied token
+     *
+     * @see https://github.com/bshaffer/oauth2-server-php/issues/349#issuecomment-37993588
+     */
+    public function requestHasToken(RequestInterface $request)
+    {
+        $headers = $request->headers('AUTHORIZATION');
+
+        // check the header, then the querystring, then the request body
+        return !empty($headers) || (bool)($request->request($this->config['token_param_name'])) || (bool)($request->query($this->config['token_param_name']));
+    }
+
+    /**
      * This is a convenience function that can be used to get the token, which can then
      * be passed to getAccessTokenData(). The constraints specified by the draft are
      * attempted to be adheared to in this method.
@@ -88,9 +101,9 @@ class Bearer implements TokenTypeInterface
         }
 
         if ($request->request($this->config['token_param_name'])) {
-            // POST: Get the token from POST data
-            if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
-                $response->setError(400, 'invalid_request', 'When putting the token in the body, the method must be POST');
+            // // POST: Get the token from POST data
+            if (!in_array(strtolower($request->server('REQUEST_METHOD')), array('post', 'put'))) {
+                $response->setError(400, 'invalid_request', 'When putting the token in the body, the method must be POST or PUT', '#section-2.2');
 
                 return null;
             }

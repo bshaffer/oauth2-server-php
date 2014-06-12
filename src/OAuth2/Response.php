@@ -180,7 +180,9 @@ class Response implements ResponseInterface
             case 'xml':
                 // this only works for single-level arrays
                 $xml = new \SimpleXMLElement('<response/>');
-                array_walk($this->parameters, array($xml, 'addChild'));
+                foreach ($this->parameters as $key => $param) {
+                    $xml->addChild($param, $key);
+                }
 
                 return $xml->asXML();
         }

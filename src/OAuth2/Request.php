@@ -80,7 +80,9 @@ class Request implements RequestInterface
 
     public function headers($name, $default = null)
     {
-        return isset($this->headers[$name]) ? $this->headers[$name] : $default;
+        $headers = array_change_key_case($this->headers);
+        $name = strtolower($name);
+        return isset($headers[$name]) ? $headers[$name] : $default;
     }
 
     public function getAllQueryParameters()
@@ -149,7 +151,7 @@ class Request implements RequestInterface
             } elseif (isset($server['REDIRECT_HTTP_AUTHORIZATION'])) {
                 $authorizationHeader = $server['REDIRECT_HTTP_AUTHORIZATION'];
             } elseif (function_exists('apache_request_headers')) {
-                $requestHeaders = apache_request_headers();
+                $requestHeaders = (array) apache_request_headers();
 
                 // Server-side fix for bug in old Android versions (a nice side-effect of this fix means we don't care about capitalization for Authorization)
                 $requestHeaders = array_combine(array_map('ucwords', array_keys($requestHeaders)), array_values($requestHeaders));

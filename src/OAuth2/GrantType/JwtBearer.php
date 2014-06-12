@@ -5,6 +5,7 @@ namespace OAuth2\GrantType;
 use OAuth2\ClientAssertionType\ClientAssertionTypeInterface;
 use OAuth2\Storage\JwtBearerInterface;
 use OAuth2\Encryption\Jwt;
+use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
@@ -35,7 +36,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
      * @param OAuth2\Encryption\JWT OPTIONAL $jwtUtil
      * The class used to decode, encode and verify JWTs.
      */
-    public function __construct(JwtBearerInterface $storage, $audience, Jwt $jwtUtil = null)
+    public function __construct(JwtBearerInterface $storage, $audience, EncryptionInterface $jwtUtil = null)
     {
         $this->storage = $storage;
         $this->audience = $audience;

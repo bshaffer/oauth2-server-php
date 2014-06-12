@@ -353,7 +353,7 @@ EOD;
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $server = new Server($storage);
-        $server->addGrantType(new JwtBearer($storage, $audience));
+        $server->addGrantType(new JwtBearer($storage, $audience, new Jwt()));
 
         return $server;
     }
