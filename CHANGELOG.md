@@ -8,6 +8,25 @@ To see the files changed for a given bug, go to https://github.com/bshaffer/oaut
 To get the diff between two versions, go to https://github.com/bshaffer/oauth2-server-php/compare/v1.0...v1.1
 To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-server-php/commit/XXX where XXX is the change hash
 
+* 1.4 (2014-06-12)
+
+  PR: https://github.com/bshaffer/oauth2-server-php/pull/392
+
+  * bug #189 Storage\PDO - allows DSN string in constructor
+  * bug #233 Bearer Tokens - allows token in request body for PUT requests
+  * bug #346 Fixes open_basedir warning
+  * bug #351 Adds OpenID Connect support
+  * bug #355 Adds php 5.6 and HHVM to travis.ci testing
+  * [BC] bug #358 Adds `getQuerystringIdentifier()` to the GrantType interface
+  * bug #363 Encryption\JWT - Allows for subclassing JWT Headers
+  * bug #349 Bearer Tokens - adds requestHasToken method for when access tokens are optional
+  * bug #301 Encryption\JWT - fixes urlSafeB64Encode(): ensures newlines are replaced as expected
+  * bug #323 ResourceController - client_id is no longer required to be returned when calling getAccessToken
+  * bug #367 Storage\PDO - adds Postgres support
+  * bug #368 Access Tokens - use mcrypt_create_iv or openssl_random_pseudo_bytes to create token string
+  * bug #376 Request - allows case insensitive headers
+  * bug #384 Storage\PDO - can pass in PDO options in constructor of PDO storage
+  * misc fixes #361, #292, #373, #374, #379, #396
 * 1.3 (2014-02-27)
 
   PR: https://github.com/bshaffer/oauth2-server-php/pull/325
