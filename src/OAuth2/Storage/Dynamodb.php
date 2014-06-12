@@ -7,29 +7,21 @@ use Aws\DynamoDb\DynamoDbClient;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 /**
- * Dynamodb storage : http://aws.amazon.com/dynamodb/
+ * DynamoDB storage for all storage types
  *
- * To use, install "aws.phar" in your path : http://docs.aws.amazon.com/aws-sdk-php/latest/
+ * To use, install "aws/aws-php-sdk" via composer
+ * <code>
+ *  composer require aws/aws-php-sdk:dev-master
+ * </code>
  *
- *
- * Then, register the storage client:
+ * Once this is done, instantiate the DynamoDB client
  * <code>
  *  $storage = new OAuth2\Storage\Dynamodb(array("key" => "YOURKEY", "secret" => "YOURSECRET", "region" => "YOURREGION"));
- * </code> 
- * 
- * Table :
- *  - oauth_access_tokens (primary hash key : access_token)
- *  - oauth_authorization_codes (primary hash key : authorization_code)
- *  - oauth_clients (primary hash key : client_id)
- *  - oauth_jwt (primary hash key : client_id, primary range key : subject)
- *  - oauth_public_keys (primary hash key : client_id)
- *  - oauth_refresh_tokens (primary hash key : refresh_token)
- *  - oauth_scopes (primary hash key : scope, secondary index : is_default-index hash key is_default)
- *  - oauth_users (primary hash key : username) 
- *  
- * @author Frederic AUGUSTE <frederic.auguste at gmail dot com>
+ * </code>
+ *
+ * @see test/lib/OAuth2/Storage/Bootstrap::getDynamoDBStorage
  */
-class Dynamodb implements AuthorizationCodeInterface,
+class DynamoDB implements AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
@@ -82,14 +74,14 @@ class Dynamodb implements AuthorizationCodeInterface,
         }
         return $result;
     }
-    
+
     /* OAuth2\Storage\ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
         $result = $this->client->getItem(array(
-                       "TableName"=> $this->config['client_table'], 
-                        "Key" => array('client_id'   => array('S' => $client_id))
-            ));
+            "TableName"=> $this->config['client_table'],
+            "Key" => array('client_id'   => array('S' => $client_id))
+        ));
 
         return  $result->count()==1 && $result["Item"]["client_secret"]["S"] == $client_secret;
     }
@@ -97,9 +89,9 @@ class Dynamodb implements AuthorizationCodeInterface,
     public function isPublicClient($client_id)
     {
         $result = $this->client->getItem(array(
-                       "TableName"=> $this->config['client_table'], 
-                        "Key" => array('client_id'   => array('S' => $client_id))
-            ));
+            "TableName"=> $this->config['client_table'],
+            "Key" => array('client_id'   => array('S' => $client_id))
+        ));
 
         if($result->count()==0) {
             return false ;
@@ -112,7 +104,7 @@ class Dynamodb implements AuthorizationCodeInterface,
     public function getClientDetails($client_id)
     {
         $result = $this->client->getItem(array(
-                   "TableName"=> $this->config['client_table'], 
+                   "TableName"=> $this->config['client_table'],
                     "Key" => array('client_id'   => array('S' => $client_id))
         ));
         if($result->count()==0) {
@@ -164,7 +156,7 @@ class Dynamodb implements AuthorizationCodeInterface,
             return false ;
         }
         $token = $this->dynamo2array($result);
-        $token['expires'] = strtotime($token['expires']);        
+        $token['expires'] = strtotime($token['expires']);
         return $token;
     }
 
@@ -172,23 +164,23 @@ class Dynamodb implements AuthorizationCodeInterface,
     {
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
-        
+
         $array = array();
         $array['access_token']  = $access_token;
         $array['client_id']  = $client_id;
         $array['user_id']  = $user_id;
         $array['expires']  = $expires;
         if($scope != null) $array['scope']  = $scope;
-        
-        
+
+
         $result = $this->client->putItem(array(
                 // TableName is required
                 'TableName' =>  $this->config['access_token_table'],
                 'Item' => $this->client->formatAttributes($array)
         ));
-        
+
         return true;
-        
+
 
     }
 
@@ -205,14 +197,14 @@ class Dynamodb implements AuthorizationCodeInterface,
         $token = $this->dynamo2array($result);
         $token['expires'] = strtotime($token['expires']);
         return $token;
-        
+
     }
 
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
-        
+
         $array = array();
         $array['authorization_code']  = $code;
         $array['client_id']  = $client_id;
@@ -220,16 +212,16 @@ class Dynamodb implements AuthorizationCodeInterface,
         if($redirect_uri != null)  $array['redirect_uri']  = $redirect_uri;
         $array['expires']  = $expires;
         if($id_token != null)  $array['id_token']  = $id_token;
-        
+
         if($scope != null) $array['scope']  = $scope;
-        
-        
+
+
         $result = $this->client->putItem(array(
                 // TableName is required
                 'TableName' =>  $this->config['code_table'],
                 'Item' => $this->client->formatAttributes($array)
         ));
-        
+
         return true;
 
     }
@@ -237,13 +229,13 @@ class Dynamodb implements AuthorizationCodeInterface,
 
     public function expireAuthorizationCode($code)
     {
-                
+
         $result = $this->client->deleteItem(array(
                 // TableName is required
                 'TableName' =>  $this->config['code_table'],
                 'Key' => $this->client->formatAttributes(array("authorization_code" => $code))
         ));
-        
+
         return true;
     }
 
@@ -326,14 +318,14 @@ class Dynamodb implements AuthorizationCodeInterface,
         $array['user_id']  = $user_id;
         $array['expires']  = $expires;
         if($scope != null) $array['scope']  = $scope;
-        
-        
+
+
         $result = $this->client->putItem(array(
                 // TableName is required
                 'TableName' =>  $this->config['refresh_token_table'],
                 'Item' => $this->client->formatAttributes($array)
         ));
-        
+
         return true;
     }
 
@@ -344,7 +336,7 @@ class Dynamodb implements AuthorizationCodeInterface,
                 'TableName' =>  $this->config['refresh_token_table'],
                 'Key' => $this->client->formatAttributes(array("refresh_token" => $refresh_token))
         ));
-        
+
         return true;
     }
 
@@ -365,7 +357,7 @@ class Dynamodb implements AuthorizationCodeInterface,
         }
         $token = $this->dynamo2array($result);
         $token['user_id'] = $username;
-                
+
         return $token;
     }
 
@@ -379,16 +371,16 @@ class Dynamodb implements AuthorizationCodeInterface,
         $array['password']  = $password;
         if($firstName != null) $array['first_name']  = $firstName;
         if($lastName != null) $array['last_name']  = $lastName;
-        
-        
+
+
         $result = $this->client->putItem(array(
                 // TableName is required
                 'TableName' =>  $this->config['user_table'],
                 'Item' => $this->client->formatAttributes($array)
         ));
-        
+
         return true;
-        
+
     }
 
     /* ScopeInterface */
@@ -399,7 +391,7 @@ class Dynamodb implements AuthorizationCodeInterface,
         foreach ($scope as $key => $val) {
             $scope_query[] = array("S"=> $val);
         }
-        
+
         $result = $this->client->query(array(
             'TableName'     => $this->config['scope_table'],
             'Select'        => 'COUNT',
@@ -415,7 +407,7 @@ class Dynamodb implements AuthorizationCodeInterface,
 
     public function getDefaultScope($client_id = null)
     {
-        
+
 
         $result = $this->client->query(array(
                 // TableName is required
@@ -437,7 +429,7 @@ class Dynamodb implements AuthorizationCodeInterface,
             }
             return implode(' ', $defaultScope);
         }
-        
+
         return null;
     }
 
@@ -452,7 +444,7 @@ class Dynamodb implements AuthorizationCodeInterface,
             return false ;
         }
         $token = $this->dynamo2array($result);
-        return $token['public_key'];        
+        return $token['public_key'];
     }
 
     public function getClientScope($client_id)
@@ -481,7 +473,7 @@ class Dynamodb implements AuthorizationCodeInterface,
     /* PublicKeyInterface */
     public function getPublicKey($client_id = null)
     {
-        
+
         $result = $this->client->getItem(array(
                 "TableName"=> $this->config['public_key_table'],
                 "Key" => array('client_id'   => array('S' => $client_id))
@@ -491,7 +483,7 @@ class Dynamodb implements AuthorizationCodeInterface,
         }
         $token = $this->dynamo2array($result);
         return $token['public_key'];
-        
+
     }
 
     public function getPrivateKey($client_id = null)
@@ -517,6 +509,6 @@ class Dynamodb implements AuthorizationCodeInterface,
             return 'RS256' ;
         }
         $token = $this->dynamo2array($result);
-        return $token['encryption_algorithm'];        
+        return $token['encryption_algorithm'];
     }
 }
