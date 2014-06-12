@@ -126,27 +126,12 @@ OpenIDAuthorizationCodeInterface
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
     {
-        $array = array();
-        $array['client_secret']  = $client_secret;
-        if ($client_id != null) {
-            $array['client_id']  = $client_id;
-        }
-        if ($redirect_uri != null) {
-            $array['redirect_uri']  = $redirect_uri;
-        }
-        if ($grant_types != null) {
-            $array['grant_types']  = $grant_types;
-        }
-        if ($scope != null) {
-            $array['scope']  = $scope;
-        }
-        if ($user_id != null) {
-            $array['user_id']  = $user_id;
-        }
+        $clientData = compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id');
+        $clientData = array_filter($clientData, function ($value) { return !is_null($value); });
 
         $result = $this->client->putItem(array(
             'TableName' =>  $this->config['client_table'],
-            'Item' => $this->client->formatAttributes($array)
+            'Item' => $this->client->formatAttributes($clientData)
         ));
 
         return true;
@@ -186,18 +171,12 @@ OpenIDAuthorizationCodeInterface
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
 
-        $array = array();
-        $array['access_token']  = $access_token;
-        $array['client_id']  = $client_id;
-        $array['user_id']  = $user_id;
-        $array['expires']  = $expires;
-        if ($scope != null) {
-            $array['scope']  = $scope;
-        }
+        $clientData = compact('access_token', 'client_id', 'user_id', 'expires', 'scope');
+        $clientData = array_filter($clientData, function ($value) { return !is_null($value); });
 
         $result = $this->client->putItem(array(
             'TableName' =>  $this->config['access_token_table'],
-            'Item' => $this->client->formatAttributes($array)
+            'Item' => $this->client->formatAttributes($clientData)
         ));
 
         return true;
@@ -221,32 +200,20 @@ OpenIDAuthorizationCodeInterface
 
     }
 
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
+    public function setAuthorizationCode($authorization_code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
 
-        $array = array();
-        $array['authorization_code']  = $code;
-        $array['client_id']  = $client_id;
-        $array['user_id']  = $user_id;
-        if ($redirect_uri != null) {
-            $array['redirect_uri']  = $redirect_uri;
-        }
-        $array['expires']  = $expires;
-        if ($id_token != null) {
-            $array['id_token']  = $id_token;
-        }
-        if ($scope != null) {
-            $array['scope']  = $scope;
-        }
+        $clientData = compact('authorization_code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'id_token', 'scope');
+        $clientData = array_filter($clientData, function ($value) { return !is_null($value); });
+
         $result = $this->client->putItem(array(
             'TableName' =>  $this->config['code_table'],
-            'Item' => $this->client->formatAttributes($array)
+            'Item' => $this->client->formatAttributes($clientData)
         ));
 
         return true;
-
     }
 
     public function expireAuthorizationCode($code)
@@ -334,18 +301,13 @@ OpenIDAuthorizationCodeInterface
     {
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
-        $array = array();
-        $array['refresh_token']  = $refresh_token;
-        $array['client_id']  = $client_id;
-        $array['user_id']  = $user_id;
-        $array['expires']  = $expires;
-        if ($scope != null) {
-            $array['scope']  = $scope;
-        }
+
+        $clientData = compact('refresh_token', 'client_id', 'user_id', 'expires', 'scope');
+        $clientData = array_filter($clientData, function ($value) { return !is_null($value); });
 
         $result = $this->client->putItem(array(
             'TableName' =>  $this->config['refresh_token_table'],
-            'Item' => $this->client->formatAttributes($array)
+            'Item' => $this->client->formatAttributes($clientData)
         ));
 
         return true;
@@ -387,19 +349,12 @@ OpenIDAuthorizationCodeInterface
         // do not store in plaintext
         $password = sha1($password);
 
-        $array = array();
-        $array['username']  = $username;
-        $array['password']  = $password;
-        if ($firstName != null) {
-            $array['first_name']  = $firstName;
-        }
-        if ($lastName != null) {
-            $array['last_name']  = $lastName;
-        }
+        $clientData = compact('username', 'password', 'first_name', 'last_name');
+        $clientData = array_filter($clientData, function ($value) { return !is_null($value); });
 
         $result = $this->client->putItem(array(
             'TableName' =>  $this->config['user_table'],
-            'Item' => $this->client->formatAttributes($array)
+            'Item' => $this->client->formatAttributes($clientData)
         ));
 
         return true;
