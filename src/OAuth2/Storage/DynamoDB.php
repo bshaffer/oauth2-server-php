@@ -7,12 +7,14 @@ use Aws\DynamoDb\DynamoDbClient;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 /**
- * Dynamodb storage : http://aws.amazon.com/dynamodb/
+ * DynamoDB storage for all storage types
  *
- * To use, install "aws.phar" in your path : http://docs.aws.amazon.com/aws-sdk-php/latest/
+ * To use, install "aws/aws-php-sdk" via composer
+ * <code>
+ *  composer require aws/aws-php-sdk:dev-master
+ * </code>
  *
- *
- * Then, register the storage client:
+ * Once this is done, instantiate the DynamoDB client
  * <code>
  *  $storage = new OAuth2\Storage\Dynamodb(array("key" => "YOURKEY", "secret" => "YOURSECRET", "region" => "YOURREGION"));
  * </code>
