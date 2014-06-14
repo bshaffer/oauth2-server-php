@@ -47,18 +47,23 @@ OpenIDAuthorizationCodeInterface
 
     public function __construct($connection, $config = array())
     {
-        if (!is_array($connection)) {
-            throw new \InvalidArgumentException('First argument to OAuth2\Storage\Dynamodb must be an instance a configuration array containt key, secret, region');
+        if (!($connection instanceof DynamoDbClient)) {
+            if (!is_array($connection)) {
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Dynamodb must be an instance a configuration array containt key, secret, region');
+            }
+            if (!array_key_exists("key",$connection) || !array_key_exists("secret",$connection) || !array_key_exists("region",$connection) ) {
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Dynamodb must be an instance a configuration array containt key, secret, region');
+            }
+            $this->client = DynamoDbClient::factory(array(
+                'key' => $connection["key"],
+                'secret' => $connection["secret"],
+                'region' =>$connection["region"]
+            ));
         }
-        if (!array_key_exists("key",$connection) || !array_key_exists("secret",$connection) || !array_key_exists("region",$connection) ) {
-            throw new \InvalidArgumentException('First argument to OAuth2\Storage\Dynamodb must be an instance a configuration array containt key, secret, region');
+        else {
+            $this->client = $connection;
         }
-        $this->client = DynamoDbClient::factory(array(
-            'key' => $connection["key"],
-            'secret' => $connection["secret"],
-            'region' =>$connection["region"]
-        ));
-
+        
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
             'access_token_table' => 'oauth_access_tokens',
@@ -122,8 +127,14 @@ OpenIDAuthorizationCodeInterface
         if ($result->count()==0) {
             return false ;
         }
+        $result = $this->dynamo2array($result);
+        foreach (array('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id') as $key => $val) {
+            if(!array_key_exists ($val, $result)) {
+                $result[$val] = null;
+            }
+        }
 
-        return $this->dynamo2array($result);
+        return $result;
     }
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
@@ -163,7 +174,9 @@ OpenIDAuthorizationCodeInterface
             return false ;
         }
         $token = $this->dynamo2array($result);
-        $token['expires'] = strtotime($token['expires']);
+        if(array_key_exists ('expires', $token)) {
+            $token['expires'] = strtotime($token['expires']);
+        }
 
         return $token;
     }
@@ -196,6 +209,9 @@ OpenIDAuthorizationCodeInterface
             return false ;
         }
         $token = $this->dynamo2array($result);
+        if(!array_key_exists("id_token", $token )) {
+            $token['id_token'] = null;
+        }
         $token['expires'] = strtotime($token['expires']);
 
         return $token;
@@ -250,7 +266,7 @@ OpenIDAuthorizationCodeInterface
         if (!$userDetails = $this->getUserDetails($user_id)) {
             return false;
         }
-
+        
         $claims = explode(' ', trim($claims));
         $userClaims = array();
 
@@ -277,7 +293,12 @@ OpenIDAuthorizationCodeInterface
         $claimValues = explode(' ', $claimValuesString);
 
         foreach ($claimValues as $value) {
-            $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
+            if($value == 'email_verified') {
+                $userClaims[$value] = $userDetails[$value]=='true' ? true : false;
+            }
+            else {
+                $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
+            }
         }
 
         return $userClaims;
@@ -346,7 +367,7 @@ OpenIDAuthorizationCodeInterface
         return $token;
     }
 
-    public function setUser($username, $password, $firstName = null, $lastName = null)
+    public function setUser($username, $password, $first_name = null, $last_name = null)
     {
         // do not store in plaintext
         $password = sha1($password);
@@ -368,22 +389,22 @@ OpenIDAuthorizationCodeInterface
     {
         $scope = explode(' ', $scope);
         $scope_query = array();
+        $count = 0;
         foreach ($scope as $key => $val) {
-            $scope_query[] = array("S"=> $val);
+            $result = $this->client->query(array(
+                'TableName'     => $this->config['scope_table'],
+                'Select'        => 'COUNT',
+                'KeyConditions' => array(
+                    'scope' => array(
+                        'AttributeValueList' => array(array('S' => $val)),
+                        'ComparisonOperator' => 'EQ'
+                    )
+                )
+            ));
+            $count += $result['Count'];
         }
 
-        $result = $this->client->query(array(
-            'TableName'     => $this->config['scope_table'],
-            'Select'        => 'COUNT',
-            'KeyConditions' => array(
-                'scope' => array(
-                    'AttributeValueList' => $scope_query,
-                    'ComparisonOperator' => 'EQ'
-                )
-            )
-        ));
-
-        return $result['Count'] ==count($scope);
+        return $count == count($scope);
     }
 
     public function getDefaultScope($client_id = null)
@@ -452,7 +473,7 @@ OpenIDAuthorizationCodeInterface
     }
 
     /* PublicKeyInterface */
-    public function getPublicKey($client_id = null)
+    public function getPublicKey($client_id = '0')
     {
 
         $result = $this->client->getItem(array(
@@ -468,7 +489,7 @@ OpenIDAuthorizationCodeInterface
 
     }
 
-    public function getPrivateKey($client_id = null)
+    public function getPrivateKey($client_id = '0')
     {
         $result = $this->client->getItem(array(
             "TableName"=> $this->config['public_key_table'],
