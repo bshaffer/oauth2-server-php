@@ -12,6 +12,7 @@ class Bootstrap
     private $redis;
     private $cassandra;
     private $configDir;
+    private $dynamodb;
 
     public function __construct()
     {
@@ -326,7 +327,6 @@ class Bootstrap
         $pdo->prepare($sql)->execute(array('oauth_test_client', 'test_subject', $this->getTestPublicKey()));
     }
 
-
     public function getSqliteDir()
     {
         return $this->configDir. '/test.sqlite';
@@ -406,5 +406,271 @@ class Bootstrap
     private function getTestPrivateKey()
     {
         return file_get_contents(__DIR__.'/../../../config/keys/id_rsa');
+    }
+
+    public function getDynamoDBStorage()
+    {
+        if (!$this->dynamodb) {
+            $client = \Aws\DynamoDb\DynamoDbClient::factory(array(
+                    'key' => "YOUR_KEY",
+                    'secret' => "YOUR_SECRET",
+                    'region' => "YOUR8REGION"
+            ));
+            $tablesList = array("oauth_access_tokens", "oauth_authorization_codes", "oauth_clients", "oauth_jwt", "oauth_public_keys", "oauth_refresh_tokens", "oauth_scopes", "oauth_users");
+            $this->deleteDynamodb($client, $tablesList);
+            $this->createDynamodb($client, $tablesList);
+            $this->populateDynamedb($client);
+            $this->dynamodb = new DynamoDB($client);
+        }
+
+        return $this->dynamodb;
+    }
+
+    private function deleteDynamodb(\Aws\DynamoDb\DynamoDbClient $client, $tablesList)
+    {
+        $nbTables = count($tablesList);
+
+        // Delete all table.
+        foreach ($tablesList as $key => $table) {
+            try {
+                $client->deleteTable(array('TableName' => $table));
+            } catch (\Aws\DynamoDb\Exception\DynamoDbException $e) {
+                // Table does not exist : nothing to do
+            }
+        }
+
+        // Wait for deleting
+        $nbTableDeleted = 0;
+        while ($nbTableDeleted != $nbTables) {
+            $nbTableDeleted = 0;
+            foreach ($tablesList as $key => $table) {
+                try {
+                    $result = $client->describeTable(array('TableName' => $table));
+                } catch (\Aws\DynamoDb\Exception\DynamoDbException $e) {
+                    // Table does not exist : nothing to do
+                    $nbTableDeleted++;
+                }
+            }
+            if ($nbTableDeleted != $nbTables) {
+                sleep(1);
+            }
+        }
+    }
+
+    private function createDynamodb(\Aws\DynamoDb\DynamoDbClient $client, $tablesList)
+    {
+        $nbTables = count($tablesList);
+        $client->createTable(array(
+            'TableName' => 'oauth_access_tokens',
+            'AttributeDefinitions' => array(
+                array('AttributeName' => 'access_token','AttributeType' => 'S')
+            ),
+            'KeySchema' => array(array('AttributeName' => 'access_token','KeyType' => 'HASH')),
+            'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
+        ));
+        $client->createTable(array(
+            'TableName' => 'oauth_authorization_codes',
+            'AttributeDefinitions' => array(
+                array('AttributeName' => 'authorization_code','AttributeType' => 'S')
+            ),
+            'KeySchema' => array(array('AttributeName' => 'authorization_code','KeyType' => 'HASH')),
+            'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
+        ));
+        $client->createTable(array(
+            'TableName' => 'oauth_clients',
+            'AttributeDefinitions' => array(
+                array('AttributeName' => 'client_id','AttributeType' => 'S')
+            ),
+            'KeySchema' => array(array('AttributeName' => 'client_id','KeyType' => 'HASH')),
+            'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
+        ));
+        $client->createTable(array(
+            'TableName' => 'oauth_jwt',
+            'AttributeDefinitions' => array(
+                array('AttributeName' => 'client_id','AttributeType' => 'S'),
+                array('AttributeName' => 'subject','AttributeType' => 'S')
+            ),
+            'KeySchema' => array(
+                array('AttributeName' => 'client_id','KeyType' => 'HASH'),
+                array('AttributeName' => 'subject','KeyType' => 'RANGE')
+            ),
+            'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
+        ));
+        $client->createTable(array(
+            'TableName' => 'oauth_public_keys',
+            'AttributeDefinitions' => array(
+                array('AttributeName' => 'client_id','AttributeType' => 'S')
+            ),
+            'KeySchema' => array(array('AttributeName' => 'client_id','KeyType' => 'HASH')),
+            'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
+        ));
+        $client->createTable(array(
+            'TableName' => 'oauth_refresh_tokens',
+            'AttributeDefinitions' => array(
+                array('AttributeName' => 'refresh_token','AttributeType' => 'S')
+            ),
+            'KeySchema' => array(array('AttributeName' => 'refresh_token','KeyType' => 'HASH')),
+            'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
+        ));
+        $client->createTable(array(
+            'TableName' => 'oauth_scopes',
+            'AttributeDefinitions' => array(
+                array('AttributeName' => 'scope','AttributeType' => 'S'),
+                array('AttributeName' => 'is_default','AttributeType' => 'S')
+            ),
+            'KeySchema' => array(array('AttributeName' => 'scope','KeyType' => 'HASH')),
+            'GlobalSecondaryIndexes' => array(
+                array(
+                    'IndexName' => 'is_default-index',
+                    'KeySchema' => array(array('AttributeName' => 'is_default', 'KeyType' => 'HASH')),
+                    'Projection' => array('ProjectionType' => 'ALL'),
+                    'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
+                ),
+            ),
+            'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
+        ));
+        $client->createTable(array(
+            'TableName' => 'oauth_users',
+            'AttributeDefinitions' => array(array('AttributeName' => 'username','AttributeType' => 'S')),
+            'KeySchema' => array(array('AttributeName' => 'username','KeyType' => 'HASH')),
+            'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
+        ));
+        // Wait for creation
+        $nbTableCreated = 0;
+        while ($nbTableCreated != $nbTables) {
+            $nbTableCreated = 0;
+            foreach ($tablesList as $key => $table) {
+                try {
+                    $result = $client->describeTable(array('TableName' => $table));
+                    if ($result['Table']['TableStatus'] == 'ACTIVE') {
+                        $nbTableCreated++;
+                    }
+                } catch (\Aws\DynamoDb\Exception\DynamoDbException $e) {
+                    // Table does not exist : nothing to do
+                    $nbTableCreated++;
+                }
+            }
+            if ($nbTableCreated != $nbTables) {
+                sleep(1);
+            }
+        }
+    }
+
+    private function populateDynamedb($client)
+    {
+
+        // set up scopes
+        foreach (explode(' ', 'supportedscope1 supportedscope2 supportedscope3 supportedscope4 clientscope1 clientscope2 clientscope3') as $supportedScope) {
+            $client->putItem(array(
+                'TableName' => 'oauth_scopes',
+                'Item' => array('scope' => array('S' => $supportedScope))
+            ));
+        }
+
+        foreach (array('defaultscope1', 'defaultscope2') as $defaultScope) {
+            $client->putItem(array(
+                'TableName' => 'oauth_scopes',
+                'Item' => array('scope' => array('S' => $defaultScope), 'is_default' => array('S' => "true"))
+            ));
+        }
+        $client->putItem(array(
+            'TableName' => 'oauth_clients',
+            'Item' => array(
+                'client_id' => array('S' => 'Test Client ID'),
+                'client_secret' => array('S' => 'TestSecret'),
+                'scope' => array('S' => 'clientscope1 clientscope2')
+            )
+        ));
+        $client->putItem(array(
+            'TableName' => 'oauth_clients',
+            'Item' => array(
+                'client_id' => array('S' => 'Test Client ID 2'),
+                'client_secret' => array('S' => 'TestSecret'),
+                'scope' => array('S' => 'clientscope1 clientscope2 clientscope3')
+            )
+        ));
+        $client->putItem(array(
+            'TableName' => 'oauth_clients',
+            'Item' => array(
+                'client_id' => array('S' => 'Test Default Scope Client ID'),
+                'client_secret' => array('S' => 'TestSecret'),
+                'scope' => array('S' => 'clientscope1 clientscope2')
+            )
+        ));
+        $client->putItem(array(
+            'TableName' => 'oauth_clients',
+            'Item' => array(
+                'client_id' => array('S' => 'oauth_test_client'),
+                'client_secret' => array('S' => 'testpass'),
+                'grant_types' => array('S' => 'implicit password')
+            )
+        ));
+
+        $client->putItem(array(
+            'TableName' => 'oauth_access_tokens',
+            'Item' => array(
+                'access_token' => array('S' => 'testtoken'),
+                'client_id' => array('S' => 'Some Client'),
+            )
+        ));
+        $client->putItem(array(
+            'TableName' => 'oauth_access_tokens',
+            'Item' => array(
+                 'access_token' => array('S' => 'accesstoken-openid-connect'),
+                 'client_id' => array('S' => 'Some Client'),
+                 'user_id' => array('S' => 'testuser'),
+            )
+        ));
+        $client->putItem(array(
+            'TableName' => 'oauth_authorization_codes',
+            'Item' => array(
+                'authorization_code' => array('S' => 'testcode'),
+                'client_id' => array('S' => 'Some Client'),
+            )
+        ));
+        $client->putItem(array(
+            'TableName' => 'oauth_users',
+            'Item' => array(
+                'username' => array('S' => 'testuser'),
+                'password' => array('S' => 'password'),
+                'email' => array('S' => 'testuser@test.com'),
+                'email_verified' => array('S' => 'true'),
+            )
+        ));
+        $client->putItem(array(
+            'TableName' => 'oauth_public_keys',
+            'Item' => array(
+                'client_id' => array('S' => 'ClientID_One'),
+                'public_key' => array('S' => 'client_1_public'),
+                'private_key' => array('S' => 'client_1_private'),
+                'encryption_algorithm' => array('S' => 'RS256'),
+            )
+        ));
+        $client->putItem(array(
+            'TableName' => 'oauth_public_keys',
+            'Item' => array(
+                'client_id' => array('S' => 'ClientID_Two'),
+                'public_key' => array('S' => 'client_2_public'),
+                'private_key' => array('S' => 'client_2_private'),
+                'encryption_algorithm' => array('S' => 'RS256'),
+            )
+        ));
+        $client->putItem(array(
+            'TableName' => 'oauth_public_keys',
+            'Item' => array(
+                'client_id' => array('S' => '0'),
+                'public_key' => array('S' => $this->getTestPublicKey()),
+                'private_key' => array('S' => $this->getTestPrivateKey()),
+                'encryption_algorithm' => array('S' => 'RS256'),
+            )
+        ));
+        $client->putItem(array(
+            'TableName' => 'oauth_jwt',
+            'Item' => array(
+                'client_id' => array('S' => 'oauth_test_client'),
+                'subject' => array('S' => 'test_subject'),
+                'public_key' => array('S' => $this->getTestPublicKey()),
+            )
+        ));
     }
 }
