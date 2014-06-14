@@ -411,16 +411,20 @@ class Bootstrap
     public function getDynamoDBStorage()
     {
         if (!$this->dynamodb) {
-            $client = \Aws\DynamoDb\DynamoDbClient::factory(array(
-                    'key' => "YOUR_KEY",
-                    'secret' => "YOUR_SECRET",
-                    'region' => "YOUR8REGION"
-            ));
-            $tablesList = array("oauth_access_tokens", "oauth_authorization_codes", "oauth_clients", "oauth_jwt", "oauth_public_keys", "oauth_refresh_tokens", "oauth_scopes", "oauth_users");
-            $this->deleteDynamodb($client, $tablesList);
-            $this->createDynamodb($client, $tablesList);
-            $this->populateDynamedb($client);
-            $this->dynamodb = new DynamoDB($client);
+            if (class_exists('\Aws\DynamoDb\DynamoDbClient')) {
+                $client = \Aws\DynamoDb\DynamoDbClient::factory(array(
+                        'key' => "YOUR_KEY",
+                        'secret' => "YOUR_SECRET",
+                        'region' => "YOUR8REGION"
+                ));
+                $tablesList = array("oauth_access_tokens", "oauth_authorization_codes", "oauth_clients", "oauth_jwt", "oauth_public_keys", "oauth_refresh_tokens", "oauth_scopes", "oauth_users");
+                $this->deleteDynamodb($client, $tablesList);
+                $this->createDynamodb($client, $tablesList);
+                $this->populateDynamedb($client);
+                $this->dynamodb = new DynamoDB($client);
+            } else {
+                $this->dynamodb = new NullStorage('Dynamodb', 'Unable to find dynamodb library"');
+            }
         }
 
         return $this->dynamodb;
