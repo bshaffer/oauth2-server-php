@@ -80,6 +80,7 @@ class AuthorizeController implements AuthorizeControllerInterface
 
         // the user declined access to the client's application
         if ($is_authorized === false) {
+            /** @var $registered_redirect_uri string */
             $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
             $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, 'access_denied', "The user denied access to your application");
 
