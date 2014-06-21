@@ -15,6 +15,7 @@ class Scope implements ScopeInterface
     /**
      * @param mixed @storage
      * Either an array of supported scopes, or an instance of OAuth2\Storage\ScopeInterface
+     * @throws \InvalidArgumentException
      */
     public function __construct($storage = null)
     {
@@ -23,7 +24,7 @@ class Scope implements ScopeInterface
         }
 
         if (!$storage instanceof ScopeStorageInterface) {
-            throw new \InvalidArgumentException("Argument 1 to OAuth2\Scope must be null, an array, or instance of OAuth2\Storage\ScopeInterface");
+            throw new \InvalidArgumentException('Argument 1 to OAuth2\Scope must be null, an array, or instance of OAuth2\Storage\ScopeInterface');
         }
 
         $this->storage = $storage;
@@ -35,10 +36,8 @@ class Scope implements ScopeInterface
      * @param $required_scope
      * A space-separated string of scopes.
      *
-     * @return
-     * TRUE if everything in required scope is contained in available scope,
-     * and FALSE if it isn't.
-     *
+     * @param $available_scope
+     * @return bool TRUE if everything in required scope is contained in available scope,
      * @see http://tools.ietf.org/html/rfc6749#section-7
      *
      * @ingroup oauth2_section_7
@@ -57,8 +56,7 @@ class Scope implements ScopeInterface
      * @param $scope
      * A space-separated string of scopes.
      *
-     * @return
-     * TRUE if it exists, FALSE otherwise.
+     * @return bool TRUE if it exists, FALSE otherwise.
      */
     public function scopeExists($scope)
     {
@@ -93,8 +91,7 @@ class Scope implements ScopeInterface
      * In case OpenID Connect is used, these scopes must include:
      * 'openid', offline_access'.
      *
-     * @return
-     * An array of reserved scopes.
+     * @return array An array of reserved scopes.
      */
     public function getReservedScopes()
     {

@@ -87,7 +87,7 @@ class Pdo implements AuthorizationCodeInterface,
             return false;
         }
 
-        return empty($result['client_secret']);;
+        return empty($result['client_secret']);
     }
 
     /* OAuth2\Storage\ClientInterface */

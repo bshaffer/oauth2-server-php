@@ -51,6 +51,7 @@ class AuthorizationCode implements AuthorizationCodeInterface
      * @param $scope
      * (optional) Scopes to be stored in space-separated string.
      *
+     * @return string
      * @see http://tools.ietf.org/html/rfc6749#section-4
      * @ingroup oauth2_section_4
      */
@@ -77,9 +78,7 @@ class AuthorizationCode implements AuthorizationCodeInterface
      * Implementing classes may want to override this function to implement
      * other auth code generation schemes.
      *
-     * @return
-     * An unique auth code.
-     *
+     * @return string An unique auth code.
      * @ingroup oauth2_section_4
      */
     protected function generateAuthorizationCode()

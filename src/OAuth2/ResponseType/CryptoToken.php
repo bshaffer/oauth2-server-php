@@ -19,10 +19,14 @@ class CryptoToken extends AccessToken
     protected $encryptionUtil;
 
     /**
-     * @param $config
+     * @param \OAuth2\Storage\PublicKeyInterface $publicKeyStorage
+     * @param \OAuth2\Storage\AccessTokenInterface $tokenStorage
+     * @param \OAuth2\Storage\RefreshTokenInterface $refreshStorage
+     * @param array $config
      *  - store_encrypted_token_string (bool true)
      *       whether the entire encrypted string is stored,
      *       or just the token ID is stored
+     * @param \OAuth2\Encryption\EncryptionInterface $encryptionUtil
      */
     public function __construct(PublicKeyInterface $publicKeyStorage = null, AccessTokenStorageInterface $tokenStorage = null, RefreshTokenInterface $refreshStorage = null, array $config = array(), EncryptionInterface $encryptionUtil = null)
     {
@@ -53,6 +57,7 @@ class CryptoToken extends AccessToken
      * @param bool $includeRefreshToken
      * If true, a new refresh_token will be added to the response
      *
+     * @return array
      * @see http://tools.ietf.org/html/rfc6749#section-5
      * @ingroup oauth2_section_5
      */

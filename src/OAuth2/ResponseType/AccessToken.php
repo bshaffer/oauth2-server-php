@@ -16,9 +16,9 @@ class AccessToken implements AccessTokenInterface
     protected $config;
 
     /**
-     * @param OAuth2\Storage\AccessTokenInterface $tokenStorage
+     * @param \OAuth2\Storage\AccessTokenInterface $tokenStorage
      * REQUIRED Storage class for saving access token information
-     * @param OAuth2\Storage\RefreshTokenInterface $refreshStorage
+     * @param \OAuth2\Storage\RefreshTokenInterface $refreshStorage
      * OPTIONAL Storage class for saving refresh token information
      * @param array $config
      * OPTIONAL Configuration options for the server
@@ -76,6 +76,7 @@ class AccessToken implements AccessTokenInterface
      * @param bool $includeRefreshToken
      * If true, a new refresh_token will be added to the response
      *
+     * @return array
      * @see http://tools.ietf.org/html/rfc6749#section-5
      * @ingroup oauth2_section_5
      */
@@ -114,9 +115,7 @@ class AccessToken implements AccessTokenInterface
      * Implementing classes may want to override this function to implement
      * other access token generation schemes.
      *
-     * @return
-     * An unique access token.
-     *
+     * @return string An unique access token.
      * @ingroup oauth2_section_4
      */
     protected function generateAccessToken()
@@ -141,9 +140,7 @@ class AccessToken implements AccessTokenInterface
      * Implementing classes may want to override this function to implement
      * other refresh token generation schemes.
      *
-     * @return
-     * An unique refresh.
-     *
+     * @return string An unique refresh.
      * @ingroup oauth2_section_4
      * @see OAuth2::generateAccessToken()
      */

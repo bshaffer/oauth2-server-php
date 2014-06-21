@@ -25,10 +25,10 @@ class AuthorizeController implements AuthorizeControllerInterface
     protected $scopeUtil;
 
     /**
-     * @param OAuth2\Storage\ClientInterface $clientStorage
+     * @param \OAuth2\Storage\ClientInterface $clientStorage
      * REQUIRED Instance of OAuth2\Storage\ClientInterface to retrieve client information
      * @param array $responseTypes
-     * OPTIONAL Array of OAuth2\ResponseType\ResponseTypeInterface objects.  Valid array
+     * OPTIONAL Array of \OAuth2\ResponseType\ResponseTypeInterface objects.  Valid array
      * keys are "code" and "token"
      * @param array $config
      * OPTIONAL Configuration options for the server
@@ -40,7 +40,7 @@ class AuthorizeController implements AuthorizeControllerInterface
      *   'redirect_status_code' => 302,        // HTTP status code to use for redirect responses
      * );
      * @endcode
-     * @param OAuth2\ScopeInterface $scopeUtil
+     * @param \OAuth2\ScopeInterface $scopeUtil
      * OPTIONAL Instance of OAuth2\ScopeInterface to validate the requested scope
      */
     public function __construct(ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), ScopeInterface $scopeUtil = null)
@@ -261,19 +261,16 @@ class AuthorizeController implements AuthorizeControllerInterface
         return true;
     }
 
-    /**
-     * Build the absolute URI based on supplied URI and parameters.
-     *
-     * @param $uri
-     * An absolute URI.
-     * @param $params
-     * Parameters to be append as GET.
-     *
-     * @return
-     * An absolute URI with supplied parameters.
-     *
-     * @ingroup oauth2_section_4
-     */
+	/**
+	 * Build the absolute URI based on supplied URI and parameters.
+	 *
+	 * @param $uri
+	 * An absolute URI.
+	 * @param $params
+	 * Parameters to be append as GET.
+	 *
+	 * @return string An absolute URI with supplied parameters.@ingroup oauth2_section_4
+	 */
     private function buildUri($uri, $params)
     {
         $parse_url = parse_url($uri);
@@ -308,17 +305,18 @@ class AuthorizeController implements AuthorizeControllerInterface
         );
     }
 
-    /**
-     * Internal method for validating redirect URI supplied
-     *
-     * @param string $inputUri
-     * The submitted URI to be validated
-     * @param string $registeredUriString
-     * The allowed URI(s) to validate against.  Can be a space-delimited string of URIs to
-     * allow for multiple URIs
-     *
-     * @see http://tools.ietf.org/html/rfc6749#section-3.1.2
-     */
+	/**
+	 * Internal method for validating redirect URI supplied
+	 *
+	 * @param string $inputUri
+	 * The submitted URI to be validated
+	 * @param string $registeredUriString
+	 * The allowed URI(s) to validate against.  Can be a space-delimited string of URIs to
+	 * allow for multiple URIs
+	 *
+	 * @return bool
+	 * @see http://tools.ietf.org/html/rfc6749#section-3.1.2
+	 */
     private function validateRedirectUri($inputUri, $registeredUriString)
     {
         if (!$inputUri || !$registeredUriString) {

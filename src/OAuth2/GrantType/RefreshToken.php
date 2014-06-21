@@ -19,7 +19,7 @@ class RefreshToken implements GrantTypeInterface
     protected $config;
 
     /**
-     * @param OAuth2\Storage\RefreshTokenInterface $storage
+     * @param \OAuth2\Storage\RefreshTokenInterface $storage
      * REQUIRED Storage class for retrieving refresh token information
      * @param array $config
      * OPTIONAL Configuration options for the server

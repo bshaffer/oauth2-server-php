@@ -29,11 +29,11 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Creates an instance of the JWT bearer grant type.
      *
-     * @param OAuth2\Storage\JWTBearerInterface $storage
+     * @param \OAuth2\Storage\JWTBearerInterface $storage
      * A valid storage interface that implements storage hooks for the JWT bearer grant type.
      * @param string $audience
      * The audience to validate the token against. This is usually the full URI of the OAuth token requests endpoint.
-     * @param OAuth2\Encryption\JWT OPTIONAL $jwtUtil
+     * @param \OAuth2\Encryption\EncryptionInterface $jwtUtil
      * The class used to decode, encode and verify JWTs.
      */
     public function __construct(JwtBearerInterface $storage, $audience, EncryptionInterface $jwtUtil = null)
@@ -51,9 +51,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Returns the grant_type get parameter to identify the grant type request as JWT bearer authorization grant.
      *
-     * @return
-     * The string identifier for grant_type.
-     *
+     * @return string The string identifier for grant_type.
      * @see OAuth2\GrantType\GrantTypeInterface::getQuerystringIdentifier()
      */
     public function getQuerystringIdentifier()
@@ -64,9 +62,9 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Validates the data from the decoded JWT.
      *
-     * @return
-     * TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.
-     *
+     * @param \OAuth2\RequestInterface $request
+     * @param \OAuth2\ResponseInterface $response
+     * @return bool|null TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.
      * @see OAuth2\GrantType\GrantTypeInterface::getTokenData()
      */
     public function validateRequest(RequestInterface $request, ResponseInterface $response)

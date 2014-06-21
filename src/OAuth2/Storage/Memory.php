@@ -76,6 +76,7 @@ class Memory implements AuthorizationCodeInterface,
 
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
+        /** @var $code string */
         $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token');
 
         return true;

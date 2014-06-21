@@ -22,7 +22,15 @@ class TokenController implements TokenControllerInterface
     protected $scopeUtil;
     protected $clientStorage;
 
-    public function __construct(AccessTokenInterface $accessToken, ClientInterface $clientStorage, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null)
+    /**
+     * @param AccessTokenInterface $accessToken
+     * @param ClientInterface $clientStorage
+     * @param array $grantTypes
+     * @param ClientAssertionTypeInterface $clientAssertionType
+     * @param ScopeInterface $scopeUtil
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(AccessTokenInterface $accessToken, ClientInterface $clientStorage, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = NULL, ScopeInterface $scopeUtil = NULL)
     {
         if (is_null($clientAssertionType)) {
             foreach ($grantTypes as $grantType) {
@@ -44,6 +52,10 @@ class TokenController implements TokenControllerInterface
         $this->scopeUtil = $scopeUtil;
     }
 
+    /**
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     */
     public function handleTokenRequest(RequestInterface $request, ResponseInterface $response)
     {
         if ($token = $this->grantAccessToken($request, $response)) {
@@ -60,12 +72,11 @@ class TokenController implements TokenControllerInterface
      * This would be called from the "/token" endpoint as defined in the spec.
      * You can call your endpoint whatever you want.
      *
-     * @param $request - RequestInterface
+     * @param \OAuth2\RequestInterface $request - RequestInterface
      * Request object to grant access token
      *
-     * @throws InvalidArgumentException
-     * @throws LogicException
-     *
+     * @param \OAuth2\ResponseInterface $response
+     * @return bool|null
      * @see http://tools.ietf.org/html/rfc6749#section-4
      * @see http://tools.ietf.org/html/rfc6749#section-10.6
      * @see http://tools.ietf.org/html/rfc6749#section-4.1.3
@@ -78,7 +89,7 @@ class TokenController implements TokenControllerInterface
             $response->setError(405, 'invalid_request', 'The request method must be POST when requesting an access token', '#section-3.2');
             $response->addHttpHeaders(array('Allow' => 'POST'));
 
-            return null;
+            return NULL;
         }
 
         /**
@@ -88,14 +99,14 @@ class TokenController implements TokenControllerInterface
         if (!$grantTypeIdentifier = $request->request('grant_type')) {
             $response->setError(400, 'invalid_request', 'The grant type was not specified in the request');
 
-            return null;
+            return NULL;
         }
 
         if (!isset($this->grantTypes[$grantTypeIdentifier])) {
             /* TODO: If this is an OAuth2 supported grant type that we have chosen not to implement, throw a 501 Not Implemented instead */
             $response->setError(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantTypeIdentifier));
 
-            return null;
+            return NULL;
         }
 
         $grantType = $this->grantTypes[$grantTypeIdentifier];
@@ -110,7 +121,7 @@ class TokenController implements TokenControllerInterface
          */
         if (!$grantType instanceof ClientAssertionTypeInterface) {
             if (!$this->clientAssertionType->validateRequest($request, $response)) {
-                return null;
+                return NULL;
             }
             $clientId = $this->clientAssertionType->getClientId();
         }
@@ -122,7 +133,7 @@ class TokenController implements TokenControllerInterface
          * That logic is handled here as well
          */
         if (!$grantType->validateRequest($request, $response)) {
-            return null;
+            return NULL;
         }
 
         if ($grantType instanceof ClientAssertionTypeInterface) {
@@ -132,7 +143,7 @@ class TokenController implements TokenControllerInterface
             if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
                 $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier));
 
-                return null;
+                return NULL;
             }
         }
 
@@ -142,7 +153,7 @@ class TokenController implements TokenControllerInterface
         if (!$this->clientStorage->checkRestrictedGrantType($clientId, $grantTypeIdentifier)) {
             $response->setError(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
 
-            return false;
+            return FALSE;
         }
 
         /**
@@ -165,7 +176,7 @@ class TokenController implements TokenControllerInterface
                 if (!$this->scopeUtil->checkScope($requestedScope, $availableScope)) {
                     $response->setError(400, 'invalid_scope', 'The scope requested is invalid for this request');
 
-                    return null;
+                    return NULL;
                 }
             } else {
                 // validate the client has access to this scope
@@ -173,12 +184,12 @@ class TokenController implements TokenControllerInterface
                     if (!$this->scopeUtil->checkScope($requestedScope, $clientScope)) {
                         $response->setError(400, 'invalid_scope', 'The scope requested is invalid for this client');
 
-                        return false;
+                        return FALSE;
                     }
                 } elseif (!$this->scopeUtil->scopeExists($requestedScope)) {
                     $response->setError(400, 'invalid_scope', 'An unsupported scope was requested');
 
-                    return null;
+                    return NULL;
                 }
             }
         } elseif ($availableScope) {
@@ -189,10 +200,10 @@ class TokenController implements TokenControllerInterface
             $defaultScope = $this->scopeUtil->getDefaultScope($clientId);
 
             // "false" means default scopes are not allowed
-            if (false === $defaultScope) {
+            if (FALSE === $defaultScope) {
                 $response->setError(400, 'invalid_scope', 'This application requires you specify a scope parameter');
 
-                return null;
+                return NULL;
             }
 
             $requestedScope = $defaultScope;
@@ -204,12 +215,11 @@ class TokenController implements TokenControllerInterface
     /**
      * addGrantType
      *
-     * @param grantType - OAuth2\GrantTypeInterface
+     * @param \OAuth2\GrantType\GrantTypeInterface $grantType
      * the grant type to add for the specified identifier
-     * @param identifier - string
-     * a string passed in as "grant_type" in the response that will call this grantType
+     * @param null $identifier
      */
-    public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
+    public function addGrantType(GrantTypeInterface $grantType, $identifier = NULL)
     {
         if (is_null($identifier) || is_numeric($identifier)) {
             $identifier = $grantType->getQuerystringIdentifier();

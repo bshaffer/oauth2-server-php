@@ -40,6 +40,7 @@ interface ClientInterface
     /**
      * Get the scope associated with this client
      *
+     * @param $client_id
      * @return
      * STRING the space-delineated scope list for the specified client_id
      */
