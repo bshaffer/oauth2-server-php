@@ -52,8 +52,6 @@ class Bootstrap
                     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
                     $this->populatePostgresDb($pdo);
                     $this->postgres = new Pdo($pdo);
-                } else {
-                    $this->postgres = new NullStorage('Postgres', 'Unable to connect to postgres on localhost with user "postgres"');
                 }
             } else {
                 $this->postgres = new NullStorage('Postgres', 'Missing postgres PDO extension.');
@@ -67,11 +65,11 @@ class Bootstrap
     {
         try {
             $pdo = new \PDO('pgsql:host=localhost;dbname=oauth2_server_php', 'postgres');
-
-            return $pdo;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            $this->postgres = new NullStorage('Postgres', $e->getMessage());
         }
+
+        return $pdo;
     }
 
     public function getMemoryStorage()
@@ -114,12 +112,20 @@ class Bootstrap
     public function getMysqlPdo()
     {
         if (!$this->mysql) {
-            $pdo = new \PDO('mysql:host=localhost;', 'root');
-            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-            $this->removeMysqlDb($pdo);
-            $this->createMysqlDb($pdo);
+            $pdo = null;
+            try {
+                $pdo = new \PDO('mysql:host=localhost;', 'root');
+            } catch (\PDOException $e) {
+                $this->mysql = new NullStorage('MySQL', 'Unable to connect to MySQL on root@localhost');
+            }
 
-            $this->mysql = new Pdo($pdo);
+            if ($pdo) {
+                $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+                $this->removeMysqlDb($pdo);
+                $this->createMysqlDb($pdo);
+
+                $this->mysql = new Pdo($pdo);
+            }
         }
 
         return $this->mysql;
@@ -413,17 +419,22 @@ class Bootstrap
         if (!$this->dynamodb) {
             if (class_exists('\Aws\DynamoDb\DynamoDbClient')) {
                 $client = \Aws\DynamoDb\DynamoDbClient::factory(array(
-                        'key' => "YOUR_KEY",
-                        'secret' => "YOUR_SECRET",
-                        'region' => "YOUR8REGION"
+                    'profile'   => 'default',
+                    'region'    => \Aws\Common\Enum\Region::US_EAST_1, #replace with your desired region
+                    'base_url'  => 'http://127.0.0.1:8000'
                 ));
-                $tablesList = array("oauth_access_tokens", "oauth_authorization_codes", "oauth_clients", "oauth_jwt", "oauth_public_keys", "oauth_refresh_tokens", "oauth_scopes", "oauth_users");
-                $this->deleteDynamodb($client, $tablesList);
-                $this->createDynamodb($client, $tablesList);
-                $this->populateDynamedb($client);
-                $this->dynamodb = new DynamoDB($client);
+
+                if ($client) {
+                    $tablesList = array("oauth_access_tokens", "oauth_authorization_codes", "oauth_clients", "oauth_jwt", "oauth_public_keys", "oauth_refresh_tokens", "oauth_scopes", "oauth_users");
+                    $this->deleteDynamodb($client, $tablesList);
+                    $this->createDynamodb($client, $tablesList);
+                    $this->populateDynamedb($client);
+                    $this->dynamodb = new DynamoDB($client);
+                } else {
+                    $this->dynamodb = new NullStorage('Dynamodb', 'unable to connect to local DynamoDB on localhost:8000');
+                }
             } else {
-                $this->dynamodb = new NullStorage('Dynamodb', 'Unable to find dynamodb library"');
+                $this->dynamodb = new NullStorage('Dynamodb', 'Missing DynamoDB library. Please run "composer.phar require aws/aws-sdk-php:dev-master');
             }
         }
 
