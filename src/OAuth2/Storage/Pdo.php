@@ -29,6 +29,8 @@ class Pdo implements AuthorizationCodeInterface,
 {
     protected $db;
     protected $config;
+    protected $passwordOption;
+
 
     public function __construct($connection, $config = array())
     {
@@ -65,6 +67,16 @@ class Pdo implements AuthorizationCodeInterface,
             'scope_table'  => 'oauth_scopes',
             'public_key_table'  => 'oauth_public_keys',
         ), $config);
+
+        $this->passwordOption = array(
+            'cost' => 12
+        );
+        /**
+         * @see http://www.php.net/manual/en/password.constants.php
+         */
+        if (array_key_exists('passwordOption', $config)) {
+            $this->passwordOption = array_merge($this->passwordOption, $config['passwordOption']);
+        }
     }
 
     /* OAuth2\Storage\ClientCredentialsInterface */
@@ -297,7 +309,11 @@ class Pdo implements AuthorizationCodeInterface,
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {
-        return $user['password'] == sha1($password);
+        if (function_exists('password_hash')) {
+            return  password_verify ($password, $user['password']);
+        } else {
+            return $user['password'] == sha1($password);
+        }
     }
 
     public function getUser($username)
@@ -318,7 +334,11 @@ class Pdo implements AuthorizationCodeInterface,
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
         // do not store in plaintext
-        $password = sha1($password);
+        if (function_exists('password_hash')) {
+            $password = password_hash($password, PASSWORD_DEFAULT, $this->passwordOption);
+        } else {
+            $password = sha1($password);
+        }
 
         // if it exists, update it.
         if ($this->getUser($username)) {
