@@ -36,7 +36,7 @@ class Redis implements AuthorizationCodeInterface,
     /**
      * Redis Storage!
      *
-     * @param \Predis\Client $redis
+     * @param \Predis\Client | \Redis $redis
      * @param array          $config
      */
     public function __construct($redis, $config=array())
@@ -162,7 +162,7 @@ class Redis implements AuthorizationCodeInterface,
             return false;
         }
 
-        return empty($result['client_secret']);;
+        return empty($result['client_secret']);
     }
 
     /* ClientInterface */

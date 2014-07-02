@@ -84,8 +84,8 @@ class Server implements ResourceControllerInterface,
 
     /**
      * @param mixed $storage
-     * array - array of Objects to implement storage
-     * OAuth2\Storage object implementing all required storage types (ClientCredentialsInterface and AccessTokenInterface as a minimum)
+     * array of Objects to implement storage
+     * \OAuth2\Storage object implementing all required storage types (ClientCredentialsInterface and AccessTokenInterface as a minimum)
      * @param array $config
      * specify a different token lifetime, token header name, etc
      * @param array $grantTypes
@@ -93,11 +93,11 @@ class Server implements ResourceControllerInterface,
      * @param array $responseTypes
      * Response types to use.  array keys should be "code" and and "token" for
      * Access Token and Authorization Code response types
-     * @param OAuth2\TokenType\TokenTypeInterface $tokenType
+     * @param \OAuth2\TokenType\TokenTypeInterface $tokenType
      * The token type object to use. Valid token types are "bearer" and "mac"
-     * @param OAuth2\ScopeInterface $scopeUtil
+     * @param \OAuth2\ScopeInterface $scopeUtil
      * The scope utility class to use to validate scope
-     * @param OAuth2\ClientAssertionType\ClientAssertionTypeInterface $clientAssertionType
+     * @param \OAuth2\ClientAssertionType\ClientAssertionTypeInterface $clientAssertionType
      * The method in which to verify the client identity.  Default is HttpBasic
      *
      * @ingroup oauth2_section_7
@@ -211,14 +211,15 @@ class Server implements ResourceControllerInterface,
      * Return claims about the authenticated end-user.
      * This would be called from the "/UserInfo" endpoint as defined in the spec.
      *
-     * @param $request - OAuth2\RequestInterface
+     * @param $request \OAuth2\RequestInterface
      * Request object to grant access token
      *
-     * @param $response - OAuth2\ResponseInterface
+     * @param $response \OAuth2\ResponseInterface
      * Response object containing error messages (failure) or user claims (success)
      *
-     * @throws InvalidArgumentException
-     * @throws LogicException
+     * @return \OAuth2\Response|\OAuth2\ResponseInterface
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      *
      * @see http://openid.net/specs/openid-connect-core-1_0.html#UserInfo
      */
@@ -235,14 +236,15 @@ class Server implements ResourceControllerInterface,
      * This would be called from the "/token" endpoint as defined in the spec.
      * Obviously, you can call your endpoint whatever you want.
      *
-     * @param $request - OAuth2\RequestInterface
+     * @param $request \OAuth2\RequestInterface
      * Request object to grant access token
      *
-     * @param $response - OAuth2\ResponseInterface
+     * @param $response \OAuth2\ResponseInterface
      * Response object containing error messages (failure) or access token (success)
      *
-     * @throws InvalidArgumentException
-     * @throws LogicException
+     * @return \OAuth2\Response|\OAuth2\ResponseInterface
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      *
      * @see http://tools.ietf.org/html/rfc6749#section-4
      * @see http://tools.ietf.org/html/rfc6749#section-10.6
@@ -273,7 +275,7 @@ class Server implements ResourceControllerInterface,
      * authorization server should call this function to redirect the user
      * appropriately.
      *
-     * @param $request
+     * @param \OAuth2\RequestInterface $request
      * The request should have the follow parameters set in the querystring:
      * - response_type: The requested response: an access token, an
      * authorization code, or both.
@@ -285,11 +287,13 @@ class Server implements ResourceControllerInterface,
      * list of space-delimited strings.
      * - state: (optional) An opaque value used by the client to maintain
      * state between the request and callback.
+     * @param ResponseInterface $response
      * @param $is_authorized
      * TRUE or FALSE depending on whether the user authorized the access.
      * @param $user_id
      * Identifier of user who authorized the client
      *
+     * @return \OAuth2\ResponseInterface
      * @see http://tools.ietf.org/html/rfc6749#section-4
      *
      * @ingroup oauth2_section_4
@@ -312,10 +316,9 @@ class Server implements ResourceControllerInterface,
      * The draft specifies that the parameters should be retrieved from GET, override the Response
      * object to change this
      *
-     * @return
-     * The authorization parameters so the authorization server can prompt
-     * the user for approval if valid.
-     *
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @return bool The authorization parameters so the authorization server can prompt.
      * @see http://tools.ietf.org/html/rfc6749#section-4.1.1
      * @see http://tools.ietf.org/html/rfc6749#section-10.12
      *
@@ -367,6 +370,7 @@ class Server implements ResourceControllerInterface,
      * @param $key
      * If null, the storage is set to the key of each storage interface it implements
      *
+     * @throws \InvalidArgumentException
      * @see storageMap
      */
     public function addStorage($storage, $key = null)

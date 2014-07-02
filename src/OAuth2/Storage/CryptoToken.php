@@ -16,28 +16,27 @@ class CryptoToken implements CryptoTokenInterface
     protected $encryptionUtil;
 
     /**
-     * @param string $publicKey
-     * the public key encryption to use
-     *
-     * @param string $privateKey (optional)
-     * (optional) the private key to use to sign tokens
-     * this is only required for token granting, and can be omitted for resource servers,
-     * as only the publc key is required for crypto token verification
-     *
-     * @param array $config
-     * (optional) configuration array. Valid parameters are
-     * - encryption_algorithm
-     *  the algorithm to use for encryption. This is passed to the
-     *  EncryptionInterface object.
-     *  @see OAuth2\Encryption\Jwt::verifySignature
-     *
-     * @param OAuth2\Storage\AccessTokenInterface $tokenStorage
+     * @param PublicKeyInterface $publicKeyStorage
+     * @param \OAuth2\Storage\AccessTokenInterface $tokenStorage
      * (optional) persist the access token to another storage. This is useful if
      * you want to retain access token grant information somewhere, but
      * is not necessary when using this grant type.
      *
-     * @param OAuth2\Encryption\EncryptionInterface $encryptionUtil
+     * @param \OAuth2\Encryption\EncryptionInterface $encryptionUtil
      * (optional) class to use for "encode" and "decode" functions.
+     * @internal param string $publicKey the public key encryption to use* the public key encryption to use
+     *
+     * @internal param string $privateKey (optional)
+     * (optional) the private key to use to sign tokens
+     * this is only required for token granting, and can be omitted for resource servers,
+     * as only the publc key is required for crypto token verification
+     *
+     * @internal param array $config (optional) configuration array. Valid parameters are* (optional) configuration array. Valid parameters are
+     * - encryption_algorithm
+     *  the algorithm to use for encryption. This is passed to the
+     *  EncryptionInterface object.
+     * @see OAuth2\Encryption\Jwt::verifySignature
+     *
      */
     public function __construct(PublicKeyInterface $publicKeyStorage, AccessTokenInterface $tokenStorage = null, EncryptionInterface $encryptionUtil = null)
     {

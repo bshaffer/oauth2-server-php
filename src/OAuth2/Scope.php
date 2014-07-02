@@ -11,10 +11,12 @@ use OAuth2\Storage\ScopeInterface as ScopeStorageInterface;
 class Scope implements ScopeInterface
 {
     protected $storage;
+    protected $delimiter = ' ';
 
     /**
      * @param mixed @storage
      * Either an array of supported scopes, or an instance of OAuth2\Storage\ScopeInterface
+     * @throws \InvalidArgumentException
      */
     public function __construct($storage = null)
     {
@@ -23,10 +25,21 @@ class Scope implements ScopeInterface
         }
 
         if (!$storage instanceof ScopeStorageInterface) {
-            throw new \InvalidArgumentException("Argument 1 to OAuth2\Scope must be null, an array, or instance of OAuth2\Storage\ScopeInterface");
+            throw new \InvalidArgumentException('Argument 1 to OAuth2\Scope must be null, an array, or instance of OAuth2\Storage\ScopeInterface');
         }
 
         $this->storage = $storage;
+    }
+
+    /**
+     * Set Scope delimiter
+     * @param $delimiter
+     * @return $this
+     */
+    public function setDelimiter($delimiter)
+    {
+        $this->delimiter = $delimiter;
+        return $this;
     }
 
     /**
@@ -35,18 +48,16 @@ class Scope implements ScopeInterface
      * @param $required_scope
      * A space-separated string of scopes.
      *
-     * @return
-     * TRUE if everything in required scope is contained in available scope,
-     * and FALSE if it isn't.
-     *
+     * @param $available_scope
+     * @return bool TRUE if everything in required scope is contained in available scope,
      * @see http://tools.ietf.org/html/rfc6749#section-7
      *
      * @ingroup oauth2_section_7
      */
     public function checkScope($required_scope, $available_scope)
     {
-        $required_scope = explode(' ', trim($required_scope));
-        $available_scope = explode(' ', trim($available_scope));
+        $required_scope = explode($this->delimiter, trim($required_scope));
+        $available_scope = explode($this->delimiter, trim($available_scope));
 
         return (count(array_diff($required_scope, $available_scope)) == 0);
     }
@@ -57,13 +68,12 @@ class Scope implements ScopeInterface
      * @param $scope
      * A space-separated string of scopes.
      *
-     * @return
-     * TRUE if it exists, FALSE otherwise.
+     * @return bool TRUE if it exists, FALSE otherwise.
      */
     public function scopeExists($scope)
     {
         // Check reserved scopes first.
-        $scope = explode(' ', trim($scope));
+        $scope = explode($this->delimiter, trim($scope));
         $reservedScope = $this->getReservedScopes();
         $nonReservedScopes = array_diff($scope, $reservedScope);
         if (count($nonReservedScopes) == 0) {
@@ -71,7 +81,7 @@ class Scope implements ScopeInterface
         }
         else {
             // Check the storage for non-reserved scopes.
-            $nonReservedScopes = implode(' ', $nonReservedScopes);
+            $nonReservedScopes = implode($this->delimiter, $nonReservedScopes);
             return $this->storage->scopeExists($nonReservedScopes);
         }
     }
@@ -93,8 +103,7 @@ class Scope implements ScopeInterface
      * In case OpenID Connect is used, these scopes must include:
      * 'openid', offline_access'.
      *
-     * @return
-     * An array of reserved scopes.
+     * @return array An array of reserved scopes.
      */
     public function getReservedScopes()
     {

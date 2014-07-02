@@ -49,8 +49,10 @@ class Cassandra implements AuthorizationCodeInterface,
     /**
      * Cassandra Storage! uses phpCassa
      *
-     * @param \phpcassa\ConnectionPool $cassandra
+     * @param array $connection
      * @param array $config
+     * @throws \InvalidArgumentException
+     * @internal param \phpcassa\ConnectionPool $cassandra
      */
     public function __construct($connection = array(), array $config = array())
     {

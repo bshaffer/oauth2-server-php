@@ -20,6 +20,7 @@ interface JwtBearerInterface
      * @param $client_id
      * Client identifier to be checked with.
      *
+     * @param $subject
      * @return
      * STRING Return the public key for the client_id if it exists, and MUST return FALSE if it doesn't.
      */

@@ -18,7 +18,7 @@ class UserCredentials implements GrantTypeInterface
     protected $storage;
 
     /**
-     * @param OAuth2\Storage\UserCredentialsInterface $storage
+     * @param \OAuth2\Storage\UserCredentialsInterface $storage
      * REQUIRED Storage class for retrieving user credentials information
      */
     public function __construct(UserCredentialsInterface $storage)
