@@ -12,6 +12,6 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         ));
 
         $string = $response->getResponseBody('xml');
-        $this->assertContains('<response><bar>foo</bar><oates>halland</oates></response>', $string);
+        $this->assertContains('<response><foo>bar</foo><halland>oates</halland></response>', $string);
     }
 }

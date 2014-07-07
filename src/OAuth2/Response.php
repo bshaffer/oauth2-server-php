@@ -181,7 +181,7 @@ class Response implements ResponseInterface
                 // this only works for single-level arrays
                 $xml = new \SimpleXMLElement('<response/>');
                 foreach ($this->parameters as $key => $param) {
-                    $xml->addChild($param, $key);
+                    $xml->addChild($key, $param);
                 }
 
                 return $xml->asXML();
