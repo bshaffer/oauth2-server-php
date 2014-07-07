@@ -72,20 +72,23 @@ class AuthorizeController implements AuthorizeControllerInterface
             return;
         }
 
+        // If no redirect_uri is passed in the request, use client's registered one
+        if (empty($this->redirect_uri)) {
+            $clientData              = $this->clientStorage->getClientDetails($this->client_id);
+            $registered_redirect_uri = $clientData['redirect_uri'];
+        }
+
         // the user declined access to the client's application
         if ($is_authorized === false) {
-            return $this->setNotAuthorizedResponse($request, $response, $user_id);
+            $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
+            $this->setNotAuthorizedResponse($request, $response, $redirect_uri, $user_id);
+
+            return;
         }
 
         // build the parameters to set in the redirect URI
         if (!$params = $this->buildAuthorizeParameters($request, $response, $user_id)) {
             return;
-        }
-
-        // If no redirect_uri is passed in the request, use client's registered one
-        if (empty($this->redirect_uri)) {
-            $clientData              = $this->clientStorage->getClientDetails($this->client_id);
-            $registered_redirect_uri = $clientData['redirect_uri'];
         }
 
         $authResult = $this->responseTypes[$this->response_type]->getAuthorizeResponse($params, $user_id);
@@ -102,14 +105,8 @@ class AuthorizeController implements AuthorizeControllerInterface
         $response->setRedirect($this->config['redirect_status_code'], $uri);
     }
 
-    protected function setNotAuthorizedResponse(RequestInterface $request, ResponseInterface $response, $user_id = null)
+    protected function setNotAuthorizedResponse(RequestInterface $request, ResponseInterface $response, $redirect_uri, $user_id = null)
     {
-        // If no redirect_uri is passed in the request, use client's registered one
-        if (empty($this->redirect_uri)) {
-            $clientData              = $this->clientStorage->getClientDetails($this->client_id);
-            $registered_redirect_uri = $clientData['redirect_uri'];
-        }
-        $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
         $error = 'access_denied';
         $error_message = 'The user denied access to your application';
         $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, $error, $error_message);

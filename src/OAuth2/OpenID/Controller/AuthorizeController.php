@@ -13,15 +13,8 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
 {
     private $nonce;
 
-    protected function setNotAuthorizedResponse(RequestInterface $request, ResponseInterface $response, $user_id = null)
+    protected function setNotAuthorizedResponse(RequestInterface $request, ResponseInterface $response, $redirect_uri, $user_id = null)
     {
-        // If no redirect_uri is passed in the request, use client's registered one
-        if (empty($this->redirect_uri)) {
-            $clientData              = $this->clientStorage->getClientDetails($this->client_id);
-            $registered_redirect_uri = $clientData['redirect_uri'];
-        }
-        $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
-
         $prompt = $request->query('prompt', 'consent');
         if ($prompt == 'none') {
             if (is_null($user_id)) {
@@ -35,6 +28,7 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
             $error = 'consent_required';
             $error_message = 'The user denied access to your application';
         }
+
         $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, $error, $error_message);
     }
 
