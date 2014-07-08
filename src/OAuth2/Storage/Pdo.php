@@ -16,7 +16,8 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class Pdo implements AuthorizationCodeInterface,
+class Pdo implements
+    AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,

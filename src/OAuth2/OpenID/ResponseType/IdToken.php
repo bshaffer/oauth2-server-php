@@ -4,7 +4,6 @@ namespace OAuth2\OpenID\ResponseType;
 
 use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\Encryption\Jwt;
-use OAuth2\Storage\RefreshTokenInterface;
 use OAuth2\Storage\PublicKeyInterface;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 

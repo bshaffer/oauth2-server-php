@@ -50,7 +50,7 @@ class TokenIdTokenTest extends \PHPUnit_Framework_TestCase
             // Each part is a base64url encoded json string.
             $part = str_replace(array('-', '_'), array('+', '/'), $part);
             $part = base64_decode($part);
-            $part = json_decode($part, TRUE);
+            $part = json_decode($part, true);
         }
         list($header, $claims, $signature) = $parts;
 

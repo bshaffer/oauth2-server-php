@@ -4,7 +4,6 @@ namespace OAuth2\OpenID\Controller;
 
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
-use OAuth2\GrantType\AuthorizationCode;
 use OAuth2\Request;
 use OAuth2\Response;
 
@@ -28,6 +27,7 @@ class UserInfoControllerTest extends \PHPUnit_Framework_TestCase
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $server = new Server($storage, $config);
+
         return $server;
     }
 }

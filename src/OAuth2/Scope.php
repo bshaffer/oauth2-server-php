@@ -68,10 +68,10 @@ class Scope implements ScopeInterface
         $nonReservedScopes = array_diff($scope, $reservedScope);
         if (count($nonReservedScopes) == 0) {
             return true;
-        }
-        else {
+        } else {
             // Check the storage for non-reserved scopes.
             $nonReservedScopes = implode(' ', $nonReservedScopes);
+
             return $this->storage->scopeExists($nonReservedScopes);
         }
     }

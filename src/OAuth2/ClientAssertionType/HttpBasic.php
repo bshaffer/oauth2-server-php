@@ -110,6 +110,7 @@ class HttpBasic implements ClientAssertionTypeInterface
                  * client_secret can be null if the client's password is an empty string
                  * @see http://tools.ietf.org/html/rfc6749#section-2.3.1
                  */
+
                 return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
             }
         }

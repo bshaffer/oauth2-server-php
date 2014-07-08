@@ -2,8 +2,6 @@
 
 namespace OAuth2\Storage;
 
-use OAuth2\Encryption\Jwt;
-
 class PdoTest extends BaseTest
 {
     public function testCreatePdoStorageUsingPdoClass()

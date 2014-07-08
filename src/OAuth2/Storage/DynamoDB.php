@@ -31,16 +31,17 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
  *
  * @author Frederic AUGUSTE <frederic.auguste at gmail dot com>
  */
-class DynamoDB implements AuthorizationCodeInterface,
-AccessTokenInterface,
-ClientCredentialsInterface,
-UserCredentialsInterface,
-RefreshTokenInterface,
-JwtBearerInterface,
-ScopeInterface,
-PublicKeyInterface,
-UserClaimsInterface,
-OpenIDAuthorizationCodeInterface
+class DynamoDB implements
+    AuthorizationCodeInterface,
+    AccessTokenInterface,
+    ClientCredentialsInterface,
+    UserCredentialsInterface,
+    RefreshTokenInterface,
+    JwtBearerInterface,
+    ScopeInterface,
+    PublicKeyInterface,
+    UserClaimsInterface,
+    OpenIDAuthorizationCodeInterface
 {
     protected $client;
     protected $config;
@@ -59,11 +60,10 @@ OpenIDAuthorizationCodeInterface
                 'secret' => $connection["secret"],
                 'region' =>$connection["region"]
             ));
-        }
-        else {
+        } else {
             $this->client = $connection;
         }
-        
+
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
             'access_token_table' => 'oauth_access_tokens',
@@ -129,7 +129,7 @@ OpenIDAuthorizationCodeInterface
         }
         $result = $this->dynamo2array($result);
         foreach (array('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id') as $key => $val) {
-            if(!array_key_exists ($val, $result)) {
+            if (!array_key_exists ($val, $result)) {
                 $result[$val] = null;
             }
         }
@@ -174,7 +174,7 @@ OpenIDAuthorizationCodeInterface
             return false ;
         }
         $token = $this->dynamo2array($result);
-        if(array_key_exists ('expires', $token)) {
+        if (array_key_exists ('expires', $token)) {
             $token['expires'] = strtotime($token['expires']);
         }
 
@@ -209,7 +209,7 @@ OpenIDAuthorizationCodeInterface
             return false ;
         }
         $token = $this->dynamo2array($result);
-        if(!array_key_exists("id_token", $token )) {
+        if (!array_key_exists("id_token", $token )) {
             $token['id_token'] = null;
         }
         $token['expires'] = strtotime($token['expires']);
@@ -266,7 +266,7 @@ OpenIDAuthorizationCodeInterface
         if (!$userDetails = $this->getUserDetails($user_id)) {
             return false;
         }
-        
+
         $claims = explode(' ', trim($claims));
         $userClaims = array();
 
@@ -293,10 +293,9 @@ OpenIDAuthorizationCodeInterface
         $claimValues = explode(' ', $claimValuesString);
 
         foreach ($claimValues as $value) {
-            if($value == 'email_verified') {
+            if ($value == 'email_verified') {
                 $userClaims[$value] = $userDetails[$value]=='true' ? true : false;
-            }
-            else {
+            } else {
                 $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
             }
         }

@@ -82,6 +82,7 @@ class Request implements RequestInterface
     {
         $headers = array_change_key_case($this->headers);
         $name = strtolower($name);
+
         return isset($headers[$name]) ? $headers[$name] : $default;
     }
 

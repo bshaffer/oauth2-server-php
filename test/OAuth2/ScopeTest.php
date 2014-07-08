@@ -3,7 +3,6 @@
 namespace OAuth2;
 
 use OAuth2\Storage\Memory;
-use OAuth2\Storage\Bootstrap;
 
 class ScopeTest extends \PHPUnit_Framework_TestCase
 {
