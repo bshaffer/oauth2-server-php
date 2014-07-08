@@ -81,7 +81,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         // the user declined access to the client's application
         if ($is_authorized === false) {
             $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
-            $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, 'access_denied', "The user denied access to your application");
+            $this->setNotAuthorizedResponse($request, $response, $redirect_uri, $user_id);
 
             return;
         }
@@ -103,6 +103,13 @@ class AuthorizeController implements AuthorizeControllerInterface
 
         // return redirect response
         $response->setRedirect($this->config['redirect_status_code'], $uri);
+    }
+
+    protected function setNotAuthorizedResponse(RequestInterface $request, ResponseInterface $response, $redirect_uri, $user_id = null)
+    {
+        $error = 'access_denied';
+        $error_message = 'The user denied access to your application';
+        $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, $error, $error_message);
     }
 
     /*
