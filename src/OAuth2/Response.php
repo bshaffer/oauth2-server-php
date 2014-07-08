@@ -187,7 +187,7 @@ class Response implements ResponseInterface
                 return $xml->asXML();
         }
 
-        throw new \InvalidArgumentException(sprintf('The format %s is not supported'));
+        throw new \InvalidArgumentException(sprintf('The format %s is not supported', $format));
 
     }
 
