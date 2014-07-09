@@ -9,9 +9,9 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
 /**
  * DynamoDB storage for all storage types
  *
- * To use, install "aws/aws-php-sdk" via composer
+ * To use, install "aws/aws-sdk-php" via composer
  * <code>
- *  composer require aws/aws-php-sdk:dev-master
+ *  composer require aws/aws-sdk-php:dev-master
  * </code>
  *
  * Once this is done, instantiate the DynamoDB client
@@ -74,22 +74,6 @@ class DynamoDB implements
             'scope_table'  => 'oauth_scopes',
             'public_key_table'  => 'oauth_public_keys',
         ), $config);
-    }
-
-    /**
-     * Transform dynamodb resultset to an array.
-     * @param $dynamodbResult
-     * @return $array
-     */
-    private function dynamo2array($dynamodbResult)
-    {
-        $result = array();
-        foreach ($dynamodbResult["Item"] as $key => $val) {
-            $result[$key] = $val["S"];
-            $result[] = $val["S"];
-        }
-
-        return $result;
     }
 
     /* OAuth2\Storage\ClientCredentialsInterface */
@@ -514,5 +498,21 @@ class DynamoDB implements
         $token = $this->dynamo2array($result);
 
         return $token['encryption_algorithm'];
+    }
+
+    /**
+     * Transform dynamodb resultset to an array.
+     * @param $dynamodbResult
+     * @return $array
+     */
+    private function dynamo2array($dynamodbResult)
+    {
+        $result = array();
+        foreach ($dynamodbResult["Item"] as $key => $val) {
+            $result[$key] = $val["S"];
+            $result[] = $val["S"];
+        }
+
+        return $result;
     }
 }
