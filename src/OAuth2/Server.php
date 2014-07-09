@@ -83,22 +83,15 @@ class Server implements ResourceControllerInterface,
     );
 
     /**
-     * @param mixed $storage
-     * array - array of Objects to implement storage
-     * OAuth2\Storage object implementing all required storage types (ClientCredentialsInterface and AccessTokenInterface as a minimum)
-     * @param array $config
-     * specify a different token lifetime, token header name, etc
-     * @param array $grantTypes
-     * An array of OAuth2\GrantType\GrantTypeInterface to use for granting access tokens
-     * @param array $responseTypes
-     * Response types to use.  array keys should be "code" and and "token" for
-     * Access Token and Authorization Code response types
-     * @param OAuth2\TokenType\TokenTypeInterface $tokenType
-     * The token type object to use. Valid token types are "bearer" and "mac"
-     * @param OAuth2\ScopeInterface $scopeUtil
-     * The scope utility class to use to validate scope
-     * @param OAuth2\ClientAssertionType\ClientAssertionTypeInterface $clientAssertionType
-     * The method in which to verify the client identity.  Default is HttpBasic
+     * @param mixed                                                   $storage             (array or OAuth2\Storage) - single object or array of objects implementing the
+     *                                                                                     required storage types (ClientCredentialsInterface and AccessTokenInterface as a minimum)
+     * @param array                                                   $config              specify a different token lifetime, token header name, etc
+     * @param array                                                   $grantTypes          An array of OAuth2\GrantType\GrantTypeInterface to use for granting access tokens
+     * @param array                                                   $responseTypes       Response types to use.  array keys should be "code" and and "token" for
+     *                                                                                     Access Token and Authorization Code response types
+     * @param OAuth2\TokenType\TokenTypeInterface                     $tokenType           The token type object to use. Valid token types are "bearer" and "mac"
+     * @param OAuth2\ScopeInterface                                   $scopeUtil           The scope utility class to use to validate scope
+     * @param OAuth2\ClientAssertionType\ClientAssertionTypeInterface $clientAssertionType The method in which to verify the client identity.  Default is HttpBasic
      *
      * @ingroup oauth2_section_7
      */

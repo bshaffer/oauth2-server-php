@@ -51,7 +51,7 @@ class CryptoToken extends AccessToken
      * @param $scope
      * (optional) Scopes to be stored in space-separated string.
      * @param bool $includeRefreshToken
-     * If true, a new refresh_token will be added to the response
+     *                                  If true, a new refresh_token will be added to the response
      *
      * @see http://tools.ietf.org/html/rfc6749#section-5
      * @ingroup oauth2_section_5
