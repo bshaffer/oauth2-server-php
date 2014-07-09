@@ -284,14 +284,10 @@ class Bootstrap
 
     public function runPdoSql(\PDO $pdo)
     {
-        $pdo->exec('CREATE TABLE oauth_clients (client_id TEXT, client_secret TEXT, redirect_uri TEXT, grant_types TEXT, scope TEXT, user_id TEXT, public_key TEXT)');
-        $pdo->exec('CREATE TABLE oauth_access_tokens (access_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT)');
-        $pdo->exec('CREATE TABLE oauth_authorization_codes (authorization_code TEXT, client_id TEXT, user_id TEXT, redirect_uri TEXT, expires TIMESTAMP, scope TEXT, id_token TEXT)');
-        $pdo->exec('CREATE TABLE oauth_users (username TEXT, password TEXT, first_name TEXT, last_name TEXT, scope TEXT, email TEXT, email_verified BOOLEAN)');
-        $pdo->exec('CREATE TABLE oauth_refresh_tokens (refresh_token TEXT, client_id TEXT, user_id TEXT, expires TIMESTAMP, scope TEXT)');
-        $pdo->exec('CREATE TABLE oauth_scopes (scope TEXT, is_default BOOLEAN)');
-        $pdo->exec('CREATE TABLE oauth_public_keys (client_id TEXT, public_key TEXT, private_key TEXT, encryption_algorithm VARCHAR(100) DEFAULT \'RS256\')');
-        $pdo->exec('CREATE TABLE oauth_jwt (client_id VARCHAR(80), subject VARCHAR(80), public_key VARCHAR(2000))');
+        $storage = new Pdo($pdo);
+        foreach (explode(';', $storage->getBuildSql()) as $statement) {
+            $result = $pdo->exec($statement);
+        }
 
         // set up scopes
         $sql = 'INSERT INTO oauth_scopes (scope) VALUES (?)';
@@ -312,12 +308,12 @@ class Bootstrap
         $pdo->prepare($sql)->execute(array('oauth_test_client', 'testpass', null, 'implicit password'));
 
         // set up misc
-        $sql = 'INSERT INTO oauth_access_tokens (access_token, client_id, user_id) VALUES (?, ?, ?)';
-        $pdo->prepare($sql)->execute(array('testtoken', 'Some Client', null));
-        $pdo->prepare($sql)->execute(array('accesstoken-openid-connect', 'Some Client', 'testuser'));
+        $sql = 'INSERT INTO oauth_access_tokens (access_token, client_id, expires, user_id) VALUES (?, ?, ?, ?)';
+        $pdo->prepare($sql)->execute(array('testtoken', 'Some Client', date('Y-m-d H:i:s', strtotime('+1 hour')), null));
+        $pdo->prepare($sql)->execute(array('accesstoken-openid-connect', 'Some Client', date('Y-m-d H:i:s', strtotime('+1 hour')), 'testuser'));
 
-        $sql = 'INSERT INTO oauth_authorization_codes (authorization_code, client_id) VALUES (?, ?)';
-        $pdo->prepare($sql)->execute(array('testcode', 'Some Client'));
+        $sql = 'INSERT INTO oauth_authorization_codes (authorization_code, client_id, expires) VALUES (?, ?, ?)';
+        $pdo->prepare($sql)->execute(array('testcode', 'Some Client', date('Y-m-d H:i:s', strtotime('+1 hour'))));
 
         $sql = 'INSERT INTO oauth_users (username, password, email, email_verified) VALUES (?, ?, ?, ?)';
         $pdo->prepare($sql)->execute(array('testuser', 'password', 'testuser@test.com', true));

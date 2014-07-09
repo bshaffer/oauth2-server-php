@@ -48,7 +48,7 @@
         },
         "Test Client ID with Redirect Uri Parts": {
             "client_secret": "TestSecret4",
-            "redirect_uri": "http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth"
+            "redirect_uri": "http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&test=true"
         },
         "Test Some Other Client": {
             "client_secret": "TestSecret3"
