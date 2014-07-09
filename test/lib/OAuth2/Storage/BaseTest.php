@@ -13,7 +13,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
         $mongo = Bootstrap::getInstance()->getMongo();
         $redis = Bootstrap::getInstance()->getRedisStorage();
         $cassandra = Bootstrap::getInstance()->getCassandraStorage();
-        $dynamodb = Bootstrap::getInstance()->getDynamoDBStorage();
+        $dynamodb = Bootstrap::getInstance()->getDynamoDbStorage();
 
         /* hack until we can fix "default_scope" dependencies in other tests */
         $memory->defaultScope = 'defaultscope1 defaultscope2';
