@@ -100,7 +100,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getParameter('error'), 'invalid_token');
+        $this->assertEquals($response->getParameter('error'), 'expired_token');
         $this->assertEquals($response->getParameter('error_description'), 'The access token provided has expired');
     }
 
@@ -132,7 +132,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($allow);
 
         $this->assertEquals($response->getStatusCode(), 401);
-        $this->assertEquals($response->getParameter('error'), 'invalid_token');
+        $this->assertEquals($response->getParameter('error'), 'malformed_token');
         $this->assertEquals($response->getParameter('error_description'), 'Malformed token (missing "expires")');
     }
 
