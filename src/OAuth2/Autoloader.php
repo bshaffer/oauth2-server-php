@@ -38,11 +38,13 @@ class Autoloader
     public function autoload($class)
     {
         if (0 !== strpos($class, 'OAuth2')) {
-            return;
+            return true;
         }
 
         if (file_exists($file = $this->dir.'/'.str_replace('\\', '/', $class).'.php')) {
             require $file;
+	    return true;
         }
+	return false;
     }
 }
