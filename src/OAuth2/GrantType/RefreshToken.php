@@ -78,7 +78,7 @@ class RefreshToken implements GrantTypeInterface
 
     public function getScope()
     {
-        return $this->refreshToken['scope'];
+        return isset($this->refreshToken['scope']) ? $this->refreshToken['scope'] : null;
     }
 
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
