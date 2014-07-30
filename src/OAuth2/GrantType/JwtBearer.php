@@ -20,7 +20,7 @@ use OAuth2\ResponseInterface;
  */
 class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
 {
-    private $jwt;
+    protected $jwt;
 
     protected $storage;
     protected $audience;
