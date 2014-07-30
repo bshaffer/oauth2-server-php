@@ -13,7 +13,7 @@ use OAuth2\ResponseInterface;
  */
 class RefreshToken implements GrantTypeInterface
 {
-    private $refreshToken;
+    protected $refreshToken;
 
     protected $storage;
     protected $config;
