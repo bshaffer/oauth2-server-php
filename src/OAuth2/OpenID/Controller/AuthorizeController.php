@@ -29,7 +29,7 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
             $error_message = 'The user denied access to your application';
         }
 
-        $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, $error, $error_message);
+        $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->getState(), $error, $error_message);
     }
 
     protected function buildAuthorizeParameters($request, $response, $user_id)
