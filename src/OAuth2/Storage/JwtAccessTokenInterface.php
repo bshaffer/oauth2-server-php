@@ -8,7 +8,7 @@ namespace OAuth2\Storage;
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-interface CryptoTokenInterface extends AccessTokenInterface
+interface JwtAccessTokenInterface extends AccessTokenInterface
 {
 
 }

@@ -428,9 +428,9 @@ class ServerTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException LogicException OAuth2\Storage\PublicKeyInterface
      **/
-    public function testUsingCryptoTokensWithoutPublicKeyStorageThrowsException()
+    public function testUsingJwtAccessTokensWithoutPublicKeyStorageThrowsException()
     {
-        $server = new Server(array(), array('use_crypto_tokens' => true));
+        $server = new Server(array(), array('use_jwt_access_tokens' => true));
         $server->addGrantType($this->getMock('OAuth2\GrantType\GrantTypeInterface'));
         $server->addStorage($this->getMock('OAuth2\Storage\ClientCredentialsInterface'));
         $server->addStorage($this->getMock('OAuth2\Storage\ClientCredentialsInterface'));
@@ -438,10 +438,10 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $server->getTokenController();
     }
 
-    public function testUsingJustCryptoTokenStorageWithResourceControllerIsOkay()
+    public function testUsingJustJwtAccessTokenStorageWithResourceControllerIsOkay()
     {
         $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        $server = new Server(array($pubkey), array('use_crypto_tokens' => true));
+        $server = new Server(array($pubkey), array('use_jwt_access_tokens' => true));
 
         $this->assertNotNull($server->getResourceController());
         $this->assertInstanceOf('OAuth2\Storage\PublicKeyInterface', $server->getStorage('public_key'));
@@ -450,31 +450,31 @@ class ServerTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException LogicException OAuth2\Storage\ClientInterface
      **/
-    public function testUsingJustCryptoTokenStorageWithAuthorizeControllerThrowsException()
+    public function testUsingJustJwtAccessTokenStorageWithAuthorizeControllerThrowsException()
     {
         $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        $server = new Server(array($pubkey), array('use_crypto_tokens' => true));
+        $server = new Server(array($pubkey), array('use_jwt_access_tokens' => true));
         $this->assertNotNull($server->getAuthorizeController());
     }
 
     /**
      * @expectedException LogicException grant_types
      **/
-    public function testUsingJustCryptoTokenStorageWithTokenControllerThrowsException()
+    public function testUsingJustJwtAccessTokenStorageWithTokenControllerThrowsException()
     {
         $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        $server = new Server(array($pubkey), array('use_crypto_tokens' => true));
+        $server = new Server(array($pubkey), array('use_jwt_access_tokens' => true));
         $server->getTokenController();
     }
 
-    public function testUsingCryptoTokenAndClientStorageWithAuthorizeControllerIsOkay()
+    public function testUsingJwtAccessTokenAndClientStorageWithAuthorizeControllerIsOkay()
     {
         $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
         $client = $this->getMock('OAuth2\Storage\ClientInterface');
-        $server = new Server(array($pubkey, $client), array('use_crypto_tokens' => true, 'allow_implicit' => true));
+        $server = new Server(array($pubkey, $client), array('use_jwt_access_tokens' => true, 'allow_implicit' => true));
         $this->assertNotNull($server->getAuthorizeController());
 
-        $this->assertInstanceOf('OAuth2\ResponseType\CryptoToken', $server->getResponseType('token'));
+        $this->assertInstanceOf('OAuth2\ResponseType\JwtAccessToken', $server->getResponseType('token'));
     }
 
     /**
@@ -546,7 +546,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $server->getAuthorizeController();
     }
 
-    public function testUsingOpenIDConnectWithAllowImplicitAndUseCryptoTokensIsOkay()
+    public function testUsingOpenIDConnectWithAllowImplicitAndUseJwtAccessTokensIsOkay()
     {
         $client = $this->getMock('OAuth2\Storage\ClientInterface');
         $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
@@ -555,7 +555,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
             'use_openid_connect' => true,
             'issuer' => 'someguy',
             'allow_implicit' => true,
-            'use_crypto_tokens' => true,
+            'use_jwt_access_tokens' => true,
         ));
 
         $server->getAuthorizeController();

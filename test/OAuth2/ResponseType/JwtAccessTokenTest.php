@@ -6,14 +6,14 @@ use OAuth2\Server;
 use OAuth2\Response;
 use OAuth2\Request\TestRequest;
 use OAuth2\Storage\Bootstrap;
-use OAuth2\Storage\CryptoToken as CryptoTokenStorage;
+use OAuth2\Storage\JwtAccessToken as JwtAccessTokenStorage;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\UserCredentials;
 use OAuth2\GrantType\RefreshToken;
 
-class CryptoTokenTest extends \PHPUnit_Framework_TestCase
+class JwtAccessTokenTest extends \PHPUnit_Framework_TestCase
 {
-    public function testGrantCryptoToken()
+    public function testGrantJwtAccessToken()
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
@@ -28,7 +28,7 @@ class CryptoTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(2, substr_count($response->getParameter('access_token'), '.'));
     }
 
-    public function testAccessResourceWithCryptoToken()
+    public function testAccessResourceWithJwtAccessToken()
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
@@ -38,17 +38,17 @@ class CryptoTokenTest extends \PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret',         // valid client secret
         ));
         $server->handleTokenRequest($request, $response = new Response());
-        $this->assertNotNull($cryptoToken = $response->getParameter('access_token'));
+        $this->assertNotNull($JwtAccessToken = $response->getParameter('access_token'));
 
         // make a call to the resource server using the crypto token
         $request = TestRequest::createPost(array(
-            'access_token' => $cryptoToken,
+            'access_token' => $JwtAccessToken,
         ));
 
         $this->assertTrue($server->verifyResourceRequest($request));
     }
 
-    public function testAccessResourceWithCryptoTokenUsingSecondaryStorage()
+    public function testAccessResourceWithJwtAccessTokenUsingSecondaryStorage()
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
@@ -58,11 +58,11 @@ class CryptoTokenTest extends \PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret',         // valid client secret
         ));
         $server->handleTokenRequest($request, $response = new Response());
-        $this->assertNotNull($cryptoToken = $response->getParameter('access_token'));
+        $this->assertNotNull($JwtAccessToken = $response->getParameter('access_token'));
 
         // make a call to the resource server using the crypto token
         $request = TestRequest::createPost(array(
-            'access_token' => $cryptoToken,
+            'access_token' => $JwtAccessToken,
         ));
 
         // create a resource server with the "memory" storage from the grant server
@@ -71,16 +71,16 @@ class CryptoTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($resourceServer->verifyResourceRequest($request));
     }
 
-    public function testCryptoTokenWithRefreshToken()
+    public function testJwtAccessTokenWithRefreshToken()
     {
         $server = $this->getTestServer();
 
-        // add "UserCredentials" grant type and "CryptoToken" response type
-        // and ensure "CryptoToken" response type has "RefreshToken" storage
+        // add "UserCredentials" grant type and "JwtAccessToken" response type
+        // and ensure "JwtAccessToken" response type has "RefreshToken" storage
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
         $server->addGrantType(new UserCredentials($memoryStorage));
         $server->addGrantType(new RefreshToken($memoryStorage));
-        $server->addResponseType(new CryptoToken($memoryStorage, $memoryStorage, $memoryStorage), 'token');
+        $server->addResponseType(new JwtAccessToken($memoryStorage, $memoryStorage, $memoryStorage), 'token');
 
         $request = TestRequest::createPost(array(
             'grant_type'    => 'password',         // valid grant type
@@ -92,11 +92,11 @@ class CryptoTokenTest extends \PHPUnit_Framework_TestCase
 
         // make the call to grant a crypto token
         $server->handleTokenRequest($request, $response = new Response());
-        $this->assertNotNull($cryptoToken = $response->getParameter('access_token'));
+        $this->assertNotNull($JwtAccessToken = $response->getParameter('access_token'));
         $this->assertNotNull($refreshToken = $response->getParameter('refresh_token'));
 
         // decode token and make sure refresh_token isn't set
-        list($header, $payload, $signature) = explode('.', $cryptoToken);
+        list($header, $payload, $signature) = explode('.', $JwtAccessToken);
         $decodedToken = json_decode(base64_decode($payload), true);
         $this->assertFalse(array_key_exists('refresh_token', $decodedToken));
 
@@ -117,15 +117,15 @@ class CryptoTokenTest extends \PHPUnit_Framework_TestCase
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
 
         $storage = array(
-            'access_token' => new CryptoTokenStorage($memoryStorage),
+            'access_token' => new JwtAccessTokenStorage($memoryStorage),
             'client' => $memoryStorage,
             'client_credentials' => $memoryStorage,
         );
         $server = new Server($storage);
         $server->addGrantType(new ClientCredentials($memoryStorage));
 
-        // make the "token" response type a CryptoToken
-        $server->addResponseType(new CryptoToken($memoryStorage, $memoryStorage));
+        // make the "token" response type a JwtAccessToken
+        $server->addResponseType(new JwtAccessToken($memoryStorage, $memoryStorage));
 
         return $server;
     }

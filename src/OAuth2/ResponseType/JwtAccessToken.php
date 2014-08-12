@@ -13,7 +13,7 @@ use OAuth2\Storage\Memory;
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class CryptoToken extends AccessToken
+class JwtAccessToken extends AccessToken
 {
     protected $publicKeyStorage;
     protected $encryptionUtil;
@@ -60,7 +60,7 @@ class CryptoToken extends AccessToken
     {
         // token to encrypt
         $expires = time() + $this->config['access_lifetime'];
-        $cryptoToken = array(
+        $jwtAccessToken = array(
             'id'         => $this->generateAccessToken(),
             'client_id'  => $client_id,
             'user_id'    => $user_id,
@@ -72,14 +72,14 @@ class CryptoToken extends AccessToken
         /*
          * Encode the token data into a single access_token string
          */
-        $access_token = $this->encodeToken($cryptoToken, $client_id);
+        $access_token = $this->encodeToken($jwtAccessToken, $client_id);
 
         /*
          * Save the token to a secondary storage.  This is implemented on the
-         * OAuth2\Storage\CryptoToken side, and will not actually store anything,
+         * OAuth2\Storage\JwtAccessToken side, and will not actually store anything,
          * if no secondary storage has been supplied
          */
-        $token_to_store = $this->config['store_encrypted_token_string'] ? $access_token : $cryptoToken['id'];
+        $token_to_store = $this->config['store_encrypted_token_string'] ? $access_token : $jwtAccessToken['id'];
         $this->tokenStorage->setAccessToken($token_to_store, $client_id, $user_id, $this->config['access_lifetime'] ? time() + $this->config['access_lifetime'] : null, $scope);
 
         // token to return to the client
