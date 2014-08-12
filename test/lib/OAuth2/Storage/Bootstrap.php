@@ -67,11 +67,11 @@ class Bootstrap
     {
         try {
             $pdo = new \PDO('pgsql:host=localhost;dbname=oauth2_server_php', 'postgres');
+
+            return $pdo;
         } catch (\PDOException $e) {
             $this->postgres = new NullStorage('Postgres', $e->getMessage());
         }
-
-        return $pdo;
     }
 
     public function getMemoryStorage()
@@ -430,7 +430,9 @@ class Bootstrap
                     if ($build_id = $this->getEnvVar('TRAVIS_JOB_NUMBER')) {
                         $prefix = sprintf('build_%s_', $build_id);
                     } else {
-                        $this->deleteDynamoDb($client, $prefix, true);
+                        if (!$this->deleteDynamoDb($client, $prefix, true)) {
+                            return $this->dynamodb = new NullStorage('DynamoDb', 'Timed out while waiting for DynamoDB deletion (30 seconds)');
+                        }
                     }
                     $this->createDynamoDb($client, $prefix);
                     $this->populateDynamoDb($client, $prefix);
@@ -498,6 +500,7 @@ class Bootstrap
 
         // Wait for deleting
         if ($waitForDeletion) {
+            $retries = 5;
             $nbTableDeleted = 0;
             while ($nbTableDeleted != $nbTables) {
                 $nbTableDeleted = 0;
@@ -510,10 +513,18 @@ class Bootstrap
                     }
                 }
                 if ($nbTableDeleted != $nbTables) {
-                    sleep(1);
+                    if ($retries < 0) {
+                        // we are tired of waiting
+                        return false;
+                    }
+                    sleep(5);
+                    echo "Sleeping 5 seconds for DynamoDB ($retries more retries)...\n";
+                    $retries--;
                 }
             }
         }
+
+        return true;
     }
 
     private function createDynamoDb(\Aws\DynamoDb\DynamoDbClient $client, $prefix = null)
