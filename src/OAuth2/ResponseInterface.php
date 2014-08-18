@@ -21,4 +21,6 @@ interface ResponseInterface
     public function setRedirect($statusCode = 302, $url, $state = null, $error = null, $errorDescription = null, $errorUri = null);
 
     public function getParameter($name);
+
+    public function setParameters(array $parameters);
 }
