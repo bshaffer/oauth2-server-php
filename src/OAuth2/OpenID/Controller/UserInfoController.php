@@ -53,6 +53,6 @@ class UserInfoController extends ResourceController implements UserInfoControlle
         $claims += array(
             'sub' => $token['user_id'],
         );
-        $response->setParameters($claims);
+        $response->addParameters($claims);
     }
 }
