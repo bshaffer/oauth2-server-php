@@ -7,9 +7,7 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
 /**
  * Simple Couchbase storage for all storage types
  *
- * NOTE: This class is meant to get users started
- * quickly. If your application requires further
- * customization, extend this class or create your own.
+ * This class should be extended or overridden as required
  *
  * NOTE: Passwords are stored in plaintext, which is never
  * a good idea.  Be sure to override this for your application
@@ -52,13 +50,14 @@ class CouchbaseDB implements AuthorizationCodeInterface,
     // Helper function to access couchbase item by type:
     protected function getObjectByType($name,$id)
     {
-        return json_decode($this->db->get($this->config[$name].'-'.$id));
+        return json_decode($this->db->get($this->config[$name].'-'.$id),true);
     }
 
     // Helper function to set couchbase item by type:
     protected function setObjectByType($name,$id,$array)
     {
-        return json_decode($this->db->set($this->config[$name].'-'.$id,json_encode($array)));
+        $array['type'] = $name;
+        return $this->db->set($this->config[$name].'-'.$id,json_encode($array));
     }
 
     // Helper function to delete couchbase item by type, wait for persist to at least 1 node
@@ -318,14 +317,14 @@ class CouchbaseDB implements AuthorizationCodeInterface,
 
     public function getJti($client_id, $subject, $audience, $expiration, $jti)
     {
-        //TODO: Needs mongodb implementation.
-        throw new \Exception('getJti() for the MongoDB driver is currently unimplemented.');
+        //TODO: Needs couchbase implementation.
+        throw new \Exception('getJti() for the Couchbase driver is currently unimplemented.');
     }
 
     public function setJti($client_id, $subject, $audience, $expiration, $jti)
     {
-        //TODO: Needs mongodb implementation.
-        throw new \Exception('setJti() for the MongoDB driver is currently unimplemented.');
+        //TODO: Needs couchbase implementation.
+        throw new \Exception('setJti() for the Couchbase driver is currently unimplemented.');
     }
 }
 
