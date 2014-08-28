@@ -15,6 +15,7 @@ class Bootstrap
     private $cassandra;
     private $configDir;
     private $dynamodb;
+    private $couchbase;
 
     public function __construct()
     {
@@ -166,6 +167,43 @@ class Bootstrap
 
         return true;
     }
+
+    public function getCouchbase()
+    {
+        if (!$this->couchbase) {
+            $skipCouchbase = $this->getEnvVar('SKIP_COUCHBASE_TESTS');
+            if (!$skipCouchbase && class_exists('Couchbase')) {
+
+                $couchbase = new \Couchbase(array('localhost:8091'), '', '', 'auth', false);
+                if ($this->testCouchbaseConnection($couchbase)) {
+                    $this->clearCouchbase($couchbase);
+                    $this->createCouchbaseDB($couchbase);
+
+                    $this->couchbase = new CouchbaseDB($couchbase);
+                } else {
+                    $this->couchbase = new NullStorage('Couchbase', 'Unable to connect to Couchbase server on "localhost:8091"');
+                }
+            } else {
+                $this->couchbase = new NullStorage('Couchbase', 'Missing Couchbase php extension. Please install couchbase.so');
+            }
+        }
+
+        return $this->couchbase;
+    }
+
+    private function testCouchbaseConnection(\Couchbase $couchbase)
+    {
+        try {
+            if (count($couchbase->getServers()) > 0) {
+                return true;
+            }
+        } catch (\MongoConnectionException $e) {
+            return false;
+        }
+
+        return true;
+    }
+
 
     public function getCassandraStorage()
     {
@@ -339,6 +377,45 @@ class Bootstrap
     public function getConfigDir()
     {
         return $this->configDir;
+    }
+
+
+    private function createCouchbaseDB(\Couchbase $db) {
+
+        $db->set('oauth_clients-oauth_test_client',json_encode(array(
+            'client_id' => "oauth_test_client",
+            'client_secret' => "testpass",
+            'redirect_uri' => "http://example.com",
+            'grant_types' => 'implicit password'
+        )));
+
+        $db->set('oauth_access_tokens-testtoken',json_encode(array(
+            'access_token' => "testtoken",
+            'client_id' => "Some Client"
+        )));
+
+        $db->set('oauth_authorization_codes-testcode',json_encode(array(
+            'access_token' => "testcode",
+            'client_id' => "Some Client"
+        )));
+
+        $db->set('oauth_users-testuser',json_encode(array(
+            'username' => "testuser",
+            'password' => "password"
+        )));
+
+        $db->set('oauth_jwt-oauth_test_client',json_encode(array(
+            'client_id' => 'oauth_test_client',
+            'key'       => $this->getTestPublicKey(),
+            'subject'   => 'test_subject',
+        )));
+    }
+
+    private function clearCouchbase(\Couchbase $cb) {
+        $cb->delete('oauth_authorization_codes-new-openid-code');
+        $cb->delete('oauth_access_tokens-newtoken');
+        $cb->delete('oauth_authorization_codes-newcode');
+        $cb->delete('oauth_refresh_tokens-refreshtoken');
     }
 
     private function createMongoDb(\MongoDB $db)

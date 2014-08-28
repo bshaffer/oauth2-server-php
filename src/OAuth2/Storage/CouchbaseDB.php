@@ -98,6 +98,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         if ($this->getClientDetails($client_id)) {
 
             $this->setObjectByType('client_table',$client_id, array(
+                'client_id'     => $client_id,
                 'client_secret' => $client_secret,
                 'redirect_uri'  => $redirect_uri,
                 'grant_types'   => $grant_types,
@@ -144,6 +145,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
             $this->setObjectByType('access_token_table',$access_token, array(
+                'access_token' => $access_token,
                 'client_id' => $client_id,
                 'expires' => $expires,
                 'user_id' => $user_id,
@@ -176,6 +178,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
             $this->setObjectByType('code_table',$code, array(
+                'authorization_code' => $code,
                 'client_id' => $client_id,
                 'user_id' => $user_id,
                 'redirect_uri' => $redirect_uri,
@@ -271,6 +274,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
     {
         if ($this->getUser($username)) {
             $this->setObjectByType('user_table',$username, array(
+                'username' => $username,
                 'password' => $password,
                 'first_name' => $firstName,
                 'last_name' => $lastName
