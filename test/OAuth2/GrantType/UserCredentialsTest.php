@@ -138,7 +138,6 @@ class UserCredentialsTest extends \PHPUnit_Framework_TestCase
             'password' => 'testpass', // valid password
         ));
 
-
         $token = $server->grantAccessToken($request, $response = new Response());
 
         $this->assertNotNull($token);

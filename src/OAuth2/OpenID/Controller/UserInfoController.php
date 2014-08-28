@@ -2,6 +2,7 @@
 
 namespace OAuth2\OpenID\Controller;
 
+use OAuth2\Scope;
 use OAuth2\TokenType\TokenTypeInterface;
 use OAuth2\Storage\AccessTokenInterface;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
@@ -52,6 +53,6 @@ class UserInfoController extends ResourceController implements UserInfoControlle
         $claims += array(
             'sub' => $token['user_id'],
         );
-        $response->setParameters($claims);
+        $response->addParameters($claims);
     }
 }

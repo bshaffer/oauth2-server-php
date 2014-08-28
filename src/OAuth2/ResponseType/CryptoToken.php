@@ -51,7 +51,7 @@ class CryptoToken extends AccessToken
      * @param $scope
      * (optional) Scopes to be stored in space-separated string.
      * @param bool $includeRefreshToken
-     * If true, a new refresh_token will be added to the response
+     *                                  If true, a new refresh_token will be added to the response
      *
      * @see http://tools.ietf.org/html/rfc6749#section-5
      * @ingroup oauth2_section_5
@@ -68,21 +68,6 @@ class CryptoToken extends AccessToken
             'token_type' => $this->config['token_type'],
             'scope'      => $scope
         );
-
-        /*
-         * Issue a refresh token also, if we support them
-         *
-         * Refresh Tokens are considered supported if an instance of OAuth2\Storage\RefreshTokenInterface
-         * is supplied in the constructor
-         */
-        if ($includeRefreshToken && $this->refreshStorage) {
-            $cryptoToken["refresh_token"] = $this->generateRefreshToken();
-            $expires = 0;
-            if ($this->config['refresh_token_lifetime'] > 0) {
-                $expires = time() + $this->config['refresh_token_lifetime'];
-            }
-            $this->refreshStorage->setRefreshToken($cryptoToken['refresh_token'], $client_id, $user_id, $expires, $scope);
-        }
 
         /*
          * Encode the token data into a single access_token string
@@ -104,6 +89,22 @@ class CryptoToken extends AccessToken
             'token_type' => $this->config['token_type'],
             'scope' => $scope
         );
+
+        /*
+         * Issue a refresh token also, if we support them
+         *
+         * Refresh Tokens are considered supported if an instance of OAuth2\Storage\RefreshTokenInterface
+         * is supplied in the constructor
+         */
+        if ($includeRefreshToken && $this->refreshStorage) {
+            $refresh_token = $this->generateRefreshToken();
+            $expires = 0;
+            if ($this->config['refresh_token_lifetime'] > 0) {
+                $expires = time() + $this->config['refresh_token_lifetime'];
+            }
+            $this->refreshStorage->setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope);
+            $token['refresh_token'] = $refresh_token;
+        }
 
         return $token;
     }

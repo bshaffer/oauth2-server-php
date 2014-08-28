@@ -389,6 +389,34 @@ class ServerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test setting "always_issue_new_refresh_token" on a server level
+     *
+     * @see test/OAuth2/GrantType/RefreshTokenTest::testValidRefreshTokenWithNewRefreshTokenInResponse
+     **/
+    public function testValidRefreshTokenWithNewRefreshTokenInResponse()
+    {
+        $storage = Bootstrap::getInstance()->getMemoryStorage();
+        $server = new Server($storage, array('always_issue_new_refresh_token' => true));
+
+        $request = TestRequest::createPost(array(
+            'grant_type' => 'refresh_token', // valid grant type
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'refresh_token' => 'test-refreshtoken', // valid refresh token
+        ));
+        $token = $server->grantAccessToken($request, new Response());
+        $this->assertTrue(isset($token['refresh_token']), 'refresh token should always refresh');
+
+        $refresh_token = $storage->getRefreshToken($token['refresh_token']);
+        $this->assertNotNull($refresh_token);
+        $this->assertEquals($refresh_token['refresh_token'], $token['refresh_token']);
+        $this->assertEquals($refresh_token['client_id'], $request->request('client_id'));
+        $this->assertTrue($token['refresh_token'] != 'test-refreshtoken', 'the refresh token returned is not the one used');
+        $used_token = $storage->getRefreshToken('test-refreshtoken');
+        $this->assertFalse($used_token, 'the refresh token used is no longer valid');
+    }
+
+    /**
      * @expectedException InvalidArgumentException OAuth2\ResponseType\AuthorizationCodeInterface
      **/
     public function testAddingUnknownResponseTypeThrowsException()

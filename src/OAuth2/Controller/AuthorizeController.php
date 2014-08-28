@@ -25,23 +25,19 @@ class AuthorizeController implements AuthorizeControllerInterface
     protected $scopeUtil;
 
     /**
-     * @param OAuth2\Storage\ClientInterface $clientStorage
-     * REQUIRED Instance of OAuth2\Storage\ClientInterface to retrieve client information
-     * @param array $responseTypes
-     * OPTIONAL Array of OAuth2\ResponseType\ResponseTypeInterface objects.  Valid array
-     * keys are "code" and "token"
-     * @param array $config
-     * OPTIONAL Configuration options for the server
-     * @code
-     * $config = array(
-     *   'allow_implicit' => false,            // if the controller should allow the "implicit" grant type
-     *   'enforce_state'  => true              // if the controller should require the "state" parameter
-     *   'require_exact_redirect_uri' => true, // if the controller should require an exact match on the "redirect_uri" parameter
-     *   'redirect_status_code' => 302,        // HTTP status code to use for redirect responses
-     * );
-     * @endcode
-     * @param OAuth2\ScopeInterface $scopeUtil
-     * OPTIONAL Instance of OAuth2\ScopeInterface to validate the requested scope
+     * @param OAuth2\Storage\ClientInterface $clientStorage REQUIRED Instance of OAuth2\Storage\ClientInterface to retrieve client information
+     * @param array                          $responseTypes OPTIONAL Array of OAuth2\ResponseType\ResponseTypeInterface objects.  Valid array
+     *                                                      keys are "code" and "token"
+     * @param array                          $config        OPTIONAL Configuration options for the server
+     *                                                      <code>
+     *                                                      $config = array(
+     *                                                      'allow_implicit' => false,            // if the controller should allow the "implicit" grant type
+     *                                                      'enforce_state'  => true              // if the controller should require the "state" parameter
+     *                                                      'require_exact_redirect_uri' => true, // if the controller should require an exact match on the "redirect_uri" parameter
+     *                                                      'redirect_status_code' => 302,        // HTTP status code to use for redirect responses
+     *                                                      );
+     *                                                      </code>
+     * @param OAuth2\ScopeInterface          $scopeUtil     OPTIONAL Instance of OAuth2\ScopeInterface to validate the requested scope
      */
     public function __construct(ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), ScopeInterface $scopeUtil = null)
     {
@@ -81,7 +77,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         // the user declined access to the client's application
         if ($is_authorized === false) {
             $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
-            $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, 'access_denied', "The user denied access to your application");
+            $this->setNotAuthorizedResponse($request, $response, $redirect_uri, $user_id);
 
             return;
         }
@@ -103,6 +99,13 @@ class AuthorizeController implements AuthorizeControllerInterface
 
         // return redirect response
         $response->setRedirect($this->config['redirect_status_code'], $uri);
+    }
+
+    protected function setNotAuthorizedResponse(RequestInterface $request, ResponseInterface $response, $redirect_uri, $user_id = null)
+    {
+        $error = 'access_denied';
+        $error_message = 'The user denied access to your application';
+        $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $this->state, $error, $error_message);
     }
 
     /*
@@ -264,10 +267,8 @@ class AuthorizeController implements AuthorizeControllerInterface
     /**
      * Build the absolute URI based on supplied URI and parameters.
      *
-     * @param $uri
-     * An absolute URI.
-     * @param $params
-     * Parameters to be append as GET.
+     * @param $uri    An absolute URI.
+     * @param $params Parameters to be append as GET.
      *
      * @return
      * An absolute URI with supplied parameters.
@@ -311,11 +312,9 @@ class AuthorizeController implements AuthorizeControllerInterface
     /**
      * Internal method for validating redirect URI supplied
      *
-     * @param string $inputUri
-     * The submitted URI to be validated
-     * @param string $registeredUriString
-     * The allowed URI(s) to validate against.  Can be a space-delimited string of URIs to
-     * allow for multiple URIs
+     * @param string $inputUri            The submitted URI to be validated
+     * @param string $registeredUriString The allowed URI(s) to validate against.  Can be a space-delimited string of URIs to
+     *                                    allow for multiple URIs
      *
      * @see http://tools.ietf.org/html/rfc6749#section-3.1.2
      */

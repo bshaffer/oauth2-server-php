@@ -44,6 +44,10 @@ class ScopeTest extends BaseTest
 
         // test getting default scope
         $scopeUtil = new Scope($storage);
-        $this->assertEquals($scopeUtil->getDefaultScope(), 'defaultscope1 defaultscope2');
+        $expected = explode(' ', $scopeUtil->getDefaultScope());
+        $actual = explode(' ', 'defaultscope1 defaultscope2');
+        sort($expected);
+        sort($actual);
+        $this->assertEquals($expected, $actual);
     }
 }

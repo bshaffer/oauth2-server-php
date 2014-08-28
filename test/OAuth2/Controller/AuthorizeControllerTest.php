@@ -203,7 +203,7 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $request = new Request(array(
             'client_id'     => 'Test Client ID with Redirect Uri Parts', // valid client id
             'response_type' => 'code',
-            'redirect_uri'  => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth',
+            'redirect_uri'  => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&test=true',
             'state'         => 'xyz',
         ));
 
@@ -221,7 +221,7 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $request = new Request(array(
             'client_id' => 'Test Client ID with Redirect Uri Parts', // valid client id
             'response_type' => 'code',
-            'redirect_uri' => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&hereisa=querystring',
+            'redirect_uri' => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&test=true&hereisa=querystring',
         ));
 
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
@@ -239,7 +239,7 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $request = new Request(array(
             'client_id'     => 'Test Client ID with Redirect Uri Parts', // valid client id
             'response_type' => 'code',
-            'redirect_uri'  => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&hereisa=querystring',
+            'redirect_uri'  => 'http://user:pass@brentertainment.com:2222/authorize/cb?auth_type=oauth&test=true&hereisa=querystring',
             'state'         => 'xyz',
         ));
 

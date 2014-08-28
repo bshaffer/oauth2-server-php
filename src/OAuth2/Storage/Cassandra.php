@@ -50,7 +50,7 @@ class Cassandra implements AuthorizationCodeInterface,
      * Cassandra Storage! uses phpCassa
      *
      * @param \phpcassa\ConnectionPool $cassandra
-     * @param array $config
+     * @param array                    $config
      */
     public function __construct($connection = array(), array $config = array())
     {
@@ -112,14 +112,14 @@ class Cassandra implements AuthorizationCodeInterface,
                 $seconds = $expire - time();
                 // __data key set as C* requires a field, note: max TTL can only be 630720000 seconds
                 $cf->insert($key, array('__data' => $str), null, $seconds);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 return false;
             }
         } else {
             try {
                 // __data key set as C* requires a field
                 $cf->insert($key, array('__data' => $str));
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 return false;
             }
         }
@@ -135,7 +135,7 @@ class Cassandra implements AuthorizationCodeInterface,
         try {
             // __data key set as C* requires a field
             $cf->remove($key, array('__data'));
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
 
@@ -364,4 +364,3 @@ class Cassandra implements AuthorizationCodeInterface,
         throw new \Exception('setJti() for the Cassandra driver is currently unimplemented.');
     }
 }
-

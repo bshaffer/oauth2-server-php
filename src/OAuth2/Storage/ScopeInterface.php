@@ -28,7 +28,7 @@ interface ScopeInterface
      * request_error is returned by the server to force a
      * scope request by the client. By returning "null",
      * opt out of requiring scopes
-     * 
+     *
      * @param $client_id
      * An optional client id that can be used to return customized default scopes.
      *

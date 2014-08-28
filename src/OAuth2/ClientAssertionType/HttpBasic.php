@@ -19,16 +19,14 @@ class HttpBasic implements ClientAssertionTypeInterface
     protected $config;
 
     /**
-     * @param OAuth2\Storage\ClientCredentialsInterface $clientStorage
-     * REQUIRED Storage class for retrieving client credentials information
-     * @param array $config
-     * OPTIONAL Configuration options for the server
-     * @code
-     * $config = array(
-     *   'allow_credentials_in_request_body' => true, // whether to look for credentials in the POST body in addition to the Authorize HTTP Header
-     *   'allow_public_clients'  => true              // if true, "public clients" (clients without a secret) may be authenticated
-     * );
-     * @endcode
+     * @param OAuth2\Storage\ClientCredentialsInterface $clientStorage REQUIRED Storage class for retrieving client credentials information
+     * @param array                                     $config        OPTIONAL Configuration options for the server
+     *                                                                 <code>
+     *                                                                 $config = array(
+     *                                                                 'allow_credentials_in_request_body' => true, // whether to look for credentials in the POST body in addition to the Authorize HTTP Header
+     *                                                                 'allow_public_clients'  => true              // if true, "public clients" (clients without a secret) may be authenticated
+     *                                                                 );
+     *                                                                 </code>
      */
     public function __construct(ClientCredentialsInterface $storage, array $config = array())
     {
@@ -110,6 +108,7 @@ class HttpBasic implements ClientAssertionTypeInterface
                  * client_secret can be null if the client's password is an empty string
                  * @see http://tools.ietf.org/html/rfc6749#section-2.3.1
                  */
+
                 return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
             }
         }

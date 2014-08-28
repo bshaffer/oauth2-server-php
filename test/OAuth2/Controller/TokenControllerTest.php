@@ -11,7 +11,7 @@ use OAuth2\Scope;
 use OAuth2\Request\TestRequest;
 use OAuth2\Response;
 
-class Controller_TokenControllerTest extends \PHPUnit_Framework_TestCase
+class TokenControllerTest extends \PHPUnit_Framework_TestCase
 {
     public function testNoGrantType()
     {

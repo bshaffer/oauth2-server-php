@@ -35,7 +35,7 @@ class Bearer implements TokenTypeInterface
         $headers = $request->headers('AUTHORIZATION');
 
         // check the header, then the querystring, then the request body
-        return !empty($headers) || (bool)($request->request($this->config['token_param_name'])) || (bool)($request->query($this->config['token_param_name']));
+        return !empty($headers) || (bool) ($request->request($this->config['token_param_name'])) || (bool) ($request->query($this->config['token_param_name']));
     }
 
     /**
@@ -70,7 +70,7 @@ class Bearer implements TokenTypeInterface
          *
          * @see http://tools.ietf.org/html/rfc6750#section-3.1
          */
-        $methodsUsed = !empty($headers) + (bool)($request->query($this->config['token_param_name'])) + (bool)($request->request($this->config['token_param_name']));
+        $methodsUsed = !empty($headers) + (bool) ($request->query($this->config['token_param_name'])) + (bool) ($request->request($this->config['token_param_name']));
         if ($methodsUsed > 1) {
             $response->setError(400, 'invalid_request', 'Only one method may be used to authenticate at a time (Auth header, GET or POST)');
 
