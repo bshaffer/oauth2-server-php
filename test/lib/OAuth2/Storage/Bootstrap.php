@@ -197,7 +197,7 @@ class Bootstrap
             if (count($couchbase->getServers()) > 0) {
                 return true;
             }
-        } catch (\MongoConnectionException $e) {
+        } catch (\CouchbaseException $e) {
             return false;
         }
 
