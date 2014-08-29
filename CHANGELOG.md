@@ -8,6 +8,20 @@ To see the files changed for a given bug, go to https://github.com/bshaffer/oaut
 To get the diff between two versions, go to https://github.com/bshaffer/oauth2-server-php/compare/v1.0...v1.1
 To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-server-php/commit/XXX where XXX is the change hash
 
+* 1.5 (2014-08-27)
+
+  PR: https://github.com/bshaffer/oauth2-server-php/pull/446
+
+  * bug #399 - Add DynamoDB Support
+  * bug #404 - renamed error name for malformed/expired tokens
+  * bug #412 - Openid connect: fixes for claims with more than one scope / Add support for the prompt parameter ('consent' and 'none')
+  * bug #411 - fixes xml output
+  * bug #413 - fixes invalid format error
+  * bug #401 - fixes code standards / whitespace
+  * bug #354 - bundles PDO SQL with the library
+  * [BC] bug #397 - refresh tokens should not be encrypted
+  * bug #423 - makes "scope" optional for refresh token storage
+
 * 1.4 (2014-06-12)
 
   PR: https://github.com/bshaffer/oauth2-server-php/pull/392
