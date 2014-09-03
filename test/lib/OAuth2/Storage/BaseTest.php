@@ -14,6 +14,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
         $redis = Bootstrap::getInstance()->getRedisStorage();
         $cassandra = Bootstrap::getInstance()->getCassandraStorage();
         $dynamodb = Bootstrap::getInstance()->getDynamoDbStorage();
+        $couchbase = Bootstrap::getInstance()->getCouchbase();
 
         /* hack until we can fix "default_scope" dependencies in other tests */
         $memory->defaultScope = 'defaultscope1 defaultscope2';
@@ -27,6 +28,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
             array($redis),
             array($cassandra),
             array($dynamodb),
+            array($couchbase),
         );
     }
 }
