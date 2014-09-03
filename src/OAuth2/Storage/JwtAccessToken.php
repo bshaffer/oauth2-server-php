@@ -9,7 +9,7 @@ use OAuth2\Encryption\Jwt;
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
-class CryptoToken implements CryptoTokenInterface
+class JwtAccessToken implements JwtAccessTokenInterface
 {
     protected $publicKeyStorage;
     protected $tokenStorage;

@@ -19,7 +19,7 @@ use OAuth2\ClientAssertionType\HttpBasic;
 use OAuth2\ResponseType\ResponseTypeInterface;
 use OAuth2\ResponseType\AuthorizationCode as AuthorizationCodeResponseType;
 use OAuth2\ResponseType\AccessToken;
-use OAuth2\ResponseType\CryptoToken;
+use OAuth2\ResponseType\JwtAccessToken;
 use OAuth2\OpenID\ResponseType\IdToken;
 use OAuth2\OpenID\ResponseType\TokenIdToken;
 use OAuth2\TokenType\TokenTypeInterface;
@@ -29,8 +29,8 @@ use OAuth2\GrantType\UserCredentials;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\RefreshToken;
 use OAuth2\GrantType\AuthorizationCode;
-use OAuth2\Storage\CryptoToken as CryptoTokenStorage;
-use OAuth2\Storage\CryptoTokenInterface;
+use OAuth2\Storage\JwtAccessToken as JwtAccessTokenStorage;
+use OAuth2\Storage\JwtAccessTokenInterface;
 
 /**
 * Server class for OAuth2
@@ -105,7 +105,7 @@ class Server implements ResourceControllerInterface,
 
         // merge all config values.  These get passed to our controller objects
         $this->config = array_merge(array(
-            'use_crypto_tokens'        => false,
+            'use_jwt_access_tokens'        => false,
             'store_encrypted_token_string' => true,
             'use_openid_connect'       => false,
             'id_lifetime'              => 3600,
@@ -495,13 +495,13 @@ class Server implements ResourceControllerInterface,
 
     protected function createDefaultResourceController()
     {
-        if ($this->config['use_crypto_tokens']) {
-            // overwrites access token storage with crypto token storage if "use_crypto_tokens" is set
-            if (!isset($this->storages['access_token']) || !$this->storages['access_token'] instanceof CryptoTokenInterface) {
-                $this->storages['access_token'] = $this->createDefaultCryptoTokenStorage();
+        if ($this->config['use_jwt_access_tokens']) {
+            // overwrites access token storage with crypto token storage if "use_jwt_access_tokens" is set
+            if (!isset($this->storages['access_token']) || !$this->storages['access_token'] instanceof JwtAccessTokenInterface) {
+                $this->storages['access_token'] = $this->createDefaultJwtAccessTokenStorage();
             }
         } elseif (!isset($this->storages['access_token'])) {
-            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\AccessTokenInterface or use CryptoTokens to use the resource server");
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\AccessTokenInterface or use JwtAccessTokens to use the resource server");
         }
 
         if (!$this->tokenType) {
@@ -515,13 +515,13 @@ class Server implements ResourceControllerInterface,
 
     protected function createDefaultUserInfoController()
     {
-        if ($this->config['use_crypto_tokens']) {
-            // overwrites access token storage with crypto token storage if "use_crypto_tokens" is set
-            if (!isset($this->storages['access_token']) || !$this->storages['access_token'] instanceof CryptoTokenInterface) {
-                $this->storages['access_token'] = $this->createDefaultCryptoTokenStorage();
+        if ($this->config['use_jwt_access_tokens']) {
+            // overwrites access token storage with crypto token storage if "use_jwt_access_tokens" is set
+            if (!isset($this->storages['access_token']) || !$this->storages['access_token'] instanceof JwtAccessTokenInterface) {
+                $this->storages['access_token'] = $this->createDefaultJwtAccessTokenStorage();
             }
         } elseif (!isset($this->storages['access_token'])) {
-            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\AccessTokenInterface or use CryptoTokens to use the UserInfo server");
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\AccessTokenInterface or use JwtAccessTokens to use the UserInfo server");
         }
 
         if (!isset($this->storages['user_claims'])) {
@@ -620,8 +620,8 @@ class Server implements ResourceControllerInterface,
             return $this->responseTypes['token'];
         }
 
-        if ($this->config['use_crypto_tokens']) {
-            return $this->createDefaultCryptoTokenResponseType();
+        if ($this->config['use_jwt_access_tokens']) {
+            return $this->createDefaultJwtAccessTokenResponseType();
         }
 
         return $this->createDefaultAccessTokenResponseType();
@@ -648,7 +648,7 @@ class Server implements ResourceControllerInterface,
     /**
      * For Resource Controller
      */
-    protected function createDefaultCryptoTokenStorage()
+    protected function createDefaultJwtAccessTokenStorage()
     {
         if (!isset($this->storages['public_key'])) {
             throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use crypto tokens");
@@ -658,13 +658,13 @@ class Server implements ResourceControllerInterface,
             $tokenStorage = $this->storages['access_token'];
         }
         // wrap the access token storage as required.
-        return new CryptoTokenStorage($this->storages['public_key'], $tokenStorage);
+        return new JwtAccessTokenStorage($this->storages['public_key'], $tokenStorage);
     }
 
     /**
      * For Authorize and Token Controllers
      */
-    protected function createDefaultCryptoTokenResponseType()
+    protected function createDefaultJwtAccessTokenResponseType()
     {
         if (!isset($this->storages['public_key'])) {
             throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use crypto tokens");
@@ -682,7 +682,7 @@ class Server implements ResourceControllerInterface,
 
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string')));
 
-        return new CryptoToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config);
+        return new JwtAccessToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config);
     }
 
     protected function createDefaultAccessTokenResponseType()
