@@ -4,7 +4,7 @@ namespace OAuth2\OpenID\ResponseType;
 
 use OAuth2\ResponseType\AccessTokenInterface;
 
-class TokenIdToken implements TokenIdTokenInterface
+class IdTokenToken implements IdTokenTokenInterface
 {
     protected $accessToken;
     protected $idToken;
