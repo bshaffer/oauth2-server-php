@@ -4,7 +4,7 @@ namespace OAuth2\OpenID\Controller;
 
 use OAuth2\OpenID\Controller\AuthorizeController;
 use OAuth2\OpenID\ResponseType\IdToken;
-use OAuth2\OpenID\ResponseType\TokenIdToken;
+use OAuth2\OpenID\ResponseType\IdTokenToken;
 use OAuth2\ResponseType\AccessToken;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
@@ -43,6 +43,14 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 
         // Test valid token id_token request
         $request->query['response_type'] = 'token id_token';
+        $this->validateAuthorizeRequest($server, $request, $response);
+
+        // Test valid id_token token request
+        $request->query['response_type'] = 'id_token token';
+        $this->validateAuthorizeRequest($server, $request, $response);
+    }
+
+    private function validateAuthorizeRequest($server, $request, $response){
         $server->handleAuthorizeRequest($request, $response, true);
 
         $parts = parse_url($response->getHttpHeader('Location'));
@@ -72,15 +80,18 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         ));
 
         // Test missing nonce for 'id_token' response type
-        $server->handleAuthorizeRequest($request, $response, true);
+        $this->missingNonce($server, $request, $response);
 
-        $params = $response->getParameters();
-
-        $this->assertEquals($params['error'], 'invalid_nonce');
-        $this->assertEquals($params['error_description'], 'This application requires you specify a nonce parameter');
-
-        // Test missing nonce for 'id_token' response type
+        // Test missing nonce for 'token id_token' response type
         $request->query['response_type'] = 'token id_token';
+        $this->missingNonce($server, $request, $response);
+
+        // Test missing nonce for 'id_token token' response type
+        $request->query['response_type'] = 'id_token token';
+        $this->missingNonce($server, $request, $response);
+    }
+
+    private function missingNonce($server, $request, $response){
         $server->handleAuthorizeRequest($request, $response, true);
 
         $params = $response->getParameters();

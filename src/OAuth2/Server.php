@@ -21,7 +21,7 @@ use OAuth2\ResponseType\AuthorizationCode as AuthorizationCodeResponseType;
 use OAuth2\ResponseType\AccessToken;
 use OAuth2\ResponseType\JwtAccessToken;
 use OAuth2\OpenID\ResponseType\IdToken;
-use OAuth2\OpenID\ResponseType\TokenIdToken;
+use OAuth2\OpenID\ResponseType\IdTokenToken;
 use OAuth2\TokenType\TokenTypeInterface;
 use OAuth2\TokenType\Bearer;
 use OAuth2\GrantType\GrantTypeInterface;
@@ -79,7 +79,8 @@ class Server implements ResourceControllerInterface,
         'token' => 'OAuth2\ResponseType\AccessTokenInterface',
         'code' => 'OAuth2\ResponseType\AuthorizationCodeInterface',
         'id_token' => 'OAuth2\OpenID\ResponseType\IdTokenInterface',
-        'token id_token' => 'OAuth2\OpenID\ResponseType\TokenIdTokenInterface',
+        'token id_token' => 'OAuth2\OpenID\ResponseType\IdTokenTokenInterface',
+        'id_token token' => 'OAuth2\OpenID\ResponseType\IdTokenTokenInterface',
     );
 
     /**
@@ -451,7 +452,8 @@ class Server implements ResourceControllerInterface,
         if ($this->config['use_openid_connect'] && !isset($this->responseTypes['id_token'])) {
             $this->responseTypes['id_token'] = $this->createDefaultIdTokenResponseType();
             if ($this->config['allow_implicit']) {
-                $this->responseTypes['token id_token'] = $this->createDefaultTokenIdTokenResponseType();
+                $this->responseTypes['token id_token'] = $this->createDefaultIdTokenTokenResponseType();
+                $this->responseTypes['id_token token'] = $this->createDefaultIdTokenTokenResponseType();
             }
         }
 
@@ -555,7 +557,8 @@ class Server implements ResourceControllerInterface,
         if ($this->config['use_openid_connect']) {
             $responseTypes['id_token'] = $this->getIdTokenResponseType();
             if ($this->config['allow_implicit']) {
-                $responseTypes['token id_token'] = $this->getTokenIdTokenResponseType();
+                $responseTypes['token id_token'] = $this->getIdTokenTokenResponseType();
+                $responseTypes['id_token token'] = $this->getIdTokenTokenResponseType();
             }
         }
 
@@ -636,13 +639,13 @@ class Server implements ResourceControllerInterface,
         return $this->createDefaultIdTokenResponseType();
     }
 
-    protected function getTokenIdTokenResponseType()
+    protected function getIdTokenTokenResponseType()
     {
-        if (isset($this->responseTypes['token id_token'])) {
-            return $this->responseTypes['token id_token'];
+        if (isset($this->responseTypes['id_token token'])) {
+            return $this->responseTypes['id_token token'];
         }
 
-        return $this->createDefaultTokenIdTokenResponseType();
+        return $this->createDefaultIdTokenTokenResponseType();
     }
 
     /**
@@ -716,9 +719,9 @@ class Server implements ResourceControllerInterface,
         return new IdToken($this->storages['user_claims'], $this->storages['public_key'], $config);
     }
 
-    protected function createDefaultTokenIdTokenResponseType()
+    protected function createDefaultIdTokenTokenResponseType()
     {
-        return new TokenIdToken($this->getAccessTokenResponseType(), $this->getIdTokenResponseType());
+        return new IdTokenToken($this->getAccessTokenResponseType(), $this->getIdTokenResponseType());
     }
 
     public function getResponse()
