@@ -39,7 +39,7 @@ class JwtAccessToken implements JwtAccessTokenInterface
             return false;
         }
 
-        $client_id  = isset($tokenData['client_id']) ? $tokenData['client_id'] : null;
+        $client_id  = isset($tokenData['aud']) ? $tokenData['aud'] : null;
         $public_key = $this->publicKeyStorage->getPublicKey($client_id);
         $algorithm  = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
 
@@ -48,7 +48,8 @@ class JwtAccessToken implements JwtAccessTokenInterface
             return false;
         }
 
-        return $tokenData;
+        // normalize the JWT claims to the format expected by other components in this library
+        return $this->convertJwtToOAuth2($tokenData);
     }
 
     public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null)
@@ -56,5 +57,24 @@ class JwtAccessToken implements JwtAccessTokenInterface
         if ($this->tokenStorage) {
             return $this->tokenStorage->setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope);
         }
+    }
+
+    // converts a JWT access token into an OAuth2-friendly format
+    protected function convertJwtToOAuth2($tokenData)
+    {
+        $keyMapping = array(
+            'aud' => 'client_id',
+            'exp' => 'expires',
+            'sub' => 'user_id'
+        );
+
+        foreach ($keyMapping as $jwtKey => $oauth2Key) {
+            if (isset($tokenData[$jwtKey])) {
+                $tokenData[$oauth2Key] = $tokenData[$jwtKey];
+                unset($tokenData[$jwtKey]);                
+            }
+        }
+
+        return $tokenData;
     }
 }
