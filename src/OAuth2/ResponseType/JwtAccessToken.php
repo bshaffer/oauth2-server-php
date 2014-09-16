@@ -29,6 +29,7 @@ class JwtAccessToken extends AccessToken
         $this->publicKeyStorage = $publicKeyStorage;
         $config = array_merge(array(
             'store_encrypted_token_string' => true,
+            'issuer' => ''
         ), $config);
         if (is_null($tokenStorage)) {
             // a pass-thru, so we can call the parent constructor
@@ -62,9 +63,11 @@ class JwtAccessToken extends AccessToken
         $expires = time() + $this->config['access_lifetime'];
         $jwtAccessToken = array(
             'id'         => $this->generateAccessToken(),
-            'client_id'  => $client_id,
-            'user_id'    => $user_id,
-            'expires'    => $expires,
+            'iss'        => $this->config['issuer'],
+            'aud'        => $client_id,
+            'sub'        => $user_id,
+            'exp'        => $expires,
+            'iat'        => time(),
             'token_type' => $this->config['token_type'],
             'scope'      => $scope
         );

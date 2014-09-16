@@ -10,9 +10,34 @@ use OAuth2\Storage\JwtAccessToken as JwtAccessTokenStorage;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\UserCredentials;
 use OAuth2\GrantType\RefreshToken;
+use OAuth2\Encryption\Jwt;
 
 class JwtAccessTokenTest extends \PHPUnit_Framework_TestCase
 {
+    public function testCreateAccessToken()
+    {
+        $server = $this->getTestServer();
+        $jwtResponseType = $server->getResponseType('token');
+
+        $accessToken = $jwtResponseType->createAccessToken('Test Client ID', 123, 'test', false);
+        $jwt = new Jwt;
+        $decodedAccessToken = $jwt->decode($accessToken['access_token'], null, false);
+
+        $this->assertArrayHasKey('id', $decodedAccessToken);
+        $this->assertArrayHasKey('iss', $decodedAccessToken);
+        $this->assertArrayHasKey('aud', $decodedAccessToken);
+        $this->assertArrayHasKey('exp', $decodedAccessToken);
+        $this->assertArrayHasKey('iat', $decodedAccessToken);
+        $this->assertArrayHasKey('token_type', $decodedAccessToken);
+        $this->assertArrayHasKey('scope', $decodedAccessToken);
+
+        $this->assertEquals('https://api.example.com', $decodedAccessToken['iss']);
+        $this->assertEquals('Test Client ID', $decodedAccessToken['aud']);
+        $this->assertEquals(123, $decodedAccessToken['sub']);
+        $delta = $decodedAccessToken['exp'] - $decodedAccessToken['iat'];
+        $this->assertEquals(3600, $delta);
+    }
+
     public function testGrantJwtAccessToken()
     {
         // add the test parameters in memory
@@ -125,7 +150,8 @@ class JwtAccessTokenTest extends \PHPUnit_Framework_TestCase
         $server->addGrantType(new ClientCredentials($memoryStorage));
 
         // make the "token" response type a JwtAccessToken
-        $server->addResponseType(new JwtAccessToken($memoryStorage, $memoryStorage));
+        $config = array('issuer' => 'https://api.example.com');
+        $server->addResponseType(new JwtAccessToken($memoryStorage, $memoryStorage, null, $config));
 
         return $server;
     }
