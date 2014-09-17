@@ -9,7 +9,7 @@ use OAuth2\Storage\Bootstrap;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\ResponseType\AccessToken;
 
-class TokenIdTokenTest extends \PHPUnit_Framework_TestCase
+class IdTokenTokenTest extends \PHPUnit_Framework_TestCase
 {
 
     public function testHandleAuthorizeRequest()
@@ -25,6 +25,21 @@ class TokenIdTokenTest extends \PHPUnit_Framework_TestCase
             'nonce'         => 'test',
         ));
 
+        $this->handleAuthorizeRequest($server, $request);
+
+        $request = new Request(array(
+            'response_type' => 'id_token token',
+            'redirect_uri'  => 'http://adobe.com',
+            'client_id'     => 'Test Client ID',
+            'scope'         => 'openid',
+            'state'         => 'test',
+            'nonce'         => 'test',
+        ));
+
+        $this->handleAuthorizeRequest($server, $request);
+    }
+
+    private function handleAuthorizeRequest($server, $request){
         $server->handleAuthorizeRequest($request, $response = new Response(), true);
 
         $this->assertEquals($response->getStatusCode(), 302);
@@ -83,7 +98,8 @@ class TokenIdTokenTest extends \PHPUnit_Framework_TestCase
             'token' => new AccessToken($memoryStorage, $memoryStorage),
             'id_token' => new IdToken($memoryStorage, $memoryStorage, $config),
         );
-        $responseTypes['token id_token'] = new TokenIdToken($responseTypes['token'], $responseTypes['id_token']);
+        $responseTypes['token id_token'] = new IdTokenToken($responseTypes['token'], $responseTypes['id_token']);
+        $responseTypes['id_token token'] = new IdTokenToken($responseTypes['token'], $responseTypes['id_token']);
 
         $server = new Server($memoryStorage, $config, array(), $responseTypes);
         $server->addGrantType(new ClientCredentials($memoryStorage));
