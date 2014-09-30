@@ -92,6 +92,25 @@ class Request implements RequestInterface
     }
 
     /**
+     * Gets a "parameter" value.
+     *
+     * Order of precedence: GET, POST
+     *
+     * @param string  $name    the name of the parameter
+     * @param mixed   $default the default value
+     *
+     * @return mixed
+     */
+    public function get($name, $default = null)
+    {
+        if (isset($this->query[$name])) {
+            return $this->query[$name];
+        }
+
+        return $this->request($name, $default);
+    }
+
+    /**
      * Returns the request body content.
      *
      * @param Boolean $asResource If true, a resource will be returned
