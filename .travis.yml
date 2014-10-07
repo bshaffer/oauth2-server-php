@@ -6,9 +6,8 @@ php:
 - 5.6
 - hhvm
 env:
-  matrix:
-  - SKIP_MONGO_TESTS=1
   global:
+  - SKIP_MONGO_TESTS=1
   - secure: Bc5ZqvZ1YYpoPZNNuU2eCB8DS6vBYrAdfBtTenBs5NSxzb+Vjven4kWakbzaMvZjb/Ib7Uph7DGuOtJXpmxnvBXPLd707LZ89oFWN/yqQlZKCcm8iErvJCB5XL+/ONHj2iPdR242HJweMcat6bMCwbVWoNDidjtWMH0U2mYFy3M=
   - secure: R3bXlymyFiY2k2jf7+fv/J8i34wtXTkmD4mCr5Ps/U+vn9axm2VtvR2Nj+r7LbRjn61gzFE/xIVjYft/wOyBOYwysrfriydrnRVS0owh6y+7EyOyQWbRX11vVQMf8o31QCQE5BY58V5AJZW3MjoOL0FVlTgySJiJvdw6Pv18v+E=
 services:
