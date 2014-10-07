@@ -75,6 +75,16 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('Basic secret', $request->headers('Authorization'));
     }
 
+    public function testRequestReturnsPostParamIfNoQueryParamAvailable()
+    {
+        $request = new Request(
+            array(),
+            array('client_id' => 'correct')
+        );
+
+        $this->assertEquals('correct', $request->query('client_id', $request->request('client_id')));
+    }
+
     private function getTestServer($config = array())
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();

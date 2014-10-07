@@ -129,7 +129,7 @@ class AuthorizeController implements AuthorizeControllerInterface
     public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response)
     {
         // Make sure a valid client id was supplied (we can not redirect because we were unable to verify the URI)
-        if (!$client_id = $request->query("client_id")) {
+        if (!$client_id = $request->query('client_id', $request->request('client_id'))) {
             // We don't have a good URI to use
             $response->setError(400, 'invalid_client', "No client id supplied");
 
@@ -149,7 +149,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         // @see http://tools.ietf.org/html/rfc6749#section-3.1.2
         // @see http://tools.ietf.org/html/rfc6749#section-4.1.2.1
         // @see http://tools.ietf.org/html/rfc6749#section-4.2.2.1
-        if ($supplied_redirect_uri = $request->query('redirect_uri')) {
+        if ($supplied_redirect_uri = $request->query('redirect_uri', $request->request('redirect_uri'))) {
             // validate there is no fragment supplied
             $parts = parse_url($supplied_redirect_uri);
             if (isset($parts['fragment']) && $parts['fragment']) {
@@ -182,7 +182,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         }
 
         // Select the redirect URI
-        $response_type = $request->query('response_type');
+        $response_type = $request->query('response_type', $request->request('response_type'));
 
         // for multiple-valued response types - make them alphabetical
         if (false !== strpos($response_type, ' ')) {
@@ -191,7 +191,7 @@ class AuthorizeController implements AuthorizeControllerInterface
             $response_type = ltrim(implode(' ', $types));
         }
 
-        $state = $request->query('state');
+        $state = $request->query('state', $request->request('state'));
 
         // type and client_id are required
         if (!$response_type || !in_array($response_type, $this->getValidResponseTypes())) {
