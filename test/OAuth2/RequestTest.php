@@ -75,6 +75,35 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('Basic secret', $request->headers('Authorization'));
     }
 
+    public function testGetReturnsGetParamIfAvailable()
+    {
+        $query   = array('client_id' => 'correct');
+        $request = array('client_id' => 'incorrect');
+
+        $request = new Request($query, $request);
+
+        $this->assertEquals('correct', $request->get('client_id'));
+    }
+
+    public function testGetReturnsPostParamIfGetParamNotAvailable()
+    {
+        $request = array('client_id' => 'correct');
+
+        $request = new Request(
+            array(),
+            $request
+        );
+
+        $this->assertEquals('correct', $request->get('client_id'));
+    }
+
+    public function testGetReturnsDefaultIfNoGetOrPostParamAvailable()
+    {
+        $request = new Request();
+
+        $this->assertEquals('correct', $request->get('client_id', 'correct'));
+    }
+
     private function getTestServer($config = array())
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
