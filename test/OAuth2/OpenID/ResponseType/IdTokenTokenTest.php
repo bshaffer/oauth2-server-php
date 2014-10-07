@@ -9,15 +9,16 @@ use OAuth2\Storage\Bootstrap;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\ResponseType\AccessToken;
 
-class TokenIdTokenTest extends \PHPUnit_Framework_TestCase
+class IdTokenTokenTest extends \PHPUnit_Framework_TestCase
 {
 
     public function testHandleAuthorizeRequest()
     {
         // add the test parameters in memory
         $server = $this->getTestServer(array('allow_implicit' => true));
+
         $request = new Request(array(
-            'response_type' => 'token id_token',
+            'response_type' => 'id_token token',
             'redirect_uri'  => 'http://adobe.com',
             'client_id'     => 'Test Client ID',
             'scope'         => 'openid',
@@ -40,12 +41,9 @@ class TokenIdTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($params);
         $this->assertArrayHasKey('id_token', $params);
         $this->assertArrayHasKey('access_token', $params);
-        $this->validateIdToken($params['id_token']);
-    }
 
-    private function validateIdToken($id_token)
-    {
-        $parts = explode('.', $id_token);
+        // validate ID Token
+        $parts = explode('.', $params['id_token']);
         foreach ($parts as &$part) {
             // Each part is a base64url encoded json string.
             $part = str_replace(array('-', '_'), array('+', '/'), $part);
@@ -80,10 +78,10 @@ class TokenIdTokenTest extends \PHPUnit_Framework_TestCase
 
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
         $responseTypes = array(
-            'token' => new AccessToken($memoryStorage, $memoryStorage),
-            'id_token' => new IdToken($memoryStorage, $memoryStorage, $config),
+            'token'     => $token   = new AccessToken($memoryStorage, $memoryStorage),
+            'id_token'  => $idToken = new IdToken($memoryStorage, $memoryStorage, $config),
+            'id_token token' => new IdTokenToken($token, $idToken),
         );
-        $responseTypes['token id_token'] = new TokenIdToken($responseTypes['token'], $responseTypes['id_token']);
 
         $server = new Server($memoryStorage, $config, array(), $responseTypes);
         $server->addGrantType(new ClientCredentials($memoryStorage));

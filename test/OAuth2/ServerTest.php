@@ -526,7 +526,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $server->getAuthorizeController();
 
         $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenInterface', $server->getResponseType('id_token'));
-        $this->assertNull($server->getResponseType('token id_token'));
+        $this->assertNull($server->getResponseType('id_token token'));
     }
 
     /**
@@ -561,7 +561,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $server->getAuthorizeController();
 
         $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenInterface', $server->getResponseType('id_token'));
-        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\TokenIdTokenInterface', $server->getResponseType('token id_token'));
+        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenTokenInterface', $server->getResponseType('id_token token'));
     }
 
     public function testUsingOpenIDConnectWithAllowImplicitAndAccessTokenStorageIsOkay()
@@ -579,7 +579,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $server->getAuthorizeController();
 
         $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenInterface', $server->getResponseType('id_token'));
-        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\TokenIdTokenInterface', $server->getResponseType('token id_token'));
+        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenTokenInterface', $server->getResponseType('id_token token'));
     }
 
     public function testUsingOpenIDConnectWithAllowImplicitAndAccessTokenResponseTypeIsOkay()
@@ -600,7 +600,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $server->getAuthorizeController();
 
         $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenInterface', $server->getResponseType('id_token'));
-        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\TokenIdTokenInterface', $server->getResponseType('token id_token'));
+        $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenTokenInterface', $server->getResponseType('id_token token'));
     }
 
     /**
@@ -640,6 +640,16 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         $server->getTokenController();
 
         $this->assertInstanceOf('OAuth2\OpenID\GrantType\AuthorizationCode', $server->getGrantType('authorization_code'));
+    }
+
+    public function testMultipleValuedResponseTypeOrderDoesntMatter()
+    {
+        $responseType = $this->getMock('OAuth2\OpenID\ResponseType\IdTokenTokenInterface');
+        $server = new Server(array(), array(), array(), array(
+            'token id_token' => $responseType,
+        ));
+
+        $this->assertEquals($responseType, $server->getResponseType('id_token token'));
     }
 
     public function testAddGrantTypeWithoutKey()
