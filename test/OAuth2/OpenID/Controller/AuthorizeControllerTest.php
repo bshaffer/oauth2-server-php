@@ -42,15 +42,39 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayNotHasKey('token_type', $query);
 
         // Test valid token id_token request
-        $request->query['response_type'] = 'token id_token';
-        $this->validateAuthorizeRequest($server, $request, $response);
-
-        // Test valid id_token token request
         $request->query['response_type'] = 'id_token token';
-        $this->validateAuthorizeRequest($server, $request, $response);
-    }
+        $server->handleAuthorizeRequest($request, $response, true);
 
-    private function validateAuthorizeRequest($server, $request, $response){
+        $parts = parse_url($response->getHttpHeader('Location'));
+        parse_str($parts['fragment'], $query);
+
+        $this->assertEquals('n-0S6_WzA2Mj', $server->getAuthorizeController()->getNonce());
+        $this->assertEquals($query['state'], 'af0ifjsldkj');
+
+        $this->assertArrayHasKey('access_token', $query);
+        $this->assertArrayHasKey('expires_in', $query);
+        $this->assertArrayHasKey('token_type', $query);
+        $this->assertArrayHasKey('state', $query);
+        $this->assertArrayHasKey('id_token', $query);
+
+        // assert that with multiple-valued response types, order does not matter
+        $request->query['response_type'] = 'token id_token';
+        $server->handleAuthorizeRequest($request, $response, true);
+
+        $parts = parse_url($response->getHttpHeader('Location'));
+        parse_str($parts['fragment'], $query);
+
+        $this->assertEquals('n-0S6_WzA2Mj', $server->getAuthorizeController()->getNonce());
+        $this->assertEquals($query['state'], 'af0ifjsldkj');
+
+        $this->assertArrayHasKey('access_token', $query);
+        $this->assertArrayHasKey('expires_in', $query);
+        $this->assertArrayHasKey('token_type', $query);
+        $this->assertArrayHasKey('state', $query);
+        $this->assertArrayHasKey('id_token', $query);
+
+        // assert that with multiple-valued response types with extra spaces do not matter
+        $request->query['response_type'] = ' token  id_token ';
         $server->handleAuthorizeRequest($request, $response, true);
 
         $parts = parse_url($response->getHttpHeader('Location'));
@@ -80,20 +104,15 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         ));
 
         // Test missing nonce for 'id_token' response type
-        $this->missingNonce($server, $request, $response);
+        $server->handleAuthorizeRequest($request, $response, true);
+        $params = $response->getParameters();
 
-        // Test missing nonce for 'token id_token' response type
-        $request->query['response_type'] = 'token id_token';
-        $this->missingNonce($server, $request, $response);
+        $this->assertEquals($params['error'], 'invalid_nonce');
+        $this->assertEquals($params['error_description'], 'This application requires you specify a nonce parameter');
 
         // Test missing nonce for 'id_token token' response type
         $request->query['response_type'] = 'id_token token';
-        $this->missingNonce($server, $request, $response);
-    }
-
-    private function missingNonce($server, $request, $response){
         $server->handleAuthorizeRequest($request, $response, true);
-
         $params = $response->getParameters();
 
         $this->assertEquals($params['error'], 'invalid_nonce');
@@ -154,10 +173,10 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
     private function getTestServer($config = array())
     {
         $config += array(
-                    'use_openid_connect' => true,
-                    'issuer'             => 'anzev',
-                    'allow_implicit'     => true
-                );
+            'use_openid_connect' => true,
+            'issuer'             => 'phpunit',
+            'allow_implicit'     => true
+        );
 
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $server  = new Server($storage, $config);

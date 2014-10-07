@@ -75,11 +75,11 @@ class Server implements ResourceControllerInterface,
         'jwt_bearer' => 'OAuth2\Storage\JWTBearerInterface',
         'scope' => 'OAuth2\Storage\ScopeInterface',
     );
+
     protected $responseTypeMap = array(
         'token' => 'OAuth2\ResponseType\AccessTokenInterface',
         'code' => 'OAuth2\ResponseType\AuthorizationCodeInterface',
         'id_token' => 'OAuth2\OpenID\ResponseType\IdTokenInterface',
-        'token id_token' => 'OAuth2\OpenID\ResponseType\IdTokenTokenInterface',
         'id_token token' => 'OAuth2\OpenID\ResponseType\IdTokenTokenInterface',
     );
 
@@ -125,9 +125,11 @@ class Server implements ResourceControllerInterface,
         foreach ($grantTypes as $key => $grantType) {
             $this->addGrantType($grantType, $key);
         }
+
         foreach ($responseTypes as $key => $responseType) {
             $this->addResponseType($responseType, $key);
         }
+
         $this->tokenType = $tokenType;
         $this->scopeUtil = $scopeUtil;
         $this->clientAssertionType = $clientAssertionType;
@@ -401,6 +403,8 @@ class Server implements ResourceControllerInterface,
 
     public function addResponseType(ResponseTypeInterface $responseType, $key = null)
     {
+        $key = $this->normalizeResponseType($key);
+
         if (isset($this->responseTypeMap[$key])) {
             if (!$responseType instanceof $this->responseTypeMap[$key]) {
                 throw new \InvalidArgumentException(sprintf('responseType of type "%s" must implement interface "%s"', $key, $this->responseTypeMap[$key]));
@@ -452,7 +456,6 @@ class Server implements ResourceControllerInterface,
         if ($this->config['use_openid_connect'] && !isset($this->responseTypes['id_token'])) {
             $this->responseTypes['id_token'] = $this->createDefaultIdTokenResponseType();
             if ($this->config['allow_implicit']) {
-                $this->responseTypes['token id_token'] = $this->createDefaultIdTokenTokenResponseType();
                 $this->responseTypes['id_token token'] = $this->createDefaultIdTokenTokenResponseType();
             }
         }
@@ -557,7 +560,6 @@ class Server implements ResourceControllerInterface,
         if ($this->config['use_openid_connect']) {
             $responseTypes['id_token'] = $this->getIdTokenResponseType();
             if ($this->config['allow_implicit']) {
-                $responseTypes['token id_token'] = $this->getIdTokenTokenResponseType();
                 $responseTypes['id_token token'] = $this->getIdTokenTokenResponseType();
             }
         }
@@ -724,6 +726,18 @@ class Server implements ResourceControllerInterface,
         return new IdTokenToken($this->getAccessTokenResponseType(), $this->getIdTokenResponseType());
     }
 
+    protected function normalizeResponseType($name)
+    {
+        // for multiple-valued response types - make them alphabetical
+        if (!empty($name) && false !== strpos($name, ' ')) {
+            $types = explode(' ', $name);
+            sort($types);
+            $name = implode(' ', $types);
+        }
+
+        return $name;
+    }
+
     public function getResponse()
     {
         return $this->response;
@@ -756,6 +770,9 @@ class Server implements ResourceControllerInterface,
 
     public function getResponseType($name)
     {
+        // for multiple-valued response types - make them alphabetical
+        $name = $this->normalizeResponseType($name);
+
         return isset($this->responseTypes[$name]) ? $this->responseTypes[$name] : null;
     }
 

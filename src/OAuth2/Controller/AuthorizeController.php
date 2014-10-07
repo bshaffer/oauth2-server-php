@@ -183,6 +183,14 @@ class AuthorizeController implements AuthorizeControllerInterface
 
         // Select the redirect URI
         $response_type = $request->query('response_type');
+
+        // for multiple-valued response types - make them alphabetical
+        if (false !== strpos($response_type, ' ')) {
+            $types = explode(' ', $response_type);
+            sort($types);
+            $response_type = ltrim(implode(' ', $types));
+        }
+
         $state = $request->query('state');
 
         // type and client_id are required
@@ -191,6 +199,7 @@ class AuthorizeController implements AuthorizeControllerInterface
 
             return false;
         }
+
         if ($response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
             if (!isset($this->responseTypes['code'])) {
                 $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'unsupported_response_type', 'authorization code grant type not supported', null);
