@@ -64,6 +64,7 @@ class Pdo implements
             'code_table' => 'oauth_authorization_codes',
             'user_table' => 'oauth_users',
             'jwt_table'  => 'oauth_jwt',
+            'jti_table'  => 'oauth_jti',
             'scope_table'  => 'oauth_scopes',
             'public_key_table'  => 'oauth_public_keys',
         ), $config);
@@ -512,6 +513,14 @@ class Pdo implements
           client_id           VARCHAR(80)   NOT NULL,
           subject             VARCHAR(80),
           public_key          VARCHAR(2000) NOT NULL
+        );
+        
+        CREATE TABLE {$this->config['jti_table']} (
+          issuer              VARCHAR(80)   NOT NULL,
+          subject             VARCHAR(80),
+          audiance            VARCHAR(80),
+          expires             TIMESTAMP     NOT NULL,
+          jti                 VARCHAR(2000) NOT NULL
         );
 
         CREATE TABLE {$this->config['public_key_table']} (
