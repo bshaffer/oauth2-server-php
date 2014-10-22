@@ -69,7 +69,10 @@ class Jwt implements EncryptionInterface
             case'HS256':
             case'HS384':
             case'HS512':
-                return $this->sign($input, $key, $algo) === $signature;
+                return $this->hash_equals(
+                    $this->sign($input, $key, $algo),
+                    $signature
+                );
 
             case 'RS256':
                 return openssl_verify($input, $signature, $key, defined('OPENSSL_ALGO_SHA256') ? OPENSSL_ALGO_SHA256 : 'sha256')  === 1;
@@ -148,5 +151,17 @@ class Jwt implements EncryptionInterface
             'typ' => 'JWT',
             'alg' => $algorithm,
         );
+    }
+    
+    protected function hash_equals($a, $b)
+    {
+        if (function_exists('hash_equals')) {
+            return hash_equals($a, $b);
+        }
+        $diff = strlen($a) ^ strlen($b);
+        for ($i = 0; $i < strlen($a) && $i < strlen($b); $i++) {
+            $diff |= ord($a[$i]) ^ ord($b[$i]);
+        }
+        return $diff === 0;
     }
 }
