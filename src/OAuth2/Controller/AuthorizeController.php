@@ -291,9 +291,9 @@ class AuthorizeController implements AuthorizeControllerInterface
         // Add our params to the parsed uri
         foreach ($params as $k => $v) {
             if (isset($parse_url[$k])) {
-                $parse_url[$k] .= "&" . http_build_query($v);
+                $parse_url[$k] .= "&" . http_build_query($v, '', '&');
             } else {
-                $parse_url[$k] = http_build_query($v);
+                $parse_url[$k] = http_build_query($v, '', '&');
             }
         }
 
