@@ -40,9 +40,6 @@ class Mongo implements AuthorizationCodeInterface,
             $this->db = $m->{$connection['database']};
         }
 
-        // Unix timestamps might get larger than 32 bits,
-        // so let's add native support for 64 bit ints.
-        ini_set('mongo.native_long', 1);
 
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
