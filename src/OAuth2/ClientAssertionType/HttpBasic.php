@@ -107,7 +107,9 @@ class HttpBasic implements ClientAssertionTypeInterface
             $authBase = base64_decode(preg_replace('/^Basic\s/', '', $auth));
             $data = explode(',', $authBase);
 
-            return array('client_id' => $data[0], 'client_secret' => $data[1]);
+            if (!empty($data[0]) && !empty($data[1])) {
+              return array('client_id' => $data[0], 'client_secret' => $data[1]);
+            }
           }
         }
 
