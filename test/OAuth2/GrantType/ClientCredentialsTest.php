@@ -95,6 +95,17 @@ class ClientCredentialsTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($token);
         $this->assertArrayHasKey('access_token', $token);
         $this->assertNotNull($token['access_token']);
+
+        // create with AUTHORIZATION in header
+        $server = $this->getTestServer();
+        $headers = array('AUTHORIZATION' => 'Basic '.base64_encode('Test Client ID:TestSecret'), 'REQUEST_METHOD' => 'POST');
+        $params  = array('grant_type' => 'client_credentials');
+        $request = new Request(array(), $params, array(), array(), array(), $headers);
+        $token = $server->grantAccessToken($request, new Response());
+
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+        $this->assertNotNull($token['access_token']);
     }
 
     public function testValidCredentialsInRequest()
