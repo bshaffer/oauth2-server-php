@@ -8,6 +8,34 @@ To see the files changed for a given bug, go to https://github.com/bshaffer/oaut
 To get the diff between two versions, go to https://github.com/bshaffer/oauth2-server-php/compare/v1.0...v1.1
 To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-server-php/commit/XXX where XXX is the change hash
 
+* 1.6 (2014-01-16)
+
+  PR: https://github.com/bshaffer/oauth2-server-php/pull/496
+
+  * bug 437 - renames CryptoToken to JwtAccessToken / use_crypto_tokens to use_jwt_access_tokens
+  * bug 447 - Adds a Couchbase storage implementation
+  * bug 460 - Rename JWT claims to match spec
+  * bug 470 - order does not matter for multi-valued response types
+  * bug 471 - Make validateAuthorizeRequest available for POST in addition to GET
+  * bug 475 - Adds JTI table definitiion
+  * bug 481 - better randomness for generating access tokens
+  * bug 480 - Use hash_equals() for signature verification (prevents remote timing attacks)
+  * bugs 489, 491, 498 - misc other fixes
+
+* 1.5 (2014-08-27)
+
+  PR: https://github.com/bshaffer/oauth2-server-php/pull/446
+
+  * bug #399 - Add DynamoDB Support
+  * bug #404 - renamed error name for malformed/expired tokens
+  * bug #412 - Openid connect: fixes for claims with more than one scope / Add support for the prompt parameter ('consent' and 'none')
+  * bug #411 - fixes xml output
+  * bug #413 - fixes invalid format error
+  * bug #401 - fixes code standards / whitespace
+  * bug #354 - bundles PDO SQL with the library
+  * [BC] bug #397 - refresh tokens should not be encrypted
+  * bug #423 - makes "scope" optional for refresh token storage
+
 * 1.4 (2014-06-12)
 
   PR: https://github.com/bshaffer/oauth2-server-php/pull/392

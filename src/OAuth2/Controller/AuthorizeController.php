@@ -129,7 +129,7 @@ class AuthorizeController implements AuthorizeControllerInterface
     public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response)
     {
         // Make sure a valid client id was supplied (we can not redirect because we were unable to verify the URI)
-        if (!$client_id = $request->query("client_id")) {
+        if (!$client_id = $request->query('client_id', $request->request('client_id'))) {
             // We don't have a good URI to use
             $response->setError(400, 'invalid_client', "No client id supplied");
 
@@ -149,7 +149,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         // @see http://tools.ietf.org/html/rfc6749#section-3.1.2
         // @see http://tools.ietf.org/html/rfc6749#section-4.1.2.1
         // @see http://tools.ietf.org/html/rfc6749#section-4.2.2.1
-        if ($supplied_redirect_uri = $request->query('redirect_uri')) {
+        if ($supplied_redirect_uri = $request->query('redirect_uri', $request->request('redirect_uri'))) {
             // validate there is no fragment supplied
             $parts = parse_url($supplied_redirect_uri);
             if (isset($parts['fragment']) && $parts['fragment']) {
@@ -182,8 +182,16 @@ class AuthorizeController implements AuthorizeControllerInterface
         }
 
         // Select the redirect URI
-        $response_type = $request->query('response_type');
-        $state = $request->query('state');
+        $response_type = $request->query('response_type', $request->request('response_type'));
+
+        // for multiple-valued response types - make them alphabetical
+        if (false !== strpos($response_type, ' ')) {
+            $types = explode(' ', $response_type);
+            sort($types);
+            $response_type = ltrim(implode(' ', $types));
+        }
+
+        $state = $request->query('state', $request->request('state'));
 
         // type and client_id are required
         if (!$response_type || !in_array($response_type, $this->getValidResponseTypes())) {
@@ -191,6 +199,7 @@ class AuthorizeController implements AuthorizeControllerInterface
 
             return false;
         }
+
         if ($response_type == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
             if (!isset($this->responseTypes['code'])) {
                 $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'unsupported_response_type', 'authorization code grant type not supported', null);
@@ -282,9 +291,9 @@ class AuthorizeController implements AuthorizeControllerInterface
         // Add our params to the parsed uri
         foreach ($params as $k => $v) {
             if (isset($parse_url[$k])) {
-                $parse_url[$k] .= "&" . http_build_query($v);
+                $parse_url[$k] .= "&" . http_build_query($v, '', '&');
             } else {
-                $parse_url[$k] = http_build_query($v);
+                $parse_url[$k] = http_build_query($v, '', '&');
             }
         }
 
