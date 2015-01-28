@@ -70,6 +70,11 @@ class AuthorizationCodeTest extends BaseTest
         $this->assertEquals($code['user_id'], 'SOMEOTHERID');
         $this->assertEquals($code['redirect_uri'], 'http://example.org');
         $this->assertEquals($code['expires'], $expires);
+
+        // add new code with scope having an empty string value
+        $expires = time() + 20;
+        $success = $storage->setAuthorizationCode('newcode', 'client ID', 'SOMEUSERID', 'http://example.com', $expires, '');
+        $this->assertTrue($success);
     }
 
         /** @dataProvider provideStorage */
