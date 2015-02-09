@@ -327,7 +327,7 @@ class AuthorizeController implements AuthorizeControllerInterface
      *
      * @see http://tools.ietf.org/html/rfc6749#section-3.1.2
      */
-    private function validateRedirectUri($inputUri, $registeredUriString)
+    protected function validateRedirectUri($inputUri, $registeredUriString)
     {
         if (!$inputUri || !$registeredUriString) {
             return false; // if either one is missing, assume INVALID
