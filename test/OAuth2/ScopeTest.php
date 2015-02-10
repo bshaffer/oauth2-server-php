@@ -10,12 +10,12 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
     {
         $scopeUtil = new Scope();
 
-        $this->assertFalse($scopeUtil->checkScope('invalid', 'list of scopes'));
-        $this->assertTrue($scopeUtil->checkScope('valid', 'valid and-some other-scopes'));
-        $this->assertTrue($scopeUtil->checkScope('valid another-valid', 'valid another-valid and-some other-scopes'));
+        $this->assertFalse($scopeUtil->checkScope('invalid', array('scope' => 'list of scopes')));
+        $this->assertTrue($scopeUtil->checkScope('valid', array('scope' => 'valid and-some other-scopes')));
+        $this->assertTrue($scopeUtil->checkScope('valid another-valid', array('scope' => 'valid another-valid and-some other-scopes')));
         // all scopes must match
-        $this->assertFalse($scopeUtil->checkScope('valid invalid', 'valid and-some other-scopes'));
-        $this->assertFalse($scopeUtil->checkScope('valid valid2 invalid', 'valid valid2 and-some other-scopes'));
+        $this->assertFalse($scopeUtil->checkScope('valid invalid', array('scope' => 'valid and-some other-scopes')));
+        $this->assertFalse($scopeUtil->checkScope('valid valid2 invalid', array('scope' => 'valid valid2 and-some other-scopes')));
     }
 
     public function testScopeStorage()

@@ -25,7 +25,7 @@ interface ScopeInterface extends ScopeStorageInterface
      *
      * @ingroup oauth2_section_7
      */
-    public function checkScope($required_scope, $available_scope);
+    public function checkScope($required_scope, $grantType);
 
     /**
      * Return scope info from request
