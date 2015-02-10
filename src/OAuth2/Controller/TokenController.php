@@ -162,7 +162,7 @@ class TokenController implements TokenControllerInterface
         if ($requestedScope) {
             // validate the requested scope
             if ($availableScope) {
-                if (!$this->scopeUtil->checkScope($requestedScope, $availableScope)) {
+                if (!$this->scopeUtil->checkScope($requestedScope, $grantType)) {
                     $response->setError(400, 'invalid_scope', 'The scope requested is invalid for this request');
 
                     return null;
@@ -170,7 +170,7 @@ class TokenController implements TokenControllerInterface
             } else {
                 // validate the client has access to this scope
                 if ($clientScope = $this->clientStorage->getClientScope($clientId)) {
-                    if (!$this->scopeUtil->checkScope($requestedScope, $clientScope)) {
+                    if (!$this->scopeUtil->checkScope($requestedScope, array('scope' => $clientScope))) {
                         $response->setError(400, 'invalid_scope', 'The scope requested is invalid for this client');
 
                         return false;

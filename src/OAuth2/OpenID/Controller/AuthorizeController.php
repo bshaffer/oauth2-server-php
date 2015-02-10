@@ -95,7 +95,7 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
     public function needsIdToken($request_scope)
     {
         // see if the "openid" scope exists in the requested scope
-        return $this->scopeUtil->checkScope('openid', $request_scope);
+        return $this->scopeUtil->checkScope('openid', array('scope' => $request_scope));
     }
 
     public function getNonce()

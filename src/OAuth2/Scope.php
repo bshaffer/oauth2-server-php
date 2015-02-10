@@ -4,6 +4,7 @@ namespace OAuth2;
 
 use OAuth2\Storage\Memory;
 use OAuth2\Storage\ScopeInterface as ScopeStorageInterface;
+use OAuth2\GrantType\GrantTypeInterface;
 
 /**
 * @see OAuth2\ScopeInterface
@@ -43,12 +44,22 @@ class Scope implements ScopeInterface
      *
      * @ingroup oauth2_section_7
      */
-    public function checkScope($required_scope, $available_scope)
+    public function checkScope($required_scope, $grant_type)
     {
+        $available_scope = $this->getScopeFromGrantType($grant_type);
         $required_scope = explode(' ', trim($required_scope));
         $available_scope = explode(' ', trim($available_scope));
 
         return (count(array_diff($required_scope, $available_scope)) == 0);
+    }
+
+    private function getScopeFromGrantType($grant_type)
+    {
+        if ($grant_type instanceof GrantTypeInterface) {
+            return $grant_type->getScope();
+        }
+
+        return $grant_type["scope"];
     }
 
     /**
