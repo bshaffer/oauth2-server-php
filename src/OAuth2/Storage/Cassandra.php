@@ -35,6 +35,7 @@ class Cassandra implements AuthorizationCodeInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     ScopeInterface,
+    PublicKeyInterface,
     OpenIDAuthorizationCodeInterface
 {
 
@@ -58,7 +59,7 @@ class Cassandra implements AuthorizationCodeInterface,
             $this->cassandra = $connection;
         } else {
             if (!is_array($connection)) {
-                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Mongo must be an instance of MongoDB or a configuration array');
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Cassandra must be an instance of phpcassa\Connection\ConnectionPool or a configuration array');
             }
             $connection = array_merge(array(
                 'keyspace' => 'oauth2',
@@ -80,6 +81,7 @@ class Cassandra implements AuthorizationCodeInterface,
             'user_key' => 'oauth_users:',
             'jwt_key' => 'oauth_jwt:',
             'scope_key' => 'oauth_scopes:',
+            'public_key_key'  => 'oauth_public_keys:',
         ), $config);
     }
 
@@ -88,11 +90,11 @@ class Cassandra implements AuthorizationCodeInterface,
         if (isset($this->cache[$key])) {
             return $this->cache[$key];
         }
-
         $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
 
         try {
-            $value = array_shift($cf->get($key, new ColumnSlice("", "")));
+            $value = $cf->get($key, new ColumnSlice("", ""));
+            $value = array_shift($value);
         } catch (\cassandra\NotFoundException $e) {
             return false;
         }
@@ -362,5 +364,43 @@ class Cassandra implements AuthorizationCodeInterface,
     {
         //TODO: Needs cassandra implementation.
         throw new \Exception('setJti() for the Cassandra driver is currently unimplemented.');
+    }
+
+	/* PublicKeyInterface */
+    public function getPublicKey($client_id = '')
+    {
+        $public_key = $this->getValue($this->config['public_key_key'] . $client_id);
+        if (is_array($public_key)) {
+            return $public_key['public_key'];
+        }
+        $public_key = $this->getValue($this->config['public_key_key']);
+        if (is_array($public_key)) {
+            return $public_key['public_key'];
+        }
+    }
+
+    public function getPrivateKey($client_id = '')
+    {
+        $public_key = $this->getValue($this->config['public_key_key'] . $client_id);
+        if (is_array($public_key)) {
+            return $public_key['private_key'];
+        }
+        $public_key = $this->getValue($this->config['public_key_key']);
+        if (is_array($public_key)) {
+            return $public_key['private_key'];
+        }
+    }
+
+    public function getEncryptionAlgorithm($client_id = null)
+    {
+        $public_key = $this->getValue($this->config['public_key_key'] . $client_id);
+        if (is_array($public_key)) {
+            return $public_key['encryption_algorithm'];
+        }
+        $public_key = $this->getValue($this->config['public_key_key']);
+        if (is_array($public_key)) {
+            return $public_key['encryption_algorithm'];
+        }
+        return 'RS256';
     }
 }
