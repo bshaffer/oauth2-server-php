@@ -265,7 +265,8 @@ class Bootstrap
         $storage->setClientDetails("oauth_test_client", "testpass", "http://example.com", 'implicit password');
         $storage->setAccessToken("testtoken", "Some Client", '', time() + 1000);
         $storage->setAuthorizationCode("testcode", "Some Client", '', '', time() + 1000);
-        $storage->setUser("testuser", "password");
+
+
 
         $storage->setScope('supportedscope1 supportedscope2 supportedscope3 supportedscope4');
         $storage->setScope('defaultscope1 defaultscope2', null, 'default');
@@ -287,6 +288,9 @@ class Bootstrap
         $cf->insert("oauth_public_keys:ClientID_One", array('__data' => json_encode(array("public_key" => "client_1_public", "private_key" => "client_1_private", "encryption_algorithm" => "RS256"))));
         $cf->insert("oauth_public_keys:ClientID_Two", array('__data' => json_encode(array("public_key" => "client_2_public", "private_key" => "client_2_private", "encryption_algorithm" => "RS256"))));
         $cf->insert("oauth_public_keys:", array('__data' => json_encode(array("public_key" => $this->getTestPublicKey(), "private_key" =>  $this->getTestPrivateKey(), "encryption_algorithm" => "RS256"))));
+
+        $cf->insert("oauth_users:testuser", array('__data' =>json_encode(array("password" => "password", "email" => "testuser@test.com", "email_verified" => true))));
+
     }
 
     private function createSqliteDb(\PDO $pdo)

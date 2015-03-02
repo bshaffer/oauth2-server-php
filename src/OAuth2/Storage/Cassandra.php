@@ -5,6 +5,7 @@ namespace OAuth2\Storage;
 use phpcassa\ColumnFamily;
 use phpcassa\ColumnSlice;
 use phpcassa\Connection\ConnectionPool;
+use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 
 /**
@@ -36,6 +37,7 @@ class Cassandra implements AuthorizationCodeInterface,
     JwtBearerInterface,
     ScopeInterface,
     PublicKeyInterface,
+    UserClaimsInterface,
     OpenIDAuthorizationCodeInterface
 {
 
@@ -403,4 +405,49 @@ class Cassandra implements AuthorizationCodeInterface,
         }
         return 'RS256';
     }
+
+    /* UserClaimsInterface */
+    public function getUserClaims($user_id, $claims)
+    {
+        $userDetails = $this->getUserDetails($user_id);
+        if (!is_array($userDetails)) {
+            return false;
+        }
+
+        $claims = explode(' ', trim($claims));
+        $userClaims = array();
+
+        // for each requested claim, if the user has the claim, set it in the response
+        $validClaims = explode(' ', self::VALID_CLAIMS);
+        foreach ($validClaims as $validClaim) {
+            if (in_array($validClaim, $claims)) {
+                if ($validClaim == 'address') {
+                    // address is an object with subfields
+                    $userClaims['address'] = $this->getUserClaim($validClaim, $userDetails['address'] ?: $userDetails);
+                } else {
+                    $userClaims = array_merge($userClaims, $this->getUserClaim($validClaim, $userDetails));
+                }
+            }
+        }
+
+        return $userClaims;
+    }
+
+    protected function getUserClaim($claim, $userDetails)
+    {
+        $userClaims = array();
+        $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($claim)));
+        $claimValues = explode(' ', $claimValuesString);
+
+        foreach ($claimValues as $value) {
+            if ($value == 'email_verified') {
+                $userClaims[$value] = $userDetails[$value]=='true' ? true : false;
+            } else {
+                $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
+            }
+        }
+
+        return $userClaims;
+    }
+
 }
