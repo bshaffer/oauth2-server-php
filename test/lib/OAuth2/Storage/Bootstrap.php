@@ -173,7 +173,6 @@ class Bootstrap
         if (!$this->couchbase) {
             $skipCouchbase = $this->getEnvVar('SKIP_COUCHBASE_TESTS');
             if (!$skipCouchbase && class_exists('Couchbase')) {
-
                 $couchbase = new \Couchbase(array('localhost:8091'), '', '', 'auth', false);
                 if ($this->testCouchbaseConnection($couchbase)) {
                     $this->clearCouchbase($couchbase);
@@ -266,8 +265,6 @@ class Bootstrap
         $storage->setAccessToken("testtoken", "Some Client", '', time() + 1000);
         $storage->setAuthorizationCode("testcode", "Some Client", '', '', time() + 1000);
 
-
-
         $storage->setScope('supportedscope1 supportedscope2 supportedscope3 supportedscope4');
         $storage->setScope('defaultscope1 defaultscope2', null, 'default');
 
@@ -319,6 +316,10 @@ class Bootstrap
 
     private function createPostgresDb()
     {
+        if (!`psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='postgres'"`) {
+            `createuser -s -r postgres`;
+        }
+
         `createdb -O postgres oauth2_server_php`;
     }
 
@@ -329,7 +330,9 @@ class Bootstrap
 
     private function removePostgresDb()
     {
-        `dropdb oauth2_server_php`;
+        if (trim(`psql -l | grep oauth2_server_php | wc -l`)) {
+            `dropdb oauth2_server_php`;
+        }
     }
 
     public function runPdoSql(\PDO $pdo)
