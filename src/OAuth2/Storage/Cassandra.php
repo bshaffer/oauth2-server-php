@@ -172,9 +172,17 @@ class Cassandra implements AuthorizationCodeInterface,
     /* UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
-        $user = $this->getUserDetails($username);
+        if ($user = $this->getUser($username)) {
+            return $this->checkPassword($user, $password);
+        }
 
-        return $user && $user['password'] === $password;
+        return false;
+    }
+
+    // plaintext passwords are bad!  Override this for your application
+    protected function checkPassword($user, $password)
+    {
+        return $user['password'] == sha1($password);
     }
 
     public function getUserDetails($username)
@@ -196,6 +204,7 @@ class Cassandra implements AuthorizationCodeInterface,
 
     public function setUser($username, $password, $first_name = null, $last_name = null)
     {
+        $password = sha1($password);
         return $this->setValue(
             $this->config['user_key'] . $username,
             compact('username', 'password', 'first_name', 'last_name')
@@ -248,6 +257,7 @@ class Cassandra implements AuthorizationCodeInterface,
         // if grant_types are not defined, then none are restricted
         return true;
     }
+
 
     /* RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
