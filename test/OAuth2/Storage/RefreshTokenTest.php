@@ -32,5 +32,10 @@ class RefreshTokenTest extends BaseTest
         $this->assertEquals($token['client_id'], 'client ID');
         $this->assertEquals($token['user_id'], 'SOMEUSERID');
         $this->assertEquals($token['expires'], $expires);
+
+        // add token with scope having an empty string value
+        $expires = time() + 20;
+        $success = $storage->setRefreshToken('refreshtoken2', 'client ID', 'SOMEUSERID', $expires, '');
+        $this->assertTrue($success);
     }
 }

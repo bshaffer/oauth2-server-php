@@ -48,5 +48,10 @@ class AccessTokenTest extends BaseTest
         $this->assertEquals($token['client_id'], 'client ID2');
         $this->assertEquals($token['user_id'], 'SOMEOTHERID');
         $this->assertEquals($token['expires'], $expires);
+
+        // add token with scope having an empty string value
+        $expires = time() + 42;
+        $success = $storage->setAccessToken('newtoken', 'client ID', 'SOMEOTHERID', $expires, '');
+        $this->assertTrue($success);
     }
 }
