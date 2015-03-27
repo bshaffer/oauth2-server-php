@@ -151,6 +151,7 @@ class DynamoDB implements
     public function getAccessToken($access_token)
     {
         $result = $this->client->getItem(array(
+            "ConsistentRead" => true,
             "TableName"=> $this->config['access_token_table'],
             "Key" => array('access_token'   => array('S' => $access_token))
         ));
