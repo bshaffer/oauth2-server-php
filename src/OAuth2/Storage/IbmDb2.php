@@ -34,28 +34,47 @@ class IbmDb2 implements
 
     public function __construct($connection, $config = array())
     {
-        if (!$connection instanceof \PDO) {
-            if (is_string($connection)) {
-                $connection = array('dsn' => $connection);
-            }
+        if (!is_resource($connection)) {
+            // Note: Unlike PDO, IbmDb2 (ibm_db2 extension) cannot be configured via dsn string.
+            
             if (!is_array($connection)) {
-                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Pdo must be an instance of PDO, a DSN string, or a configuration array');
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\IbmDb2 must be a resource or a configuration array');
             }
-            if (!isset($connection['dsn'])) {
-                throw new \InvalidArgumentException('configuration array must contain "dsn"');
-            }
-            // merge optional parameters
+            
+            /* FYI: ZF2 used more flexible naming
+               $database = $findParameterValue(array('database', 'db'));
+               $username = $findParameterValue(array('username', 'uid', 'UID'));
+               $password = $findParameterValue(array('password', 'pwd', 'PWD'));
+              $isPersistent = $findParameterValue(array('persistent', 'PERSISTENT', 'Persistent'));
+           */
+            
+            // merge optional parameters. Set empty defaults if not present in $connection array.
             $connection = array_merge(array(
-                'username' => null,
-                'password' => null,
-                'options' => array(),
+                'db' =>     '',
+                'username' =>   '',
+                'password' =>   '',
+                'persistent' => false,
+                'driver_options' =>    array(),
             ), $connection);
-            $connection = new \PDO($connection['dsn'], $connection['username'], $connection['password'], $connection['options']);
-        }
-        $this->db = $connection;
+            
+            // use persistent or not
+            $isPersistent = $connection['persistent'];
+            $connectFunction = ((bool) $isPersistent) ? 'db2_pconnect' : 'db2_connect';
+            
+            // try to connect
+            $connection = $connectFunction($connection['database'], $connection['username'], $connection['password'], $connection['driver_options']);
 
-        // debugging
-        $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            // this is how ZF2 handles connection errors
+            if ($connection === false) {
+                throw new Exception\RuntimeException(sprintf(
+                    '%s: Unable to connect to database',
+                    __METHOD__
+                ));
+            }
+            
+        }
+        
+        $this->db = $connection;
 
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
@@ -73,9 +92,9 @@ class IbmDb2 implements
     /* OAuth2\Storage\ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
-        $stmt->execute(compact('client_id'));
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $stmt = db2_prepare($this->db, sprintf('SELECT * from %s where client_id = ?', $this->config['client_table']));
+        $successfulExecute = db2_execute($stmt, compact('client_id'));
+        $result = db2_fetch_assoc($stmt);
 
         // make this extensible
         return $result && $result['client_secret'] == $client_secret;
