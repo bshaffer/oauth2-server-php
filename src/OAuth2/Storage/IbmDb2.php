@@ -16,6 +16,7 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
  * a good idea.  Be sure to override this for your application
  *
  * @author Brent Shaffer <bshafs at gmail dot com>
+ * @author Alan Seiden <alan at alanseiden dot com>
  */
 class IbmDb2 implements
     AuthorizationCodeInterface,
@@ -102,10 +103,10 @@ class IbmDb2 implements
 
     public function isPublicClient($client_id)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
-        $stmt->execute(compact('client_id'));
-
-        if (!$result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        $stmt = db2_prepare($this->db, sprintf('SELECT * from %s where client_id = ?', $this->config['client_table']));
+        $successfulExecute = db2_execute($stmt, compact('client_id'));
+        
+        if (!$result = db2_fetch_assoc($stmt)) {
             return false;
         }
 
@@ -115,22 +116,23 @@ class IbmDb2 implements
     /* OAuth2\Storage\ClientInterface */
     public function getClientDetails($client_id)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
-        $stmt->execute(compact('client_id'));
-
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
+        $stmt = db2_prepare($this->db, sprintf('SELECT * from %s where client_id = ?', $this->config['client_table']));
+        $successfulExecute = db2_execute($stmt, compact('client_id'));
+        
+        return db2_fetch_assoc($stmt);
     }
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
     {
         // if it exists, update it.
         if ($this->getClientDetails($client_id)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_secret=:client_secret, redirect_uri=:redirect_uri, grant_types=:grant_types, scope=:scope, user_id=:user_id where client_id=:client_id', $this->config['client_table']));
+            $stmt = db2_prepare($this->db, $sql = sprintf('UPDATE %s SET client_secret=?, redirect_uri=?, grant_types=?, scope=?, user_id=? where client_id=?', $this->config['client_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (client_id, client_secret, redirect_uri, grant_types, scope, user_id) VALUES (:client_id, :client_secret, :redirect_uri, :grant_types, :scope, :user_id)', $this->config['client_table']));
+            $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (client_id, client_secret, redirect_uri, grant_types, scope, user_id) VALUES (?, ?, ?, ?, ?, ?)', $this->config['client_table']));
         }
 
-        return $stmt->execute(compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id'));
+        return db2_execute($stmt, compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id'));
+        
     }
 
     public function checkRestrictedGrantType($client_id, $grant_type)
@@ -149,10 +151,11 @@ class IbmDb2 implements
     /* OAuth2\Storage\AccessTokenInterface */
     public function getAccessToken($access_token)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = :access_token', $this->config['access_token_table']));
+        $stmt = db2_prepare($this->db, sprintf('SELECT * from %s where access_token = ?', $this->config['access_token_table']));
 
-        $token = $stmt->execute(compact('access_token'));
-        if ($token = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        $token = db2_execute($stmt, compact('access_token'));
+        
+        if ($token = db2_fetch_assoc($stmt)) {
             // convert date string back to timestamp
             $token['expires'] = strtotime($token['expires']);
         }
@@ -167,21 +170,21 @@ class IbmDb2 implements
 
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
-            $stmt = $this->db->prepare(sprintf('UPDATE %s SET client_id=:client_id, expires=:expires, user_id=:user_id, scope=:scope where access_token=:access_token', $this->config['access_token_table']));
+            $stmt = db2_prepare($this->db, sprintf('UPDATE %s SET client_id=?, expires=?, user_id=?, scope=? where access_token=?', $this->config['access_token_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (access_token, client_id, expires, user_id, scope) VALUES (:access_token, :client_id, :expires, :user_id, :scope)', $this->config['access_token_table']));
+            $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (access_token, client_id, expires, user_id, scope) VALUES (?, ?, ?, ?, ?)', $this->config['access_token_table']));
         }
-
-        return $stmt->execute(compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
+        
+        return db2_execute($stmt, compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
     /* OAuth2\Storage\AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = :code', $this->config['code_table']));
-        $stmt->execute(compact('code'));
+        $stmt = db2_prepare($this->db, sprintf('SELECT * from %s where authorization_code = ?', $this->config['code_table']));
+        $successfulExecute = db2_execute($stmt, compact('client_id'));
 
-        if ($code = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        if ($code = db2_fetch_assoc($stmt)) {
             // convert date string back to timestamp
             $code['expires'] = strtotime($code['expires']);
         }
@@ -201,12 +204,12 @@ class IbmDb2 implements
 
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_id=:client_id, user_id=:user_id, redirect_uri=:redirect_uri, expires=:expires, scope=:scope where authorization_code=:code', $this->config['code_table']));
+            $stmt = db2_prepare($this->db, $sql = sprintf('UPDATE %s SET client_id=?, user_id=?, redirect_uri=?, expires=?, scope=? where authorization_code=?', $this->config['code_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope)', $this->config['code_table']));
+            $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (?, ?, ?, ?, ?, ?)', $this->config['code_table']));
         }
 
-        return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
+        return db2_execute($stmt, compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
     }
 
     private function setAuthorizationCodeWithIdToken($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
@@ -216,19 +219,20 @@ class IbmDb2 implements
 
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_id=:client_id, user_id=:user_id, redirect_uri=:redirect_uri, expires=:expires, scope=:scope, id_token =:id_token where authorization_code=:code', $this->config['code_table']));
+            $stmt = db2_prepare($this->db, $sql = sprintf('UPDATE %s SET client_id=?, user_id=?, redirect_uri=?, expires=?, scope=?, id_token =? where authorization_code=?', $this->config['code_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope, id_token) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope, :id_token)', $this->config['code_table']));
+            $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope, id_token) VALUES (?, ?, ?, ?, ?, ?, ?)', $this->config['code_table']));
         }
 
-        return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
+        return db2_execute($stmt, compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
     }
 
     public function expireAuthorizationCode($code)
     {
-        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE authorization_code = :code', $this->config['code_table']));
+        $stmt = db2_prepare($this->db, sprintf('DELETE FROM %s WHERE authorization_code = ?', $this->config['code_table']));
 
-        return $stmt->execute(compact('code'));
+        return db2_execute($stmt, compact('code'));
+        
     }
 
     /* OAuth2\Storage\UserCredentialsInterface */
@@ -288,10 +292,10 @@ class IbmDb2 implements
     /* OAuth2\Storage\RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT * FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
+        $stmt = db2_prepare($this->db, sprintf('SELECT * FROM %s WHERE refresh_token = ?', $this->config['refresh_token_table']));
 
-        $token = $stmt->execute(compact('refresh_token'));
-        if ($token = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        $token = db2_execute($stmt, compact('refresh_token'));
+        if ($token = db2_fetch_assoc($stmt)) {
             // convert expires to epoch time
             $token['expires'] = strtotime($token['expires']);
         }
@@ -304,16 +308,16 @@ class IbmDb2 implements
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
 
-        $stmt = $this->db->prepare(sprintf('INSERT INTO %s (refresh_token, client_id, user_id, expires, scope) VALUES (:refresh_token, :client_id, :user_id, :expires, :scope)', $this->config['refresh_token_table']));
+        $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (refresh_token, client_id, user_id, expires, scope) VALUES (?, ?, ?, ?, ?)', $this->config['refresh_token_table']));
 
-        return $stmt->execute(compact('refresh_token', 'client_id', 'user_id', 'expires', 'scope'));
+        return db2_execute($stmt, compact('refresh_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
     public function unsetRefreshToken($refresh_token)
     {
-        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
+        $stmt = db2_prepare($this->db, sprintf('DELETE FROM %s WHERE refresh_token = ?', $this->config['refresh_token_table']));
 
-        return $stmt->execute(compact('refresh_token'));
+        return db2_execute($stmt, compact('refresh_token'));
     }
 
     // plaintext passwords are bad!  Override this for your application
@@ -324,10 +328,10 @@ class IbmDb2 implements
 
     public function getUser($username)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
-        $stmt->execute(array('username' => $username));
+        $stmt = db2_prepare($this->db, $sql = sprintf('SELECT * from %s where username=?', $this->config['user_table']));
+        $successfulExecute = db2_execute($stmt, array('username' => $username));
 
-        if (!$userInfo = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        if (!$userInfo = db2_fetch_assoc($stmt)) {
             return false;
         }
 
@@ -344,12 +348,12 @@ class IbmDb2 implements
 
         // if it exists, update it.
         if ($this->getUser($username)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table']));
+            $stmt = db2_prepare($this->db, $sql = sprintf('UPDATE %s SET password=?, first_name=?, last_name=? where username=?', $this->config['user_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
+            $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (?, ?, ?, ?)', $this->config['user_table']));
         }
 
-        return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
+        return db2_execute($stmt, compact('username', 'password', 'firstName', 'lastName'));
     }
 
     /* ScopeInterface */
@@ -357,10 +361,10 @@ class IbmDb2 implements
     {
         $scope = explode(' ', $scope);
         $whereIn = implode(',', array_fill(0, count($scope), '?'));
-        $stmt = $this->db->prepare(sprintf('SELECT count(scope) as count FROM %s WHERE scope IN (%s)', $this->config['scope_table'], $whereIn));
-        $stmt->execute($scope);
+        $stmt = db2_prepare($this->db, sprintf('SELECT count(scope) as count FROM %s WHERE scope IN (%s)', $this->config['scope_table'], $whereIn));
+        $successfulExecute = db2_execute($stmt, $scope);
 
-        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        if ($result = db2_fetch_assoc($stmt)) {
             return $result['count'] == count($scope);
         }
 
@@ -369,10 +373,17 @@ class IbmDb2 implements
 
     public function getDefaultScope($client_id = null)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s WHERE is_default=:is_default', $this->config['scope_table']));
-        $stmt->execute(array('is_default' => true));
+        $stmt = db2_prepare($this->db, sprintf('SELECT scope FROM %s WHERE is_default=?', $this->config['scope_table']));
+        $successfulExecute = db2_execute($stmt, array('is_default' => true));
 
-        if ($result = $stmt->fetchAll(\PDO::FETCH_ASSOC)) {
+        
+        $result = false;
+        // was fetchAll()
+        while (db2_fetch_assoc($stmt) == $oneRecord) {
+            $result[] = $oneRecord;
+        }
+        
+        if ($result) {
             $defaultScope = array_map(function ($row) {
                 return $row['scope'];
             }, $result);
@@ -386,9 +397,9 @@ class IbmDb2 implements
     /* JWTBearerInterface */
     public function getClientKey($client_id, $subject)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));
+        $stmt = db2_prepare($this->db, $sql = sprintf('SELECT public_key from %s where client_id=? AND subject=?', $this->config['jwt_table']));
 
-        $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
+        $successfulExecute = db2_execute($stmt, array('client_id' => $client_id, 'subject' => $subject));
 
         return $stmt->fetchColumn();
     }
@@ -408,11 +419,11 @@ class IbmDb2 implements
 
     public function getJti($client_id, $subject, $audience, $expires, $jti)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT * FROM %s WHERE issuer=:client_id AND subject=:subject AND audience=:audience AND expires=:expires AND jti=:jti', $this->config['jti_table']));
+        $stmt = db2_prepare($this->db, $sql = sprintf('SELECT * FROM %s WHERE issuer=? AND subject=? AND audience=? AND expires=? AND jti=?', $this->config['jti_table']));
 
-        $stmt->execute(compact('client_id', 'subject', 'audience', 'expires', 'jti'));
+        $successfulExecute = db2_execute($stmt, compact('client_id', 'subject', 'audience', 'expires', 'jti'));
 
-        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        if ($result = db2_fetch_assoc($stmt)) {
             return array(
                 'issuer' => $result['issuer'],
                 'subject' => $result['subject'],
@@ -427,38 +438,38 @@ class IbmDb2 implements
 
     public function setJti($client_id, $subject, $audience, $expires, $jti)
     {
-        $stmt = $this->db->prepare(sprintf('INSERT INTO %s (issuer, subject, audience, expires, jti) VALUES (:client_id, :subject, :audience, :expires, :jti)', $this->config['jti_table']));
+        $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (issuer, subject, audience, expires, jti) VALUES (?, ?, ?, ?, ?)', $this->config['jti_table']));
 
-        return $stmt->execute(compact('client_id', 'subject', 'audience', 'expires', 'jti'));
+        return db2_execute($stmt, compact('client_id', 'subject', 'audience', 'expires', 'jti'));
     }
 
     /* PublicKeyInterface */
     public function getPublicKey($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+        $stmt = db2_prepare($this->db, $sql = sprintf('SELECT public_key FROM %s WHERE client_id=? OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
 
-        $stmt->execute(compact('client_id'));
-        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        $successfulExecute = db2_execute($stmt, compact('client_id'));
+        if ($result = db2_fetch_assoc($stmt)) {
             return $result['public_key'];
         }
     }
 
     public function getPrivateKey($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT private_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+        $stmt = db2_prepare($this->db, $sql = sprintf('SELECT private_key FROM %s WHERE client_id=? OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
 
-        $stmt->execute(compact('client_id'));
-        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        $successfulExecute = db2_execute($stmt, compact('client_id'));
+        if ($result = db2_fetch_assoc($stmt)) {
             return $result['private_key'];
         }
     }
 
     public function getEncryptionAlgorithm($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT encryption_algorithm FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+        $stmt = db2_prepare($this->db, $sql = sprintf('SELECT encryption_algorithm FROM %s WHERE client_id=? OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
 
-        $stmt->execute(compact('client_id'));
-        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        $successfulExecute = db2_execute($stmt, compact('client_id'));
+        if ($result = db2_fetch_assoc($stmt)) {
             return $result['encryption_algorithm'];
         }
 
@@ -466,7 +477,7 @@ class IbmDb2 implements
     }
 
     /**
-     * DDL to create OAuth2 database and tables for PDO storage
+     * DDL to create OAuth2 database and tables for IbmDb2 storage
      *
      * @see https://github.com/dsquier/oauth2-server-php-mysql
      */
@@ -481,7 +492,7 @@ class IbmDb2 implements
           scope                 VARCHAR(4000),
           user_id               VARCHAR(80),
           PRIMARY KEY (client_id)
-        );
+        )
 
         CREATE TABLE {$this->config['access_token_table']} (
           access_token         VARCHAR(40)    NOT NULL,
@@ -490,7 +501,7 @@ class IbmDb2 implements
           expires              TIMESTAMP      NOT NULL,
           scope                VARCHAR(4000),
           PRIMARY KEY (access_token)
-        );
+        )
 
         CREATE TABLE {$this->config['code_table']} (
           authorization_code  VARCHAR(40)    NOT NULL,
@@ -501,7 +512,7 @@ class IbmDb2 implements
           scope               VARCHAR(4000),
           id_token            VARCHAR(1000),
           PRIMARY KEY (authorization_code)
-        );
+        )
 
         CREATE TABLE {$this->config['refresh_token_table']} (
           refresh_token       VARCHAR(40)    NOT NULL,
@@ -510,7 +521,7 @@ class IbmDb2 implements
           expires             TIMESTAMP      NOT NULL,
           scope               VARCHAR(4000),
           PRIMARY KEY (refresh_token)
-        );
+        )
 
         CREATE TABLE {$this->config['user_table']} (
           username            VARCHAR(80),
@@ -520,19 +531,19 @@ class IbmDb2 implements
           email               VARCHAR(80),
           email_verified      BOOLEAN,
           scope               VARCHAR(4000)
-        );
+        )
 
         CREATE TABLE {$this->config['scope_table']} (
           scope               VARCHAR(80)  NOT NULL,
           is_default          BOOLEAN,
           PRIMARY KEY (scope)
-        );
+        )
 
         CREATE TABLE {$this->config['jwt_table']} (
           client_id           VARCHAR(80)   NOT NULL,
           subject             VARCHAR(80),
           public_key          VARCHAR(2000) NOT NULL
-        );
+        )
 
         CREATE TABLE {$this->config['jti_table']} (
           issuer              VARCHAR(80)   NOT NULL,
@@ -540,7 +551,7 @@ class IbmDb2 implements
           audiance            VARCHAR(80),
           expires             TIMESTAMP     NOT NULL,
           jti                 VARCHAR(2000) NOT NULL
-        );
+        )
 
         CREATE TABLE {$this->config['public_key_table']} (
           client_id            VARCHAR(80),
