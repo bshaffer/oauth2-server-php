@@ -76,6 +76,7 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
             self::RESPONSE_TYPE_AUTHORIZATION_CODE,
             self::RESPONSE_TYPE_ID_TOKEN,
             self::RESPONSE_TYPE_ID_TOKEN_TOKEN,
+            self::RESPONSE_TYPE_CODE_ID_TOKEN,
         );
     }
 
