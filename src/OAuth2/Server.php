@@ -20,6 +20,7 @@ use OAuth2\ResponseType\ResponseTypeInterface;
 use OAuth2\ResponseType\AuthorizationCode as AuthorizationCodeResponseType;
 use OAuth2\ResponseType\AccessToken;
 use OAuth2\ResponseType\JwtAccessToken;
+use OAuth2\OpenID\ResponseType\CodeIdToken;
 use OAuth2\OpenID\ResponseType\IdToken;
 use OAuth2\OpenID\ResponseType\IdTokenToken;
 use OAuth2\TokenType\TokenTypeInterface;
@@ -81,6 +82,7 @@ class Server implements ResourceControllerInterface,
         'code' => 'OAuth2\ResponseType\AuthorizationCodeInterface',
         'id_token' => 'OAuth2\OpenID\ResponseType\IdTokenInterface',
         'id_token token' => 'OAuth2\OpenID\ResponseType\IdTokenTokenInterface',
+        'code id_token' => 'OAuth2\OpenID\ResponseType\CodeIdTokenInterface',
     );
 
     /**
@@ -133,6 +135,10 @@ class Server implements ResourceControllerInterface,
         $this->tokenType = $tokenType;
         $this->scopeUtil = $scopeUtil;
         $this->clientAssertionType = $clientAssertionType;
+
+        if ($this->config['use_openid_connect']) {
+            $this->validateOpenIdConnect();
+        }
     }
 
     public function getAuthorizeController()
@@ -571,6 +577,7 @@ class Server implements ResourceControllerInterface,
                     throw new \LogicException("Your authorization_code storage must implement OAuth2\OpenID\Storage\AuthorizationCodeInterface to work when 'use_openid_connect' is true");
                 }
                 $responseTypes['code'] = new OpenIDAuthorizationCodeResponseType($this->storages['authorization_code'], $config);
+                $responseTypes['code id_token'] = new CodeIdToken($responseTypes['code'], $responseTypes['id_token']);
             } else {
                 $responseTypes['code'] = new AuthorizationCodeResponseType($this->storages['authorization_code'], $config);
             }
@@ -724,6 +731,14 @@ class Server implements ResourceControllerInterface,
     protected function createDefaultIdTokenTokenResponseType()
     {
         return new IdTokenToken($this->getAccessTokenResponseType(), $this->getIdTokenResponseType());
+    }
+
+    protected function validateOpenIdConnect()
+    {
+        $authCodeGrant = $this->getGrantType('authorization_code');
+        if (!empty($authCodeGrant) && !$authCodeGrant instanceof OpenIDAuthorizationCodeGrantType) {
+            throw new \InvalidArgumentException('You have enabled OpenID Connect, but supplied a grant type that does not support it.');
+        }
     }
 
     protected function normalizeResponseType($name)

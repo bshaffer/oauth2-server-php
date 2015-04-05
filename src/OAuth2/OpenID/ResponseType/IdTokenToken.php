@@ -9,7 +9,7 @@ class IdTokenToken implements IdTokenTokenInterface
     protected $accessToken;
     protected $idToken;
 
-    public function __construct(AccessTokenInterface $accessToken, IdToken $idToken)
+    public function __construct(AccessTokenInterface $accessToken, IdTokenInterface $idToken)
     {
         $this->accessToken = $accessToken;
         $this->idToken = $idToken;
