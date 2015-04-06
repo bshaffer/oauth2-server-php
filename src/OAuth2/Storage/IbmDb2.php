@@ -37,18 +37,18 @@ class IbmDb2 implements
     {
         if (!is_resource($connection)) {
             // Note: Unlike PDO, IbmDb2 (ibm_db2 extension) cannot be configured via dsn string.
-            
+
             if (!is_array($connection)) {
                 throw new \InvalidArgumentException('First argument to OAuth2\Storage\IbmDb2 must be a resource or a configuration array');
             }
-            
+
             /* FYI: ZF2 used more flexible naming
                $database = $findParameterValue(array('database', 'db'));
                $username = $findParameterValue(array('username', 'uid', 'UID'));
                $password = $findParameterValue(array('password', 'pwd', 'PWD'));
               $isPersistent = $findParameterValue(array('persistent', 'PERSISTENT', 'Persistent'));
            */
-            
+
             // merge optional parameters. Set empty defaults if not present in $connection array.
             $connection = array_merge(array(
                 'db' =>     '',
@@ -57,11 +57,11 @@ class IbmDb2 implements
                 'persistent' => false,
                 'driver_options' =>    array(),
             ), $connection);
-            
+
             // use persistent or not
             $isPersistent = $connection['persistent'];
             $connectFunction = ((bool) $isPersistent) ? 'db2_pconnect' : 'db2_connect';
-            
+
             // try to connect
             $connection = $connectFunction($connection['database'], $connection['username'], $connection['password'], $connection['driver_options']);
 
@@ -72,9 +72,9 @@ class IbmDb2 implements
                     __METHOD__
                 ));
             }
-            
+
         }
-        
+
         $this->db = $connection;
 
         $this->config = array_merge(array(
@@ -98,14 +98,14 @@ class IbmDb2 implements
         $result = db2_fetch_assoc($stmt);
 
         // make this extensible
-        return $result && $result['client_secret'] == $client_secret;
+        return $result && $result['CLIENT_SECRET'] == $client_secret;
     }
 
     public function isPublicClient($client_id)
     {
         $stmt = db2_prepare($this->db, sprintf('SELECT * from %s where client_id = ?', $this->config['client_table']));
         $successfulExecute = db2_execute($stmt, compact('client_id'));
-        
+
         if (!$result = db2_fetch_assoc($stmt)) {
             return false;
         }
@@ -118,7 +118,7 @@ class IbmDb2 implements
     {
         $stmt = db2_prepare($this->db, sprintf('SELECT * from %s where client_id = ?', $this->config['client_table']));
         $successfulExecute = db2_execute($stmt, compact('client_id'));
-        
+
         return db2_fetch_assoc($stmt);
     }
 
@@ -132,7 +132,7 @@ class IbmDb2 implements
         }
 
         return db2_execute($stmt, compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id'));
-        
+
     }
 
     public function checkRestrictedGrantType($client_id, $grant_type)
@@ -154,7 +154,7 @@ class IbmDb2 implements
         $stmt = db2_prepare($this->db, sprintf('SELECT * from %s where access_token = ?', $this->config['access_token_table']));
 
         $token = db2_execute($stmt, compact('access_token'));
-        
+
         if ($token = db2_fetch_assoc($stmt)) {
             // convert date string back to timestamp
             $token['expires'] = strtotime($token['expires']);
@@ -166,16 +166,27 @@ class IbmDb2 implements
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
         // convert expires to datestring
-        $expires = date('Y-m-d H:i:s', $expires);
+        $expires = date("Y-m-d-h.i.s", $expires);
 
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
             $stmt = db2_prepare($this->db, sprintf('UPDATE %s SET client_id=?, expires=?, user_id=?, scope=? where access_token=?', $this->config['access_token_table']));
+            if (false == $stmt) {
+                throw new \Exception(db2_stmt_errormsg());
+            }
+            $executeSuccess = db2_execute($stmt, compact('client_id', 'expires', 'user_id', 'scope', 'access_token'));
         } else {
             $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (access_token, client_id, expires, user_id, scope) VALUES (?, ?, ?, ?, ?)', $this->config['access_token_table']));
+            if (false == $stmt) {
+                throw new \Exception(db2_stmt_errormsg());
+            }
+            $executeSuccess = db2_execute($stmt, compact('access_token', 'client_id', 'expires', 'user_id', 'scope'));
         }
-        
-        return db2_execute($stmt, compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
+
+        if (false == $executeSuccess) {
+            throw new \Exception(db2_stmt_errormsg());
+        }
+
     }
 
     /* OAuth2\Storage\AuthorizationCodeInterface */
@@ -232,7 +243,7 @@ class IbmDb2 implements
         $stmt = db2_prepare($this->db, sprintf('DELETE FROM %s WHERE authorization_code = ?', $this->config['code_table']));
 
         return db2_execute($stmt, compact('code'));
-        
+
     }
 
     /* OAuth2\Storage\UserCredentialsInterface */
@@ -323,7 +334,7 @@ class IbmDb2 implements
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {
-        return $user['password'] == sha1($password);
+        return $user['PASSWORD'] == sha1($password);
     }
 
     public function getUser($username)
@@ -376,13 +387,11 @@ class IbmDb2 implements
         $stmt = db2_prepare($this->db, sprintf('SELECT scope FROM %s WHERE is_default=?', $this->config['scope_table']));
         $successfulExecute = db2_execute($stmt, array('is_default' => true));
 
-        
+
         $result = false;
         // was fetchAll()
-        while (db2_fetch_assoc($stmt) == $oneRecord) {
-            $result[] = $oneRecord;
-        }
-        
+        $result = db2_fetch_assoc($stmt);
+
         if ($result) {
             $defaultScope = array_map(function ($row) {
                 return $row['scope'];
