@@ -98,7 +98,7 @@ class IbmDb2 implements
         $result = db2_fetch_assoc($stmt);
 
         // make this extensible
-        return $result && $result['CLIENT_SECRET'] == $client_secret;
+        return $result && $result['client_secret'] == $client_secret;
     }
 
     public function isPublicClient($client_id)
@@ -156,7 +156,10 @@ class IbmDb2 implements
         $token = db2_execute($stmt, compact('access_token'));
 
         if ($token = db2_fetch_assoc($stmt)) {
-            // convert date string back to timestamp
+            
+            //replace 10th character (dash) between day and time with a space
+            $token['expires'] = substr_replace($token['expires'], ' ', 10, 1);
+	    // convert date string back to timestamp
             $token['expires'] = strtotime($token['expires']);
         }
 
@@ -166,7 +169,7 @@ class IbmDb2 implements
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
         // convert expires to datestring
-        $expires = date("Y-m-d-h.i.s", $expires);
+        $expires = date("Y-m-d-H.i.s", $expires);
 
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
@@ -334,7 +337,7 @@ class IbmDb2 implements
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {
-        return $user['PASSWORD'] == sha1($password);
+        return $user['password'] == sha1($password);
     }
 
     public function getUser($username)
