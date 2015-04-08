@@ -16,12 +16,39 @@ use OAuth2\ResponseInterface;
  */
 class TokenController implements TokenControllerInterface
 {
+   /**
+     * @var AccessTokenInterface
+     */
     protected $accessToken;
+
+    /**
+     * @var array<GrantTypeInterface>
+     */
     protected $grantTypes;
+
+    /**
+     * @var ClientAssertionTypeInterface
+     */
     protected $clientAssertionType;
+
+    /**
+     * @var ScopeInterface
+     */
     protected $scopeUtil;
+
+    /**
+     * @var ClientInterface
+     */
     protected $clientStorage;
 
+    /**
+     * @param AccessTokenInterface $accessToken
+     * @param ClientInterface $clientStorage
+     * @param array $grantTypes
+     * @param ClientAssertionTypeInterface $clientAssertionType
+     * @param ScopeInterface $scopeUtil
+     * @throws \InvalidArgumentException
+     */
     public function __construct(AccessTokenInterface $accessToken, ClientInterface $clientStorage, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null)
     {
         if (is_null($clientAssertionType)) {
@@ -44,6 +71,10 @@ class TokenController implements TokenControllerInterface
         $this->scopeUtil = $scopeUtil;
     }
 
+    /**
+     * @param RequestInterface $request - Request object to grant access token
+     * @param ResponseInterface $response - Response object
+     */
     public function handleTokenRequest(RequestInterface $request, ResponseInterface $response)
     {
         if ($token = $this->grantAccessToken($request, $response)) {
@@ -60,11 +91,13 @@ class TokenController implements TokenControllerInterface
      * This would be called from the "/token" endpoint as defined in the spec.
      * You can call your endpoint whatever you want.
      *
-     * @param $request - RequestInterface
-     * Request object to grant access token
+     * @param RequestInterface $request - Request object to grant access token
+     * @param ResponseInterface $response - Response object
      *
-     * @throws InvalidArgumentException
-     * @throws LogicException
+     * @return bool|null|array
+     * 
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      *
      * @see http://tools.ietf.org/html/rfc6749#section-4
      * @see http://tools.ietf.org/html/rfc6749#section-10.6
@@ -98,6 +131,7 @@ class TokenController implements TokenControllerInterface
             return null;
         }
 
+        /** @var GrantTypeInterface $grantType */
         $grantType = $this->grantTypes[$grantTypeIdentifier];
 
         /**
@@ -204,10 +238,8 @@ class TokenController implements TokenControllerInterface
     /**
      * addGrantType
      *
-     * @param grantType - OAuth2\GrantTypeInterface
-     * the grant type to add for the specified identifier
-     * @param identifier - string
-     * a string passed in as "grant_type" in the response that will call this grantType
+     * @param GrantTypeInterface $grantType - the grant type to add for the specified identifier
+     * @param string|null $identifier - a string passed in as "grant_type" in the response that will call this grantType
      */
     public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
     {
