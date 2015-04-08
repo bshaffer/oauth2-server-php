@@ -6,7 +6,6 @@ use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 
 /**
- * NOTE: WIP : convert pdo stuff to db2
  *
  * NOTE: This class is meant to get users started
  * quickly. If your application requires further
@@ -42,16 +41,9 @@ class IbmDb2 implements
                 throw new \InvalidArgumentException('First argument to OAuth2\Storage\IbmDb2 must be a resource or a configuration array');
             }
 
-            /* FYI: ZF2 used more flexible naming
-               $database = $findParameterValue(array('database', 'db'));
-               $username = $findParameterValue(array('username', 'uid', 'UID'));
-               $password = $findParameterValue(array('password', 'pwd', 'PWD'));
-              $isPersistent = $findParameterValue(array('persistent', 'PERSISTENT', 'Persistent'));
-           */
-
             // merge optional parameters. Set empty defaults if not present in $connection array.
             $connection = array_merge(array(
-                'db' =>     '',
+                'database' =>     '',
                 'username' =>   '',
                 'password' =>   '',
                 'persistent' => false,
@@ -127,11 +119,12 @@ class IbmDb2 implements
         // if it exists, update it.
         if ($this->getClientDetails($client_id)) {
             $stmt = db2_prepare($this->db, $sql = sprintf('UPDATE %s SET client_secret=?, redirect_uri=?, grant_types=?, scope=?, user_id=? where client_id=?', $this->config['client_table']));
+            return db2_execute($stmt, compact('client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id', 'client_id'));
         } else {
             $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (client_id, client_secret, redirect_uri, grant_types, scope, user_id) VALUES (?, ?, ?, ?, ?, ?)', $this->config['client_table']));
+            return db2_execute($stmt, compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id'));
+            
         }
-
-        return db2_execute($stmt, compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id'));
 
     }
 
@@ -157,9 +150,10 @@ class IbmDb2 implements
 
         if ($token = db2_fetch_assoc($stmt)) {
             
-            //replace 10th character (dash) between day and time with a space
+            // db2 timestamps look like yyyy-mm-dd-hh.mm.ss.000000 where the last six are microseconds.
+            // replace 10th character (dash between day and time) with a space to make it intelligible to strtotime()
             $token['expires'] = substr_replace($token['expires'], ' ', 10, 1);
-	    // convert date string back to timestamp
+	        // convert date string back to Unix timestamp
             $token['expires'] = strtotime($token['expires']);
         }
 
@@ -199,7 +193,10 @@ class IbmDb2 implements
         $successfulExecute = db2_execute($stmt, compact('client_id'));
 
         if ($code = db2_fetch_assoc($stmt)) {
-            // convert date string back to timestamp
+            // db2 timestamps look like yyyy-mm-dd-hh.mm.ss.000000 where the last six are microseconds.
+            // replace 10th character (dash between day and time) with a space to make it intelligible to strtotime()
+            $code['expires'] = substr_replace($code['expires'], ' ', 10, 1);
+	        // convert date string back to Unix timestamp
             $code['expires'] = strtotime($code['expires']);
         }
 
@@ -219,11 +216,13 @@ class IbmDb2 implements
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
             $stmt = db2_prepare($this->db, $sql = sprintf('UPDATE %s SET client_id=?, user_id=?, redirect_uri=?, expires=?, scope=? where authorization_code=?', $this->config['code_table']));
+            return db2_execute($stmt, compact('client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'code'));
         } else {
             $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope) VALUES (?, ?, ?, ?, ?, ?)', $this->config['code_table']));
+            return db2_execute($stmt, compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
+            
         }
 
-        return db2_execute($stmt, compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope'));
     }
 
     private function setAuthorizationCodeWithIdToken($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
@@ -234,11 +233,14 @@ class IbmDb2 implements
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
             $stmt = db2_prepare($this->db, $sql = sprintf('UPDATE %s SET client_id=?, user_id=?, redirect_uri=?, expires=?, scope=?, id_token =? where authorization_code=?', $this->config['code_table']));
+            return db2_execute($stmt, compact('client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token', 'code'));
+            
         } else {
             $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope, id_token) VALUES (?, ?, ?, ?, ?, ?, ?)', $this->config['code_table']));
+            return db2_execute($stmt, compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
+            
         }
 
-        return db2_execute($stmt, compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
     }
 
     public function expireAuthorizationCode($code)
@@ -363,11 +365,13 @@ class IbmDb2 implements
         // if it exists, update it.
         if ($this->getUser($username)) {
             $stmt = db2_prepare($this->db, $sql = sprintf('UPDATE %s SET password=?, first_name=?, last_name=? where username=?', $this->config['user_table']));
+            return db2_execute($stmt, compact('password', 'firstName', 'lastName', 'username'));
         } else {
             $stmt = db2_prepare($this->db, sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (?, ?, ?, ?)', $this->config['user_table']));
+            return db2_execute($stmt, compact('username', 'password', 'firstName', 'lastName'));
+            
         }
 
-        return db2_execute($stmt, compact('username', 'password', 'firstName', 'lastName'));
     }
 
     /* ScopeInterface */
