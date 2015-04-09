@@ -494,32 +494,45 @@ class IbmDb2 implements
 
     /**
      * DDL to create OAuth2 database and tables for IbmDb2 storage
-     *
      * @see https://github.com/dsquier/oauth2-server-php-mysql
+     * 
+     * Notes for IbmDb2 version:
+     *     1. The syntax "for system name SHORTNAME" applies only to IBM i systems at 7.1 with recent PTFs applied, or later releases.
+     *         It creates the specified short name for access from system utilities, RPG, etc.
+     *     2.  For ease in handling lower-case column names in PHP, consider using DB2_CASE_LOWER in your connection options.
+     *         http://php.net/manual/en/function.db2-connect.php
+     *         $db = db2_connect('DATABASE', 'USER', 'PASSWORD', array('DB2_ATTR_CASE'=>DB2_CASE_LOWER));
+     *
      */
     public function getBuildSql($dbName = 'oauth2_server_php')
     {
         $sql = "
-        CREATE TABLE {$this->config['client_table']} (
+        CREATE TABLE {$this->config['client_table']} 
+          for system name OAUTHCLI        
+        (
           client_id             VARCHAR(80)   NOT NULL,
           client_secret         VARCHAR(80)   NOT NULL,
           redirect_uri          VARCHAR(2000),
           grant_types           VARCHAR(80),
           scope                 VARCHAR(4000),
           user_id               VARCHAR(80),
-          PRIMARY KEY (client_id)
+          CONSTRAINT clients_client_id_pk PRIMARY KEY (client_id)
         )
 
-        CREATE TABLE {$this->config['access_token_table']} (
+        CREATE TABLE {$this->config['access_token_table']} 
+          for system name OAUTHTOKEN
+        (
           access_token         VARCHAR(40)    NOT NULL,
           client_id            VARCHAR(80)    NOT NULL,
           user_id              VARCHAR(80),
           expires              TIMESTAMP      NOT NULL,
           scope                VARCHAR(4000),
-          PRIMARY KEY (access_token)
+          CONSTRAINT access_token_pk PRIMARY KEY (access_token)
         )
 
-        CREATE TABLE {$this->config['code_table']} (
+        CREATE TABLE {$this->config['code_table']} 
+          for system name OAUTHCODES
+		(
           authorization_code  VARCHAR(40)    NOT NULL,
           client_id           VARCHAR(80)    NOT NULL,
           user_id             VARCHAR(80),
@@ -527,19 +540,23 @@ class IbmDb2 implements
           expires             TIMESTAMP      NOT NULL,
           scope               VARCHAR(4000),
           id_token            VARCHAR(1000),
-          PRIMARY KEY (authorization_code)
+          CONSTRAINT auth_code_pk PRIMARY KEY (authorization_code)
         )
 
-        CREATE TABLE {$this->config['refresh_token_table']} (
-          refresh_token       VARCHAR(40)    NOT NULL,
+        CREATE TABLE {$this->config['refresh_token_table']}
+	      for system name OAUTHREFTK
+	    (
+	      refresh_token       VARCHAR(40)    NOT NULL,
           client_id           VARCHAR(80)    NOT NULL,
           user_id             VARCHAR(80),
           expires             TIMESTAMP      NOT NULL,
           scope               VARCHAR(4000),
-          PRIMARY KEY (refresh_token)
+          CONSTRAINT refresh_token_pk PRIMARY KEY (refresh_token)
         )
 
-        CREATE TABLE {$this->config['user_table']} (
+        CREATE TABLE {$this->config['user_table']}
+	      for system name OAUTHUSERS
+	    (
           username            VARCHAR(80),
           password            VARCHAR(80),
           first_name          VARCHAR(80),
@@ -547,12 +564,15 @@ class IbmDb2 implements
           email               VARCHAR(80),
           email_verified      BOOLEAN,
           scope               VARCHAR(4000)
+          CONSTRAINT username_pk PRIMARY KEY (username)
         )
 
-        CREATE TABLE {$this->config['scope_table']} (
+        CREATE TABLE {$this->config['scope_table']} 
+	      for system name OAUTHSCOPE
+	    (
           scope               VARCHAR(80)  NOT NULL,
           is_default          BOOLEAN,
-          PRIMARY KEY (scope)
+          CONSTRAINT scope_pk PRIMARY KEY (scope)
         )
 
         CREATE TABLE {$this->config['jwt_table']} (
@@ -569,7 +589,9 @@ class IbmDb2 implements
           jti                 VARCHAR(2000) NOT NULL
         )
 
-        CREATE TABLE {$this->config['public_key_table']} (
+        CREATE TABLE {$this->config['public_key_table']} 
+          for system name OAUTHPUBKY
+        (
           client_id            VARCHAR(80),
           public_key           VARCHAR(2000),
           private_key          VARCHAR(2000),
