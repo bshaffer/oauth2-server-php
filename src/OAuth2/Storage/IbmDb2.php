@@ -532,7 +532,7 @@ class IbmDb2 implements
 
         CREATE TABLE {$this->config['code_table']} 
           for system name OAUTHCODES
-		(
+        (
           authorization_code  VARCHAR(40)    NOT NULL,
           client_id           VARCHAR(80)    NOT NULL,
           user_id             VARCHAR(80),
@@ -555,8 +555,8 @@ class IbmDb2 implements
         )
 
         CREATE TABLE {$this->config['user_table']}
-	      for system name OAUTHUSERS
-	    (
+          for system name OAUTHUSERS
+        (
           username            VARCHAR(80),
           password            VARCHAR(80),
           first_name          VARCHAR(80),
@@ -568,20 +568,22 @@ class IbmDb2 implements
         )
 
         CREATE TABLE {$this->config['scope_table']} 
-	      for system name OAUTHSCOPE
-	    (
+          for system name OAUTHSCOPE
+        (
           scope               VARCHAR(80)  NOT NULL,
           is_default          BOOLEAN,
           CONSTRAINT scope_pk PRIMARY KEY (scope)
         )
 
-        CREATE TABLE {$this->config['jwt_table']} (
+        CREATE TABLE {$this->config['jwt_table']} 
+        (
           client_id           VARCHAR(80)   NOT NULL,
           subject             VARCHAR(80),
           public_key          VARCHAR(2000) NOT NULL
         )
 
-        CREATE TABLE {$this->config['jti_table']} (
+        CREATE TABLE {$this->config['jti_table']} 
+       (
           issuer              VARCHAR(80)   NOT NULL,
           subject             VARCHAR(80),
           audiance            VARCHAR(80),
