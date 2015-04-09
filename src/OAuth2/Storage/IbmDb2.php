@@ -544,8 +544,8 @@ class IbmDb2 implements
         )
 
         CREATE TABLE {$this->config['refresh_token_table']}
-	      for system name OAUTHREFTK
-	    (
+          for system name OAUTHREFTK
+        (
 	      refresh_token       VARCHAR(40)    NOT NULL,
           client_id           VARCHAR(80)    NOT NULL,
           user_id             VARCHAR(80),
