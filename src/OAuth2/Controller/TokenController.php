@@ -113,8 +113,17 @@ class TokenController implements TokenControllerInterface
                 return null;
             }
             $clientId = $this->clientAssertionType->getClientId();
+
+            // validate the Client ID (if applicable)
+            if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
+                $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier));
+
+                return null;
+            }
+        } else {
+            $clientId = $grantType->getClientId();
         }
-        
+
         /**
          * Validate the client can use the requested grant type
          */
@@ -132,17 +141,6 @@ class TokenController implements TokenControllerInterface
          */
         if (!$grantType->validateRequest($request, $response)) {
             return null;
-        }
-
-        if ($grantType instanceof ClientAssertionTypeInterface) {
-            $clientId = $grantType->getClientId();
-        } else {
-            // validate the Client ID (if applicable)
-            if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
-                $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier));
-
-                return null;
-            }
         }
 
         /**
