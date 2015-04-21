@@ -45,7 +45,7 @@ EOD;
 
         $encoded = $jwtUtil->encode($params, $this->privateKey, 'RS256');
 
-        $payload = $jwtUtil->decode($encoded, $client_key);
+        $payload = $jwtUtil->decode($encoded, $client_key, array('RS256'));
 
         $this->assertEquals($params, $payload);
     }
@@ -56,6 +56,29 @@ EOD;
 
         $this->assertFalse($jwtUtil->decode('goob'));
         $this->assertFalse($jwtUtil->decode('go.o.b'));
+    }
+
+    /** @dataProvider provideClientCredentials */
+    public function testInvalidJwtHeader($client_id, $client_key)
+    {
+        $jwtUtil = new Jwt();
+
+        $params = array(
+            'iss' => $client_id,
+            'exp' => time() + 1000,
+            'iat' => time(),
+            'sub' => 'testuser@ourdomain.com',
+            'aud' => 'http://myapp.com/oauth/auth',
+            'scope' => null,
+        );
+
+        // testing for algorithm tampering when only RSA256 signing is allowed
+        // @see https://auth0.com/blog/2015/03/31/critical-vulnerabilities-in-json-web-token-libraries/
+        $tampered = $jwtUtil->encode($params, $client_key, 'HS256');
+
+        $payload = $jwtUtil->decode($tampered, $client_key, array('RS256'));
+
+        $this->assertFalse($payload);
     }
 
     public function provideClientCredentials()

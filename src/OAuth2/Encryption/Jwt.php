@@ -8,6 +8,16 @@ namespace OAuth2\Encryption;
  */
 class Jwt implements EncryptionInterface
 {
+
+    public static $supportedAlgorithms = array(
+        'HS256' => array('hash_hmac', 'sha256'),
+        'HS384' => array('hash_hmac', 'sha384'),
+        'HS512' => array('hash_hmac', 'sha512'),
+        'RS256' => array('openssl', 'sha256', 'OPENSSL_ALGO_SHA256'),
+        'RS384' => array('openssl', 'sha384', 'OPENSSL_ALGO_SHA384'),
+        'RS512' => array('openssl', 'sha512', 'OPENSSL_ALGO_SHA512')
+    );
+
     public function encode($payload, $key, $algo = 'HS256')
     {
         $header = $this->generateJwtHeader($payload, $algo);
@@ -25,7 +35,7 @@ class Jwt implements EncryptionInterface
         return implode('.', $segments);
     }
 
-    public function decode($jwt, $key = null, $verify = true)
+    public function decode($jwt, $key = null, $allowed_algorithms = null)
     {
         if (!strpos($jwt, '.')) {
             return false;
@@ -49,8 +59,12 @@ class Jwt implements EncryptionInterface
 
         $sig = $this->urlSafeB64Decode($cryptob64);
 
-        if ($verify) {
+        if (isset($key)) {
             if (!isset($header['alg'])) {
+                return false;
+            }
+
+            if (!in_array($header['alg'], (array) $allowed_algorithms)){
                 return false;
             }
 
@@ -64,24 +78,20 @@ class Jwt implements EncryptionInterface
 
     private function verifySignature($signature, $input, $key, $algo = 'HS256')
     {
-        // use constants when possible, for HipHop support
-        switch ($algo) {
-            case'HS256':
-            case'HS384':
-            case'HS512':
+        list($function, $algorithm) = self::$supportedAlgorithms[$algo];
+        switch ($function) {
+            case 'hash_hmac':
                 return $this->hash_equals(
                     $this->sign($input, $key, $algo),
                     $signature
                 );
 
-            case 'RS256':
-                return openssl_verify($input, $signature, $key, defined('OPENSSL_ALGO_SHA256') ? OPENSSL_ALGO_SHA256 : 'sha256')  === 1;
-
-            case 'RS384':
-                return @openssl_verify($input, $signature, $key, defined('OPENSSL_ALGO_SHA384') ? OPENSSL_ALGO_SHA384 : 'sha384') === 1;
-
-            case 'RS512':
-                return @openssl_verify($input, $signature, $key, defined('OPENSSL_ALGO_SHA512') ? OPENSSL_ALGO_SHA512 : 'sha512') === 1;
+            case 'openssl':
+                // use constants when possible, for HipHop support
+                if(defined(self::$supportedAlgorithms[$algo][2])){
+                    $algorithm = constant(self::$supportedAlgorithms[$algo][2]);
+                }
+                return @openssl_verify($input, $signature, $key, $algorithm) === 1;
 
             default:
                 throw new \InvalidArgumentException("Unsupported or invalid signing algorithm.");
@@ -90,24 +100,17 @@ class Jwt implements EncryptionInterface
 
     private function sign($input, $key, $algo = 'HS256')
     {
-        switch ($algo) {
-            case 'HS256':
-                return hash_hmac('sha256', $input, $key, true);
+        list($function, $algorithm) = self::$supportedAlgorithms[$algo];
 
-            case 'HS384':
-                return hash_hmac('sha384', $input, $key, true);
+        switch ($function) {
+            case 'hash_hmac':
+                return hash_hmac($algorithm, $input, $key, true);
 
-            case 'HS512':
-                return hash_hmac('sha512', $input, $key, true);
-
-            case 'RS256':
-                return $this->generateRSASignature($input, $key, defined('OPENSSL_ALGO_SHA256') ? OPENSSL_ALGO_SHA256 : 'sha256');
-
-            case 'RS384':
-                return $this->generateRSASignature($input, $key, defined('OPENSSL_ALGO_SHA384') ? OPENSSL_ALGO_SHA384 : 'sha384');
-
-            case 'RS512':
-                return $this->generateRSASignature($input, $key, defined('OPENSSL_ALGO_SHA512') ? OPENSSL_ALGO_SHA512 : 'sha512');
+            case 'openssl':
+                if(defined(self::$supportedAlgorithms[$algo][2])){
+                    $algorithm = constant(self::$supportedAlgorithms[$algo][2]);
+                }
+                return $this->generateRSASignature($input, $key, $algorithm);
 
             default:
                 throw new \Exception("Unsupported or invalid signing algorithm.");
@@ -142,6 +145,25 @@ class Jwt implements EncryptionInterface
         return base64_decode($b64);
     }
 
+    public function getSupportedAlgorithms($type = null)
+    {
+        if ($type === null) {
+            return array_keys(self::$supportedAlgorithms);
+        }
+        else {
+            $filtered = array();
+            foreach (self::$supportedAlgorithms as $alg => $method) {
+                if ($type === 'RSA' && $alg[0] === 'R') {
+                    $filtered[] = $alg;
+                }
+                else if ($type === 'HMAC' && $alg[0] === 'H') {
+                    $filtered[] = $alg;
+                }
+            }
+            return $filtered;
+        }
+    }
+
     /**
      * Override to create a custom header
      */
@@ -164,4 +186,5 @@ class Jwt implements EncryptionInterface
         }
         return $diff === 0;
     }
+
 }
