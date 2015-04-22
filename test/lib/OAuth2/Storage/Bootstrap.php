@@ -171,19 +171,29 @@ class Bootstrap
     public function getCouchbase()
     {
         if (!$this->couchbase) {
-            $skipCouchbase = $this->getEnvVar('SKIP_COUCHBASE_TESTS');
-            if (!$skipCouchbase && class_exists('Couchbase')) {
-                $couchbase = new \Couchbase(array('localhost:8091'), '', '', 'auth', false);
-                if ($this->testCouchbaseConnection($couchbase)) {
-                    $this->clearCouchbase($couchbase);
-                    $this->createCouchbaseDB($couchbase);
-
-                    $this->couchbase = new CouchbaseDB($couchbase);
-                } else {
-                    $this->couchbase = new NullStorage('Couchbase', 'Unable to connect to Couchbase server on "localhost:8091"');
-                }
-            } else {
+            if ($this->getEnvVar('SKIP_COUCHBASE_TESTS')) {
+                $this->couchbase = new NullStorage('Couchbase', 'Skipping Couchbase tests');
+            } elseif (!class_exists('Couchbase')) {
                 $this->couchbase = new NullStorage('Couchbase', 'Missing Couchbase php extension. Please install couchbase.so');
+            } else {
+                // round-about way to make sure couchbase is working
+                // this is required because it throws a "floating point exception" otherwise
+                $code = "new \Couchbase(array('localhost:8091'), '', '', 'auth', false);";
+                $exec = sprintf('php -r "%s"', $code);
+                $ret = exec($exec, $test, $var);
+                if ($ret != 0) {
+                    $couchbase = new \Couchbase(array('localhost:8091'), '', '', 'auth', false);
+                    if ($this->testCouchbaseConnection($couchbase)) {
+                        $this->clearCouchbase($couchbase);
+                        $this->createCouchbaseDB($couchbase);
+
+                        $this->couchbase = new CouchbaseDB($couchbase);
+                    } else {
+                        $this->couchbase = new NullStorage('Couchbase', 'Unable to connect to Couchbase server on "localhost:8091"');
+                    }
+                } else {
+                    $this->couchbase = new NullStorage('Couchbase', 'Error while trying to connect to Couchbase');
+                }
             }
         }
 
