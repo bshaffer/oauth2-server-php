@@ -78,7 +78,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         $undecodedJWT = $request->request('assertion');
 
         // Decode the JWT
-        $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
+        $jwt = $this->jwtUtil->decode($request->request('assertion'), null);
 
         if (!$jwt) {
             $response->setError(400, 'invalid_request', "JWT is malformed");
@@ -176,8 +176,10 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
             return null;
         }
 
+        // get the supported RSA algorithms from the jwtUtil
+        $allowed_algorithms = $this->jwtUtil->getSupportedAlgorithms('RSA');
         // Verify the JWT
-        if (!$this->jwtUtil->decode($undecodedJWT, $key, true)) {
+        if (!$this->jwtUtil->decode($undecodedJWT, $key, $allowed_algorithms)) {
             $response->setError(400, 'invalid_grant', "JWT failed signature verification");
 
             return null;

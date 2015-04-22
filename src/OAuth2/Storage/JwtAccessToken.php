@@ -35,7 +35,7 @@ class JwtAccessToken implements JwtAccessTokenInterface
     public function getAccessToken($oauth_token)
     {
         // just decode the token, don't verify
-        if (!$tokenData = $this->encryptionUtil->decode($oauth_token, null, false)) {
+        if (!$tokenData = $this->encryptionUtil->decode($oauth_token, null)) {
             return false;
         }
 
@@ -44,7 +44,7 @@ class JwtAccessToken implements JwtAccessTokenInterface
         $algorithm  = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
 
         // now that we have the client_id, verify the token
-        if (false === $this->encryptionUtil->decode($oauth_token, $public_key, true)) {
+        if (false === $this->encryptionUtil->decode($oauth_token, $public_key, array($algorithm))) {
             return false;
         }
 
