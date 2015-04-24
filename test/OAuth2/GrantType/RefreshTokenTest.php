@@ -69,6 +69,27 @@ class RefreshTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($used_token, 'the refresh token used is no longer valid');
     }
 
+    public function testValidRefreshTokenDoesNotUnsetToken()
+    {
+        $server = $this->getTestServer();
+        $server->addGrantType(new RefreshToken($this->storage, array(
+            'always_issue_new_refresh_token' => true,
+            'unset_refresh_token_after_use'  => false,
+        )));
+
+        $request = TestRequest::createPost(array(
+            'grant_type' => 'refresh_token', // valid grant type
+            'client_id' => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'refresh_token' => 'test-refreshtoken', // valid refresh token
+        ));
+        $token = $server->grantAccessToken($request, new Response());
+        $this->assertTrue(isset($token['refresh_token']), 'refresh token should always refresh');
+
+        $used_token = $this->storage->getRefreshToken('test-refreshtoken');
+        $this->assertNotNull($used_token, 'the refresh token used is still valid');
+    }
+
     public function testValidRefreshTokenWithNoRefreshTokenInResponse()
     {
         $server = $this->getTestServer();
