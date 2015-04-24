@@ -191,7 +191,7 @@ class Request implements RequestInterface
      */
     public static function createFromGlobals()
     {
-        $class = __CLASS__;
+        $class = get_called_class();
         $request = new $class($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER);
 
         $contentType = $request->server('CONTENT_TYPE', '');

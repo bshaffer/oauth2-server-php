@@ -364,7 +364,7 @@ class ServerTest extends \PHPUnit_Framework_TestCase
         // create mock storage
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $server1 = new Server(array($storage));
-        $server2 = new Server(array($storage), array('always_issue_new_refresh_token' => true));
+        $server2 = new Server(array($storage), array('always_issue_new_refresh_token' => true, 'unset_refresh_token_after_use' => false));
 
         $server1->getTokenController();
         $refreshToken1 = $server1->getGrantType('refresh_token');
@@ -386,6 +386,9 @@ class ServerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($config1['always_issue_new_refresh_token'], false);
         $this->assertEquals($config2['always_issue_new_refresh_token'], true);
+
+        $this->assertEquals($config1['unset_refresh_token_after_use'], true);
+        $this->assertEquals($config2['unset_refresh_token_after_use'], false);
     }
 
     /**

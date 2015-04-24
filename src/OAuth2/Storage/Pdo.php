@@ -75,7 +75,7 @@ class Pdo implements
     {
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
         $stmt->execute(compact('client_id'));
-        $result = $stmt->fetch(\PDO::FETCH_BOTH);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         // make this extensible
         return $result && $result['client_secret'] == $client_secret;
@@ -86,7 +86,7 @@ class Pdo implements
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
         $stmt->execute(compact('client_id'));
 
-        if (!$result = $stmt->fetch(\PDO::FETCH_BOTH)) {
+        if (!$result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             return false;
         }
 
@@ -99,7 +99,7 @@ class Pdo implements
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
         $stmt->execute(compact('client_id'));
 
-        return $stmt->fetch(\PDO::FETCH_BOTH);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
@@ -133,7 +133,7 @@ class Pdo implements
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where access_token = :access_token', $this->config['access_token_table']));
 
         $token = $stmt->execute(compact('access_token'));
-        if ($token = $stmt->fetch(\PDO::FETCH_BOTH)) {
+        if ($token = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             // convert date string back to timestamp
             $token['expires'] = strtotime($token['expires']);
         }
@@ -162,7 +162,7 @@ class Pdo implements
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where authorization_code = :code', $this->config['code_table']));
         $stmt->execute(compact('code'));
 
-        if ($code = $stmt->fetch(\PDO::FETCH_BOTH)) {
+        if ($code = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             // convert date string back to timestamp
             $code['expires'] = strtotime($code['expires']);
         }
@@ -272,7 +272,7 @@ class Pdo implements
         $stmt = $this->db->prepare(sprintf('SELECT * FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
 
         $token = $stmt->execute(compact('refresh_token'));
-        if ($token = $stmt->fetch(\PDO::FETCH_BOTH)) {
+        if ($token = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             // convert expires to epoch time
             $token['expires'] = strtotime($token['expires']);
         }
@@ -308,7 +308,7 @@ class Pdo implements
         $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
         $stmt->execute(array('username' => $username));
 
-        if (!$userInfo = $stmt->fetch(\PDO::FETCH_BOTH)) {
+        if (!$userInfo = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             return false;
         }
 
@@ -341,7 +341,7 @@ class Pdo implements
         $stmt = $this->db->prepare(sprintf('SELECT count(scope) as count FROM %s WHERE scope IN (%s)', $this->config['scope_table'], $whereIn));
         $stmt->execute($scope);
 
-        if ($result = $stmt->fetch(\PDO::FETCH_BOTH)) {
+        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             return $result['count'] == count($scope);
         }
 
@@ -353,7 +353,7 @@ class Pdo implements
         $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s WHERE is_default=:is_default', $this->config['scope_table']));
         $stmt->execute(array('is_default' => true));
 
-        if ($result = $stmt->fetchAll(\PDO::FETCH_BOTH)) {
+        if ($result = $stmt->fetchAll(\PDO::FETCH_ASSOC)) {
             $defaultScope = array_map(function ($row) {
                 return $row['scope'];
             }, $result);
@@ -393,7 +393,7 @@ class Pdo implements
 
         $stmt->execute(compact('client_id', 'subject', 'audience', 'expires', 'jti'));
 
-        if ($result = $stmt->fetch(\PDO::FETCH_BOTH)) {
+        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             return array(
                 'issuer' => $result['issuer'],
                 'subject' => $result['subject'],
@@ -419,7 +419,7 @@ class Pdo implements
         $stmt = $this->db->prepare($sql = sprintf('SELECT public_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
 
         $stmt->execute(compact('client_id'));
-        if ($result = $stmt->fetch(\PDO::FETCH_BOTH)) {
+        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             return $result['public_key'];
         }
     }
@@ -429,7 +429,7 @@ class Pdo implements
         $stmt = $this->db->prepare($sql = sprintf('SELECT private_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
 
         $stmt->execute(compact('client_id'));
-        if ($result = $stmt->fetch(\PDO::FETCH_BOTH)) {
+        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             return $result['private_key'];
         }
     }
@@ -439,7 +439,7 @@ class Pdo implements
         $stmt = $this->db->prepare($sql = sprintf('SELECT encryption_algorithm FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
 
         $stmt->execute(compact('client_id'));
-        if ($result = $stmt->fetch(\PDO::FETCH_BOTH)) {
+        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             return $result['encryption_algorithm'];
         }
 

@@ -8,7 +8,21 @@ To see the files changed for a given bug, go to https://github.com/bshaffer/oaut
 To get the diff between two versions, go to https://github.com/bshaffer/oauth2-server-php/compare/v1.0...v1.1
 To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-server-php/commit/XXX where XXX is the change hash
 
-* 1.6 (2014-01-16)
+* 1.7.0 (2015-04-23)
+
+  PR: https://github.com/bshaffer/oauth2-server-php/pull/572
+
+  * bug #500 - PDO fetch mode changed from FETCH_BOTH to FETCH_ASSOC
+  * bug #508 - Case insensitive for Bearer token header name  ba716d4
+  * bug #512 - validateRedirectUri is now public
+  * bug #530 - Add PublicKeyInterface, UserClaimsInterface to Cassandra Storage
+  * bug #505 - DynamoDB storage fixes
+  * bug #556 - adds "code id_token" return type to openid connect
+  * bug #563 - Include "issuer" config key for JwtAccessToken
+  * bug #564 - Fixes JWT vulnerability
+  * bug #571 - Added unset_refresh_token_after_use option
+
+* 1.6 (2015-01-16)
 
   PR: https://github.com/bshaffer/oauth2-server-php/pull/496
 

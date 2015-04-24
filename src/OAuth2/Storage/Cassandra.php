@@ -5,6 +5,7 @@ namespace OAuth2\Storage;
 use phpcassa\ColumnFamily;
 use phpcassa\ColumnSlice;
 use phpcassa\Connection\ConnectionPool;
+use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 
 /**
@@ -35,6 +36,8 @@ class Cassandra implements AuthorizationCodeInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     ScopeInterface,
+    PublicKeyInterface,
+    UserClaimsInterface,
     OpenIDAuthorizationCodeInterface
 {
 
@@ -58,7 +61,7 @@ class Cassandra implements AuthorizationCodeInterface,
             $this->cassandra = $connection;
         } else {
             if (!is_array($connection)) {
-                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Mongo must be an instance of MongoDB or a configuration array');
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Cassandra must be an instance of phpcassa\Connection\ConnectionPool or a configuration array');
             }
             $connection = array_merge(array(
                 'keyspace' => 'oauth2',
@@ -80,6 +83,7 @@ class Cassandra implements AuthorizationCodeInterface,
             'user_key' => 'oauth_users:',
             'jwt_key' => 'oauth_jwt:',
             'scope_key' => 'oauth_scopes:',
+            'public_key_key'  => 'oauth_public_keys:',
         ), $config);
     }
 
@@ -88,11 +92,11 @@ class Cassandra implements AuthorizationCodeInterface,
         if (isset($this->cache[$key])) {
             return $this->cache[$key];
         }
-
         $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
 
         try {
-            $value = array_shift($cf->get($key, new ColumnSlice("", "")));
+            $value = $cf->get($key, new ColumnSlice("", ""));
+            $value = array_shift($value);
         } catch (\cassandra\NotFoundException $e) {
             return false;
         }
@@ -168,9 +172,17 @@ class Cassandra implements AuthorizationCodeInterface,
     /* UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
     {
-        $user = $this->getUserDetails($username);
+        if ($user = $this->getUser($username)) {
+            return $this->checkPassword($user, $password);
+        }
 
-        return $user && $user['password'] === $password;
+        return false;
+    }
+
+    // plaintext passwords are bad!  Override this for your application
+    protected function checkPassword($user, $password)
+    {
+        return $user['password'] == sha1($password);
     }
 
     public function getUserDetails($username)
@@ -192,6 +204,7 @@ class Cassandra implements AuthorizationCodeInterface,
 
     public function setUser($username, $password, $first_name = null, $last_name = null)
     {
+        $password = sha1($password);
         return $this->setValue(
             $this->config['user_key'] . $username,
             compact('username', 'password', 'first_name', 'last_name')
@@ -244,6 +257,7 @@ class Cassandra implements AuthorizationCodeInterface,
         // if grant_types are not defined, then none are restricted
         return true;
     }
+
 
     /* RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
@@ -363,4 +377,87 @@ class Cassandra implements AuthorizationCodeInterface,
         //TODO: Needs cassandra implementation.
         throw new \Exception('setJti() for the Cassandra driver is currently unimplemented.');
     }
+
+	/* PublicKeyInterface */
+    public function getPublicKey($client_id = '')
+    {
+        $public_key = $this->getValue($this->config['public_key_key'] . $client_id);
+        if (is_array($public_key)) {
+            return $public_key['public_key'];
+        }
+        $public_key = $this->getValue($this->config['public_key_key']);
+        if (is_array($public_key)) {
+            return $public_key['public_key'];
+        }
+    }
+
+    public function getPrivateKey($client_id = '')
+    {
+        $public_key = $this->getValue($this->config['public_key_key'] . $client_id);
+        if (is_array($public_key)) {
+            return $public_key['private_key'];
+        }
+        $public_key = $this->getValue($this->config['public_key_key']);
+        if (is_array($public_key)) {
+            return $public_key['private_key'];
+        }
+    }
+
+    public function getEncryptionAlgorithm($client_id = null)
+    {
+        $public_key = $this->getValue($this->config['public_key_key'] . $client_id);
+        if (is_array($public_key)) {
+            return $public_key['encryption_algorithm'];
+        }
+        $public_key = $this->getValue($this->config['public_key_key']);
+        if (is_array($public_key)) {
+            return $public_key['encryption_algorithm'];
+        }
+        return 'RS256';
+    }
+
+    /* UserClaimsInterface */
+    public function getUserClaims($user_id, $claims)
+    {
+        $userDetails = $this->getUserDetails($user_id);
+        if (!is_array($userDetails)) {
+            return false;
+        }
+
+        $claims = explode(' ', trim($claims));
+        $userClaims = array();
+
+        // for each requested claim, if the user has the claim, set it in the response
+        $validClaims = explode(' ', self::VALID_CLAIMS);
+        foreach ($validClaims as $validClaim) {
+            if (in_array($validClaim, $claims)) {
+                if ($validClaim == 'address') {
+                    // address is an object with subfields
+                    $userClaims['address'] = $this->getUserClaim($validClaim, $userDetails['address'] ?: $userDetails);
+                } else {
+                    $userClaims = array_merge($userClaims, $this->getUserClaim($validClaim, $userDetails));
+                }
+            }
+        }
+
+        return $userClaims;
+    }
+
+    protected function getUserClaim($claim, $userDetails)
+    {
+        $userClaims = array();
+        $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($claim)));
+        $claimValues = explode(' ', $claimValuesString);
+
+        foreach ($claimValues as $value) {
+            if ($value == 'email_verified') {
+                $userClaims[$value] = $userDetails[$value]=='true' ? true : false;
+            } else {
+                $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
+            }
+        }
+
+        return $userClaims;
+    }
+
 }
