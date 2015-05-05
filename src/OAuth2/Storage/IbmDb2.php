@@ -41,6 +41,10 @@ class IbmDb2 implements
                 throw new \InvalidArgumentException('First argument to OAuth2\Storage\IbmDb2 must be a resource or a configuration array');
             }
 
+            if (!extension_loaded('ibm_db2')) {
+                throw new \RuntimeException('The ibm_db2 extension is required by OAuth2\Storage\IbmDb2.');
+	        }
+
             // merge optional parameters. Set empty defaults if not present in $connection array.
             $connection = array_merge(array(
                 'database' =>     '',
