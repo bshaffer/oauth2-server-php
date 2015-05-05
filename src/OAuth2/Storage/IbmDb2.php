@@ -562,7 +562,7 @@ class IbmDb2 implements
           first_name          VARCHAR(80),
           last_name           VARCHAR(80),
           email               VARCHAR(80),
-          email_verified      BOOLEAN,
+          email_verified      smallint,
           scope               VARCHAR(4000)
           CONSTRAINT username_pk PRIMARY KEY (username)
         )
@@ -571,7 +571,7 @@ class IbmDb2 implements
           for system name OAUTHSCOPE
         (
           scope               VARCHAR(80)  NOT NULL,
-          is_default          BOOLEAN,
+          is_default          smallint,
           CONSTRAINT scope_pk PRIMARY KEY (scope)
         )
 
