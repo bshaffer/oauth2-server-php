@@ -59,7 +59,7 @@ class IbmDb2 implements
 
             // this is how ZF2 handles connection errors
             if ($connection === false) {
-                throw new Exception\RuntimeException(sprintf(
+                throw new \RuntimeException(sprintf(
                     '%s: Unable to connect to database',
                     __METHOD__
                 ));
