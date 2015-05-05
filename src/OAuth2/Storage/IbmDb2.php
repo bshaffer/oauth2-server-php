@@ -563,7 +563,7 @@ class IbmDb2 implements
           last_name           VARCHAR(80),
           email               VARCHAR(80),
           email_verified      smallint,
-          scope               VARCHAR(4000)
+          scope               VARCHAR(4000),
           CONSTRAINT username_pk PRIMARY KEY (username)
         )
 
