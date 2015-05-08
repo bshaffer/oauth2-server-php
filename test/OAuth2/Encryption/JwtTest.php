@@ -45,28 +45,26 @@ EOD;
 
         $encoded = $jwtUtil->encode($params, $this->privateKey, 'RS256');
 
-        // test BC behaviour of trusting the algorithm in the header
-        $payload = $jwtUtil->decode($encoded, $client_key);
-        $this->assertEquals($params, $payload);
-
-        // test BC behaviour of not verifying by passing false
-        $payload = $jwtUtil->decode($encoded, $client_key, false);
-        $this->assertEquals($params, $payload);
-
         // test the new restricted algorithms header
         $payload = $jwtUtil->decode($encoded, $client_key, array('RS256'));
         $this->assertEquals($params, $payload);
     }
 
+    /**
+     * @expectedException \UnexpectedValueException
+     */
     public function testInvalidJwt()
     {
         $jwtUtil = new Jwt();
 
-        $this->assertFalse($jwtUtil->decode('goob'));
-        $this->assertFalse($jwtUtil->decode('go.o.b'));
+        $jwtUtil->decode('goob');
+        $jwtUtil->decode('go.o.b');
     }
 
-    /** @dataProvider provideClientCredentials */
+    /**
+     * @dataProvider provideClientCredentials
+     * @expectedException \DomainException
+     */
     public function testInvalidJwtHeader($client_id, $client_key)
     {
         $jwtUtil = new Jwt();
@@ -85,8 +83,6 @@ EOD;
         $tampered = $jwtUtil->encode($params, $client_key, 'HS256');
 
         $payload = $jwtUtil->decode($tampered, $client_key, array('RS256'));
-
-        $this->assertFalse($payload);
     }
 
     public function provideClientCredentials()

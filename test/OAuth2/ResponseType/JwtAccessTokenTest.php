@@ -21,7 +21,7 @@ class JwtAccessTokenTest extends \PHPUnit_Framework_TestCase
 
         $accessToken = $jwtResponseType->createAccessToken('Test Client ID', 123, 'test', false);
         $jwt = new Jwt;
-        $decodedAccessToken = $jwt->decode($accessToken['access_token'], null, false);
+        $decodedAccessToken = $jwt->decode($accessToken['access_token'], null);
 
         $this->assertArrayHasKey('id', $decodedAccessToken);
         $this->assertArrayHasKey('iss', $decodedAccessToken);

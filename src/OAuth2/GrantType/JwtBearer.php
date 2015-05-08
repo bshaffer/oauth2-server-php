@@ -35,8 +35,12 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
      * @param EncryptionInterface|OAuth2\Encryption\JWT $jwtUtil OPTONAL The class used to decode, encode and verify JWTs.
      * @param array $config
      */
-    public function __construct(JwtBearerInterface $storage, $audience, EncryptionInterface $jwtUtil = null, array $config = array())
-    {
+    public function __construct(
+        JwtBearerInterface $storage,
+        $audience,
+        EncryptionInterface $jwtUtil = null,
+        array $config = array()
+    ) {
         $this->storage = $storage;
         $this->audience = $audience;
 
@@ -86,9 +90,9 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         $undecodedJWT = $request->request('assertion');
 
         // Decode the JWT
-        $jwt = $this->jwtUtil->decode($request->request('assertion'), null, false);
-
-        if (!$jwt) {
+        try {
+            $jwt = $this->jwtUtil->decode($request->request('assertion'), null);
+        } catch (\Exception $e) {
             $response->setError(400, 'invalid_request', "JWT is malformed");
 
             return null;
@@ -185,7 +189,9 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         }
 
         // Verify the JWT
-        if (!$this->jwtUtil->decode($undecodedJWT, $key, $this->allowedAlgorithms)) {
+        try {
+            $this->jwtUtil->decode($undecodedJWT, $key, $this->allowedAlgorithms);
+        } catch (\Exception $e) {
             $response->setError(400, 'invalid_grant', "JWT failed signature verification");
 
             return null;
