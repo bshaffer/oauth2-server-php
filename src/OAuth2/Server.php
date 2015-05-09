@@ -348,17 +348,17 @@ class Server implements ResourceControllerInterface,
         return $value;
     }
 
-    public function addGrantType(GrantTypeInterface $grantType, $key = null)
+    public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
     {
-        if (is_string($key)) {
-            $this->grantTypes[$key] = $grantType;
-        } else {
-            $this->grantTypes[$grantType->getQuerystringIdentifier()] = $grantType;
+        if (!is_string($identifier)) {
+            $identifier = $grantType->getQuerystringIdentifier();
         }
+
+        $this->grantTypes[$identifier] = $grantType;
 
         // persist added grant type down to TokenController
         if (!is_null($this->tokenController)) {
-            $this->getTokenController()->addGrantType($grantType);
+            $this->getTokenController()->addGrantType($grantType, $identifier);
         }
     }
 
