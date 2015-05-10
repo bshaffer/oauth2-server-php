@@ -19,5 +19,6 @@ before_script:
 - composer require predis/predis:dev-master
 - composer require thobbs/phpcassa:dev-master
 - composer require aws/aws-sdk-php:dev-master
+- composer require firebase/php-jwt
 after_script:
 - php test/cleanup.php
