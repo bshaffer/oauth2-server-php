@@ -3,170 +3,45 @@
 namespace OAuth2\Encryption;
 
 /**
- * @link https://github.com/F21/jwt
- * @author F21
+ * Bridge file to use the firebase/php-jwt package for JWT encoding and decoding.
+ * @author Francis Chuang <francis.chuang@gmail.com>
  */
 class Jwt implements EncryptionInterface
 {
-    public function encode($payload, $key, $algo = 'HS256')
+    public function __construct()
     {
-        $header = $this->generateJwtHeader($payload, $algo);
-
-        $segments = array(
-            $this->urlSafeB64Encode(json_encode($header)),
-            $this->urlSafeB64Encode(json_encode($payload))
-        );
-
-        $signing_input = implode('.', $segments);
-
-        $signature = $this->sign($signing_input, $key, $algo);
-        $segments[] = $this->urlsafeB64Encode($signature);
-
-        return implode('.', $segments);
+        if (!class_exists('\JWT')) {
+            throw new \ErrorException('firebase/php-jwt must be installed to use this feature. You can do this by running "composer require firebase/php-jwt');
+        }
     }
 
-    public function decode($jwt, $key = null, $allowedAlgorithms = true)
+    public function encode($payload, $key, $alg = 'HS256', $keyId = null)
     {
-        if (!strpos($jwt, '.')) {
-            return false;
-        }
+        return \JWT::encode($payload, $key, $alg, $keyId);
+    }
 
-        $tks = explode('.', $jwt);
+    public function decode($jwt, $key = null, $allowedAlgorithms = null)
+    {
+        try {
 
-        if (count($tks) != 3) {
-            return false;
-        }
-
-        list($headb64, $payloadb64, $cryptob64) = $tks;
-
-        if (null === ($header = json_decode($this->urlSafeB64Decode($headb64), true))) {
-            return false;
-        }
-
-        if (null === $payload = json_decode($this->urlSafeB64Decode($payloadb64), true)) {
-            return false;
-        }
-
-        $sig = $this->urlSafeB64Decode($cryptob64);
-
-        if ((bool) $allowedAlgorithms) {
-            if (!isset($header['alg'])) {
-                return false;
+            //Maintain BC: Do not verify if no algorithms are passed in.
+            if (!$allowedAlgorithms) {
+                $key = null;
             }
 
-            // check if bool arg supplied here to maintain BC
-            if (is_array($allowedAlgorithms) && !in_array($header['alg'], $allowedAlgorithms)) {
-                return false;
-            }
-
-            if (!$this->verifySignature($sig, "$headb64.$payloadb64", $key, $header['alg'])) {
-                return false;
-            }
+            return (array)\JWT::decode($jwt, $key, $allowedAlgorithms);
+        } catch (\Exception $e) {
+            return false;
         }
-
-        return $payload;
-    }
-
-    private function verifySignature($signature, $input, $key, $algo = 'HS256')
-    {
-        // use constants when possible, for HipHop support
-        switch ($algo) {
-            case'HS256':
-            case'HS384':
-            case'HS512':
-                return $this->hash_equals(
-                    $this->sign($input, $key, $algo),
-                    $signature
-                );
-
-            case 'RS256':
-                return openssl_verify($input, $signature, $key, defined('OPENSSL_ALGO_SHA256') ? OPENSSL_ALGO_SHA256 : 'sha256')  === 1;
-
-            case 'RS384':
-                return @openssl_verify($input, $signature, $key, defined('OPENSSL_ALGO_SHA384') ? OPENSSL_ALGO_SHA384 : 'sha384') === 1;
-
-            case 'RS512':
-                return @openssl_verify($input, $signature, $key, defined('OPENSSL_ALGO_SHA512') ? OPENSSL_ALGO_SHA512 : 'sha512') === 1;
-
-            default:
-                throw new \InvalidArgumentException("Unsupported or invalid signing algorithm.");
-        }
-    }
-
-    private function sign($input, $key, $algo = 'HS256')
-    {
-        switch ($algo) {
-            case 'HS256':
-                return hash_hmac('sha256', $input, $key, true);
-
-            case 'HS384':
-                return hash_hmac('sha384', $input, $key, true);
-
-            case 'HS512':
-                return hash_hmac('sha512', $input, $key, true);
-
-            case 'RS256':
-                return $this->generateRSASignature($input, $key, defined('OPENSSL_ALGO_SHA256') ? OPENSSL_ALGO_SHA256 : 'sha256');
-
-            case 'RS384':
-                return $this->generateRSASignature($input, $key, defined('OPENSSL_ALGO_SHA384') ? OPENSSL_ALGO_SHA384 : 'sha384');
-
-            case 'RS512':
-                return $this->generateRSASignature($input, $key, defined('OPENSSL_ALGO_SHA512') ? OPENSSL_ALGO_SHA512 : 'sha512');
-
-            default:
-                throw new \Exception("Unsupported or invalid signing algorithm.");
-        }
-    }
-
-    private function generateRSASignature($input, $key, $algo)
-    {
-        if (!openssl_sign($input, $signature, $key, $algo)) {
-            throw new \Exception("Unable to sign data.");
-        }
-
-        return $signature;
     }
 
     public function urlSafeB64Encode($data)
     {
-        $b64 = base64_encode($data);
-        $b64 = str_replace(array('+', '/', "\r", "\n", '='),
-                array('-', '_'),
-                $b64);
-
-        return $b64;
+        return \JWT::urlsafeB64Encode($data);
     }
 
     public function urlSafeB64Decode($b64)
     {
-        $b64 = str_replace(array('-', '_'),
-                array('+', '/'),
-                $b64);
-
-        return base64_decode($b64);
-    }
-
-    /**
-     * Override to create a custom header
-     */
-    protected function generateJwtHeader($payload, $algorithm)
-    {
-        return array(
-            'typ' => 'JWT',
-            'alg' => $algorithm,
-        );
-    }
-    
-    protected function hash_equals($a, $b)
-    {
-        if (function_exists('hash_equals')) {
-            return hash_equals($a, $b);
-        }
-        $diff = strlen($a) ^ strlen($b);
-        for ($i = 0; $i < strlen($a) && $i < strlen($b); $i++) {
-            $diff |= ord($a[$i]) ^ ord($b[$i]);
-        }
-        return $diff === 0;
+        return \JWT::urlsafeB64Decode($b64);
     }
 }
