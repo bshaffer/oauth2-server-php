@@ -45,4 +45,19 @@ interface AccessTokenInterface
      * @ingroup oauth2_section_4
      */
     public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null);
+
+    /**
+     * Expire an access token.
+     *
+     * This is not explicitly required in the spec, but if defined in a draft RFC for token
+     * revoking (RFC 7009) https://tools.ietf.org/html/rfc7009
+     *
+     * @param $access_token
+     * Access token to be expired.
+     *
+     * @ingroup oauth2_section_6
+     *
+     * @todo v2.0 include this method in interface. Omitted to maintain BC in v1.x
+     */
+    //public function unsetAccessToken($access_token);
 }

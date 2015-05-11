@@ -270,6 +270,24 @@ class Server implements ResourceControllerInterface,
     }
 
     /**
+     * Handle a revoke token request
+     * This would be called from the "/revoke" endpoint as defined in the draft Token Revocation spec
+     *
+     * @see https://tools.ietf.org/html/rfc7009#section-2
+     *
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @return Response|ResponseInterface
+     */
+    public function handleRevokeRequest(RequestInterface $request, ResponseInterface $response = null)
+    {
+        $this->response = is_null($response) ? new Response() : $response;
+        $this->getTokenController()->handleRevokeRequest($request, $this->response);
+
+        return $this->response;
+    }
+
+    /**
      * Redirect the user appropriately after approval.
      *
      * After the user has approved or denied the resource request the
