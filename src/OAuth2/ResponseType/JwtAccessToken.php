@@ -61,8 +61,10 @@ class JwtAccessToken extends AccessToken
     {
         // token to encrypt
         $expires = time() + $this->config['access_lifetime'];
+        $id = $this->generateAccessToken();
         $jwtAccessToken = array(
-            'id'         => $this->generateAccessToken(),
+            'id'         => $id, // for BC (see #591)
+            'jti'        => $id,
             'iss'        => $this->config['issuer'],
             'aud'        => $client_id,
             'sub'        => $user_id,
