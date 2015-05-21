@@ -125,7 +125,7 @@ class AccessToken implements AccessTokenInterface
             if ($randomData !== false && strlen($randomData) === 20) {
                 return bin2hex($randomData);
             }
-        } 
+        }
         if (@file_exists('/dev/urandom')) { // Get 100 bytes of random data
             $randomData = file_get_contents('/dev/urandom', false, null, 0, 20);
             if ($randomData !== false && strlen($randomData) === 20) {
@@ -134,6 +134,7 @@ class AccessToken implements AccessTokenInterface
         }
         // Last resort which you probably should just get rid of:
         $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
+
         return substr(hash('sha512', $randomData), 0, 40);
     }
 

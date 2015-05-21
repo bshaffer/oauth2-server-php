@@ -205,6 +205,7 @@ class Cassandra implements AuthorizationCodeInterface,
     public function setUser($username, $password, $first_name = null, $last_name = null)
     {
         $password = sha1($password);
+
         return $this->setValue(
             $this->config['user_key'] . $username,
             compact('username', 'password', 'first_name', 'last_name')
@@ -257,7 +258,6 @@ class Cassandra implements AuthorizationCodeInterface,
         // if grant_types are not defined, then none are restricted
         return true;
     }
-
 
     /* RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
@@ -378,7 +378,7 @@ class Cassandra implements AuthorizationCodeInterface,
         throw new \Exception('setJti() for the Cassandra driver is currently unimplemented.');
     }
 
-	/* PublicKeyInterface */
+    /* PublicKeyInterface */
     public function getPublicKey($client_id = '')
     {
         $public_key = $this->getValue($this->config['public_key_key'] . $client_id);
@@ -413,6 +413,7 @@ class Cassandra implements AuthorizationCodeInterface,
         if (is_array($public_key)) {
             return $public_key['encryption_algorithm'];
         }
+
         return 'RS256';
     }
 
