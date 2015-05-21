@@ -514,7 +514,7 @@ class Pdo implements
           subject             VARCHAR(80),
           public_key          VARCHAR(2000) NOT NULL
         );
-        
+
         CREATE TABLE {$this->config['jti_table']} (
           issuer              VARCHAR(80)   NOT NULL,
           subject             VARCHAR(80),

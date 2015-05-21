@@ -71,7 +71,7 @@ class JwtAccessToken implements JwtAccessTokenInterface
         foreach ($keyMapping as $jwtKey => $oauth2Key) {
             if (isset($tokenData[$jwtKey])) {
                 $tokenData[$oauth2Key] = $tokenData[$jwtKey];
-                unset($tokenData[$jwtKey]);                
+                unset($tokenData[$jwtKey]);
             }
         }
 

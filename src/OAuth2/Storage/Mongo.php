@@ -40,7 +40,6 @@ class Mongo implements AuthorizationCodeInterface,
             $this->db = $m->{$connection['database']};
         }
 
-
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
             'access_token_table' => 'oauth_access_tokens',
@@ -162,7 +161,6 @@ class Mongo implements AuthorizationCodeInterface,
         return true;
     }
 
-
     /* AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
@@ -209,7 +207,6 @@ class Mongo implements AuthorizationCodeInterface,
 
         return true;
     }
-
 
     /* UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
@@ -259,7 +256,6 @@ class Mongo implements AuthorizationCodeInterface,
 
         return true;
     }
-
 
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
