@@ -57,17 +57,29 @@ class Pdo implements
         // debugging
         $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        $this->config = array_merge(array(
-            'client_table' => 'oauth_clients',
-            'access_token_table' => 'oauth_access_tokens',
-            'refresh_token_table' => 'oauth_refresh_tokens',
-            'code_table' => 'oauth_authorization_codes',
-            'user_table' => 'oauth_users',
-            'jwt_table'  => 'oauth_jwt',
-            'jti_table'  => 'oauth_jti',
-            'scope_table'  => 'oauth_scopes',
-            'public_key_table'  => 'oauth_public_keys',
-        ), $config);
+        $this->config = array_merge(
+            array(
+                'client_table' => 'oauth_clients',
+                'access_token_table' => 'oauth_access_tokens',
+                'refresh_token_table' => 'oauth_refresh_tokens',
+                'code_table' => 'oauth_authorization_codes',
+                'user_table' => 'oauth_users',
+                'jwt_table'  => 'oauth_jwt',
+                'jti_table'  => 'oauth_jti',
+                'scope_table'  => 'oauth_scopes',
+                'public_key_table'  => 'oauth_public_keys',
+            ),
+            array(
+                // defaults for column names in user queries
+                'identity' => array(
+                    'username' => 'username',
+                    'password' => 'password',
+                    'first_name' => 'first_name',
+                    'last_name' => 'last_name',
+                )
+            ),
+            $config
+        );
     }
 
     /* OAuth2\Storage\ClientCredentialsInterface */
