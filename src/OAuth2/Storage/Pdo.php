@@ -317,7 +317,13 @@ class Pdo implements
 
     public function getUser($username)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
+        $sql = sprintf(
+            'SELECT * from %s where %s=:username',
+            $this->config['user_table'],
+            $this->config['identity']['username']
+        );
+
+        $stmt = $this->db->prepare($sql);
         $stmt->execute(array('username' => $username));
 
         if (!$userInfo = $stmt->fetch(\PDO::FETCH_ASSOC)) {
@@ -343,9 +349,25 @@ class Pdo implements
 
         // if it exists, update it.
         if ($this->getUser($username)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table']));
+            $sql = sprintf(
+                'UPDATE %s SET %s=:password, %s=:firstName, %s=:lastName where %s=:username',
+                $this->config['user_table'],
+                $this->config['identity']['password'],
+                $this->config['identity']['first_name'],
+                $this->config['identity']['last_name'],
+                $this->config['identity']['username']
+            );
+            $stmt = $this->db->prepare($sql);
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
+            $sql = sprintf(
+                'INSERT INTO %s (%s, %s, %s, %s) VALUES (:username, :password, :firstName, :lastName)',
+                $this->config['user_table'],
+                $this->config['identity']['username'],
+                $this->config['identity']['password'],
+                $this->config['identity']['first_name'],
+                $this->config['identity']['last_name']
+            );
+            $stmt = $this->db->prepare($sql);
         }
 
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
