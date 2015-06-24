@@ -309,10 +309,10 @@ class Pdo implements
         return $stmt->execute(compact('refresh_token'));
     }
 
-    // plaintext passwords are bad!  Override this for your application
+    // plaintext passwords are bad!  Override the hashPassword method for your application
     protected function checkPassword($user, $password)
     {
-        return $user['password'] == sha1($password);
+        return $user['password'] == $this->hashPassword($password);
     }
 
     public function getUser($username)
@@ -329,11 +329,17 @@ class Pdo implements
             'user_id' => $username
         ), $userInfo);
     }
+    
+    public function hashPassword($password)
+    {
+        // default behaviour you can override this in your application
+        return sha1($password);
+    }
 
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
-        // do not store in plaintext
-        $password = sha1($password);
+        // do not store in plaintext Override the hashPassword method for your application
+        $password = $this->hashPassword($password);
 
         // if it exists, update it.
         if ($this->getUser($username)) {
