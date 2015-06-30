@@ -49,7 +49,7 @@ class Memory implements AuthorizationCodeInterface,
             'jti' => array(),
             'default_scope' => null,
             'supported_scopes' => array(),
-            'device_code' => array(),
+            'device_codes' => array(),
             'keys' => array(),
         ), $params);
 

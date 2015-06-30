@@ -68,7 +68,7 @@ class Pdo implements
             'jti_table'  => 'oauth_jti',
             'scope_table'  => 'oauth_scopes',
             'public_key_table'  => 'oauth_public_keys',
-            'device_code_table' => 'oauth_device_code',
+            'device_code_table' => 'oauth_device_codes',
         ), $config);
     }
 

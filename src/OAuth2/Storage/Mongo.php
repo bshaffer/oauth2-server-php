@@ -22,7 +22,8 @@ class Mongo implements AuthorizationCodeInterface,
     UserCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
-    OpenIDAuthorizationCodeInterface
+    OpenIDAuthorizationCodeInterface,
+    DeviceCodeInterface
 {
     protected $db;
     protected $config;
@@ -45,6 +46,7 @@ class Mongo implements AuthorizationCodeInterface,
             'access_token_table' => 'oauth_access_tokens',
             'refresh_token_table' => 'oauth_refresh_tokens',
             'code_table' => 'oauth_authorization_codes',
+            'device_code_table' => 'oauth_device_codes',
             'user_table' => 'oauth_users',
             'jwt_table' => 'oauth_jwt',
         ), $config);
@@ -122,6 +124,44 @@ class Mongo implements AuthorizationCodeInterface,
         }
 
         // if grant_types are not defined, then none are restricted
+        return true;
+    }
+
+    /* DeviceCodeInterface */
+    public function getDeviceCode($code, $client_id)
+    {
+        $code = $this->collection('device_code_table')->findOne(array('device_code' => $code, 'client_id' => $client_id));
+
+        return is_null($code) ? false : $code;
+    }
+
+    public function setDeviceCode($code, $user_code, $client_id, $user_id, $expires, $scope = null)
+    {
+        // if it exists, update it.
+        if ($this->getDeviceCode($code, $client_id)) {
+            $this->collection('device_code_table')->update(
+                array('device_code' => $code, 'client_id' => $client_id),
+                array('$set' => array(
+                    'user_code' => $user_code,
+                    'client_id' => $client_id,
+                    'expires' => $expires,
+                    'user_id' => $user_id,
+                    'scope' => $scope
+                ))
+            );
+        } else {
+            $this->collection('device_code_table')->insert(
+                array(
+                    'device_code' => $code,
+                    'user_code' => $user_code,
+                    'client_id' => $client_id,
+                    'expires' => $expires,
+                    'user_id' => $user_id,
+                    'scope' => $scope
+                )
+            );
+        }
+
         return true;
     }
 
