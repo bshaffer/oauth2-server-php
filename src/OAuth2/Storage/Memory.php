@@ -22,8 +22,10 @@ class Memory implements AuthorizationCodeInterface,
     JwtBearerInterface,
     ScopeInterface,
     PublicKeyInterface,
-    OpenIDAuthorizationCodeInterface
+    OpenIDAuthorizationCodeInterface,
+    DeviceCodeInterface
 {
+    public $deviceCodes;
     public $authorizationCodes;
     public $userCredentials;
     public $clientCredentials;
@@ -47,9 +49,11 @@ class Memory implements AuthorizationCodeInterface,
             'jti' => array(),
             'default_scope' => null,
             'supported_scopes' => array(),
+            'device_code' => array(),
             'keys' => array(),
         ), $params);
 
+        $this->deviceCodes = $params['device_codes'];
         $this->authorizationCodes = $params['authorization_codes'];
         $this->userCredentials = $params['user_credentials'];
         $this->clientCredentials = $params['client_credentials'];
@@ -60,6 +64,23 @@ class Memory implements AuthorizationCodeInterface,
         $this->supportedScopes = $params['supported_scopes'];
         $this->defaultScope = $params['default_scope'];
         $this->keys = $params['keys'];
+    }
+
+    /* DeviceCodeInterface */
+    public function getDeviceCode($code, $client_id)
+    {
+        if (!isset($this->deviceCodes[$code]) || $this->deviceCodes[$code]['client_id'] != $client_id) {
+            return false;
+        }
+
+        return $this->deviceCodes[$code];
+
+    }
+
+    public function setDeviceCode($device_code, $user_code, $client_id, $user_id, $expires, $scope = null)
+    {
+        $this->deviceCodes[$device_code] = compact('device_code', 'user_code', 'client_id', 'user_id', 'expires', 'scope');
+        return true;
     }
 
     /* AuthorizationCodeInterface */

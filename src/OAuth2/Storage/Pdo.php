@@ -27,7 +27,8 @@ class Pdo implements
     ScopeInterface,
     PublicKeyInterface,
     UserClaimsInterface,
-    OpenIDAuthorizationCodeInterface
+    OpenIDAuthorizationCodeInterface,
+    DeviceCodeInterface
 {
     protected $db;
     protected $config;
@@ -67,6 +68,7 @@ class Pdo implements
             'jti_table'  => 'oauth_jti',
             'scope_table'  => 'oauth_scopes',
             'public_key_table'  => 'oauth_public_keys',
+            'device_code_table' => 'oauth_device_code',
         ), $config);
     }
 
@@ -444,6 +446,35 @@ class Pdo implements
         }
 
         return 'RS256';
+    }
+
+    /* OAuth2\Storage\DeviceCodeInterface */
+    public function getDeviceCode($code, $client_id)
+    {
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where device_code=:code AND client_id=:client_id', $this->config['device_code_table']));
+
+        $code = $stmt->execute(compact('code', 'client_id'));
+        if ($code = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            // convert date string back to timestamp
+            $code['expires'] = strtotime($code['expires']);
+        }
+
+        return $code;
+    }
+
+    public function setDeviceCode($code, $user_code = null, $client_id, $user_id = null, $expires, $scope = null)
+    {
+        // convert expires to datestring
+        $expires = date('Y-m-d H:i:s', $expires);
+
+        // if it exists, update it.
+        if ($this->getDeviceCode($code, $client_id)) {
+            $stmt = $this->db->prepare(sprintf('UPDATE %s SET user_code=:user_code, expires=:expires, user_id=:user_id, scope=:scope where device_code=:code and client_id=:client_id', $this->config['device_code_table']));
+        } else {
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (device_code, user_code, client_id, expires, user_id, scope) VALUES (:code, :user_code, :client_id, :expires, :user_id, :scope)', $this->config['device_code_table']));
+        }
+
+        return $stmt->execute(compact('code', 'user_code', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
     /**

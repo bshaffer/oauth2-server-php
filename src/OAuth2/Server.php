@@ -33,6 +33,10 @@ use OAuth2\GrantType\AuthorizationCode;
 use OAuth2\Storage\JwtAccessToken as JwtAccessTokenStorage;
 use OAuth2\Storage\JwtAccessTokenInterface;
 
+use OAuth2\ResponseType\DeviceCode as DeviceCodeResponseType;
+use OAuth2\GrantType\DeviceCode as DeviceCodeGrantType;
+use OAuth2\GrantType\DeviceToken as DeviceTokenGrantType;
+
 /**
 * Server class for OAuth2
 * This class serves as a convience class which wraps the other Controller classes
@@ -56,6 +60,7 @@ class Server implements ResourceControllerInterface,
     protected $tokenController;
     protected $resourceController;
     protected $userInfoController;
+    protected $deviceController;
 
     // config classes
     protected $grantTypes;
@@ -74,6 +79,8 @@ class Server implements ResourceControllerInterface,
         'user_claims' => 'OAuth2\OpenID\Storage\UserClaimsInterface',
         'public_key' => 'OAuth2\Storage\PublicKeyInterface',
         'jwt_bearer' => 'OAuth2\Storage\JWTBearerInterface',
+        'device_code' => 'OAuth2\Storage\DeviceCodeInterface',
+        'device_token' => 'OAuth2\Storage\AccessTokenInterface',
         'scope' => 'OAuth2\Storage\ScopeInterface',
     );
 
@@ -83,6 +90,7 @@ class Server implements ResourceControllerInterface,
         'id_token' => 'OAuth2\OpenID\ResponseType\IdTokenInterface',
         'id_token token' => 'OAuth2\OpenID\ResponseType\IdTokenTokenInterface',
         'code id_token' => 'OAuth2\OpenID\ResponseType\CodeIdTokenInterface',
+        #'code user_code' => 'OAuth2\ResponseType\DeviceCodeInterface', # Device flow device_code?
     );
 
     /**
@@ -123,6 +131,7 @@ class Server implements ResourceControllerInterface,
             'allow_public_clients'     => true,
             'always_issue_new_refresh_token' => false,
             'unset_refresh_token_after_use' => true,
+            'device_code_lifetime' => 1800,
         ), $config);
 
         foreach ($grantTypes as $key => $grantType) {
@@ -140,6 +149,15 @@ class Server implements ResourceControllerInterface,
         if ($this->config['use_openid_connect']) {
             $this->validateOpenIdConnect();
         }
+    }
+
+    public function getDeviceController()
+    {
+        if (is_null($device->deviceController)) {
+            $this->deviceController = $this->createDefaultDeviceController();
+        }
+
+        return $this->deviceController;
     }
 
     public function getAuthorizeController()
@@ -181,6 +199,14 @@ class Server implements ResourceControllerInterface,
     /**
      * every getter deserves a setter
      */
+    public function setDeviceController(TokenControllerInterface $deviceController)
+    {
+        $this->deviceController = $deviceController;
+    }
+
+    /**
+     * every getter deserves a setter
+     */
     public function setAuthorizeController(AuthorizeControllerInterface $authorizeController)
     {
         $this->authorizeController = $authorizeController;
@@ -208,6 +234,36 @@ class Server implements ResourceControllerInterface,
     public function setUserInfoController(UserInfoControllerInterface $userInfoController)
     {
         $this->userInfoController = $userInfoController;
+    }
+
+    /**
+     * Grant or deny a requested access token.
+     * This would be called from the "/device" endpoint as defined in the spec.
+     * Obviously, you can call your endpoint whatever you want.
+     *
+     * @param $request - OAuth2\RequestInterface
+     * Request object to grant access token
+     *
+     * @param $response - OAuth2\ResponseInterface
+     * Response object containing error messages (failure)
+     *
+     * @throws InvalidArgumentException
+     * @throws LogicException
+     *
+     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-05#section-3.7
+     */
+    public function handleDeviceRequest(RequestInterface $request, ResponseInterface $response = null)
+    {
+        $this->response = is_null($response) ? new Response() : $response;
+        if ($request->request('grant_type') == 'device_code') {
+            $this->responseTypes['device_code'] = new DeviceCodeResponseType($this->storages['device_code'], $this->config);
+        }
+        if ($request->request('grant_type') == 'device_token') {
+            $this->responseTypes['token'] = new AccessToken($this->storages['access_token'], $this->strages['refresh_token'], $this->config);
+        }
+        $this->getDeviceController()->handleTokenRequest($request, $this->response);
+
+        return $this->response;
     }
 
     /**
@@ -411,7 +467,6 @@ class Server implements ResourceControllerInterface,
     public function addResponseType(ResponseTypeInterface $responseType, $key = null)
     {
         $key = $this->normalizeResponseType($key);
-
         if (isset($this->responseTypeMap[$key])) {
             if (!$responseType instanceof $this->responseTypeMap[$key]) {
                 throw new \InvalidArgumentException(sprintf('responseType of type "%s" must implement interface "%s"', $key, $this->responseTypeMap[$key]));
@@ -450,6 +505,41 @@ class Server implements ResourceControllerInterface,
     public function setScopeUtil($scopeUtil)
     {
         $this->scopeUtil = $scopeUtil;
+    }
+
+    protected function createDefaultDeviceController()
+    {
+        if (!isset($this->storages['client'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\ClientInterface to use the token server");
+        }
+        if (!isset($this->storages['device_code'])) {
+            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\DeviceCodeInterface to use the authorize server");
+        }
+/*        if (0 == count($this->responseTypes)) {
+            $this->responseTypes = $this->getDefaultResponseTypes();
+        }*/
+
+        if (0 == count($this->grantTypes)) {
+            $this->grantTypes = $this->getDefaultGrantTypes();
+        }
+
+        if (is_null($this->clientAssertionType)) {
+            // see if HttpBasic assertion type is requred.  If so, then create it from storage classes.
+            foreach ($this->grantTypes as $grantType) {
+                if (!$grantType instanceof ClientAssertionTypeInterface) {
+                    if (!isset($this->storages['client_credentials'])) {
+                        throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\ClientCredentialsInterface to use the token server");
+                    }
+                    $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_credentials_in_request_body allow_public_clients')));
+                    $this->clientAssertionType = new HttpBasic($this->storages['client_credentials'], $config);
+                    break;
+                }
+            }
+        }
+
+        $deviceCodeResponseType = $this->getAccessTokenResponseType();
+
+        return new TokenController($deviceCodeResponseType, $this->storages['client'], $this->grantTypes, $this->clientAssertionType, $this->getScopeUtil());
     }
 
     protected function createDefaultAuthorizeController()
@@ -584,6 +674,12 @@ class Server implements ResourceControllerInterface,
             }
         }
 
+        //Device flow ResponseType
+/*        if (isset($this->storages['device_code'])) {
+            $responseTypes['code user_code'] = new DeviceCodeResponseType($this->storages['device_code'], $config);
+            $responseTypes['token'] = $this->getAccessTokenResponseType();
+        }*/
+
         if (count($responseTypes) == 0) {
             throw new \LogicException("You must supply an array of response_types in the constructor or implement a OAuth2\Storage\AuthorizationCodeInterface storage object or set 'allow_implicit' to true and implement a OAuth2\Storage\AccessTokenInterface storage object");
         }
@@ -620,6 +716,15 @@ class Server implements ResourceControllerInterface,
             }
         }
 
+        /* Device flow */
+        if (isset($this->storages['device_code'])) {
+            if (!isset($this->storages['client'])) {
+                throw new \LogicException("device code storage need client_storage");
+            }
+            $grantTypes['device_code'] = new DeviceCodeGrantType($this->storages['client']);
+            $grantTypes['device_token'] = new DeviceTokenGrantType($this->storages['device_code']);
+        }
+
         if (count($grantTypes) == 0) {
             throw new \LogicException("Unable to build default grant types - You must supply an array of grant_types in the constructor");
         }
@@ -632,6 +737,11 @@ class Server implements ResourceControllerInterface,
         if (isset($this->responseTypes['token'])) {
             return $this->responseTypes['token'];
         }
+
+        // Device flow
+/*        if (isset($this->responseTypes['device_code'])) {
+            return $this->responseTypes['device_code'];
+        }*/
 
         if ($this->config['use_jwt_access_tokens']) {
             return $this->createDefaultJwtAccessTokenResponseType();
