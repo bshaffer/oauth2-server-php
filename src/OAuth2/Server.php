@@ -674,12 +674,6 @@ class Server implements ResourceControllerInterface,
             }
         }
 
-        //Device flow ResponseType
-/*        if (isset($this->storages['device_code'])) {
-            $responseTypes['code user_code'] = new DeviceCodeResponseType($this->storages['device_code'], $config);
-            $responseTypes['token'] = $this->getAccessTokenResponseType();
-        }*/
-
         if (count($responseTypes) == 0) {
             throw new \LogicException("You must supply an array of response_types in the constructor or implement a OAuth2\Storage\AuthorizationCodeInterface storage object or set 'allow_implicit' to true and implement a OAuth2\Storage\AccessTokenInterface storage object");
         }
@@ -739,9 +733,9 @@ class Server implements ResourceControllerInterface,
         }
 
         // Device flow
-/*        if (isset($this->responseTypes['device_code'])) {
+        if (isset($this->responseTypes['device_code'])) {
             return $this->responseTypes['device_code'];
-        }*/
+        }
 
         if ($this->config['use_jwt_access_tokens']) {
             return $this->createDefaultJwtAccessTokenResponseType();

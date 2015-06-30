@@ -560,6 +560,16 @@ class Pdo implements
           private_key          VARCHAR(2000),
           encryption_algorithm VARCHAR(100) DEFAULT 'RS256'
         )
+
+        CREATE TABLE {$this->config['device_code_table']} (
+          device_code         VARCHAR(40)    NOT NULL,
+          user_code           VARCHAR(10)    NOT NULL,
+          client_id           VARCHAR(80)    NOT NULL,
+          user_id             VARCHAR(80),
+          expires             TIMESTAMP      NOT NULL,
+          scope               VARCHAR(4000),
+          PRIMARY KEY (authorization_code)
+        );
 ";
 
         return $sql;
