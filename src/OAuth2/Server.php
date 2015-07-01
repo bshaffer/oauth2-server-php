@@ -153,11 +153,12 @@ class Server implements ResourceControllerInterface,
 
     public function getDeviceController()
     {
-        if (is_null($device->deviceController)) {
+        return $this->createDefaultDeviceController();
+/*        if (is_null($device->deviceController)) {
             $this->deviceController = $this->createDefaultDeviceController();
         }
 
-        return $this->deviceController;
+        return $this->deviceController;*/
     }
 
     public function getAuthorizeController()
