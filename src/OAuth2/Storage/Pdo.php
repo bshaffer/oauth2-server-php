@@ -68,8 +68,6 @@ class Pdo implements
                 'jti_table'  => 'oauth_jti',
                 'scope_table'  => 'oauth_scopes',
                 'public_key_table'  => 'oauth_public_keys',
-            ),
-            array(
                 // defaults for column names in user queries
                 'identity' => array(
                     'username' => 'username',
