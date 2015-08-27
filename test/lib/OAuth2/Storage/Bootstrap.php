@@ -4,7 +4,7 @@ namespace OAuth2\Storage;
 
 class Bootstrap
 {
-    const DYNAMODB_PHP_VERSION = '5.5';
+    const DYNAMODB_PHP_VERSION = 'none';
 
     protected static $instance;
     private $mysql;
