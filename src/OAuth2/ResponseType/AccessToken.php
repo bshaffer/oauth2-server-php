@@ -125,7 +125,7 @@ class AccessToken implements AccessTokenInterface
             if ($randomData !== false && strlen($randomData) === 20) {
                 return bin2hex($randomData);
             }
-        } 
+        }
         if (@file_exists('/dev/urandom')) { // Get 100 bytes of random data
             $randomData = file_get_contents('/dev/urandom', false, null, 0, 20);
             if ($randomData !== false && strlen($randomData) === 20) {
@@ -134,6 +134,7 @@ class AccessToken implements AccessTokenInterface
         }
         // Last resort which you probably should just get rid of:
         $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
+
         return substr(hash('sha512', $randomData), 0, 40);
     }
 
@@ -152,5 +153,42 @@ class AccessToken implements AccessTokenInterface
     protected function generateRefreshToken()
     {
         return $this->generateAccessToken(); // let's reuse the same scheme for token generation
+    }
+
+    /**
+     * Handle the revoking of refresh tokens, and access tokens if supported / desirable
+     * RFC7009 specifies that "If the server is unable to locate the token using
+     * the given hint, it MUST extend its search across all of its supported token types"
+     *
+     * @param $token
+     * @param null $tokenTypeHint
+     * @return boolean
+     */
+    public function revokeToken($token, $tokenTypeHint = null)
+    {
+        if ($tokenTypeHint == 'refresh_token') {
+            if ($this->refreshStorage && $revoked = $this->refreshStorage->unsetRefreshToken($token)) {
+                return true;
+            }
+        }
+
+        /** @TODO remove in v2 */
+        if (!method_exists($this->tokenStorage, 'unsetAccessToken')) {
+            throw new \RuntimeException(
+                sprintf('Token storage %s must implement unsetAccessToken method', get_class($this->tokenStorage)
+            ));
+        }
+
+        $revoked = $this->tokenStorage->unsetAccessToken($token);
+
+        // if a typehint is supplied and fails, try other storages 
+        // @see https://tools.ietf.org/html/rfc7009#section-2.1
+        if (!$revoked && $tokenTypeHint != 'refresh_token') {
+            if ($this->refreshStorage) {
+                $revoked = $this->refreshStorage->unsetRefreshToken($token);
+            }
+        }
+
+        return $revoked;
     }
 }

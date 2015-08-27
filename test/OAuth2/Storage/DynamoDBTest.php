@@ -29,7 +29,6 @@ class DynamoDBTest extends BaseTest
             ->method('toArray')
             ->will($this->returnValue($data));
 
-
         // should return null default scope if none is set in database
         $client->expects($this->once())
             ->method('query')

@@ -54,4 +54,29 @@ class AccessTokenTest extends BaseTest
         $success = $storage->setAccessToken('newtoken', 'client ID', 'SOMEOTHERID', $expires, '');
         $this->assertTrue($success);
     }
+
+    /** @dataProvider provideStorage */
+    public function testUnsetAccessToken(AccessTokenInterface $storage)
+    {
+        if ($storage instanceof NullStorage || !method_exists($storage, 'unsetAccessToken')) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
+
+            return;
+        }
+
+        // assert token we are unset does not exist
+        $token = $storage->getAccessToken('revokabletoken');
+        $this->assertFalse($token);
+
+        // add new token
+        $expires = time() + 20;
+        $success = $storage->setAccessToken('revokabletoken', 'client ID', 'SOMEUSERID', $expires);
+        $this->assertTrue($success);
+
+        $storage->unsetAccessToken('revokabletoken');
+
+        // assert token we are unset does not exist
+        $token = $storage->getAccessToken('revokabletoken');
+        $this->assertFalse($token);
+    }
 }
