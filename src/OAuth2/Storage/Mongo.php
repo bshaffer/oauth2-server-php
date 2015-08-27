@@ -161,6 +161,12 @@ class Mongo implements AuthorizationCodeInterface,
         return true;
     }
 
+    public function unsetAccessToken($access_token)
+    {
+        $this->collection('access_token_table')->remove(array('access_token' => $access_token));
+    }
+
+
     /* AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {

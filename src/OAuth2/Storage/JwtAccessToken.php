@@ -59,6 +59,14 @@ class JwtAccessToken implements JwtAccessTokenInterface
         }
     }
 
+    public function unsetAccessToken($access_token)
+    {
+        if ($this->tokenStorage) {
+            return $this->tokenStorage->unsetAccessToken($access_token);
+        }
+    }
+
+
     // converts a JWT access token into an OAuth2-friendly format
     protected function convertJwtToOAuth2($tokenData)
     {

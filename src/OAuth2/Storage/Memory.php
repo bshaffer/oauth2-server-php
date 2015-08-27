@@ -257,6 +257,11 @@ class Memory implements AuthorizationCodeInterface,
         return true;
     }
 
+    public function unsetAccessToken($access_token)
+    {
+        unset($this->accessTokens[$access_token]);
+    }
+
     public function scopeExists($scope)
     {
         $scope = explode(' ', trim($scope));

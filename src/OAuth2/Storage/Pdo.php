@@ -156,6 +156,13 @@ class Pdo implements
         return $stmt->execute(compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
+    public function unsetAccessToken($access_token)
+    {
+        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE access_token = :access_token', $this->config['access_token_table']));
+
+        return $stmt->execute(compact('access_token'));
+    }
+
     /* OAuth2\Storage\AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {

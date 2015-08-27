@@ -227,6 +227,11 @@ class Redis implements AuthorizationCodeInterface,
         );
     }
 
+    public function unsetAccessToken($access_token)
+    {
+        return $this->expireValue($this->config['access_token_key'] . $access_token);
+    }
+
     /* ScopeInterface */
     public function scopeExists($scope)
     {
