@@ -40,7 +40,6 @@ class Mongo implements AuthorizationCodeInterface,
             $this->db = $m->{$connection['database']};
         }
 
-
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
             'access_token_table' => 'oauth_access_tokens',
@@ -98,16 +97,15 @@ class Mongo implements AuthorizationCodeInterface,
                 ))
             );
         } else {
-            $this->collection('client_table')->insert(
-                array(
-                    'client_id'     => $client_id,
-                    'client_secret' => $client_secret,
-                    'redirect_uri'  => $redirect_uri,
-                    'grant_types'   => $grant_types,
-                    'scope'         => $scope,
-                    'user_id'       => $user_id,
-                )
+            $client = array(
+                'client_id'     => $client_id,
+                'client_secret' => $client_secret,
+                'redirect_uri'  => $redirect_uri,
+                'grant_types'   => $grant_types,
+                'scope'         => $scope,
+                'user_id'       => $user_id,
             );
+            $this->collection('client_table')->insert($client);
         }
 
         return true;
@@ -148,18 +146,22 @@ class Mongo implements AuthorizationCodeInterface,
                 ))
             );
         } else {
-            $this->collection('access_token_table')->insert(
-                array(
-                    'access_token' => $access_token,
-                    'client_id' => $client_id,
-                    'expires' => $expires,
-                    'user_id' => $user_id,
-                    'scope' => $scope
-                )
+            $token = array(
+                'access_token' => $access_token,
+                'client_id' => $client_id,
+                'expires' => $expires,
+                'user_id' => $user_id,
+                'scope' => $scope
             );
+            $this->collection('access_token_table')->insert($token);
         }
 
         return true;
+    }
+
+    public function unsetAccessToken($access_token)
+    {
+        $this->collection('access_token_table')->remove(array('access_token' => $access_token));
     }
 
 
@@ -187,17 +189,16 @@ class Mongo implements AuthorizationCodeInterface,
                 ))
             );
         } else {
-            $this->collection('code_table')->insert(
-                array(
-                    'authorization_code' => $code,
-                    'client_id' => $client_id,
-                    'user_id' => $user_id,
-                    'redirect_uri' => $redirect_uri,
-                    'expires' => $expires,
-                    'scope' => $scope,
-                    'id_token' => $id_token,
-                )
+            $token = array(
+                'authorization_code' => $code,
+                'client_id' => $client_id,
+                'user_id' => $user_id,
+                'redirect_uri' => $redirect_uri,
+                'expires' => $expires,
+                'scope' => $scope,
+                'id_token' => $id_token,
             );
+            $this->collection('code_table')->insert($token);
         }
 
         return true;
@@ -209,7 +210,6 @@ class Mongo implements AuthorizationCodeInterface,
 
         return true;
     }
-
 
     /* UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
@@ -240,15 +240,14 @@ class Mongo implements AuthorizationCodeInterface,
 
     public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
     {
-        $this->collection('refresh_token_table')->insert(
-            array(
-                'refresh_token' => $refresh_token,
-                'client_id' => $client_id,
-                'user_id' => $user_id,
-                'expires' => $expires,
-                'scope' => $scope
-            )
+        $token = array(
+            'refresh_token' => $refresh_token,
+            'client_id' => $client_id,
+            'user_id' => $user_id,
+            'expires' => $expires,
+            'scope' => $scope
         );
+        $this->collection('refresh_token_table')->insert($token);
 
         return true;
     }
@@ -259,7 +258,6 @@ class Mongo implements AuthorizationCodeInterface,
 
         return true;
     }
-
 
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
@@ -286,14 +284,13 @@ class Mongo implements AuthorizationCodeInterface,
                 ))
             );
         } else {
-            $this->collection('user_table')->insert(
-                array(
-                    'username' => $username,
-                    'password' => $password,
-                    'first_name' => $firstName,
-                    'last_name' => $lastName
-                )
+            $user = array(
+                'username' => $username,
+                'password' => $password,
+                'first_name' => $firstName,
+                'last_name' => $lastName
             );
+            $this->collection('user_table')->insert($user);
         }
 
         return true;

@@ -2,10 +2,6 @@
 
 namespace OAuth2\OpenID\Controller;
 
-use OAuth2\OpenID\Controller\AuthorizeController;
-use OAuth2\OpenID\ResponseType\IdToken;
-use OAuth2\OpenID\ResponseType\IdTokenToken;
-use OAuth2\ResponseType\AccessToken;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
 use OAuth2\Request;

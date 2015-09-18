@@ -162,7 +162,7 @@ class Redis implements AuthorizationCodeInterface,
             return false;
         }
 
-        return empty($result['client_secret']);;
+        return empty($result['client_secret']);
     }
 
     /* ClientInterface */
@@ -225,6 +225,11 @@ class Redis implements AuthorizationCodeInterface,
             compact('access_token', 'client_id', 'user_id', 'expires', 'scope'),
             $expires
         );
+    }
+
+    public function unsetAccessToken($access_token)
+    {
+        return $this->expireValue($this->config['access_token_key'] . $access_token);
     }
 
     /* ScopeInterface */

@@ -4,7 +4,7 @@ namespace OAuth2\Storage;
 
 class Bootstrap
 {
-    const DYNAMODB_PHP_VERSION = '5.5';
+    const DYNAMODB_PHP_VERSION = 'none';
 
     protected static $instance;
     private $mysql;
@@ -213,7 +213,6 @@ class Bootstrap
         return true;
     }
 
-
     public function getCassandraStorage()
     {
         if (!$this->cassandra) {
@@ -402,9 +401,8 @@ class Bootstrap
         return $this->configDir;
     }
 
-
-    private function createCouchbaseDB(\Couchbase $db) {
-
+    private function createCouchbaseDB(\Couchbase $db)
+    {
         $db->set('oauth_clients-oauth_test_client',json_encode(array(
             'client_id' => "oauth_test_client",
             'client_secret' => "testpass",
@@ -434,7 +432,8 @@ class Bootstrap
         )));
     }
 
-    private function clearCouchbase(\Couchbase $cb) {
+    private function clearCouchbase(\Couchbase $cb)
+    {
         $cb->delete('oauth_authorization_codes-new-openid-code');
         $cb->delete('oauth_access_tokens-newtoken');
         $cb->delete('oauth_authorization_codes-newcode');

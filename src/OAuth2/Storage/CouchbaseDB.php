@@ -57,6 +57,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
     protected function setObjectByType($name,$id,$array)
     {
         $array['type'] = $name;
+
         return $this->db->set($this->config[$name].'-'.$id,json_encode($array));
     }
 
@@ -164,7 +165,6 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         return true;
     }
 
-
     /* AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
@@ -207,7 +207,6 @@ class CouchbaseDB implements AuthorizationCodeInterface,
 
         return true;
     }
-
 
     /* UserCredentialsInterface */
     public function checkUserCredentials($username, $password)
@@ -255,7 +254,6 @@ class CouchbaseDB implements AuthorizationCodeInterface,
 
         return true;
     }
-
 
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
@@ -331,4 +329,3 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         throw new \Exception('setJti() for the Couchbase driver is currently unimplemented.');
     }
 }
-

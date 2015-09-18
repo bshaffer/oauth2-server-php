@@ -8,6 +8,17 @@ To see the files changed for a given bug, go to https://github.com/bshaffer/oaut
 To get the diff between two versions, go to https://github.com/bshaffer/oauth2-server-php/compare/v1.0...v1.1
 To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-server-php/commit/XXX where XXX is the change hash
 
+* 1.8.0 (2015-09-18)
+
+  PR: https://github.com/bshaffer/oauth2-server-php/pull/643
+
+  * bug #594 - adds jti
+  * bug #598 - fixes lifetime configurations for JWTs
+  * bug #634 - fixes travis builds, upgrade to containers
+  * bug #586 - support for revoking tokens
+  * bug #636 - Adds FirebaseJWT bridge
+  * bug #639 - Mongo HHVM compatibility
+
 * 1.7.0 (2015-04-23)
 
   PR: https://github.com/bshaffer/oauth2-server-php/pull/572
