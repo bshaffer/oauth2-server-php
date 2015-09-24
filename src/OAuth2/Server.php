@@ -270,6 +270,24 @@ class Server implements ResourceControllerInterface,
     }
 
     /**
+     * Handle a revoke token request
+     * This would be called from the "/revoke" endpoint as defined in the draft Token Revocation spec
+     *
+     * @see https://tools.ietf.org/html/rfc7009#section-2
+     *
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @return Response|ResponseInterface
+     */
+    public function handleRevokeRequest(RequestInterface $request, ResponseInterface $response = null)
+    {
+        $this->response = is_null($response) ? new Response() : $response;
+        $this->getTokenController()->handleRevokeRequest($request, $this->response);
+
+        return $this->response;
+    }
+
+    /**
      * Redirect the user appropriately after approval.
      *
      * After the user has approved or denied the resource request the
@@ -348,17 +366,17 @@ class Server implements ResourceControllerInterface,
         return $value;
     }
 
-    public function addGrantType(GrantTypeInterface $grantType, $key = null)
+    public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
     {
-        if (is_string($key)) {
-            $this->grantTypes[$key] = $grantType;
-        } else {
-            $this->grantTypes[$grantType->getQuerystringIdentifier()] = $grantType;
+        if (!is_string($identifier)) {
+            $identifier = $grantType->getQuerystringIdentifier();
         }
+
+        $this->grantTypes[$identifier] = $grantType;
 
         // persist added grant type down to TokenController
         if (!is_null($this->tokenController)) {
-            $this->getTokenController()->addGrantType($grantType);
+            $this->getTokenController()->addGrantType($grantType, $identifier);
         }
     }
 
@@ -693,7 +711,7 @@ class Server implements ResourceControllerInterface,
             $refreshStorage = $this->storages['refresh_token'];
         }
 
-        $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string issuer')));
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string issuer access_lifetime refresh_token_lifetime')));
 
         return new JwtAccessToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config);
     }

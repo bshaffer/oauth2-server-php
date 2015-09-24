@@ -24,6 +24,7 @@ class JwtAccessTokenTest extends \PHPUnit_Framework_TestCase
         $decodedAccessToken = $jwt->decode($accessToken['access_token'], null, false);
 
         $this->assertArrayHasKey('id', $decodedAccessToken);
+        $this->assertArrayHasKey('jti', $decodedAccessToken);
         $this->assertArrayHasKey('iss', $decodedAccessToken);
         $this->assertArrayHasKey('aud', $decodedAccessToken);
         $this->assertArrayHasKey('exp', $decodedAccessToken);
@@ -36,6 +37,7 @@ class JwtAccessTokenTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(123, $decodedAccessToken['sub']);
         $delta = $decodedAccessToken['exp'] - $decodedAccessToken['iat'];
         $this->assertEquals(3600, $delta);
+        $this->assertEquals($decodedAccessToken['id'], $decodedAccessToken['jti']);
     }
 
     public function testGrantJwtAccessToken()

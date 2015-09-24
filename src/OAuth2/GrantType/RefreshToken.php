@@ -34,6 +34,14 @@ class RefreshToken implements GrantTypeInterface
             'always_issue_new_refresh_token' => false,
             'unset_refresh_token_after_use' => true
         ), $config);
+
+        // to preserve B.C. with v1.6
+        // @see https://github.com/bshaffer/oauth2-server-php/pull/580
+        // @todo - remove in v2.0
+        if (isset($config['always_issue_new_refresh_token']) && !isset($config['unset_refresh_token_after_use'])) {
+            $this->config['unset_refresh_token_after_use'] = $config['always_issue_new_refresh_token'];
+        }
+
         $this->storage = $storage;
     }
 

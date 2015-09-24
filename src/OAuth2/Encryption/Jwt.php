@@ -157,7 +157,7 @@ class Jwt implements EncryptionInterface
             'alg' => $algorithm,
         );
     }
-    
+
     protected function hash_equals($a, $b)
     {
         if (function_exists('hash_equals')) {
@@ -167,6 +167,7 @@ class Jwt implements EncryptionInterface
         for ($i = 0; $i < strlen($a) && $i < strlen($b); $i++) {
             $diff |= ord($a[$i]) ^ ord($b[$i]);
         }
+
         return $diff === 0;
     }
 }

@@ -182,6 +182,16 @@ class DynamoDB implements
 
     }
 
+    public function unsetAccessToken($access_token)
+    {
+        $result = $this->client->deleteItem(array(
+            'TableName' =>  $this->config['access_token_table'],
+            'Key' => $this->client->formatAttributes(array("access_token" => $access_token))
+        ));
+
+        return true;
+    }
+
     /* OAuth2\Storage\AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {

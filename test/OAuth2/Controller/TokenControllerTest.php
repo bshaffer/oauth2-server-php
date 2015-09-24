@@ -223,6 +223,54 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($response->getParameter('token_type'));
     }
 
+    public function testInvalidTokenTypeHintForRevoke()
+    {
+        $server = $this->getTestServer();
+
+        $request = TestRequest::createPost(array(
+            'token_type_hint' => 'foo',
+            'token' => 'sometoken'
+        ));
+
+        $server->handleRevokeRequest($request, $response = new Response());
+
+        $this->assertTrue($response instanceof Response);
+        $this->assertEquals(400, $response->getStatusCode(), var_export($response, 1));
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'Token type hint must be either \'access_token\' or \'refresh_token\'');
+    }
+
+    public function testMissingTokenForRevoke()
+    {
+        $server = $this->getTestServer();
+
+        $request = TestRequest::createPost(array(
+            'token_type_hint' => 'access_token'
+        ));
+
+        $server->handleRevokeRequest($request, $response = new Response());
+        $this->assertTrue($response instanceof Response);
+        $this->assertEquals(400, $response->getStatusCode(), var_export($response, 1));
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'Missing token parameter to revoke');
+    }
+
+    public function testInvalidRequestMethodForRevoke()
+    {
+        $server = $this->getTestServer();
+
+        $request = new TestRequest();
+        $request->setQuery(array(
+            'token_type_hint' => 'access_token'
+        ));
+
+        $server->handleRevokeRequest($request, $response = new Response());
+        $this->assertTrue($response instanceof Response);
+        $this->assertEquals(405, $response->getStatusCode(), var_export($response, 1));
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'The request method must be POST when revoking an access token');
+    }
+
     public function testCreateController()
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
