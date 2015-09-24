@@ -463,7 +463,7 @@ class Pdo implements
         $sql = "
         CREATE TABLE {$this->config['client_table']} (
           client_id             VARCHAR(80)   NOT NULL,
-          client_secret         VARCHAR(80)   NOT NULL,
+          client_secret         VARCHAR(80),
           redirect_uri          VARCHAR(2000),
           grant_types           VARCHAR(80),
           scope                 VARCHAR(4000),
