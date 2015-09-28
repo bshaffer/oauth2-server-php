@@ -22,6 +22,7 @@
         "predis/predis": "Required to use the Redis storage engine",
         "thobbs/phpcassa": "Required to use the Cassandra storage engine",
         "aws/aws-sdk-php": "~2.8 is required to use the DynamoDB storage engine",
-        "firebase/php-jwt": "~2.2 is required to use JWT features"
+        "firebase/php-jwt": "~2.2 is required to use JWT features",
+        "onelogin/php-saml": "Required to use the Saml2-bearer grant type"
     }
 }
