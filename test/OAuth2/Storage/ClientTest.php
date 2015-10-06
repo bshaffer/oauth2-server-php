@@ -62,6 +62,29 @@ class ClientTest extends BaseTest
     }
 
     /** @dataProvider provideStorage */
+    public function testIsPublicClient(ClientInterface $storage)
+    {
+        if ($storage instanceof NullStorage) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
+
+            return;
+        }
+
+        $publicClientId = 'public-client-'.rand();
+        $confidentialClientId = 'confidential-client-'.rand();
+
+        // create a new client
+        $success1 = $storage->setClientDetails($publicClientId, '');
+        $success2 = $storage->setClientDetails($confidentialClientId, 'some-secret');
+        $this->assertTrue($success1);
+        $this->assertTrue($success2);
+
+        // assert isPublicClient for both
+        $this->assertTrue($storage->isPublicClient($publicClientId));
+        $this->assertFalse($storage->isPublicClient($confidentialClientId));
+    }
+
+    /** @dataProvider provideStorage */
     public function testSaveClient(ClientInterface $storage)
     {
         if ($storage instanceof NullStorage) {
