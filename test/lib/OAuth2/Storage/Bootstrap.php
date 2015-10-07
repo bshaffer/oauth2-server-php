@@ -911,33 +911,33 @@ class Bootstrap
     private function removeCassandraCqlDb($session)
     {
         try {
-            $statement = new Cassandra\SimpleStatement(
+            $statement = new \Cassandra\SimpleStatement(
                 'DROP KEYSPACE oauth2_test'
             );
             $result = $session->execute($statement);
-        } catch (\cassandra\InvalidRequestException $e) {
+        } catch (\Exception $e) {
 
         }
     }
 
     private function createCassandraCqlDb($session, $storage)
     {
-        $statement = new Cassandra\SimpleStatement(
+        $statement = new \Cassandra\SimpleStatement(
             "CREATE KEYSPACE oauth2_test WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }"
         );
         $result = $session->execute($statement);
 
-        $statement = new Cassandra\SimpleStatement(
+        $statement = new \Cassandra\SimpleStatement(
             'USE oauth2_test'
         );
         $result = $session->execute($statement);
 
-        $statement = new Cassandra\SimpleStatement(
+        $statement = new \Cassandra\SimpleStatement(
             'CREATE COLUMNFAMILY oauth2_data (key text, data text, PRIMARY KEY(key))'
         );
         $result = $session->execute($statement);
 
-        $statement = new Cassandra\SimpleStatement(
+        $statement = new \Cassandra\SimpleStatement(
             'CREATE COLUMNFAMILY oauth2_clients (key text, data text, PRIMARY KEY(key))'
         );
         $result = $session->execute($statement);
@@ -965,22 +965,22 @@ class Bootstrap
 
         $storage->setClientKey('oauth_test_client', $this->getTestPublicKey(), 'test_subject');
 
-        $statement = new Cassandra\SimpleStatement(
+        $statement = new \Cassandra\SimpleStatement(
             "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => "client_1_public", "private_key" => "client_1_private", "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:ClientID_One')"
         );
         $result = $session->execute($statement);
 
-        $statement = new Cassandra\SimpleStatement(
+        $statement = new \Cassandra\SimpleStatement(
             "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => "client_2_public", "private_key" => "client_2_private", "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:ClientID_Two')"
         );
         $result = $session->execute($statement);
 
-        $statement = new Cassandra\SimpleStatement(
+        $statement = new \Cassandra\SimpleStatement(
             "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => $this->getTestPublicKey(), "private_key" =>  $this->getTestPrivateKey(), "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:')"
         );
         $result = $session->execute($statement);
 
-        $statement = new Cassandra\SimpleStatement(
+        $statement = new \Cassandra\SimpleStatement(
             "UPDATE oauth2_data SET data = '".json_encode(array("password" => "password", "email" => "testuser@test.com", "email_verified" => true))."' WHERE key = 'oauth_users:testuser')"
         );
         $result = $session->execute($statement);
