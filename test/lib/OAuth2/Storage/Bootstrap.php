@@ -966,22 +966,22 @@ class Bootstrap
         $storage->setClientKey('oauth_test_client', $this->getTestPublicKey(), 'test_subject');
 
         $statement = new \Cassandra\SimpleStatement(
-            "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => "client_1_public", "private_key" => "client_1_private", "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:ClientID_One')"
+            "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => "client_1_public", "private_key" => "client_1_private", "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:ClientID_One'"
         );
         $result = $session->execute($statement);
 
         $statement = new \Cassandra\SimpleStatement(
-            "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => "client_2_public", "private_key" => "client_2_private", "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:ClientID_Two')"
+            "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => "client_2_public", "private_key" => "client_2_private", "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:ClientID_Two'"
         );
         $result = $session->execute($statement);
 
         $statement = new \Cassandra\SimpleStatement(
-            "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => $this->getTestPublicKey(), "private_key" =>  $this->getTestPrivateKey(), "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:')"
+            "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => $this->getTestPublicKey(), "private_key" =>  $this->getTestPrivateKey(), "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:'"
         );
         $result = $session->execute($statement);
 
         $statement = new \Cassandra\SimpleStatement(
-            "UPDATE oauth2_data SET data = '".json_encode(array("password" => "password", "email" => "testuser@test.com", "email_verified" => true))."' WHERE key = 'oauth_users:testuser')"
+            "UPDATE oauth2_data SET data = '".json_encode(array("password" => "password", "email" => "testuser@test.com", "email_verified" => true))."' WHERE key = 'oauth_users:testuser'"
         );
         $result = $session->execute($statement);
 
