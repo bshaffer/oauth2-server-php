@@ -7,10 +7,10 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
 
 /**
  * Cassandra storage based on CQL
- * 
+ *
  * This storage uses the datastax php-driver for cassandra
  * https://github.com/datastax/php-driver
- * 
+ *
  * <code>
  *  $cassandraCluster = \Cassandra::cluster()->withContactPoints('192.168.0.100')->withPort(9042)->build();
  *  $cassandraSession = $cassandraCluster->connect( 'my_keyspace' );
@@ -25,8 +25,8 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
  *   $sql = "CREATE TABLE IF NOT EXISTS ".$this->config['column_family_clients']." (key text, data text, PRIMARY KEY(key))";
  *   $statement = new \Cassandra\SimpleStatement($sql);
  *   $result = $this->getSession()->execute($statement);
- * </code> 
- * 
+ * </code>
+ *
  * Then, register the storage client:
  * <code>
  *  $storage = new OAuth2\Storage\Cassandra($cassandra);
@@ -54,7 +54,7 @@ class CassandraCQL implements AuthorizationCodeInterface,
     public function __construct($cassandraSession, array $config = array())
     {
         $this->cassandraSession = $cassandraSession;
-        
+
         $this->config = array_merge(array(
             // cassandra config
             'column_family_data' => 'oauth2_data',
@@ -93,12 +93,12 @@ class CassandraCQL implements AuthorizationCodeInterface,
         $result = $this->getSession()->execute($statement);
         if ($result->count() === 0)
         {
-          return null;
+          return false;
         }
         $row = $result[0];
         return json_decode($row['data'], true);
 
-        
+
     }
 
     protected function setValue($key, $value, $expire = 0)
@@ -198,7 +198,7 @@ class CassandraCQL implements AuthorizationCodeInterface,
             return false;
         }
 
-        return empty($result['client_secret']);;
+        return empty($client['client_secret']);;
     }
 
     /* ClientInterface */
@@ -209,7 +209,7 @@ class CassandraCQL implements AuthorizationCodeInterface,
         $result = $this->getSession()->execute($statement);
         if ($result->count() === 0)
         {
-          return null;
+          return false;
         }
         $row = $result[0];
         return json_decode($row['data'], true);
@@ -219,7 +219,7 @@ class CassandraCQL implements AuthorizationCodeInterface,
     {
         $value = compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id');
         $str = json_encode($value);
-        
+
         $sql = "UPDATE ".$this->config['column_family_clients']." SET data='".$str."' WHERE key='".$client_id."'";
         $this->getSession()->execute(new \Cassandra\SimpleStatement($sql));
         return true;
