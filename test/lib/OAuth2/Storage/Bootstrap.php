@@ -16,6 +16,7 @@ class Bootstrap
     private $configDir;
     private $dynamodb;
     private $couchbase;
+    private $cassandraStorage;
 
     public function __construct()
     {
@@ -881,4 +882,113 @@ class Bootstrap
     {
         return isset($_SERVER[$var]) ? $_SERVER[$var] : (getenv($var) ?: $default);
     }
+
+
+
+    public function getCassandraCqlStorage()
+    {
+        if (!$this->cassandraStorage) {
+            if (class_exists('\Cassandra')) {
+                try {
+                    $cassandraCluster = \Cassandra::cluster()->withContactPoints('127.0.0.1')->withPort(9042)->build();
+                    $this->cassandraSession = $cassandraCluster->connect(); // 'oauth2_test' );
+
+                } catch (\Exception $e) {
+                    $this->cassandraStorage = new NullStorage('CassandraCQL', 'Unable to connect to cassandra server on "127.0.0.1:9042"');
+                }
+
+                $this->removeCassandraCqlDb($this->cassandraSession);
+                $this->cassandraStorage = new CassandraCQL($this->cassandraSession);
+                $this->createCassandraCqlDb($this->cassandraSession, $this->cassandraStorage);
+            }
+            else {
+              $this->cassandraStorage = new NullStorage('CassandraCQL', 'datastax cassandra library is missing.');
+            }
+        }
+        return $this->cassandraStorage;
+    }
+
+    private function removeCassandraCqlDb($session)
+    {
+        try {
+            $statement = new Cassandra\SimpleStatement(
+                'DROP KEYSPACE oauth2_test'
+            );
+            $result = $session->execute($statement);
+        } catch (\cassandra\InvalidRequestException $e) {
+
+        }
+    }
+
+    private function createCassandraCqlDb($session, $storage)
+    {
+        $statement = new Cassandra\SimpleStatement(
+            "CREATE KEYSPACE oauth2_test WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }"
+        );
+        $result = $session->execute($statement);
+
+        $statement = new Cassandra\SimpleStatement(
+            'USE oauth2_test'
+        );
+        $result = $session->execute($statement);
+
+        $statement = new Cassandra\SimpleStatement(
+            'CREATE COLUMNFAMILY oauth2_data (key text, data text, PRIMARY KEY(key))'
+        );
+        $result = $session->execute($statement);
+
+        $statement = new Cassandra\SimpleStatement(
+            'CREATE COLUMNFAMILY oauth2_clients (key text, data text, PRIMARY KEY(key))'
+        );
+        $result = $session->execute($statement);
+
+
+        // populate the data
+        $storage->setClientDetails("oauth_test_client", "testpass", "http://example.com", 'implicit password');
+        $storage->setAccessToken("testtoken", "Some Client", '', time() + 1000);
+        $storage->setAuthorizationCode("testcode", "Some Client", '', '', time() + 1000);
+
+        $storage->setScope('supportedscope1 supportedscope2 supportedscope3 supportedscope4');
+        $storage->setScope('defaultscope1 defaultscope2', null, 'default');
+
+        $storage->setScope('clientscope1 clientscope2', 'Test Client ID');
+        $storage->setScope('clientscope1 clientscope2', 'Test Client ID', 'default');
+
+        $storage->setScope('clientscope1 clientscope2 clientscope3', 'Test Client ID 2');
+        $storage->setScope('clientscope1 clientscope2', 'Test Client ID 2', 'default');
+
+        $storage->setScope('clientscope1 clientscope2', 'Test Default Scope Client ID');
+        $storage->setScope('clientscope1 clientscope2', 'Test Default Scope Client ID', 'default');
+
+        $storage->setScope('clientscope1 clientscope2 clientscope3', 'Test Default Scope Client ID 2');
+        $storage->setScope('clientscope3', 'Test Default Scope Client ID 2', 'default');
+
+        $storage->setClientKey('oauth_test_client', $this->getTestPublicKey(), 'test_subject');
+
+        $statement = new Cassandra\SimpleStatement(
+            "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => "client_1_public", "private_key" => "client_1_private", "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:ClientID_One')"
+        );
+        $result = $session->execute($statement);
+
+        $statement = new Cassandra\SimpleStatement(
+            "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => "client_2_public", "private_key" => "client_2_private", "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:ClientID_Two')"
+        );
+        $result = $session->execute($statement);
+
+        $statement = new Cassandra\SimpleStatement(
+            "UPDATE oauth2_data SET data = '".json_encode(array("public_key" => $this->getTestPublicKey(), "private_key" =>  $this->getTestPrivateKey(), "encryption_algorithm" => "RS256"))."' WHERE key = 'oauth_public_keys:')"
+        );
+        $result = $session->execute($statement);
+
+        $statement = new Cassandra\SimpleStatement(
+            "UPDATE oauth2_data SET data = '".json_encode(array("password" => "password", "email" => "testuser@test.com", "email_verified" => true))."' WHERE key = 'oauth_users:testuser')"
+        );
+        $result = $session->execute($statement);
+
+    }
+
+
+
+
+
 }
