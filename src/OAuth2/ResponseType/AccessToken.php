@@ -11,21 +11,32 @@ use OAuth2\Storage\RefreshTokenInterface;
  */
 class AccessToken implements AccessTokenInterface
 {
+    /**
+     * @var AccessTokenInterface
+     */
     protected $tokenStorage;
+
+    /**
+     * @var RefreshTokenInterface
+     */
     protected $refreshStorage;
+
+    /**
+     * @var array
+     */
     protected $config;
 
     /**
-     * @param OAuth2\Storage\AccessTokenInterface  $tokenStorage   REQUIRED Storage class for saving access token information
-     * @param OAuth2\Storage\RefreshTokenInterface $refreshStorage OPTIONAL Storage class for saving refresh token information
-     * @param array                                $config         OPTIONAL Configuration options for the server
-     *                                                             <code>
-     *                                                             $config = array(
-     *                                                             'token_type' => 'bearer',              // token type identifier
-     *                                                             'access_lifetime' => 3600,             // time before access token expires
-     *                                                             'refresh_token_lifetime' => 1209600,   // time before refresh token expires
-     *                                                             );
-     *                                                             </endcode>
+     * @param AccessTokenStorageInterface $tokenStorage   - REQUIRED Storage class for saving access token information
+     * @param RefreshTokenInterface       $refreshStorage - OPTIONAL Storage class for saving refresh token information
+     * @param array                       $config         - OPTIONAL Configuration options for the server
+     * @code
+     *     $config = array(
+     *         'token_type' => 'bearer',            // token type identifier
+     *         'access_lifetime' => 3600,           // time before access token expires
+     *         'refresh_token_lifetime' => 1209600, // time before refresh token expires
+     *     );
+     * @endcode
      */
     public function __construct(AccessTokenStorageInterface $tokenStorage, RefreshTokenInterface $refreshStorage = null, array $config = array())
     {
@@ -39,6 +50,13 @@ class AccessToken implements AccessTokenInterface
         ), $config);
     }
 
+    /**
+     * Get authorize response
+     *
+     * @param array $params
+     * @param mixed $user_id
+     * @return array
+     */
     public function getAuthorizeResponse($params, $user_id = null)
     {
         // build the URL to redirect to
@@ -64,10 +82,11 @@ class AccessToken implements AccessTokenInterface
     /**
      * Handle the creation of access token, also issue refresh token if supported / desirable.
      *
-     * @param $client_id                client identifier related to the access token.
-     * @param $user_id                  user ID associated with the access token
-     * @param $scope                    OPTIONAL scopes to be stored in space-separated string.
-     * @param bool $includeRefreshToken if true, a new refresh_token will be added to the response
+     * @param mixed $client_id          - client identifier related to the access token.
+     * @param mixed $user_id            - user ID associated with the access token
+     * @param string $scope             - OPTIONAL scopes to be stored in space-separated string.
+     * @param bool $includeRefreshToken - if true, a new refresh_token will be added to the response
+     * @return array
      *
      * @see http://tools.ietf.org/html/rfc6749#section-5
      * @ingroup oauth2_section_5
@@ -107,8 +126,7 @@ class AccessToken implements AccessTokenInterface
      * Implementing classes may want to override this function to implement
      * other access token generation schemes.
      *
-     * @return
-     * An unique access token.
+     * @return string - A unique access token.
      *
      * @ingroup oauth2_section_4
      */
@@ -143,8 +161,7 @@ class AccessToken implements AccessTokenInterface
      * Implementing classes may want to override this function to implement
      * other refresh token generation schemes.
      *
-     * @return
-     * An unique refresh.
+     * @return string - A unique refresh token.
      *
      * @ingroup oauth2_section_4
      * @see OAuth2::generateAccessToken()
