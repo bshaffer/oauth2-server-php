@@ -35,12 +35,12 @@ class Jwt implements EncryptionInterface
     }
 
     /**
-     * @param $jwt
-     * @param null $key
-     * @param bool $verify
+     * @param string      $jwt
+     * @param null        $key
+     * @param array|bool  $allowedAlgorithms
      * @return bool|mixed
      */
-    public function decode($jwt, $key = null, $verify = true)
+    public function decode($jwt, $key = null, $allowedAlgorithms = true)
     {
         if (!strpos($jwt, '.')) {
             return false;
@@ -64,8 +64,13 @@ class Jwt implements EncryptionInterface
 
         $sig = $this->urlSafeB64Decode($cryptob64);
 
-        if ($verify) {
+        if ((bool) $allowedAlgorithms) {
             if (!isset($header['alg'])) {
+                return false;
+            }
+
+            // check if bool arg supplied here to maintain BC
+            if (is_array($allowedAlgorithms) && !in_array($header['alg'], $allowedAlgorithms)) {
                 return false;
             }
 
@@ -198,6 +203,7 @@ class Jwt implements EncryptionInterface
         );
     }
 
+
     /**
      * @param string $a
      * @param string $b
@@ -212,6 +218,7 @@ class Jwt implements EncryptionInterface
         for ($i = 0; $i < strlen($a) && $i < strlen($b); $i++) {
             $diff |= ord($a[$i]) ^ ord($b[$i]);
         }
+
         return $diff === 0;
     }
 }

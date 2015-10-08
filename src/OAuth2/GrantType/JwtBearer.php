@@ -25,15 +25,17 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     protected $storage;
     protected $audience;
     protected $jwtUtil;
+    protected $allowedAlgorithms;
 
     /**
      * Creates an instance of the JWT bearer grant type.
      *
-     * @param OAuth2\Storage\JWTBearerInterface $storage  A valid storage interface that implements storage hooks for the JWT bearer grant type.
-     * @param string                            $audience The audience to validate the token against. This is usually the full URI of the OAuth token requests endpoint.
-     * @param OAuth2\Encryption\JWT             $jwtUtil  OPTONAL The class used to decode, encode and verify JWTs.
+     * @param OAuth2\Storage\JWTBearerInterface|JwtBearerInterface $storage A valid storage interface that implements storage hooks for the JWT bearer grant type.
+     * @param string $audience The audience to validate the token against. This is usually the full URI of the OAuth token requests endpoint.
+     * @param EncryptionInterface|OAuth2\Encryption\JWT $jwtUtil OPTONAL The class used to decode, encode and verify JWTs.
+     * @param array $config
      */
-    public function __construct(JwtBearerInterface $storage, $audience, EncryptionInterface $jwtUtil = null)
+    public function __construct(JwtBearerInterface $storage, $audience, EncryptionInterface $jwtUtil = null, array $config = array())
     {
         $this->storage = $storage;
         $this->audience = $audience;
@@ -42,7 +44,13 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
             $jwtUtil = new Jwt();
         }
 
+        $this->config = array_merge(array(
+            'allowed_algorithms' => array('RS256', 'RS384', 'RS512')
+        ), $config);
+
         $this->jwtUtil = $jwtUtil;
+
+        $this->allowedAlgorithms = $this->config['allowed_algorithms'];
     }
 
     /**
@@ -177,7 +185,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         }
 
         // Verify the JWT
-        if (!$this->jwtUtil->decode($undecodedJWT, $key, true)) {
+        if (!$this->jwtUtil->decode($undecodedJWT, $key, $this->allowedAlgorithms)) {
             $response->setError(400, 'invalid_grant', "JWT failed signature verification");
 
             return null;

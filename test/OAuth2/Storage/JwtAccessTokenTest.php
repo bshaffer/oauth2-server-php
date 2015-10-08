@@ -4,7 +4,7 @@ namespace OAuth2\Storage;
 
 use OAuth2\Encryption\Jwt;
 
-class jwtAccessTokenTest extends BaseTest
+class JwtAccessTokenTest extends BaseTest
 {
     /** @dataProvider provideStorage */
     public function testSetAccessToken($storage)

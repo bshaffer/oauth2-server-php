@@ -23,14 +23,24 @@ class RefreshToken implements GrantTypeInterface
      *                                                      <code>
      *                                                      $config = array(
      *                                                      'always_issue_new_refresh_token' => true, // whether to issue a new refresh token upon successful token request
+     *                                                      'unset_refresh_token_after_use' => true // whether to unset the refresh token after after using
      *                                                      );
      *                                                      </code>
      */
     public function __construct(RefreshTokenInterface $storage, $config = array())
     {
         $this->config = array_merge(array(
-            'always_issue_new_refresh_token' => false
+            'always_issue_new_refresh_token' => false,
+            'unset_refresh_token_after_use' => true
         ), $config);
+
+        // to preserve B.C. with v1.6
+        // @see https://github.com/bshaffer/oauth2-server-php/pull/580
+        // @todo - remove in v2.0
+        if (isset($config['always_issue_new_refresh_token']) && !isset($config['unset_refresh_token_after_use'])) {
+            $this->config['unset_refresh_token_after_use'] = $config['always_issue_new_refresh_token'];
+        }
+
         $this->storage = $storage;
     }
 
@@ -97,9 +107,10 @@ class RefreshToken implements GrantTypeInterface
          * @see http://tools.ietf.org/html/rfc6749#section-6
          */
         $issueNewRefreshToken = $this->config['always_issue_new_refresh_token'];
+        $unsetRefreshToken = $this->config['unset_refresh_token_after_use'];
         $token = $accessToken->createAccessToken($client_id, $user_id, $scope, $issueNewRefreshToken);
 
-        if ($issueNewRefreshToken) {
+        if ($unsetRefreshToken) {
             $this->storage->unsetRefreshToken($this->refreshToken['refresh_token']);
         }
 

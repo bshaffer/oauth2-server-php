@@ -207,6 +207,18 @@ class Pdo implements
     }
 
     /**
+     * @param $access_token
+     * @return bool
+     */
+    public function unsetAccessToken($access_token)
+    {
+        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE access_token = :access_token', $this->config['access_token_table']));
+
+        return $stmt->execute(compact('access_token'));
+    }
+
+    /* OAuth2\Storage\AuthorizationCodeInterface */
+    /**
      * @param string $code
      * @return mixed
      */
@@ -627,15 +639,15 @@ class Pdo implements
     public function getBuildSql($dbName = 'oauth2_server_php')
     {
         $sql = "
-            CREATE TABLE {$this->config['client_table']} (
-              client_id             VARCHAR(80)   NOT NULL,
-              client_secret         VARCHAR(80)   NOT NULL,
-              redirect_uri          VARCHAR(2000),
-              grant_types           VARCHAR(80),
-              scope                 VARCHAR(4000),
-              user_id               VARCHAR(80),
-              PRIMARY KEY (client_id)
-            );
+        CREATE TABLE {$this->config['client_table']} (
+          client_id             VARCHAR(80)   NOT NULL,
+          client_secret         VARCHAR(80),
+          redirect_uri          VARCHAR(2000),
+          grant_types           VARCHAR(80),
+          scope                 VARCHAR(4000),
+          user_id               VARCHAR(80),
+          PRIMARY KEY (client_id)
+        );
 
             CREATE TABLE {$this->config['access_token_table']} (
               access_token         VARCHAR(40)    NOT NULL,
@@ -687,7 +699,7 @@ class Pdo implements
               subject             VARCHAR(80),
               public_key          VARCHAR(2000) NOT NULL
             );
-
+    
             CREATE TABLE {$this->config['jti_table']} (
               issuer              VARCHAR(80)   NOT NULL,
               subject             VARCHAR(80),

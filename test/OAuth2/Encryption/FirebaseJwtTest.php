@@ -4,7 +4,7 @@ namespace OAuth2\Encryption;
 
 use OAuth2\Storage\Bootstrap;
 
-class JwtTest extends \PHPUnit_Framework_TestCase
+class FirebaseJwtTest extends \PHPUnit_Framework_TestCase
 {
     private $privateKey;
 
@@ -32,7 +32,7 @@ EOD;
     /** @dataProvider provideClientCredentials */
     public function testJwtUtil($client_id, $client_key)
     {
-        $jwtUtil = new Jwt();
+        $jwtUtil = new FirebaseJwt();
 
         $params = array(
             'iss' => $client_id,
@@ -46,7 +46,7 @@ EOD;
         $encoded = $jwtUtil->encode($params, $this->privateKey, 'RS256');
 
         // test BC behaviour of trusting the algorithm in the header
-        $payload = $jwtUtil->decode($encoded, $client_key);
+        $payload = $jwtUtil->decode($encoded, $client_key, array('RS256'));
         $this->assertEquals($params, $payload);
 
         // test BC behaviour of not verifying by passing false
@@ -60,7 +60,7 @@ EOD;
 
     public function testInvalidJwt()
     {
-        $jwtUtil = new Jwt();
+        $jwtUtil = new FirebaseJwt();
 
         $this->assertFalse($jwtUtil->decode('goob'));
         $this->assertFalse($jwtUtil->decode('go.o.b'));
@@ -69,7 +69,7 @@ EOD;
     /** @dataProvider provideClientCredentials */
     public function testInvalidJwtHeader($client_id, $client_key)
     {
-        $jwtUtil = new Jwt();
+        $jwtUtil = new FirebaseJwt();
 
         $params = array(
             'iss' => $client_id,

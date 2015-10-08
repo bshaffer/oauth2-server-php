@@ -4,7 +4,7 @@ namespace OAuth2\Storage;
 
 class Bootstrap
 {
-    const DYNAMODB_PHP_VERSION = '5.5';
+    const DYNAMODB_PHP_VERSION = 'none';
 
     protected static $instance;
     private $mysql;
@@ -171,19 +171,29 @@ class Bootstrap
     public function getCouchbase()
     {
         if (!$this->couchbase) {
-            $skipCouchbase = $this->getEnvVar('SKIP_COUCHBASE_TESTS');
-            if (!$skipCouchbase && class_exists('Couchbase')) {
-                $couchbase = new \Couchbase(array('localhost:8091'), '', '', 'auth', false);
-                if ($this->testCouchbaseConnection($couchbase)) {
-                    $this->clearCouchbase($couchbase);
-                    $this->createCouchbaseDB($couchbase);
-
-                    $this->couchbase = new CouchbaseDB($couchbase);
-                } else {
-                    $this->couchbase = new NullStorage('Couchbase', 'Unable to connect to Couchbase server on "localhost:8091"');
-                }
-            } else {
+            if ($this->getEnvVar('SKIP_COUCHBASE_TESTS')) {
+                $this->couchbase = new NullStorage('Couchbase', 'Skipping Couchbase tests');
+            } elseif (!class_exists('Couchbase')) {
                 $this->couchbase = new NullStorage('Couchbase', 'Missing Couchbase php extension. Please install couchbase.so');
+            } else {
+                // round-about way to make sure couchbase is working
+                // this is required because it throws a "floating point exception" otherwise
+                $code = "new \Couchbase(array('localhost:8091'), '', '', 'auth', false);";
+                $exec = sprintf('php -r "%s"', $code);
+                $ret = exec($exec, $test, $var);
+                if ($ret != 0) {
+                    $couchbase = new \Couchbase(array('localhost:8091'), '', '', 'auth', false);
+                    if ($this->testCouchbaseConnection($couchbase)) {
+                        $this->clearCouchbase($couchbase);
+                        $this->createCouchbaseDB($couchbase);
+
+                        $this->couchbase = new CouchbaseDB($couchbase);
+                    } else {
+                        $this->couchbase = new NullStorage('Couchbase', 'Unable to connect to Couchbase server on "localhost:8091"');
+                    }
+                } else {
+                    $this->couchbase = new NullStorage('Couchbase', 'Error while trying to connect to Couchbase');
+                }
             }
         }
 
@@ -202,7 +212,6 @@ class Bootstrap
 
         return true;
     }
-
 
     public function getCassandraStorage()
     {
@@ -392,9 +401,8 @@ class Bootstrap
         return $this->configDir;
     }
 
-
-    private function createCouchbaseDB(\Couchbase $db) {
-
+    private function createCouchbaseDB(\Couchbase $db)
+    {
         $db->set('oauth_clients-oauth_test_client',json_encode(array(
             'client_id' => "oauth_test_client",
             'client_secret' => "testpass",
@@ -424,7 +432,8 @@ class Bootstrap
         )));
     }
 
-    private function clearCouchbase(\Couchbase $cb) {
+    private function clearCouchbase(\Couchbase $cb)
+    {
         $cb->delete('oauth_authorization_codes-new-openid-code');
         $cb->delete('oauth_access_tokens-newtoken');
         $cb->delete('oauth_authorization_codes-newcode');

@@ -174,6 +174,7 @@ class Server implements ResourceControllerInterface,
             'allow_credentials_in_request_body' => true,
             'allow_public_clients'     => true,
             'always_issue_new_refresh_token' => false,
+            'unset_refresh_token_after_use' => true,
         ), $config);
 
         foreach ($grantTypes as $key => $grantType) {
@@ -334,6 +335,24 @@ class Server implements ResourceControllerInterface,
     }
 
     /**
+     * Handle a revoke token request
+     * This would be called from the "/revoke" endpoint as defined in the draft Token Revocation spec
+     *
+     * @see https://tools.ietf.org/html/rfc7009#section-2
+     *
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @return Response|ResponseInterface
+     */
+    public function handleRevokeRequest(RequestInterface $request, ResponseInterface $response = null)
+    {
+        $this->response = is_null($response) ? new Response() : $response;
+        $this->getTokenController()->handleRevokeRequest($request, $this->response);
+
+        return $this->response;
+    }
+
+    /**
      * Redirect the user appropriately after approval.
      *
      * After the user has approved or denied the resource request the
@@ -426,17 +445,17 @@ class Server implements ResourceControllerInterface,
      * @param GrantTypeInterface $grantType
      * @param mixed              $key
      */
-    public function addGrantType(GrantTypeInterface $grantType, $key = null)
+    public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
     {
-        if (is_string($key)) {
-            $this->grantTypes[$key] = $grantType;
-        } else {
-            $this->grantTypes[$grantType->getQuerystringIdentifier()] = $grantType;
+        if (!is_string($identifier)) {
+            $identifier = $grantType->getQuerystringIdentifier();
         }
+
+        $this->grantTypes[$identifier] = $grantType;
 
         // persist added grant type down to TokenController
         if (!is_null($this->tokenController)) {
-            $this->getTokenController()->addGrantType($grantType);
+            $this->getTokenController()->addGrantType($grantType, $identifier);
         }
     }
 
@@ -718,7 +737,7 @@ class Server implements ResourceControllerInterface,
         }
 
         if (isset($this->storages['refresh_token'])) {
-            $config = array_intersect_key($this->config, array('always_issue_new_refresh_token' => ''));
+            $config = array_intersect_key($this->config, array_flip(explode(' ', 'always_issue_new_refresh_token unset_refresh_token_after_use')));
             $grantTypes['refresh_token'] = new RefreshToken($this->storages['refresh_token'], $config);
         }
 
@@ -799,7 +818,6 @@ class Server implements ResourceControllerInterface,
         return new JwtAccessTokenStorage($this->storages['public_key'], $tokenStorage);
     }
 
-
     /**
      * For Authorize and Token Controllers
      *
@@ -822,7 +840,7 @@ class Server implements ResourceControllerInterface,
             $refreshStorage = $this->storages['refresh_token'];
         }
 
-        $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string')));
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string issuer access_lifetime refresh_token_lifetime')));
 
         return new JwtAccessToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config);
     }
@@ -918,7 +936,7 @@ class Server implements ResourceControllerInterface,
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return object|null
      */
     public function getStorage($name)
@@ -935,7 +953,7 @@ class Server implements ResourceControllerInterface,
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return object|null
      */
     public function getGrantType($name)
@@ -952,7 +970,7 @@ class Server implements ResourceControllerInterface,
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return object|null
      */
     public function getResponseType($name)

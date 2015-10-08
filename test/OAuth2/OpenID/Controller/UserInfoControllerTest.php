@@ -2,7 +2,6 @@
 
 namespace OAuth2\OpenID\Controller;
 
-use OAuth2\OpenID\Controller\UserInfoController;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
 use OAuth2\Request;
@@ -12,13 +11,13 @@ class UserInfoControllerTest extends \PHPUnit_Framework_TestCase
 {
     public function testCreateController()
     {
-	$tokenType = new \OAuth2\TokenType\Bearer();
-	$storage = new \OAuth2\Storage\Memory();
+        $tokenType = new \OAuth2\TokenType\Bearer();
+        $storage = new \OAuth2\Storage\Memory();
         $controller = new UserInfoController($tokenType, $storage, $storage);
 
-	$response = new Response();
-	$controller->handleUserInfoRequest(new Request(), $response);
-	$this->assertEquals(401, $response->getStatusCode());
+        $response = new Response();
+        $controller->handleUserInfoRequest(new Request(), $response);
+        $this->assertEquals(401, $response->getStatusCode());
     }
 
     public function testValidToken()
