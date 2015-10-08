@@ -185,13 +185,15 @@ class Request implements RequestInterface
     /**
      * Creates a new request with values from PHP's super globals.
      *
-     * @return Request A new request
+     * @return Request - A new request
      *
      * @api
      */
     public static function createFromGlobals()
     {
         $class = get_called_class();
+
+        /** @var Request $request */
         $request = new $class($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER);
 
         $contentType = $request->server('CONTENT_TYPE', '');

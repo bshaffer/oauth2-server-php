@@ -37,15 +37,15 @@ interface UserCredentialsInterface
     public function checkUserCredentials($username, $password);
 
     /**
-     * @return
-     * ARRAY the associated "user_id" and optional "scope" values
-     * This function MUST return FALSE if the requested user does not exist or is
-     * invalid. "scope" is a space-separated list of restricted scopes.
+     * @param string $username - username to get details for
+     * @return array|false     - the associated "user_id" and optional "scope" values
+     *                           This function MUST return FALSE if the requested user does not exist or is
+     *                           invalid. "scope" is a space-separated list of restricted scopes.
      * @code
-     * return array(
-     *     "user_id"  => USER_ID,    // REQUIRED user_id to be stored with the authorization code or access token
-     *     "scope"    => SCOPE       // OPTIONAL space-separated list of restricted scopes
-     * );
+     *     return array(
+     *         "user_id"  => USER_ID,    // REQUIRED user_id to be stored with the authorization code or access token
+     *         "scope"    => SCOPE       // OPTIONAL space-separated list of restricted scopes
+     *     );
      * @endcode
      */
     public function getUserDetails($username);

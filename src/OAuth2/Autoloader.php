@@ -10,8 +10,14 @@ namespace OAuth2;
  */
 class Autoloader
 {
+    /**
+     * @var string
+     */
     private $dir;
 
+    /**
+     * @param string $dir
+     */
     public function __construct($dir = null)
     {
         if (is_null($dir)) {
@@ -19,6 +25,7 @@ class Autoloader
         }
         $this->dir = $dir;
     }
+
     /**
      * Registers OAuth2\Autoloader as an SPL autoloader.
      */
@@ -31,9 +38,8 @@ class Autoloader
     /**
      * Handles autoloading of classes.
      *
-     * @param string $class A class name.
-     *
-     * @return boolean Returns true if the class has been loaded
+     * @param string $class - A class name.
+     * @return boolean      - Returns true if the class has been loaded
      */
     public function autoload($class)
     {

@@ -30,6 +30,8 @@ use OAuth2\GrantType\UserCredentials;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\RefreshToken;
 use OAuth2\GrantType\AuthorizationCode;
+use OAuth2\Storage\ClientCredentialsInterface;
+use OAuth2\Storage\ClientInterface;
 use OAuth2\Storage\JwtAccessToken as JwtAccessTokenStorage;
 use OAuth2\Storage\JwtAccessTokenInterface;
 use InvalidArgumentException;
@@ -204,7 +206,7 @@ class Server implements ResourceControllerInterface,
     }
 
     /**
-     * @return TokenControllerInterface
+     * @return TokenController
      */
     public function getTokenController()
     {
@@ -458,11 +460,11 @@ class Server implements ResourceControllerInterface,
 
             // special logic to handle "client" and "client_credentials" strangeness
             if ($key === 'client' && !isset($this->storages['client_credentials'])) {
-                if ($storage instanceof \OAuth2\Storage\ClientCredentialsInterface) {
+                if ($storage instanceof ClientCredentialsInterface) {
                     $this->storages['client_credentials'] = $storage;
                 }
             } elseif ($key === 'client_credentials' && !isset($this->storages['client'])) {
-                if ($storage instanceof \OAuth2\Storage\ClientInterface) {
+                if ($storage instanceof ClientInterface) {
                     $this->storages['client'] = $storage;
                 }
             }
@@ -589,7 +591,7 @@ class Server implements ResourceControllerInterface,
         }
 
         if (!isset($this->storages['client'])) {
-            throw new \LogicException("You must supply a storage object implementing OAuth2\Storage\ClientInterface to use the token server");
+            throw new LogicException("You must supply a storage object implementing OAuth2\Storage\ClientInterface to use the token server");
         }
 
         $accessTokenResponseType = $this->getAccessTokenResponseType();
