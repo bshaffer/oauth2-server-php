@@ -8,7 +8,6 @@ use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 
 /**
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class UserCredentials implements GrantTypeInterface
@@ -71,11 +70,21 @@ class UserCredentials implements GrantTypeInterface
         return $this->userInfo['user_id'];
     }
 
+
     public function getScope()
     {
         return isset($this->userInfo['scope']) ? $this->userInfo['scope'] : null;
     }
 
+    /**
+     * Create access token
+     *
+     * @param AccessTokenInterface $accessToken
+     * @param mixed                $client_id   - client identifier related to the access token.
+     * @param mixed                $user_id     - user id associated with the access token
+     * @param string               $scope       - scopes to be stored in space-separated string.
+     * @return array
+     */
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
         return $accessToken->createAccessToken($client_id, $user_id, $scope);

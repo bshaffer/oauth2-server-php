@@ -6,14 +6,38 @@ use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\Encryption\Jwt;
 use OAuth2\Storage\PublicKeyInterface;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
+use LogicException;
 
 class IdToken implements IdTokenInterface
 {
+    /**
+     * @var UserClaimsInterface
+     */
     protected $userClaimsStorage;
+    /**
+     * @var PublicKeyInterface
+     */
     protected $publicKeyStorage;
+
+    /**
+     * @var array
+     */
     protected $config;
+
+    /**
+     * @var EncryptionInterface
+     */
     protected $encryptionUtil;
 
+    /**
+     * Constructor
+     *
+     * @param UserClaimsInterface $userClaimsStorage
+     * @param PublicKeyInterface $publicKeyStorage
+     * @param array $config
+     * @param EncryptionInterface $encryptionUtil
+     * @throws LogicException
+     */
     public function __construct(UserClaimsInterface $userClaimsStorage, PublicKeyInterface $publicKeyStorage, array $config = array(), EncryptionInterface $encryptionUtil = null)
     {
         $this->userClaimsStorage = $userClaimsStorage;
@@ -24,13 +48,18 @@ class IdToken implements IdTokenInterface
         $this->encryptionUtil = $encryptionUtil;
 
         if (!isset($config['issuer'])) {
-            throw new \LogicException('config parameter "issuer" must be set');
+            throw new LogicException('config parameter "issuer" must be set');
         }
         $this->config = array_merge(array(
             'id_lifetime' => 3600,
         ), $config);
     }
 
+    /**
+     * @param array $params
+     * @param null $userInfo
+     * @return array|mixed
+     */
     public function getAuthorizeResponse($params, $userInfo = null)
     {
         // build the URL to redirect to
@@ -50,6 +79,16 @@ class IdToken implements IdTokenInterface
         return array($params['redirect_uri'], $result);
     }
 
+    /**
+     * Create id token
+     *
+     * @param string $client_id
+     * @param mixed  $userInfo
+     * @param mixed  $nonce
+     * @param mixed  $userClaims
+     * @param mixed  $access_token
+     * @return mixed|string
+     */
     public function createIdToken($client_id, $userInfo, $nonce = null, $userClaims = null, $access_token = null)
     {
         // pull auth_time from user info if supplied
@@ -79,6 +118,11 @@ class IdToken implements IdTokenInterface
         return $this->encodeToken($token, $client_id);
     }
 
+    /**
+     * @param $access_token
+     * @param null $client_id
+     * @return mixed|string
+     */
     protected function createAtHash($access_token, $client_id = null)
     {
         // maps HS256 and RS256 to sha256, etc.
@@ -90,6 +134,11 @@ class IdToken implements IdTokenInterface
         return $this->encryptionUtil->urlSafeB64Encode($at_hash);
     }
 
+    /**
+     * @param array $token
+     * @param null $client_id
+     * @return mixed|string
+     */
     protected function encodeToken(array $token, $client_id = null)
     {
         $private_key = $this->publicKeyStorage->getPrivateKey($client_id);
@@ -98,6 +147,11 @@ class IdToken implements IdTokenInterface
         return $this->encryptionUtil->encode($token, $private_key, $algorithm);
     }
 
+    /**
+     * @param $userInfo
+     * @return array
+     * @throws LogicException
+     */
     private function getUserIdAndAuthTime($userInfo)
     {
         $auth_time = null;
@@ -105,7 +159,7 @@ class IdToken implements IdTokenInterface
         // support an array for user_id / auth_time
         if (is_array($userInfo)) {
             if (!isset($userInfo['user_id'])) {
-                throw new \LogicException('if $user_id argument is an array, user_id index must be set');
+                throw new LogicException('if $user_id argument is an array, user_id index must be set');
             }
 
             $auth_time = isset($userInfo['auth_time']) ? $userInfo['auth_time'] : null;

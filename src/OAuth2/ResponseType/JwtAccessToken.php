@@ -10,7 +10,6 @@ use OAuth2\Storage\PublicKeyInterface;
 use OAuth2\Storage\Memory;
 
 /**
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class JwtAccessToken extends AccessToken

@@ -8,7 +8,6 @@ use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 
 /**
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class RefreshToken implements GrantTypeInterface
@@ -81,6 +80,15 @@ class RefreshToken implements GrantTypeInterface
         return isset($this->refreshToken['scope']) ? $this->refreshToken['scope'] : null;
     }
 
+    /**
+     * Create access token
+     *
+     * @param AccessTokenInterface $accessToken
+     * @param mixed                $client_id   - client identifier related to the access token.
+     * @param mixed                $user_id     - user id associated with the access token
+     * @param string               $scope       - scopes to be stored in space-separated string.
+     * @return array
+     */
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {
         /*

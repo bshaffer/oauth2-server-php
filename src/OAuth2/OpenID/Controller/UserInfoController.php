@@ -16,14 +16,27 @@ use OAuth2\ResponseInterface;
  */
 class UserInfoController extends ResourceController implements UserInfoControllerInterface
 {
+    /**
+     * TODO: Check if $token is necessary here. It is already declared inside the ResourceController that is extended.
+     *
+     * @var array
+     */
     private $token;
 
-    protected $tokenType;
-    protected $tokenStorage;
+    /**
+     * @var UserClaimsInterface
+     */
     protected $userClaimsStorage;
-    protected $config;
-    protected $scopeUtil;
 
+    /**
+     * Constructor
+     *
+     * @param TokenTypeInterface   $tokenType
+     * @param AccessTokenInterface $tokenStorage
+     * @param UserClaimsInterface  $userClaimsStorage
+     * @param array                $config
+     * @param ScopeInterface       $scopeUtil
+     */
     public function __construct(TokenTypeInterface $tokenType, AccessTokenInterface $tokenStorage, UserClaimsInterface $userClaimsStorage, $config = array(), ScopeInterface $scopeUtil = null)
     {
         $this->tokenType = $tokenType;
@@ -40,6 +53,13 @@ class UserInfoController extends ResourceController implements UserInfoControlle
         $this->scopeUtil = $scopeUtil;
     }
 
+    /**
+     * Handle the user info request
+     *
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @return void
+     */
     public function handleUserInfoRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$this->verifyResourceRequest($request, $response, 'openid')) {

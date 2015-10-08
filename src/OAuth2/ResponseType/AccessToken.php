@@ -6,7 +6,6 @@ use OAuth2\Storage\AccessTokenInterface as AccessTokenStorageInterface;
 use OAuth2\Storage\RefreshTokenInterface;
 
 /**
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class AccessToken implements AccessTokenInterface
@@ -82,10 +81,10 @@ class AccessToken implements AccessTokenInterface
     /**
      * Handle the creation of access token, also issue refresh token if supported / desirable.
      *
-     * @param mixed $client_id          - client identifier related to the access token.
-     * @param mixed $user_id            - user ID associated with the access token
-     * @param string $scope             - OPTIONAL scopes to be stored in space-separated string.
-     * @param bool $includeRefreshToken - if true, a new refresh_token will be added to the response
+     * @param mixed  $client_id           - client identifier related to the access token.
+     * @param mixed  $user_id             - user ID associated with the access token
+     * @param string $scope               - OPTIONAL scopes to be stored in space-separated string.
+     * @param bool   $includeRefreshToken - if true, a new refresh_token will be added to the response
      * @return array
      *
      * @see http://tools.ietf.org/html/rfc6749#section-5

@@ -207,7 +207,13 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
      * Creates an access token that is NOT associated with a refresh token.
      * If a subject (sub) the name of the user/account we are accessing data on behalf of.
      *
-     * @see OAuth2\GrantType\GrantTypeInterface::createAccessToken()
+     * @see GrantTypeInterface::createAccessToken()
+     *
+     * @param AccessTokenInterface $accessToken
+     * @param mixed                $client_id   - client identifier related to the access token.
+     * @param mixed                $user_id     - user id associated with the access token
+     * @param string               $scope       - scopes to be stored in space-separated string.
+     * @return array
      */
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {

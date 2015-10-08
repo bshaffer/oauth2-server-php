@@ -15,17 +15,18 @@ interface AccessTokenInterface
      *
      * We need to retrieve access token data as we create and verify tokens.
      *
-     * @param $oauth_token
-     * oauth_token to be check with.
+     * @param string $oauth_token - oauth_token to be check with.
      *
-     * @return
-     * An associative array as below, and return NULL if the supplied oauth_token
-     * is invalid:
-     * - expires: Stored expiration in unix timestamp.
-     * - client_id: (optional) Stored client identifier.
-     * - user_id: (optional) Stored user identifier.
-     * - scope: (optional) Stored scope values in space-separated string.
-     * - id_token: (optional) Stored id_token (if "use_openid_connect" is true).
+     * @return array|null - An associative array as below, and return NULL if the supplied oauth_token is invalid:
+     * @code
+     *     array(
+     *         'expires'   => $expires,   // Stored expiration in unix timestamp.
+     *         'client_id' => $client_id, // (optional) Stored client identifier.
+     *         'user_id'   => $user_id,   // (optional) Stored user identifier.
+     *         'scope'     => $scope,     // (optional) Stored scope values in space-separated string.
+     *         'id_token'  => $id_token   // (optional) Stored id_token (if "use_openid_connect" is true).
+     *     );
+     * @endcode
      *
      * @ingroup oauth2_section_7
      */
@@ -36,11 +37,11 @@ interface AccessTokenInterface
      *
      * We need to store access token data as we create and verify tokens.
      *
-     * @param $oauth_token    oauth_token to be stored.
-     * @param $client_id      client identifier to be stored.
-     * @param $user_id        user identifier to be stored.
-     * @param int    $expires expiration to be stored as a Unix timestamp.
-     * @param string $scope   OPTIONAL Scopes to be stored in space-separated string.
+     * @param string $oauth_token - oauth_token to be stored.
+     * @param mixed  $client_id   - client identifier to be stored.
+     * @param mixed  $user_id     - user identifier to be stored.
+     * @param int    $expires     - expiration to be stored as a Unix timestamp.
+     * @param string $scope       - OPTIONAL Scopes to be stored in space-separated string.
      *
      * @ingroup oauth2_section_4
      */

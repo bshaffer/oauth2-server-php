@@ -5,7 +5,6 @@ namespace OAuth2\ResponseType;
 use OAuth2\Storage\AuthorizationCodeInterface as AuthorizationCodeStorageInterface;
 
 /**
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class AuthorizationCode implements AuthorizationCodeInterface
