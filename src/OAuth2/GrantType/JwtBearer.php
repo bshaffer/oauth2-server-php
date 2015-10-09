@@ -30,10 +30,12 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Creates an instance of the JWT bearer grant type.
      *
-     * @param OAuth2\Storage\JWTBearerInterface|JwtBearerInterface $storage A valid storage interface that implements storage hooks for the JWT bearer grant type.
-     * @param string $audience The audience to validate the token against. This is usually the full URI of the OAuth token requests endpoint.
-     * @param EncryptionInterface|OAuth2\Encryption\JWT $jwtUtil OPTONAL The class used to decode, encode and verify JWTs.
-     * @param array $config
+     * @param JwtBearerInterface      $storage  - A valid storage interface that implements storage hooks for the JWT
+     *                                            bearer grant type.
+     * @param string                  $audience - The audience to validate the token against. This is usually the full
+     *                                            URI of the OAuth token requests endpoint.
+     * @param EncryptionInterface|JWT $jwtUtil  - OPTONAL The class used to decode, encode and verify JWTs.
+     * @param array                   $config
      */
     public function __construct(JwtBearerInterface $storage, $audience, EncryptionInterface $jwtUtil = null, array $config = array())
     {
@@ -56,10 +58,9 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Returns the grant_type get parameter to identify the grant type request as JWT bearer authorization grant.
      *
-     * @return
-     * The string identifier for grant_type.
+     * @return string - The string identifier for grant_type.
      *
-     * @see OAuth2\GrantType\GrantTypeInterface::getQueryStringIdentifier()
+     * @see GrantTypeInterface::getQueryStringIdentifier()
      */
     public function getQueryStringIdentifier()
     {

@@ -4,6 +4,7 @@ namespace OAuth2\ResponseType;
 
 use OAuth2\Storage\AccessTokenInterface as AccessTokenStorageInterface;
 use OAuth2\Storage\RefreshTokenInterface;
+use RuntimeException;
 
 /**
  * @author Brent Shaffer <bshafs at gmail dot com>
@@ -178,6 +179,7 @@ class AccessToken implements AccessTokenInterface
      *
      * @param $token
      * @param null $tokenTypeHint
+     * @throws RuntimeException
      * @return boolean
      */
     public function revokeToken($token, $tokenTypeHint = null)
@@ -190,7 +192,7 @@ class AccessToken implements AccessTokenInterface
 
         /** @TODO remove in v2 */
         if (!method_exists($this->tokenStorage, 'unsetAccessToken')) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 sprintf('Token storage %s must implement unsetAccessToken method', get_class($this->tokenStorage)
             ));
         }

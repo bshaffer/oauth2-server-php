@@ -12,20 +12,30 @@ use OAuth2\ResponseInterface;
  */
 class RefreshToken implements GrantTypeInterface
 {
+    /**
+     * @var array
+     */
     private $refreshToken;
 
+    /**
+     * @var RefreshTokenInterface
+     */
     protected $storage;
+
+    /**
+     * @var array
+     */
     protected $config;
 
     /**
-     * @param OAuth2\Storage\RefreshTokenInterface $storage REQUIRED Storage class for retrieving refresh token information
-     * @param array                                $config  OPTIONAL Configuration options for the server
-     *                                                      <code>
-     *                                                      $config = array(
-     *                                                      'always_issue_new_refresh_token' => true, // whether to issue a new refresh token upon successful token request
-     *                                                      'unset_refresh_token_after_use' => true // whether to unset the refresh token after after using
-     *                                                      );
-     *                                                      </code>
+     * @param RefreshTokenInterface $storage - REQUIRED Storage class for retrieving refresh token information
+     * @param array                 $config  - OPTIONAL Configuration options for the server
+     * @code
+     *     $config = array(
+     *         'always_issue_new_refresh_token' => true, // whether to issue a new refresh token upon successful token request
+     *         'unset_refresh_token_after_use' => true // whether to unset the refresh token after after using
+     *     );
+     * @endcode
      */
     public function __construct(RefreshTokenInterface $storage, $config = array())
     {
@@ -44,11 +54,21 @@ class RefreshToken implements GrantTypeInterface
         $this->storage = $storage;
     }
 
+    /**
+     * @return string
+     */
     public function getQueryStringIdentifier()
     {
         return 'refresh_token';
     }
 
+    /**
+     * Validate the OAuth request
+     *
+     * @param RequestInterface  $request
+     * @param ResponseInterface $response
+     * @return bool|mixed|null
+     */
     public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$request->request("refresh_token")) {
@@ -75,16 +95,31 @@ class RefreshToken implements GrantTypeInterface
         return true;
     }
 
+    /**
+     * Get client id
+     *
+     * @return mixed
+     */
     public function getClientId()
     {
         return $this->refreshToken['client_id'];
     }
 
+    /**
+     * Get user id
+     *
+     * @return mixed|null
+     */
     public function getUserId()
     {
         return isset($this->refreshToken['user_id']) ? $this->refreshToken['user_id'] : null;
     }
 
+    /**
+     * Get scope
+     *
+     * @return null|string
+     */
     public function getScope()
     {
         return isset($this->refreshToken['scope']) ? $this->refreshToken['scope'] : null;
