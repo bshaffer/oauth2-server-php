@@ -250,7 +250,7 @@ class TokenController implements TokenControllerInterface
     public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
     {
         if (is_null($identifier) || is_numeric($identifier)) {
-            $identifier = $grantType->getQuerystringIdentifier();
+            $identifier = $grantType->getQueryStringIdentifier();
         }
 
         $this->grantTypes[$identifier] = $grantType;

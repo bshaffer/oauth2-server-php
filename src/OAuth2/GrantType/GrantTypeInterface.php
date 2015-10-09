@@ -16,7 +16,7 @@ interface GrantTypeInterface
      *
      * @return string
      */
-    public function getQuerystringIdentifier();
+    public function getQueryStringIdentifier();
 
     /**
      * @param RequestInterface $request

@@ -203,7 +203,6 @@ class Jwt implements EncryptionInterface
         );
     }
 
-
     /**
      * @param string $a
      * @param string $b

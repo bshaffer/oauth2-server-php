@@ -39,7 +39,7 @@ class ClientCredentials extends HttpBasic implements GrantTypeInterface
      *
      * @return string
      */
-    public function getQuerystringIdentifier()
+    public function getQueryStringIdentifier()
     {
         return 'client_credentials';
     }

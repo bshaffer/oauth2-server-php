@@ -34,7 +34,7 @@ class AuthorizationCode implements GrantTypeInterface
     /**
      * @return string
      */
-    public function getQuerystringIdentifier()
+    public function getQueryStringIdentifier()
     {
         return 'authorization_code';
     }

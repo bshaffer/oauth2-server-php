@@ -44,7 +44,7 @@ class RefreshToken implements GrantTypeInterface
         $this->storage = $storage;
     }
 
-    public function getQuerystringIdentifier()
+    public function getQueryStringIdentifier()
     {
         return 'refresh_token';
     }

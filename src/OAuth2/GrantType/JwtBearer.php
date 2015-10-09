@@ -59,9 +59,9 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
      * @return
      * The string identifier for grant_type.
      *
-     * @see OAuth2\GrantType\GrantTypeInterface::getQuerystringIdentifier()
+     * @see OAuth2\GrantType\GrantTypeInterface::getQueryStringIdentifier()
      */
-    public function getQuerystringIdentifier()
+    public function getQueryStringIdentifier()
     {
         return 'urn:ietf:params:oauth:grant-type:jwt-bearer';
     }
@@ -69,10 +69,9 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Validates the data from the decoded JWT.
      *
-     * @return
-     * TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.
-     *
-     * @see OAuth2\GrantType\GrantTypeInterface::getTokenData()
+     * @param RequestInterface  $request
+     * @param ResponseInterface $response
+     * @return bool|mixed|null TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.@see GrantTypeInterface::getTokenData()
      */
     public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
@@ -196,16 +195,31 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         return true;
     }
 
+    /**
+     * Get client id
+     *
+     * @return mixed
+     */
     public function getClientId()
     {
         return $this->jwt['iss'];
     }
 
+    /**
+     * Get user id
+     *
+     * @return mixed
+     */
     public function getUserId()
     {
         return $this->jwt['sub'];
     }
 
+    /**
+     * Get scope
+     *
+     * @return null
+     */
     public function getScope()
     {
         return null;

@@ -36,7 +36,7 @@ class Pdo implements
     protected $db;
 
     /**
-     * @var
+     * @var array
      */
     protected $config;
 
