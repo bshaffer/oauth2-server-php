@@ -6,7 +6,6 @@ use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\Encryption\Jwt;
 use OAuth2\Storage\PublicKeyInterface;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
-use Phalcon\Logger;
 
 class IdToken implements IdTokenInterface
 {
