@@ -84,7 +84,7 @@ class IdToken implements IdTokenInterface
         // maps HS256 and RS256 to sha256, etc.
         $algorithm = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
         $hash_algorithm = 'sha' . substr($algorithm, 2);
-        $hash = hash($hash_algorithm, $access_token);
+        $hash = hash($hash_algorithm, $access_token, true);
         $at_hash = substr($hash, 0, strlen($hash) / 2);
 
         return $this->encryptionUtil->urlSafeB64Encode($at_hash);
