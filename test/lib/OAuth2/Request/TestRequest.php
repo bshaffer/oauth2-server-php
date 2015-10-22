@@ -2,60 +2,37 @@
 
 namespace OAuth2\Request;
 
-use OAuth2\Request;
-use OAuth2\RequestInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Zend\Diactoros\Request;
+use Zend\Diactoros\Stream;
 
 /**
 *
 */
 class TestRequest extends Request implements RequestInterface
 {
-    public $query, $request, $server, $headers;
-
-    public function __construct()
+    public function __construct($query = null, $request = null)
     {
-        $this->query = $_GET;
-        $this->request = $_POST;
-        $this->server  = $_SERVER;
-        $this->headers = array();
-    }
+        $query = $query ?: $_GET;
+        $request = $request ?: $_POST;
 
-    public function query($name, $default = null)
-    {
-        return isset($this->query[$name]) ? $this->query[$name] : $default;
-    }
+        $stream = new Stream('php://temp', 'rw');
 
-    public function request($name, $default = null)
-    {
-        return isset($this->request[$name]) ? $this->request[$name] : $default;
-    }
+        if ($request) {
+            $stream->write(json_encode($request));
+        }
 
-    public function server($name, $default = null)
-    {
-        return isset($this->server[$name]) ? $this->server[$name] : $default;
-    }
-
-    public function getAllQueryParameters()
-    {
-        return $this->query;
-    }
-
-    public function setQuery(array $query)
-    {
-        $this->query = $query;
-    }
-
-    public function setPost(array $params)
-    {
-        $this->server['REQUEST_METHOD'] = 'POST';
-        $this->request = $params;
+        parent::__construct(
+            'http://localhost/?' . http_build_query($query),
+            $request ? 'POST' : 'GET',
+            $stream,
+            array('Content-Type' => 'application/json')
+        );
     }
 
     public static function createPost(array $params = array())
     {
-        $request = new self();
-        $request->setPost($params);
-
-        return $request;
+        return new self(null, $params);
     }
 }

@@ -4,8 +4,8 @@ namespace OAuth2\GrantType;
 
 use OAuth2\Storage\UserCredentialsInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  *
@@ -30,24 +30,34 @@ class UserCredentials implements GrantTypeInterface
         return 'password';
     }
 
-    public function validateRequest(RequestInterface $request, ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, &$errors = null)
     {
-        if (!$request->request("password") || !$request->request("username")) {
-            $response->setError(400, 'invalid_request', 'Missing parameters: "username" and "password" required');
+        $body = json_decode((string) $request->getBody(), true);
+        if (empty($body['password']) || empty($body['password'])) {
+            $errors = array(
+                'code' => 'invalid_request',
+                'description' => 'Missing parameters: "username" and "password" required',
+            );
 
             return null;
         }
 
-        if (!$this->storage->checkUserCredentials($request->request("username"), $request->request("password"))) {
-            $response->setError(401, 'invalid_grant', 'Invalid username and password combination');
+        if (!$this->storage->checkUserCredentials($body['username'], $body['password'])) {
+            $errors = array(
+                'code' => 'invalid_grant',
+                'description' => 'Invalid username and password combination',
+            );
 
             return null;
         }
 
-        $userInfo = $this->storage->getUserDetails($request->request("username"));
+        $userInfo = $this->storage->getUserDetails($body['username']);
 
         if (empty($userInfo)) {
-            $response->setError(400, 'invalid_grant', 'Unable to retrieve user information');
+            $errors = array(
+                'code' => 'invalid_grant',
+                'description' => 'Unable to retrieve user information',
+            );
 
             return null;
         }

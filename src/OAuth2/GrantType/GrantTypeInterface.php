@@ -3,8 +3,8 @@
 namespace OAuth2\GrantType;
 
 use OAuth2\ResponseType\AccessTokenInterface;
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Interface for all OAuth2 Grant Types
@@ -12,7 +12,7 @@ use OAuth2\ResponseInterface;
 interface GrantTypeInterface
 {
     public function getQuerystringIdentifier();
-    public function validateRequest(RequestInterface $request, ResponseInterface $response);
+    public function validateRequest(RequestInterface $request, &$errors = null);
     public function getClientId();
     public function getUserId();
     public function getScope();

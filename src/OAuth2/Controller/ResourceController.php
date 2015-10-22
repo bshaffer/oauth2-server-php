@@ -2,11 +2,12 @@
 
 namespace OAuth2\Controller;
 
+use OAuth2\ResponseException;
 use OAuth2\TokenType\TokenTypeInterface;
 use OAuth2\Storage\AccessTokenInterface;
 use OAuth2\ScopeInterface;
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use OAuth2\Scope;
 
 /**
@@ -38,31 +39,40 @@ class ResourceController implements ResourceControllerInterface
 
     public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response, $scope = null)
     {
-        $token = $this->getAccessTokenData($request, $response);
+        try {
+            $token = $this->getAccessTokenData($request, $response);
 
-        // Check if we have token data
-        if (is_null($token)) {
-            return false;
-        }
+            // Check if we have token data
+            if (is_null($token)) {
+                return false;
+            }
 
-        /**
-         * Check scope, if provided
-         * If token doesn't have a scope, it's null/empty, or it's insufficient, then throw 403
-         * @see http://tools.ietf.org/html/rfc6750#section-3.1
-         */
-        if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->scopeUtil->checkScope($scope, $token["scope"]))) {
-            $response->setError(403, 'insufficient_scope', 'The request requires higher privileges than provided by the access token');
-            $response->addHttpHeaders(array(
-                'WWW-Authenticate' => sprintf('%s realm="%s", scope="%s", error="%s", error_description="%s"',
-                    $this->tokenType->getTokenType(),
-                    $this->config['www_realm'],
-                    $scope,
-                    $response->getParameter('error'),
-                    $response->getParameter('error_description')
-                )
-            ));
+            /**
+             * Check scope, if provided
+             * If token doesn't have a scope, it's null/empty, or it's insufficient, then throw 403
+             * @see http://tools.ietf.org/html/rfc6750#section-3.1
+             */
+            if ($scope && (!isset($token["scope"]) || !$token["scope"] || !$this->scopeUtil->checkScope($scope, $token["scope"]))) {
+                throw new ResponseException(
+                    'insufficient_scope',
+                    'The request requires higher privileges than provided by the access token',
+                    '#section-3.1',
+                    403
+                );
+            }
+        } catch (ResponseException $e) {
+            $authHeader = sprintf('%s realm="%s"', $this->tokenType->getTokenType(), $this->config['www_realm']);
 
-            return false;
+            if ($shortCode = $e->getShortCode()) {
+                $authHeader = sprintf('%s, error="%s"', $authHeader, $shortCode);
+                if ($description = $e->getDescription()) {
+                    $authHeader = sprintf('%s, error_description="%s"', $authHeader, $description);
+                }
+            }
+
+            return $response
+                ->withStatusCode($e->getStatusCode() ?: 401)
+                ->withHeader('WWW-Authenticate' => $authHeader);
         }
 
         // allow retrieval of the token
@@ -79,28 +89,19 @@ class ResourceController implements ResourceControllerInterface
             // Check we have a well formed token
             // Check token expiration (expires is a mandatory paramter)
             if (!$token = $this->tokenStorage->getAccessToken($token_param)) {
-                $response->setError(401, 'invalid_token', 'The access token provided is invalid');
+                throw new ResponseException('invalid_token', 'The access token provided is invalid');
             } elseif (!isset($token["expires"]) || !isset($token["client_id"])) {
-                $response->setError(401, 'malformed_token', 'Malformed token (missing "expires")');
+                throw new ResponseException('malformed_token', 'Malformed token (missing "expires")');
             } elseif (time() > $token["expires"]) {
-                $response->setError(401, 'expired_token', 'The access token provided has expired');
+                throw new ResponseException('expired_token', 'The access token provided has expired');
             } else {
                 return $token;
             }
         }
 
-        $authHeader = sprintf('%s realm="%s"', $this->tokenType->getTokenType(), $this->config['www_realm']);
-
-        if ($error = $response->getParameter('error')) {
-            $authHeader = sprintf('%s, error="%s"', $authHeader, $error);
-            if ($error_description = $response->getParameter('error_description')) {
-                $authHeader = sprintf('%s, error_description="%s"', $authHeader, $error_description);
-            }
-        }
-
-        $response->addHttpHeaders(array('WWW-Authenticate' => $authHeader));
-
-        return null;
+        // if no authentication was provided, do not return error information
+        // @see http://tools.ietf.org/html/rfc6750#section-3.1
+        throw new ResponseException();
     }
 
     // convenience method to allow retrieval of the token

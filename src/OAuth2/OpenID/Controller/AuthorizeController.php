@@ -3,8 +3,8 @@
 namespace OAuth2\OpenID\Controller;
 
 use OAuth2\Controller\AuthorizeController as BaseAuthorizeController;
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * @see OAuth2\Controller\AuthorizeControllerInterface
@@ -34,9 +34,7 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
 
     protected function buildAuthorizeParameters($request, $response, $user_id)
     {
-        if (!$params = parent::buildAuthorizeParameters($request, $response, $user_id)) {
-            return;
-        }
+        $params = parent::buildAuthorizeParameters($request, $response, $user_id);
 
         // Generate an id token if needed.
         if ($this->needsIdToken($this->getScope()) && $this->getResponseType() == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
@@ -49,13 +47,15 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
         return $params;
     }
 
-    public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response)
+    public function validateAuthorizeRequest(RequestInterface $request, &$errors = null)
     {
-        if (!parent::validateAuthorizeRequest($request, $response)) {
+        if (!parent::validateAuthorizeRequest($request, $errors)) {
             return false;
         }
 
-        $nonce = $request->query('nonce');
+        parse_str($request->getUri()->getQuery('nonce'), $query);
+
+        $nonce = isset($query['nonce']) ? $query['nonce'] : null;
 
         // Validate required nonce for "id_token" and "id_token token"
         if (!$nonce && in_array($this->getResponseType(), array(self::RESPONSE_TYPE_ID_TOKEN, self::RESPONSE_TYPE_ID_TOKEN_TOKEN))) {

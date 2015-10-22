@@ -5,15 +5,15 @@ namespace OAuth2\Controller;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
 use OAuth2\GrantType\AuthorizationCode;
-use OAuth2\Request;
-use OAuth2\Response;
+use Zend\Diactoros\ServerRequestFactory;
+use Zend\Diactoros\Response;
 
 class ResourceControllerTest extends \PHPUnit_Framework_TestCase
 {
     public function testNoAccessToken()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
 
@@ -25,7 +25,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
     public function testMalformedHeader()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $request->headers['AUTHORIZATION'] = 'tH1s i5 B0gU5';
         $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
@@ -38,7 +38,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
     public function testMultipleTokensSubmitted()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $request->request['access_token'] = 'TEST';
         $request->query['access_token'] = 'TEST';
         $allow = $server->verifyResourceRequest($request, $response = new Response());
@@ -52,7 +52,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
     public function testInvalidRequestMethod()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $request->server['REQUEST_METHOD'] = 'GET';
         $request->request['access_token'] = 'TEST';
         $allow = $server->verifyResourceRequest($request, $response = new Response());
@@ -66,7 +66,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
     public function testInvalidContentType()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $request->server['REQUEST_METHOD'] = 'POST';
         $request->server['CONTENT_TYPE'] = 'application/json';
         $request->request['access_token'] = 'TEST';
@@ -81,7 +81,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
     public function testInvalidToken()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $request->headers['AUTHORIZATION'] = 'Bearer TESTTOKEN';
         $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
@@ -94,7 +94,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
     public function testExpiredToken()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-expired';
         $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
@@ -107,7 +107,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
     public function testOutOfScopeToken()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-scope';
         $scope = 'outofscope';
         $allow = $server->verifyResourceRequest($request, $response = new Response(), $scope);
@@ -126,7 +126,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
     public function testMalformedToken()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-malformed';
         $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertFalse($allow);
@@ -139,7 +139,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
     public function testValidToken()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-scope';
         $allow = $server->verifyResourceRequest($request, $response = new Response());
         $this->assertTrue($allow);
@@ -148,7 +148,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
     public function testValidTokenWithScopeParam()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
+        $request = $this->createRequest();
         $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-scope';
         $request->query['scope'] = 'testscope';
         $allow = $server->verifyResourceRequest($request, $response = new Response());
@@ -171,5 +171,10 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
         $server->addGrantType(new AuthorizationCode($storage));
 
         return $server;
+    }
+
+    private function createRequest()
+    {
+        return ServerRequestFactory::fromGlobals();
     }
 }

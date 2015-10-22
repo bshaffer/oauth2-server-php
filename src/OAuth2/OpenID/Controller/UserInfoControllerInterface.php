@@ -2,8 +2,8 @@
 
 namespace OAuth2\OpenID\Controller;
 
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  *  This controller is called when the user claims for OpenID Connect's

@@ -3,8 +3,8 @@
 namespace OAuth2\OpenID\ResponseType;
 
 use OAuth2\Server;
-use OAuth2\Request;
-use OAuth2\Response;
+use Zend\Diactoros\Request;
+use Zend\Diactoros\Response;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\GrantType\ClientCredentials;
 

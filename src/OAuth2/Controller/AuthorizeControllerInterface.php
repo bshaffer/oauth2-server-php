@@ -2,8 +2,8 @@
 
 namespace OAuth2\Controller;
 
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  *  This controller is called when a user should be authorized
@@ -39,5 +39,5 @@ interface AuthorizeControllerInterface
 
     public function handleAuthorizeRequest(RequestInterface $request, ResponseInterface $response, $is_authorized, $user_id = null);
 
-    public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response);
+    public function validateAuthorizeRequest(RequestInterface $request, &$errors = null);
 }

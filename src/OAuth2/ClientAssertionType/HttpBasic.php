@@ -2,9 +2,10 @@
 
 namespace OAuth2\ClientAssertionType;
 
+use OAuth2\ResponseException;
 use OAuth2\Storage\ClientCredentialsInterface;
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Validate a client via Http Basic authentication
@@ -37,9 +38,9 @@ class HttpBasic implements ClientAssertionTypeInterface
         ), $config);
     }
 
-    public function validateRequest(RequestInterface $request, ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, &$errors = null)
     {
-        if (!$clientData = $this->getClientCredentials($request, $response)) {
+        if (!$clientData = $this->getClientCredentials($request, $errors)) {
             return false;
         }
 
@@ -49,18 +50,27 @@ class HttpBasic implements ClientAssertionTypeInterface
 
         if (!isset($clientData['client_secret']) || $clientData['client_secret'] == '') {
             if (!$this->config['allow_public_clients']) {
-                $response->setError(400, 'invalid_client', 'client credentials are required');
+                $errors = array(
+                    'error' => 'invalid_client',
+                    'description' => 'client credentials are required'
+                );
 
                 return false;
             }
 
             if (!$this->storage->isPublicClient($clientData['client_id'])) {
-                $response->setError(400, 'invalid_client', 'This client is invalid or must authenticate using a client secret');
+                $errors = array(
+                    'error' => 'invalid_client',
+                    'description' => 'This client is invalid or must authenticate using a client secret'
+                );
 
                 return false;
             }
         } elseif ($this->storage->checkClientCredentials($clientData['client_id'], $clientData['client_secret']) === false) {
-            $response->setError(400, 'invalid_client', 'The client credentials are invalid');
+            $errors = array(
+                'error' => 'invalid_client',
+                'description' => 'The client credentials are invalid'
+            );
 
             return false;
         }
@@ -95,28 +105,40 @@ class HttpBasic implements ClientAssertionTypeInterface
      *
      * @ingroup oauth2_section_2
      */
-    public function getClientCredentials(RequestInterface $request, ResponseInterface $response = null)
+    public function getClientCredentials(RequestInterface $request, &$errors = null)
     {
-        if (!is_null($request->headers('PHP_AUTH_USER')) && !is_null($request->headers('PHP_AUTH_PW'))) {
-            return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));
+        if (
+            ($clientId = $request->getHeaderLine('PHP_AUTH_USER'))
+            && ($clientSecret = $request->getHeaderLine('PHP_AUTH_PW'))
+        ) {
+            return array(
+                'client_id' => $clientId,
+                'client_secret' => $clientSecret
+            );
         }
 
         if ($this->config['allow_credentials_in_request_body']) {
+            $body = json_decode((string) $request->getBody(), true);
             // Using POST for HttpBasic authorization is not recommended, but is supported by specification
-            if (!is_null($request->request('client_id'))) {
+            if (!empty($body['client_id'])) {
                 /**
                  * client_secret can be null if the client's password is an empty string
                  * @see http://tools.ietf.org/html/rfc6749#section-2.3.1
                  */
 
-                return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
+                return array(
+                    'client_id' => $body['client_id'],
+                    'client_secret' => isset($body['client_secret']) ? $body['client_secret'] : '',
+                );
             }
         }
 
-        if ($response) {
-            $message = $this->config['allow_credentials_in_request_body'] ? ' or body' : '';
-            $response->setError(400, 'invalid_client', 'Client credentials were not found in the headers'.$message);
-        }
+        $message = $this->config['allow_credentials_in_request_body'] ? ' or body' : '';
+
+        $errors = array(
+            'error' => 'invalid_client',
+            'description' => 'Client credentials were not found in the headers' . $message,
+        );
 
         return null;
     }

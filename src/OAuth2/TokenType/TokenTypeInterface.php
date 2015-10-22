@@ -2,8 +2,8 @@
 
 namespace OAuth2\TokenType;
 
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 interface TokenTypeInterface
 {

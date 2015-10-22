@@ -9,7 +9,7 @@ use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\UserCredentials;
 use OAuth2\Scope;
 use OAuth2\Request\TestRequest;
-use OAuth2\Response;
+use Zend\Diactoros\Response;
 
 class TokenControllerTest extends \PHPUnit_Framework_TestCase
 {
@@ -17,11 +17,12 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
     {
         // add the test parameters in memory
         $server = $this->getTestServer();
-        $server->handleTokenRequest(TestRequest::createPost(), $response = new Response());
+        $response = $server->handleTokenRequest(TestRequest::createPost());
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getParameter('error_description'), 'The grant type was not specified in the request');
+        $this->assertEquals($params['error'], 'invalid_request');
+        $this->assertEquals($params['error_description'], 'The grant type was not specified in the request');
     }
 
     public function testInvalidGrantType()
@@ -31,11 +32,12 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
         $request = TestRequest::createPost(array(
             'grant_type' => 'invalid_grant_type', // invalid grant type
         ));
-        $server->handleTokenRequest($request, $response = new Response());
+        $response = $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'unsupported_grant_type');
-        $this->assertEquals($response->getParameter('error_description'), 'Grant type "invalid_grant_type" not supported');
+        $this->assertEquals($params['error'], 'unsupported_grant_type');
+        $this->assertEquals($params['error_description'], 'Grant type "invalid_grant_type" not supported');
     }
 
     public function testNoClientId()
@@ -46,11 +48,12 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'grant_type' => 'authorization_code', // valid grant type
             'code'       => 'testcode',
         ));
-        $server->handleTokenRequest($request, $response = new Response());
+        $response = $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getParameter('error_description'), 'Client credentials were not found in the headers or body');
+        $this->assertEquals($params['error'], 'invalid_client');
+        $this->assertEquals($params['error_description'], 'Client credentials were not found in the headers or body');
     }
 
     public function testNoClientSecretWithConfidentialClient()
@@ -62,11 +65,12 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'code'       => 'testcode',
             'client_id' => 'Test Client ID', // valid client id
         ));
-        $server->handleTokenRequest($request, $response = new Response());
+        $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getParameter('error_description'), 'This client is invalid or must authenticate using a client secret');
+        $this->assertEquals($params['error'], 'invalid_client');
+        $this->assertEquals($params['error_description'], 'This client is invalid or must authenticate using a client secret');
     }
 
     public function testNoClientSecretWithEmptySecret()
@@ -78,7 +82,8 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'code'       => 'testcode-empty-secret',
             'client_id' => 'Test Client ID Empty Secret', // valid client id
         ));
-        $server->handleTokenRequest($request, $response = new Response());
+        $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($response->getStatusCode(), 200);
     }
@@ -93,11 +98,12 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'client_id'  => 'Fake Client ID', // invalid client id
             'client_secret' => 'TestSecret', // valid client secret
         ));
-        $server->handleTokenRequest($request, $response = new Response());
+        $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getParameter('error_description'), 'The client credentials are invalid');
+        $this->assertEquals($params['error'], 'invalid_client');
+        $this->assertEquals($params['error_description'], 'The client credentials are invalid');
     }
 
     public function testInvalidClientSecret()
@@ -110,11 +116,12 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'client_id'  => 'Test Client ID', // valid client id
             'client_secret' => 'Fake Client Secret', // invalid client secret
         ));
-        $server->handleTokenRequest($request, $response = new Response());
+        $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getParameter('error_description'), 'The client credentials are invalid');
+        $this->assertEquals($params['error'], 'invalid_client');
+        $this->assertEquals($params['error_description'], 'The client credentials are invalid');
     }
 
     public function testValidTokenResponse()
@@ -127,15 +134,16 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'code' => 'testcode', // valid authorization code
         ));
-        $server->handleTokenRequest($request, $response = new Response());
+        $response = $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertTrue($response instanceof Response);
         $this->assertEquals($response->getStatusCode(), 200);
-        $this->assertNull($response->getParameter('error'));
-        $this->assertNull($response->getParameter('error_description'));
-        $this->assertNotNull($response->getParameter('access_token'));
-        $this->assertNotNull($response->getParameter('expires_in'));
-        $this->assertNotNull($response->getParameter('token_type'));
+        $this->assertNull($params['error']);
+        $this->assertNull($params['error_description']);
+        $this->assertNotNull($params['access_token']);
+        $this->assertNotNull($params['expires_in']);
+        $this->assertNotNull($params['token_type']);
     }
 
     public function testValidClientIdScope()
@@ -149,12 +157,13 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'scope' => 'clientscope1 clientscope2'
         ));
-        $server->handleTokenRequest($request, $response = new Response());
+        $response = $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($response->getStatusCode(), 200);
-        $this->assertNull($response->getParameter('error'));
-        $this->assertNull($response->getParameter('error_description'));
-        $this->assertEquals('clientscope1 clientscope2', $response->getParameter('scope'));
+        $this->assertNull($params['error']);
+        $this->assertNull($params['error_description']);
+        $this->assertEquals('clientscope1 clientscope2', $params['scope']);
     }
 
     public function testInvalidClientIdScope()
@@ -168,11 +177,12 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
             'scope' => 'clientscope3'
         ));
-        $server->handleTokenRequest($request, $response = new Response());
+        $response = $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'The scope requested is invalid for this request');
+        $this->assertEquals($params['error'], 'invalid_scope');
+        $this->assertEquals($params['error_description'], 'The scope requested is invalid for this request');
     }
 
     public function testEnforceScope()
@@ -193,10 +203,11 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'client_secret' => 'TestSecret', // valid client secret
         ));
         $response = $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_scope');
-        $this->assertEquals($response->getParameter('error_description'), 'This application requires you specify a scope parameter');
+        $this->assertEquals($params['error'], 'invalid_scope');
+        $this->assertEquals($params['error_description'], 'This application requires you specify a scope parameter');
     }
 
     public function testCanReceiveAccessTokenUsingPasswordGrantTypeWithoutClientSecret()
@@ -212,15 +223,16 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'username'   => 'johndoe',                           // valid username
             'password'   => 'password',                          // valid password for username
         ));
-        $server->handleTokenRequest($request, $response = new Response());
+        $response = $server->handleTokenRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertTrue($response instanceof Response);
-        $this->assertEquals(200, $response->getStatusCode(), var_export($response, 1));
-        $this->assertNull($response->getParameter('error'));
-        $this->assertNull($response->getParameter('error_description'));
-        $this->assertNotNull($response->getParameter('access_token'));
-        $this->assertNotNull($response->getParameter('expires_in'));
-        $this->assertNotNull($response->getParameter('token_type'));
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertNull($params['error']);
+        $this->assertNull($params['error_description']);
+        $this->assertNotNull($params['access_token']);
+        $this->assertNotNull($params['expires_in']);
+        $this->assertNotNull($params['token_type']);
     }
 
     public function testInvalidTokenTypeHintForRevoke()
@@ -232,12 +244,13 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'token' => 'sometoken'
         ));
 
-        $server->handleRevokeRequest($request, $response = new Response());
+        $response = $server->handleRevokeRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertTrue($response instanceof Response);
-        $this->assertEquals(400, $response->getStatusCode(), var_export($response, 1));
-        $this->assertEquals($response->getParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getParameter('error_description'), 'Token type hint must be either \'access_token\' or \'refresh_token\'');
+        $this->assertEquals(400, $response->getStatusCode());
+        $this->assertEquals($params['error'], 'invalid_request');
+        $this->assertEquals($params['error_description'], 'Token type hint must be either \'access_token\' or \'refresh_token\'');
     }
 
     public function testMissingTokenForRevoke()
@@ -248,27 +261,28 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
             'token_type_hint' => 'access_token'
         ));
 
-        $server->handleRevokeRequest($request, $response = new Response());
+        $response = $server->handleRevokeRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
         $this->assertTrue($response instanceof Response);
-        $this->assertEquals(400, $response->getStatusCode(), var_export($response, 1));
-        $this->assertEquals($response->getParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getParameter('error_description'), 'Missing token parameter to revoke');
+        $this->assertEquals(400, $response->getStatusCode());
+        $this->assertEquals($params['error'], 'invalid_request');
+        $this->assertEquals($params['error_description'], 'Missing token parameter to revoke');
     }
 
     public function testInvalidRequestMethodForRevoke()
     {
         $server = $this->getTestServer();
 
-        $request = new TestRequest();
-        $request->setQuery(array(
+        $request = new TestRequest(array(
             'token_type_hint' => 'access_token'
         ));
 
-        $server->handleRevokeRequest($request, $response = new Response());
+        $response = $server->handleRevokeRequest($request);
+        $params = json_decode((string) $response->getBody(), true);
         $this->assertTrue($response instanceof Response);
         $this->assertEquals(405, $response->getStatusCode(), var_export($response, 1));
-        $this->assertEquals($response->getParameter('error'), 'invalid_request');
-        $this->assertEquals($response->getParameter('error_description'), 'The request method must be POST when revoking an access token');
+        $this->assertEquals($params['error'], 'invalid_request');
+        $this->assertEquals($params['error_description'], 'The request method must be POST when revoking an access token');
     }
 
     public function testCreateController()

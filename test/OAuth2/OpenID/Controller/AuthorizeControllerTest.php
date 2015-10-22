@@ -4,8 +4,8 @@ namespace OAuth2\OpenID\Controller;
 
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
-use OAuth2\Request;
-use OAuth2\Response;
+use Zend\Diactoros\Request;
+use Zend\Diactoros\Response;
 
 class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 {
@@ -101,7 +101,7 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 
         // Test missing nonce for 'id_token' response type
         $server->handleAuthorizeRequest($request, $response, true);
-        $params = $response->getParameters();
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($params['error'], 'invalid_nonce');
         $this->assertEquals($params['error_description'], 'This application requires you specify a nonce parameter');
@@ -109,7 +109,7 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         // Test missing nonce for 'id_token token' response type
         $request->query['response_type'] = 'id_token token';
         $server->handleAuthorizeRequest($request, $response, true);
-        $params = $response->getParameters();
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($params['error'], 'invalid_nonce');
         $this->assertEquals($params['error_description'], 'This application requires you specify a nonce parameter');
@@ -131,7 +131,7 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         // Test not approved application
         $server->handleAuthorizeRequest($request, $response, false);
 
-        $params = $response->getParameters();
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($params['error'], 'consent_required');
         $this->assertEquals($params['error_description'], 'The user denied access to your application');
@@ -140,7 +140,7 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $request->query['prompt'] = 'none';
         $server->handleAuthorizeRequest($request, $response, false);
 
-        $params = $response->getParameters();
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($params['error'], 'login_required');
         $this->assertEquals($params['error_description'], 'The user must log in');
@@ -149,7 +149,7 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $request->query['prompt'] = 'none';
         $server->handleAuthorizeRequest($request, $response, false, 'some-user-id');
 
-        $params = $response->getParameters();
+        $params = json_decode((string) $response->getBody(), true);
 
         $this->assertEquals($params['error'], 'interaction_required');
         $this->assertEquals($params['error_description'], 'The user must grant access to your application');

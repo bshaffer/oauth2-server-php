@@ -4,6 +4,8 @@ namespace OAuth2;
 
 use OAuth2\Storage\Memory;
 use OAuth2\Storage\ScopeInterface as ScopeStorageInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
 * @see OAuth2\ScopeInterface
@@ -78,8 +80,13 @@ class Scope implements ScopeInterface
 
     public function getScopeFromRequest(RequestInterface $request)
     {
+        parse_str($request->getUri()->getQuery(), $query);
+        $body = $request->getHeaderLine('content-type') == 'application/json'
+            ? json_decode((string) $request->getBody(), true)
+            : parse_str((string) $request->getBody());
+
         // "scope" is valid if passed in either POST or QUERY
-        return $request->request('scope', $request->query('scope'));
+        return @$query['scope'] ?: @$body['scope'];
     }
 
     public function getDefaultScope($client_id = null)

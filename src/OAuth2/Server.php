@@ -32,6 +32,10 @@ use OAuth2\GrantType\RefreshToken;
 use OAuth2\GrantType\AuthorizationCode;
 use OAuth2\Storage\JwtAccessToken as JwtAccessTokenStorage;
 use OAuth2\Storage\JwtAccessTokenInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Zend\Diactoros\Response;
+use Zend\Diactoros\ServerRequestFactory;
 
 /**
 * Server class for OAuth2
@@ -227,10 +231,7 @@ class Server implements ResourceControllerInterface,
      */
     public function handleUserInfoRequest(RequestInterface $request, ResponseInterface $response = null)
     {
-        $this->response = is_null($response) ? new Response() : $response;
-        $this->getUserInfoController()->handleUserInfoRequest($request, $this->response);
-
-        return $this->response;
+        return $this->getUserInfoController()->handleUserInfoRequest($request, $response ?: new Response());
     }
 
     /**
@@ -255,18 +256,12 @@ class Server implements ResourceControllerInterface,
      */
     public function handleTokenRequest(RequestInterface $request, ResponseInterface $response = null)
     {
-        $this->response = is_null($response) ? new Response() : $response;
-        $this->getTokenController()->handleTokenRequest($request, $this->response);
-
-        return $this->response;
+        return $this->getTokenController()->handleTokenRequest($request, $response ?: new Response());
     }
 
-    public function grantAccessToken(RequestInterface $request, ResponseInterface $response = null)
+    public function grantAccessToken(RequestInterface $request, &$errors = null)
     {
-        $this->response = is_null($response) ? new Response() : $response;
-        $value = $this->getTokenController()->grantAccessToken($request, $this->response);
-
-        return $value;
+        return $this->getTokenController()->grantAccessToken($request, $errors);
     }
 
     /**
@@ -281,10 +276,7 @@ class Server implements ResourceControllerInterface,
      */
     public function handleRevokeRequest(RequestInterface $request, ResponseInterface $response = null)
     {
-        $this->response = is_null($response) ? new Response() : $response;
-        $this->getTokenController()->handleRevokeRequest($request, $this->response);
-
-        return $this->response;
+        return $this->getTokenController()->handleRevokeRequest($request, $response ?: new Response());
     }
 
     /**
@@ -317,10 +309,7 @@ class Server implements ResourceControllerInterface,
      */
     public function handleAuthorizeRequest(RequestInterface $request, ResponseInterface $response, $is_authorized, $user_id = null)
     {
-        $this->response = $response;
-        $this->getAuthorizeController()->handleAuthorizeRequest($request, $this->response, $is_authorized, $user_id);
-
-        return $this->response;
+        return $this->getAuthorizeController()->handleAuthorizeRequest($request, $response, $is_authorized, $user_id);
     }
 
     /**
@@ -342,12 +331,9 @@ class Server implements ResourceControllerInterface,
      *
      * @ingroup oauth2_section_3
      */
-    public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response = null)
+    public function validateAuthorizeRequest(RequestInterface $request, &$errors = null)
     {
-        $this->response = is_null($response) ? new Response() : $response;
-        $value = $this->getAuthorizeController()->validateAuthorizeRequest($request, $this->response);
-
-        return $value;
+        return $this->getAuthorizeController()->validateAuthorizeRequest($request, $errors);
     }
 
     public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response = null, $scope = null)

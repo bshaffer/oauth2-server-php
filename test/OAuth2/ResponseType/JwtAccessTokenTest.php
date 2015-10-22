@@ -3,8 +3,8 @@
 namespace OAuth2\ResponseType;
 
 use OAuth2\Server;
-use OAuth2\Response;
 use OAuth2\Request\TestRequest;
+use Zend\Diactoros\Response;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Storage\JwtAccessToken as JwtAccessTokenStorage;
 use OAuth2\GrantType\ClientCredentials;

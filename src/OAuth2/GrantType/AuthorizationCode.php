@@ -4,8 +4,8 @@ namespace OAuth2\GrantType;
 
 use OAuth2\Storage\AuthorizationCodeInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  *
@@ -29,16 +29,16 @@ class AuthorizationCode implements GrantTypeInterface
         return 'authorization_code';
     }
 
-    public function validateRequest(RequestInterface $request, ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, &$errors = null)
     {
-        if (!$request->request('code')) {
+        $body = json_decode((string) $request->getBody(), true);
+        if (empty($body['code'])) {
             $response->setError(400, 'invalid_request', 'Missing parameter: "code" is required');
 
             return false;
         }
 
-        $code = $request->request('code');
-        if (!$authCode = $this->storage->getAuthorizationCode($code)) {
+        if (!$authCode = $this->storage->getAuthorizationCode($body['code'])) {
             $response->setError(400, 'invalid_grant', 'Authorization code doesn\'t exist or is invalid for the client');
 
             return false;
@@ -49,8 +49,12 @@ class AuthorizationCode implements GrantTypeInterface
          * @uri - http://tools.ietf.org/html/rfc6749#section-4.1.3
          */
         if (isset($authCode['redirect_uri']) && $authCode['redirect_uri']) {
-            if (!$request->request('redirect_uri') || urldecode($request->request('redirect_uri')) != $authCode['redirect_uri']) {
-                $response->setError(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match", "#section-4.1.3");
+            if (empty($body['redirect_uri']) || urldecode($body['redirect_uri']) != $authCode['redirect_uri']) {
+                $errors = array(
+                    'code' => 'redirect_uri_mismatch',
+                    'description' => 'The redirect URI is missing or do not match',
+                    'uri' => '#section-4.1.3',
+                );
 
                 return false;
             }
@@ -61,7 +65,10 @@ class AuthorizationCode implements GrantTypeInterface
         }
 
         if ($authCode["expires"] < time()) {
-            $response->setError(400, 'invalid_grant', "The authorization code has expired");
+            $errors = array(
+                'code' => 'invalid_grant',
+                'description' => 'The authorization code has expired',
+            );
 
             return false;
         }

@@ -2,8 +2,8 @@
 
 namespace OAuth2\Controller;
 
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  *  This controller is called when a "resource" is requested.

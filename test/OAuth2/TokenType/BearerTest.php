@@ -3,7 +3,7 @@
 namespace OAuth2\TokenType;
 
 use OAuth2\Request\TestRequest;
-use OAuth2\Response;
+use Zend\Diactoros\Response;
 
 class BearerTest extends \PHPUnit_Framework_TestCase
 {

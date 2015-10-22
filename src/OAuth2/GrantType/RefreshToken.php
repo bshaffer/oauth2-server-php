@@ -4,8 +4,8 @@ namespace OAuth2\GrantType;
 
 use OAuth2\Storage\RefreshTokenInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  *
@@ -50,7 +50,7 @@ class RefreshToken implements GrantTypeInterface
         return 'refresh_token';
     }
 
-    public function validateRequest(RequestInterface $request, ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, &$errors = null)
     {
         if (!$request->request("refresh_token")) {
             $response->setError(400, 'invalid_request', 'Missing parameter: "refresh_token" is required');

@@ -8,8 +8,9 @@ use OAuth2\GrantType\GrantTypeInterface;
 use OAuth2\ScopeInterface;
 use OAuth2\Scope;
 use OAuth2\Storage\ClientInterface;
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Zend\Diactoros\Stream;
 
 /**
  * @see OAuth2\Controller\TokenControllerInterface
@@ -46,13 +47,27 @@ class TokenController implements TokenControllerInterface
 
     public function handleTokenRequest(RequestInterface $request, ResponseInterface $response)
     {
-        if ($token = $this->grantAccessToken($request, $response)) {
+        $errors = null;
+        $body = new Stream('php://temp', 'rw');
+        if ($token = $this->grantAccessToken($request, $errors)) {
             // @see http://tools.ietf.org/html/rfc6749#section-5.1
             // server MUST disable caching in headers when tokens are involved
-            $response->setStatusCode(200);
-            $response->addParameters($token);
-            $response->addHttpHeaders(array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
+            $body->write(json_encode($token));
+            return $response
+                ->withStatus(200)
+                ->withHeader('Cache-Control', 'no-store')
+                ->withHeader('Pragma', 'no-cache')
+                ->withBody($body);
         }
+
+        $body->write(json_encode(array_filter(array(
+            'error' => $error['code'],
+            'error_description' => $error['description'],
+            'error_uri' => $error['uri'],
+        ))));
+        return $response
+            ->withStatus($errors['code'] == 'invalid_method' ? 405 : 400)
+            ->withBody($body);
     }
 
     /**
@@ -72,30 +87,43 @@ class TokenController implements TokenControllerInterface
      *
      * @ingroup oauth2_section_4
      */
-    public function grantAccessToken(RequestInterface $request, ResponseInterface $response)
+    public function grantAccessToken(RequestInterface $request, &$errors = null)
     {
-        if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
-            $response->setError(405, 'invalid_request', 'The request method must be POST when requesting an access token', '#section-3.2');
-            $response->addHttpHeaders(array('Allow' => 'POST'));
+        if (strtolower($request->getMethod()) != 'post') {
+            $errors = array(
+                'code' => 'invalid_method',
+                'description' => 'The request method must be POST when requesting an access token',
+                'uri' => '#section-3.2',
+            );
 
-            return null;
+            return false;
         }
+
+        $body = json_decode((string) $request->getBody(), true);
 
         /**
          * Determine grant type from request
          * and validate the request for that grant type
          */
-        if (!$grantTypeIdentifier = $request->request('grant_type')) {
-            $response->setError(400, 'invalid_request', 'The grant type was not specified in the request');
+        if (empty($body['grant_type'])) {
+            $errors = array(
+                'code' => 'invalid_request',
+                'description' => 'The grant type was not specified in the request',
+            );
 
-            return null;
+            return false;
         }
+
+        $grantTypeIdentifier = $body['grant_type'];
 
         if (!isset($this->grantTypes[$grantTypeIdentifier])) {
             /* TODO: If this is an OAuth2 supported grant type that we have chosen not to implement, throw a 501 Not Implemented instead */
-            $response->setError(400, 'unsupported_grant_type', sprintf('Grant type "%s" not supported', $grantTypeIdentifier));
+            $errors = array(
+                'code' => 'unsupported_grant_type',
+                'description' => sprintf('Grant type "%s" not supported', $grantTypeIdentifier),
+            );
 
-            return null;
+            return false;
         }
 
         $grantType = $this->grantTypes[$grantTypeIdentifier];
@@ -109,9 +137,7 @@ class TokenController implements TokenControllerInterface
          * @see OAuth2\GrantType\ClientCredentials
          */
         if (!$grantType instanceof ClientAssertionTypeInterface) {
-            if (!$this->clientAssertionType->validateRequest($request, $response)) {
-                return null;
-            }
+            $this->clientAssertionType->validateRequest($request, $response);
             $clientId = $this->clientAssertionType->getClientId();
         }
 
@@ -121,18 +147,19 @@ class TokenController implements TokenControllerInterface
          * If the object is an instance of ClientAssertionTypeInterface,
          * That logic is handled here as well
          */
-        if (!$grantType->validateRequest($request, $response)) {
-            return null;
-        }
+        $grantType->validateRequest($request, $response);
 
         if ($grantType instanceof ClientAssertionTypeInterface) {
             $clientId = $grantType->getClientId();
         } else {
             // validate the Client ID (if applicable)
             if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
-                $response->setError(400, 'invalid_grant', sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier));
+                $errors = array(
+                    'code' => 'invalid_grant',
+                    'description' => sprintf('%s doesn\'t exist or is invalid for the client', $grantTypeIdentifier),
+                );
 
-                return null;
+                return false;
             }
         }
 
@@ -140,7 +167,10 @@ class TokenController implements TokenControllerInterface
          * Validate the client can use the requested grant type
          */
         if (!$this->clientStorage->checkRestrictedGrantType($clientId, $grantTypeIdentifier)) {
-            $response->setError(400, 'unauthorized_client', 'The grant type is unauthorized for this client_id');
+            $errors = array(
+                'code' => 'unauthorized_client',
+                'description' => 'The grant type is unauthorized for this client_id',
+            );
 
             return false;
         }
@@ -163,22 +193,31 @@ class TokenController implements TokenControllerInterface
             // validate the requested scope
             if ($availableScope) {
                 if (!$this->scopeUtil->checkScope($requestedScope, $availableScope)) {
-                    $response->setError(400, 'invalid_scope', 'The scope requested is invalid for this request');
+                    $errors = array(
+                        'code' => 'invalid_scope',
+                        'description' => 'The scope requested is invalid for this request',
+                    );
 
-                    return null;
+                    return false;
                 }
             } else {
                 // validate the client has access to this scope
                 if ($clientScope = $this->clientStorage->getClientScope($clientId)) {
                     if (!$this->scopeUtil->checkScope($requestedScope, $clientScope)) {
-                        $response->setError(400, 'invalid_scope', 'The scope requested is invalid for this client');
+                        $errors = array(
+                            'code' => 'invalid_scope',
+                            'description' => 'The scope requested is invalid for this client',
+                        );
 
                         return false;
                     }
                 } elseif (!$this->scopeUtil->scopeExists($requestedScope)) {
-                    $response->setError(400, 'invalid_scope', 'An unsupported scope was requested');
+                    $errors = array(
+                        'code' => 'invalid_scope',
+                        'description' => 'An unsupported scope was requested',
+                    );
 
-                    return null;
+                    return false;
                 }
             }
         } elseif ($availableScope) {
@@ -190,9 +229,12 @@ class TokenController implements TokenControllerInterface
 
             // "false" means default scopes are not allowed
             if (false === $defaultScope) {
-                $response->setError(400, 'invalid_scope', 'This application requires you specify a scope parameter');
+                $errors = array(
+                    'code' => 'invalid_scope',
+                    'description' => 'An unsupported scope was requested',
+                );
 
-                return null;
+                return false;
             }
 
             $requestedScope = $defaultScope;
@@ -220,10 +262,33 @@ class TokenController implements TokenControllerInterface
 
     public function handleRevokeRequest(RequestInterface $request, ResponseInterface $response)
     {
-        if ($this->revokeToken($request, $response)) {
-            $response->setStatusCode(200);
-            $response->addParameters(array('revoked' => true));
+        $errors = null;
+        $body = new Stream('php://temp', 'rw');
+        if ($this->revokeToken($request, $errors)) {
+            $body->write(json_encode(array('revoked' => true)));
+            $response
+                ->withStatus(200)
+                ->withBody($body);
+        } else {
+            $body->write(json_encode(array_filter(array(
+                'error' => $errors['error'],
+                'error_description' => $errors['description'],
+                'error_uri' => $errors['uri'],
+            ))));
+            $response
+                ->withStatus(isset($errors['status_code']) ? $errors['status_code'] : 400)
+                ->withHeader('Cache-Control', 'no-store')
+                ->withBody($body);
+
+            if (isset($errors['headers'])) {
+                foreach ($errors['headers'] as $key => $value) {
+                    $response = $response->withHeader($key, $value);
+                }
+            }
         }
+
+        return $response
+            ->withHeader('Content-Type', 'application/json');
     }
 
     /**
@@ -238,27 +303,39 @@ class TokenController implements TokenControllerInterface
      * @param ResponseInterface $response
      * @return bool|null
      */
-    public function revokeToken(RequestInterface $request, ResponseInterface $response)
+    public function revokeToken(RequestInterface $request, &$errors = null)
     {
-        if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
-            $response->setError(405, 'invalid_request', 'The request method must be POST when revoking an access token', '#section-3.2');
-            $response->addHttpHeaders(array('Allow' => 'POST'));
+        $params = json_decode((string) $request->getBody(), true);
+        if (strtolower($request->getHeaderLine('REQUEST_METHOD')) != 'post') {
+            $errors = array(
+                'error' => 'invalid_request',
+                'description' => 'The request method must be POST when revoking an access token',
+                'uri' => 'http://tools.ietf.org/html/rfc6749#section-3.2',
+                'status_code' => 405,
+                'headers' => array('Accept' => 'POST'),
+            );
 
-            return null;
+            return;
         }
 
-        $token_type_hint = $request->request('token_type_hint');
+        $token_type_hint = isset($params['token_type_hint']) ? $params['token_type_hint'] : null;
         if (!in_array($token_type_hint, array(null, 'access_token', 'refresh_token'), true)) {
-            $response->setError(400, 'invalid_request', 'Token type hint must be either \'access_token\' or \'refresh_token\'');
+            $errors = array(
+                'error' => 'invalid_request',
+                'description' => 'Token type hint must be either \'access_token\' or \'refresh_token\''
+            );
 
-            return null;
+            return;
         }
 
         $token = $request->request('token');
         if ($token === null) {
-            $response->setError(400, 'invalid_request', 'Missing token parameter to revoke');
+            $errors = array(
+                'error' => 'invalid_request',
+                'description' => 'Missing token parameter to revoke'
+            );
 
-            return null;
+            return;
         }
 
         // @todo remove this check for v2.0

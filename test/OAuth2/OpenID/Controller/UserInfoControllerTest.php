@@ -4,8 +4,8 @@ namespace OAuth2\OpenID\Controller;
 
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
-use OAuth2\Request;
-use OAuth2\Response;
+use Zend\Diactoros\ServerRequestFactory;
+use Zend\Diactoros\Response;
 
 class UserInfoControllerTest extends \PHPUnit_Framework_TestCase
 {
@@ -13,18 +13,19 @@ class UserInfoControllerTest extends \PHPUnit_Framework_TestCase
     {
         $tokenType = new \OAuth2\TokenType\Bearer();
         $storage = new \OAuth2\Storage\Memory();
+        $request = ServerRequestFactory::fromGlobals();
         $controller = new UserInfoController($tokenType, $storage, $storage);
 
         $response = new Response();
-        $controller->handleUserInfoRequest(new Request(), $response);
+        $controller->handleUserInfoRequest($request, $response);
         $this->assertEquals(401, $response->getStatusCode());
     }
 
     public function testValidToken()
     {
         $server = $this->getTestServer();
-        $request = Request::createFromGlobals();
-        $request->headers['AUTHORIZATION'] = 'Bearer accesstoken-openid-connect';
+        $request = ServerRequestFactory::fromGlobals();
+        $request = $request->withHeader('AUTHORIZATION', 'Bearer accesstoken-openid-connect');
         $response = new Response();
 
         $server->handleUserInfoRequest($request, $response);

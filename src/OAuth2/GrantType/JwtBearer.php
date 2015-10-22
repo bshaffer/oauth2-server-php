@@ -7,8 +7,8 @@ use OAuth2\Storage\JwtBearerInterface;
 use OAuth2\Encryption\Jwt;
 use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\ResponseType\AccessTokenInterface;
-use OAuth2\RequestInterface;
-use OAuth2\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * The JWT bearer authorization grant implements JWT (JSON Web Tokens) as a grant type per the IETF draft.
@@ -74,7 +74,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
      *
      * @see OAuth2\GrantType\GrantTypeInterface::getTokenData()
      */
-    public function validateRequest(RequestInterface $request, ResponseInterface $response)
+    public function validateRequest(RequestInterface $request, &$errors = null)
     {
         if (!$request->request("assertion")) {
             $response->setError(400, 'invalid_request', 'Missing parameters: "assertion" required');

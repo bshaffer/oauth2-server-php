@@ -3,6 +3,8 @@
 namespace OAuth2;
 
 use OAuth2\Storage\ScopeInterface as ScopeStorageInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class to handle scope implementation logic
