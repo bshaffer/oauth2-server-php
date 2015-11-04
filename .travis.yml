@@ -22,5 +22,10 @@ before_script:
 - composer require thobbs/phpcassa:dev-master
 - composer require 'aws/aws-sdk-php:~2.8'
 - composer require 'firebase/php-jwt:~2.2'
+- composer require 'satooshi/php-coveralls:dev-master'
+script:
+ - mkdir -p build/logs
+ - phpunit --coverage-clover build/logs/clover.xml
 after_script:
 - php test/cleanup.php
+- php vendor/bin/coveralls -v
