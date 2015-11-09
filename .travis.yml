@@ -15,11 +15,9 @@ services:
 - mongodb
 - redis-server
 - cassandra
+install:
+- composer install --no-interaction
 before_script:
 - psql -c 'create database oauth2_server_php;' -U postgres
-- composer require predis/predis:dev-master
-- composer require thobbs/phpcassa:dev-master
-- composer require 'aws/aws-sdk-php:~2.8'
-- composer require 'firebase/php-jwt:~2.2'
 after_script:
 - php test/cleanup.php
