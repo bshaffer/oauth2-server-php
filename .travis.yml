@@ -20,6 +20,8 @@ services:
 - mongodb
 - redis-server
 - cassandra
+before_install:
+- phpenv config-rm xdebug.ini || return 0
 install:
 - composer install --no-interaction
 before_script:
