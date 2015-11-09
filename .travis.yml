@@ -1,5 +1,9 @@
 language: php
 sudo: false
+cache:
+  directories:
+    - $HOME/.composer/cache
+    - vendor
 php:
 - 5.3
 - 5.4
