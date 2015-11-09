@@ -42,6 +42,10 @@
             "client_secret": "TestSecret2",
             "redirect_uri": "http://brentertainment.com"
         },
+        "Test Client ID with Buggy Redirect Uri": {
+            "client_secret": "TestSecret2",
+            "redirect_uri": "  http://brentertainment.com"
+        },
         "Test Client ID with Multiple Redirect Uris": {
             "client_secret": "TestSecret3",
             "redirect_uri": "http://brentertainment.com http://morehazards.com"
