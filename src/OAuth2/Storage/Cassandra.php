@@ -465,8 +465,8 @@ class Cassandra implements AuthorizationCodeInterface,
         else {
             foreach ($claimValues as $claimValue) {
                 if (isset($userDetails[$claimValue])) {
-                    if (in_array($claimValue, array(self::CLAIM_EMAIL_NUMBER_VERIFIED, self::CLAIM_PHONE_NUMBER_VERIFIED), true)) {
-                        $userDetails[$claimValue] = (is_string($userDetails[$claimValue]) && !strcasecmp($userDetails[$claimValue], 'true')) || (!is_string($userDetails[$claimValue]) && (bool)$userDetails[$claimValue]);
+                    if (in_array($claimValue, array(self::CLAIM_EMAIL_VERIFIED, self::CLAIM_PHONE_NUMBER_VERIFIED), true)) {
+                        $userDetails[$claimValue] = (is_string($userDetails[$claimValue]) && !strcasecmp($userDetails[$claimValue], 'true')) || ((is_numeric($userDetails[$claimValue]) || is_bool($userDetails[$claimValue])) && (bool)$userDetails[$claimValue]);
                     }
 
                     $userClaims[$claimValue] = $userDetails[$claimValue];

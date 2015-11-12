@@ -18,7 +18,7 @@ interface UserClaimsInterface
     const ADDRESS_CLAIM_VALUES  = 'formatted street_address locality region postal_code country';
     const PHONE_CLAIM_VALUES    = 'phone_number phone_number_verified';
 
-    const CLAIM_EMAIL_NUMBER_VERIFIED = 'email_verified';
+    const CLAIM_EMAIL_VERIFIED = 'email_verified';
     const CLAIM_PHONE_NUMBER_VERIFIED = 'phone_number_verified';
 
     /**
