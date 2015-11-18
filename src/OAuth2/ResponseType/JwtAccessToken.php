@@ -10,7 +10,6 @@ use OAuth2\Storage\PublicKeyInterface;
 use OAuth2\Storage\Memory;
 
 /**
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class JwtAccessToken extends AccessToken
@@ -19,10 +18,13 @@ class JwtAccessToken extends AccessToken
     protected $encryptionUtil;
 
     /**
-     * @param $config
-     *  - store_encrypted_token_string (bool true)
-     *       whether the entire encrypted string is stored,
-     *       or just the token ID is stored
+     * @param PublicKeyInterface          $publicKeyStorage -
+     * @param AccessTokenStorageInterface $tokenStorage     -
+     * @param RefreshTokenInterface       $refreshStorage   -
+     * @param array                       $config           - array with key store_encrypted_token_string (bool true)
+     *                                                        whether the entire encrypted string is stored,
+     *                                                        or just the token ID is stored
+     * @param EncryptionInterface         $encryptionUtil   -
      */
     public function __construct(PublicKeyInterface $publicKeyStorage = null, AccessTokenStorageInterface $tokenStorage = null, RefreshTokenInterface $refreshStorage = null, array $config = array(), EncryptionInterface $encryptionUtil = null)
     {
@@ -45,14 +47,11 @@ class JwtAccessToken extends AccessToken
     /**
      * Handle the creation of access token, also issue refresh token if supported / desirable.
      *
-     * @param $client_id
-     * Client identifier related to the access token.
-     * @param $user_id
-     * User ID associated with the access token
-     * @param $scope
-     * (optional) Scopes to be stored in space-separated string.
-     * @param bool $includeRefreshToken
-     *                                  If true, a new refresh_token will be added to the response
+     * @param mixed  $client_id           - Client identifier related to the access token.
+     * @param mixed  $user_id             - User ID associated with the access token
+     * @param string $scope               - (optional) Scopes to be stored in space-separated string.
+     * @param bool   $includeRefreshToken - If true, a new refresh_token will be added to the response
+     * @return array                      - The access token
      *
      * @see http://tools.ietf.org/html/rfc6749#section-5
      * @ingroup oauth2_section_5
@@ -114,6 +113,11 @@ class JwtAccessToken extends AccessToken
         return $token;
     }
 
+    /**
+     * @param array $token
+     * @param mixed $client_id
+     * @return mixed
+     */
     protected function encodeToken(array $token, $client_id = null)
     {
         $private_key = $this->publicKeyStorage->getPrivateKey($client_id);
