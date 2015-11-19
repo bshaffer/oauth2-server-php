@@ -9,7 +9,7 @@ namespace OAuth2\OpenID\Storage;
 interface UserClaimsInterface
 {
     // valid scope values to pass into the user claims API call
-    const VALID_SCOPE_VALUES = 'profile email address phone';
+    const VALID_CLAIMS = 'profile email address phone';
     const SCOPE_ADDRESS = 'address';
 
     // fields returned for the claims above

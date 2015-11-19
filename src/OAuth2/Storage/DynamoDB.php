@@ -263,7 +263,7 @@ class DynamoDB implements
         }
 
         $userClaims = array();
-        $scopeValues = array_intersect(explode(' ', self::VALID_SCOPE_VALUES), explode(' ', $scope));
+        $scopeValues = array_intersect(explode(' ', self::VALID_CLAIMS), explode(' ', $scope));
         foreach ($scopeValues as $scopeValue) {
             $userClaims = array_merge($userClaims, $this->getUserClaim($scopeValue, $userDetails));
         }
