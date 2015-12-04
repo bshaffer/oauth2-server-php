@@ -1,8 +1,6 @@
 <?php
 namespace OAuth2\Storage;
 
-use OAuth2\Storage\KeyValueAbstract;
-
 class Memcached extends KeyValueAbstract
 {
 
@@ -16,9 +14,12 @@ class Memcached extends KeyValueAbstract
         
         if ($connection instanceof \Memcached) {
             $this->db = $connection;
-        } else if (is_array($connection) && is_array($connection['servers'])) {
+        } else if (is_array($connection) && isset($connection['servers']) && is_array($connection['servers'])) {
             $this->db = new \Memcached();
             $this->db->addServers($connection['servers']);
+            if (isset($connection['options']) && is_array($connection['options'])) {
+                $this->db->setOptions($connection['options']);
+            }
         } else {
             throw new \InvalidArgumentException('First argument to OAuth2\Storage\Memcached must be an instance of Memcached or a configuration array containing a servers array');
         }
