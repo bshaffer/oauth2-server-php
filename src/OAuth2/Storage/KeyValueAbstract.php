@@ -321,6 +321,10 @@ abstract class KeyValueAbstract implements
             $key = $type . ':' . $client_id;
         }
         
+        if (is_string($scope)) {
+            $scope = explode(' ', $scope);
+        }
+        
         return $this->set($this->config['scope_table'], $key, $scope);
     }
 
