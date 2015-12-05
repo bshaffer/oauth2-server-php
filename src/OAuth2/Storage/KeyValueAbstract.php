@@ -108,6 +108,11 @@ abstract class KeyValueAbstract implements
         return false;
     }
 
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
+    {
+        $this->set($this->config['client_table'], $client_id, compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id'));
+    }
+
     public function getClientScope($client_id)
     {
         $client = $this->getClientDetails($client_id);
