@@ -288,7 +288,8 @@ abstract class KeyValueAbstract implements
     public function scopeExists($scope)
     {
         $supportedScopes = $this->get($this->config['scope_table'], 'supported' . ':' . self::KEY_GLOBAL);
-        if (is_array($supportedScopes)) {
+        if (is_string($supportedScopes)) {
+            $supportedScopes = explode(' ', $supportedScopes);
             $scope = explode(' ', $scope);
             return (count(array_diff($scope, $supportedScopes)) === 0);
         }
@@ -319,10 +320,6 @@ abstract class KeyValueAbstract implements
             $key = $type . ':' . self::KEY_GLOBAL;
         } else {
             $key = $type . ':' . $client_id;
-        }
-        
-        if (is_string($scope)) {
-            $scope = explode(' ', $scope);
         }
         
         return $this->set($this->config['scope_table'], $key, $scope);
