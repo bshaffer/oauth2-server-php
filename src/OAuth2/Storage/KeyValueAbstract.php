@@ -94,9 +94,9 @@ abstract class KeyValueAbstract implements
         return false;
     }
 
-    public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null)
+    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
-        return $this->set($this->config['access_token_table'], $oauth_token, compact('client_id', 'user_id', 'expires', 'scope'));
+        return $this->set($this->config['access_token_table'], $access_token, compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
     public function unsetAccessToken($oauth_token)
@@ -167,6 +167,11 @@ abstract class KeyValueAbstract implements
             return $user;
         }
         
+        // the default behavior is to use "username" as the user_id
+        return array_merge(array(
+            'user_id' => $user_id,
+        ), $userInfo);
+        
         return false;
     }
 
@@ -214,7 +219,7 @@ abstract class KeyValueAbstract implements
 
     public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
     {
-        return $this->set($this->config['refresh_token_table'], $refresh_token, compact('client_id', 'user_id', 'expires', 'scope'));
+        return $this->set($this->config['refresh_token_table'], $refresh_token, compact('refresh_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
     public function unsetRefreshToken($refresh_token)
@@ -225,7 +230,7 @@ abstract class KeyValueAbstract implements
     // JwtBearerInterface
     public function getClientKey($client_id, $subject)
     {
-        $keydata = compact($client_id, $subject);
+        $keydata = compact('client_id', 'subject');
         $keystring = self::_hash($keydata);
         
         $result = $this->get($this->config['jwt_table'], $keystring);
@@ -239,10 +244,10 @@ abstract class KeyValueAbstract implements
 
     public function setClientKey($client_id, $key, $subject = null)
     {
-        $keydata = compact($client_id, $subject);
+        $keydata = compact('client_id', 'subject');
         $keystring = self::_hash($keydata);
         
-        $this->set($this->config['jwt_table'], $keystring, $key);
+        return $this->set($this->config['jwt_table'], $keystring, $key);
     }
 
     public function getJti($client_id, $subject, $audience, $expiration, $jti)
@@ -318,7 +323,7 @@ abstract class KeyValueAbstract implements
             $key = $type . ':' . $client_id;
         }
         
-        $this->set($this->config['scope_table'], $key, $scope);
+        return $this->set($this->config['scope_table'], $key, $scope);
     }
 
     // PublicKeyInterface
