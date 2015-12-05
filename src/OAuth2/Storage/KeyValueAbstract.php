@@ -203,16 +203,24 @@ abstract class KeyValueAbstract implements
     // JwtBearerInterface
     public function getClientKey($client_id, $subject)
     {
-        $data = compact($client_id, $subject);
-        $key = self::_hash($data);
+        $keydata = compact($client_id, $subject);
+        $keystring = self::_hash($keydata);
         
-        $result = $this->get($this->config['jwt_table'], $key);
+        $result = $this->get($this->config['jwt_table'], $keystring);
         
         if (is_string($result)) {
             return $result;
         }
         
         return false;
+    }
+
+    public function setClientKey($client_id, $key, $subject = null)
+    {
+        $keydata = compact($client_id, $subject);
+        $keystring = self::_hash($keydata);
+        
+        $this->set($this->config['jwt_table'], $keystring, $key);
     }
 
     public function getJti($client_id, $subject, $audience, $expiration, $jti)
