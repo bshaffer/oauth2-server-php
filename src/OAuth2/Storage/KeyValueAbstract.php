@@ -96,6 +96,11 @@ abstract class KeyValueAbstract implements
         $this->set($this->config['access_token_table'], $oauth_token, compact('client_id', 'user_id', 'expires', 'scope'));
     }
 
+    public function unsetAccessToken($oauth_token)
+    {
+        $this->delete($this->config['access_token_table'], $oauth_token);
+    }
+
     // ClientCredentialsInterface
     public function getClientDetails($client_id)
     {
