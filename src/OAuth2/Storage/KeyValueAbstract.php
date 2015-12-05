@@ -66,12 +66,14 @@ abstract class KeyValueAbstract implements
         if (is_array($result)) {
             return $result;
         }
-        return null;
+        
+        //return null;
+        return false;
     }
 
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
-        $this->set($this->config['code_table'], $code, compact('client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
+        return $this->set($this->config['code_table'], $code, compact('client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
     }
 
     public function expireAuthorizationCode($code)
@@ -88,7 +90,8 @@ abstract class KeyValueAbstract implements
             return $result;
         }
         
-        return null;
+        //return null;
+        return false;
     }
 
     public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null)
@@ -115,7 +118,7 @@ abstract class KeyValueAbstract implements
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
     {
-        $this->set($this->config['client_table'], $client_id, compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id'));
+        return $this->set($this->config['client_table'], $client_id, compact('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id'));
     }
 
     public function getClientScope($client_id)
@@ -205,7 +208,8 @@ abstract class KeyValueAbstract implements
             return $result;
         }
         
-        return null;
+        // return null;
+        return false;
     }
 
     public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
