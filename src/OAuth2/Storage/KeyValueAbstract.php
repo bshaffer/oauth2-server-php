@@ -170,7 +170,7 @@ abstract class KeyValueAbstract implements
         // the default behavior is to use "username" as the user_id
         return array_merge(array(
             'user_id' => $user_id,
-        ), $userInfo);
+        ), $user);
         
         return false;
     }
@@ -329,12 +329,12 @@ abstract class KeyValueAbstract implements
     // PublicKeyInterface
     public function getPublicKey($client_id = null)
     {
-        if (is_null($client_id) || !$result = $this->get($this->config['public_key_table'], 'public_key:' . $client_id)) {
-            $result = $this->get($this->config['public_key_table'], 'public_key:' . self::KEY_GLOBAL);
+        if (is_null($client_id) || !$result = $this->get($this->config['public_key_table'], $client_id)) {
+            $result = $this->get($this->config['public_key_table'], '');
         }
         
-        if (is_string($result)) {
-            return $result;
+        if (is_array($result)) {
+            return $result['public_key'];
         }
         
         return null;
@@ -342,12 +342,12 @@ abstract class KeyValueAbstract implements
 
     public function getPrivateKey($client_id = null)
     {
-        if (is_null($client_id) || !$result = $this->get($this->config['public_key_table'], 'private_key:' . $client_id)) {
-            $result = $this->get($this->config['public_key_table'], 'private_key:' . self::KEY_GLOBAL);
+        if (is_null($client_id) || !$result = $this->get($this->config['public_key_table'], $client_id)) {
+            $result = $this->get($this->config['public_key_table'], '');
         }
         
-        if (is_string($result)) {
-            return $result;
+        if (is_array($result)) {
+            return $result['private_key'];
         }
         
         return null;
@@ -355,12 +355,12 @@ abstract class KeyValueAbstract implements
 
     public function getEncryptionAlgorithm($client_id = null)
     {
-        if (is_null($client_id) || !$result = $this->get($this->config['public_key_table'], 'encryption_algorithm:' . $client_id)) {
-            $result = $this->get($this->config['public_key_table'], 'encryption_algorithm:' . self::KEY_GLOBAL);
+        if (is_null($client_id) || !$result = $this->get($this->config['public_key_table'], $client_id)) {
+            $result = $this->get($this->config['public_key_table'], '');
         }
         
-        if (is_string($result)) {
-            return $result;
+        if (is_array($result)) {
+            return $result['encryption_algorithm'];
         }
         
         return 'RS256';
