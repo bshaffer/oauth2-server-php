@@ -34,7 +34,11 @@ class Cassandra extends KeyValueAbstract
             throw new \InvalidArgumentException('First argument to OAuth2\Storage\Cassandra must be an instance of phpcassa\Connection\ConnectionPool or a configuration array');
         }
         
-        $this->config = array_merge($this->config, array('column_family' => 'auth', 'expire' => 0), $config);
+        $this->config = array_merge($this->config, array(
+            'column_family' => 'auth',
+            'expire' => 0,
+            'inmemory_cache' => false,
+        ), $config);
     }
     
     protected function _makeKey($table, $key)
@@ -46,7 +50,7 @@ class Cassandra extends KeyValueAbstract
     {
         $key = $this->_makeKey($table, $key);
         
-        if (isset($this->cache[$key])) {
+        if ($this->config['inmemory_cache'] && isset($this->cache[$key])) {
             return $this->cache[$key];
         }
         $cf = new ColumnFamily($this->db, $this->config['column_family']);
@@ -65,7 +69,9 @@ class Cassandra extends KeyValueAbstract
     {
         $key = $this->_makeKey($table, $key);
         
-        $this->cache[$key] = $value;
+        if ($this->config['inmemory_cache']) {
+            $this->cache[$key] = $value;
+        }
 
         $cf = new ColumnFamily($this->db, $this->config['column_family']);
 
@@ -83,7 +89,9 @@ class Cassandra extends KeyValueAbstract
     {
         $key = $this->_makeKey($table, $key);
         
-        unset($this->cache[$key]);
+        if ($this->config['inmemory_cache']) {
+            unset($this->cache[$key]);
+        }
 
         $cf = new ColumnFamily($this->db, $this->config['column_family']);
         try {
