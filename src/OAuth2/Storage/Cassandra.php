@@ -37,7 +37,6 @@ class Cassandra extends KeyValueAbstract
         $this->config = array_merge($this->config, array(
             'column_family' => 'auth',
             'expire' => 0,
-            'inmemory_cache' => false,
         ), $config);
     }
     
@@ -50,7 +49,7 @@ class Cassandra extends KeyValueAbstract
     {
         $key = $this->_makeKey($table, $key);
         
-        if ($this->config['inmemory_cache'] && isset($this->cache[$key])) {
+        if (isset($this->cache[$key])) {
             return $this->cache[$key];
         }
         $cf = new ColumnFamily($this->db, $this->config['column_family']);
@@ -69,12 +68,10 @@ class Cassandra extends KeyValueAbstract
     {
         $key = $this->_makeKey($table, $key);
         
-        if ($this->config['inmemory_cache']) {
-            $this->cache[$key] = $value;
-        }
-
+        $this->cache[$key] = $value;
+        
         $cf = new ColumnFamily($this->db, $this->config['column_family']);
-
+        
         $str = json_encode($value);
         try {
             $cf->insert($key, array('__data' => $str), null, ($this->config['expire'] > 0 ? $this->config['expire'] - time() : null));
@@ -89,10 +86,8 @@ class Cassandra extends KeyValueAbstract
     {
         $key = $this->_makeKey($table, $key);
         
-        if ($this->config['inmemory_cache']) {
-            unset($this->cache[$key]);
-        }
-
+        unset($this->cache[$key]);
+        
         $cf = new ColumnFamily($this->db, $this->config['column_family']);
         try {
             // __data key set as C* requires a field
