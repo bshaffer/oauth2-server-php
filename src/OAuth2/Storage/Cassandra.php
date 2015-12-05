@@ -64,7 +64,7 @@ class Cassandra extends KeyValueAbstract
         return false;
     }
 
-    protected function setValue($table, $key, $value)
+    protected function set($table, $key, $value)
     {
         $key = $this->_makeKey($table, $key);
         
