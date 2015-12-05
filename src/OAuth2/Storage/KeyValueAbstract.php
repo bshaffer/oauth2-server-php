@@ -60,9 +60,9 @@ abstract class KeyValueAbstract implements
     }
 
     // AuthorizationCodeInterface
-    public function getAuthorizationCode($code)
+    public function getAuthorizationCode($authorization_code)
     {
-        $result = $this->get($this->config['code_table'], $code);
+        $result = $this->get($this->config['code_table'], $authorization_code);
         if (is_array($result)) {
             return $result;
         }
@@ -71,9 +71,9 @@ abstract class KeyValueAbstract implements
         return false;
     }
 
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
+    public function setAuthorizationCode($authorization_code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
-        return $this->set($this->config['code_table'], $code, compact('client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
+        return $this->set($this->config['code_table'], $authorization_code, compact('authorization_code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
     }
 
     public function expireAuthorizationCode($code)
@@ -96,7 +96,7 @@ abstract class KeyValueAbstract implements
 
     public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null)
     {
-        $this->set($this->config['access_token_table'], $oauth_token, compact('client_id', 'user_id', 'expires', 'scope'));
+        return $this->set($this->config['access_token_table'], $oauth_token, compact('client_id', 'user_id', 'expires', 'scope'));
     }
 
     public function unsetAccessToken($oauth_token)
@@ -173,7 +173,7 @@ abstract class KeyValueAbstract implements
     public function setUser($username, $password, $first_name = null, $last_name = null)
     {
         $password = $this->passwordHash($password);
-        $this->set($this->config['user_table'], $username, compact('username', 'password', 'first_name', 'last_name'));
+        return $this->set($this->config['user_table'], $username, compact('username', 'password', 'first_name', 'last_name'));
     }
     
     // Override this for your application
@@ -214,7 +214,7 @@ abstract class KeyValueAbstract implements
 
     public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
     {
-        $this->set($this->config['refresh_token_table'], $refresh_token, compact('client_id', 'user_id', 'expires', 'scope'));
+        return $this->set($this->config['refresh_token_table'], $refresh_token, compact('client_id', 'user_id', 'expires', 'scope'));
     }
 
     public function unsetRefreshToken($refresh_token)
