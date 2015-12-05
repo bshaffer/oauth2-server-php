@@ -11,10 +11,7 @@ class Cassandra extends KeyValueAbstract
     private $cache;
 
     /* The cassandra client */
-    protected $cassandra;
-
-    /* Configuration array */
-    protected $config;
+    protected $db;
 
     /**
      * Cassandra Storage! uses phpCassa
