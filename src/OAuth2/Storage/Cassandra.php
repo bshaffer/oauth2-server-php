@@ -52,7 +52,7 @@ class Cassandra extends KeyValueAbstract
         if (isset($this->cache[$key])) {
             return $this->cache[$key];
         }
-        $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
+        $cf = new ColumnFamily($this->db, $this->config['column_family']);
 
         try {
             $value = $cf->get($key, new ColumnSlice("", ""));
@@ -70,7 +70,7 @@ class Cassandra extends KeyValueAbstract
         
         $this->cache[$key] = $value;
 
-        $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
+        $cf = new ColumnFamily($this->db, $this->config['column_family']);
 
         $str = json_encode($value);
         try {
@@ -88,7 +88,7 @@ class Cassandra extends KeyValueAbstract
         
         unset($this->cache[$key]);
 
-        $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
+        $cf = new ColumnFamily($this->db, $this->config['column_family']);
         try {
             // __data key set as C* requires a field
             $cf->remove($key, array('__data'));
