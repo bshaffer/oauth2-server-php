@@ -37,7 +37,7 @@ abstract class KeyValueAbstract implements
      * @param string $key
      * @return mixed
      */
-    abstract public function get($table, $key);
+    abstract protected function get($table, $key);
 
     /**
      *
@@ -45,14 +45,14 @@ abstract class KeyValueAbstract implements
      * @param string $key
      * @param mixed $value
      */
-    abstract public function set($table, $key, $value);
+    abstract protected function set($table, $key, $value);
 
     /**
      *
      * @param string $table
      * @param string $key
      */
-    abstract public function delete($table, $key);
+    abstract protected function delete($table, $key);
 
     protected static function _hash($data)
     {
