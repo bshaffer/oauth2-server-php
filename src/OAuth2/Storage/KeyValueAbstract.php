@@ -164,13 +164,11 @@ abstract class KeyValueAbstract implements
         $user = $this->get($this->config['user_table'], $user_id);
         
         if (is_array($user)) {
-            return $user;
+            // the default behavior is to use "username" as the user_id
+            return array_merge(array(
+                'user_id' => $user_id,
+            ), $user);
         }
-        
-        // the default behavior is to use "username" as the user_id
-        return array_merge(array(
-            'user_id' => $user_id,
-        ), $user);
         
         return false;
     }
