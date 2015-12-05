@@ -167,11 +167,24 @@ abstract class KeyValueAbstract implements
         return false;
     }
 
+    public function setUser($username, $password, $first_name = null, $last_name = null)
+    {
+        $password = $this->passwordHash($password);
+        $this->set($this->config['user_table'], $username, compact('username', 'password', 'first_name', 'last_name'));
+    }
+    
     // Override this for your application
     protected function passwordVerify($password, $hash)
     {
         return sha1($password) === $hash;
         // return password_verify($password, $hash);
+    }
+    
+    // Override this for your application
+    protected function passwordHash($password)
+    {
+        return sha1($password);
+        // return password_hash($password, PASSWORD_BCRYPT);
     }
 
     public function checkUserCredentials($user_id, $password)
