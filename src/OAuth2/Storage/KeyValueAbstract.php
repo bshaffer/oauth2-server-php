@@ -76,15 +76,15 @@ abstract class KeyValueAbstract implements
         return $this->set($this->config['code_table'], $authorization_code, compact('authorization_code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
     }
 
-    public function expireAuthorizationCode($code)
+    public function expireAuthorizationCode($authorization_code)
     {
-        $this->delete($this->config['code_table'], $code);
+        $this->delete($this->config['code_table'], $authorization_code);
     }
 
     // AccessTokenInterface
-    public function getAccessToken($oauth_token)
+    public function getAccessToken($access_token)
     {
-        $result = $this->get($this->config['access_token_table'], $oauth_token);
+        $result = $this->get($this->config['access_token_table'], $access_token);
         
         if (is_array($result)) {
             return $result;
@@ -99,9 +99,9 @@ abstract class KeyValueAbstract implements
         return $this->set($this->config['access_token_table'], $access_token, compact('access_token', 'client_id', 'user_id', 'expires', 'scope'));
     }
 
-    public function unsetAccessToken($oauth_token)
+    public function unsetAccessToken($access_token)
     {
-        $this->delete($this->config['access_token_table'], $oauth_token);
+        $this->delete($this->config['access_token_table'], $access_token);
     }
 
     // ClientCredentialsInterface
