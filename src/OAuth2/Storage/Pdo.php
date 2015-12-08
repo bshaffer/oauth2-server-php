@@ -525,7 +525,7 @@ class Pdo implements
         CREATE TABLE {$this->config['jti_table']} (
           issuer              VARCHAR(80)   NOT NULL,
           subject             VARCHAR(80),
-          audiance            VARCHAR(80),
+          audience            VARCHAR(80),
           expires             TIMESTAMP     NOT NULL,
           jti                 VARCHAR(2000) NOT NULL
         );
