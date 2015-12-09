@@ -479,7 +479,7 @@ class Cassandra implements AuthorizationCodeInterface,
 
     protected static function parseBool($value)
     {
-        return ((is_bool($value) || is_numeric($value)) && (bool)$value) || (is_string($value) && !strcasecmp($value, 'true'));
+        return is_string($value) ? filter_var($value, FILTER_VALIDATE_BOOLEAN) : (bool)$value;
     }
 
 }
