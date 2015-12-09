@@ -275,7 +275,7 @@ class DynamoDB implements
     {
         $userClaims = array();
         $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($scopeValue)));
-        $claimValues = explode(' ', $claimValuesString);
+        $claimValues = explode(' ', $claimValuesString); // claims to get from user details
 
         if ($scopeValue === self::SCOPE_ADDRESS) {
             if (isset($userDetails[self::SCOPE_ADDRESS]) && is_array($userDetails[self::SCOPE_ADDRESS])) {
@@ -285,20 +285,20 @@ class DynamoDB implements
             $addressClaims = array();
 
             foreach ($claimValues as $claimValue) {
-                if (isset($userDetails[$claimValue])) {
+                if (isset($userDetails[$claimValue])) { // if claim exists in user details add it to address claim
                     $addressClaims[$claimValue] = $userDetails[$claimValue];
                 }
             }
 
-            if (count($addressClaims)) {
+            if (count($addressClaims)) { // if address claim not empty add it to return claims
                 $userClaims[self::SCOPE_ADDRESS] = $addressClaims;
             }
         }
         else {
             foreach ($claimValues as $claimValue) {
-                if (isset($userDetails[$claimValue])) {
+                if (isset($userDetails[$claimValue])) { // if claim exists in user details add it to return claims
                     if (in_array($claimValue, array(self::CLAIM_EMAIL_VERIFIED, self::CLAIM_PHONE_NUMBER_VERIFIED), true)) {
-                        $userDetails[$claimValue] = (is_string($userDetails[$claimValue]) && !strcasecmp($userDetails[$claimValue], 'true')) || ((is_numeric($userDetails[$claimValue]) || is_bool($userDetails[$claimValue])) && (bool)$userDetails[$claimValue]);
+                        $userDetails[$claimValue] = self::parseBool($userDetails[$claimValue]);
                     }
 
                     $userClaims[$claimValue] = $userDetails[$claimValue];
@@ -307,6 +307,11 @@ class DynamoDB implements
         }
 
         return $userClaims;
+    }
+
+    protected static function parseBool($value)
+    {
+        return ((is_bool($value) || is_numeric($value)) && (bool)$value) || (is_string($value) && !strcasecmp($value, 'true'));
     }
 
     /* OAuth2\Storage\RefreshTokenInterface */
