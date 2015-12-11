@@ -19,7 +19,7 @@ class MongoDB extends KeyValueAbstract
                 $server = sprintf('mongodb://%s:%d', $connection['host'], $connection['port']);
                 $this->db = new \MongoDB\Driver\Manager($server);
             } else {
-                throw new \InvalidArgumentException('First argument to ' . __CLASS__ . ' must be an instance of Couchbase or a configuration array');
+                throw new \InvalidArgumentException('First argument to ' . __CLASS__ . ' must be an instance of MongoDB\Driver\Manager or a configuration array');
             }
         
         $this->config = array_merge($this->config, array(
