@@ -421,8 +421,10 @@ class Bootstrap
         )));
 
         $db->set('oauth_users-testuser',json_encode(array(
-            'username' => "testuser",
-            'password' => "password"
+            'username' => 'testuser',
+            'password' => 'password',
+            'email' => 'testuser@test.com',
+            'email_verified' => true,
         )));
 
         $db->set('oauth_jwt-oauth_test_client',json_encode(array(
@@ -460,8 +462,10 @@ class Bootstrap
         ));
 
         $db->oauth_users->insert(array(
-            'username' => "testuser",
-            'password' => "password"
+            'username' => 'testuser',
+            'password' => 'password',
+            'email' => 'testuser@test.com',
+            'email_verified' => true,
         ));
 
         $db->oauth_jwt->insert(array(
