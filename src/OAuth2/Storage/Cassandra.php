@@ -182,7 +182,13 @@ class Cassandra implements AuthorizationCodeInterface,
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {
-        return $user['password'] == sha1($password);
+        return $user['password'] == $this->hashPassword($password);
+    }
+
+    // use a secure hashing algorithm when storing passwords. Override this for your application
+    protected function hashPassword($password)
+    {
+        return sha1($password);
     }
 
     public function getUserDetails($username)
@@ -204,7 +210,7 @@ class Cassandra implements AuthorizationCodeInterface,
 
     public function setUser($username, $password, $first_name = null, $last_name = null)
     {
-        $password = sha1($password);
+        $password = $this->hashPassword($password);
 
         return $this->setValue(
             $this->config['user_key'] . $username,
