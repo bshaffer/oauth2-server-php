@@ -341,9 +341,14 @@ class AuthorizeController implements AuthorizeControllerInterface
                     return true;
                 }
             } else {
+                $registered_uri_length = strlen($registered_uri);
+                if ($registered_uri_length === 0) {
+                    return false;
+                }
+
                 // the input uri is validated against the registered uri using case-insensitive match of the initial string
                 // i.e. additional query parameters may be applied
-                if (strcasecmp(substr($inputUri, 0, strlen($registered_uri)), $registered_uri) === 0) {
+                if (strcasecmp(substr($inputUri, 0, $registered_uri_length), $registered_uri) === 0) {
                     return true;
                 }
             }
