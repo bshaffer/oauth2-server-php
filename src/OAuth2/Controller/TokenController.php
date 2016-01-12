@@ -51,7 +51,8 @@ class TokenController implements TokenControllerInterface
             // server MUST disable caching in headers when tokens are involved
             $response->setStatusCode(200);
             $response->addParameters($token);
-            $response->addHttpHeaders(array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
+            $response->addHttpHeaders(array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache',
+                'Content-Type' => 'application/json'));
         }
     }
 
