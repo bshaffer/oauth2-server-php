@@ -3,21 +3,19 @@
 namespace OAuth2\Storage;
 
 use phpcassa\ColumnFamily;
-use phpcassa\ColumnSlice;
 use phpcassa\Connection\ConnectionPool;
 
 class Cassandra extends KeyValueAbstract
 {
     private $cache;
 
-    /* The cassandra client */
     protected $db;
 
     /**
      * Cassandra Storage! uses phpCassa
      *
-     * @param \phpcassa\ConnectionPool $cassandra
-     * @param array                    $config
+     * @param \phpcassa\Connection\ConnectionPool|array $connection
+     * @param array $config
      */
     public function __construct($connection = array(), array $config = array())
     {
@@ -31,7 +29,7 @@ class Cassandra extends KeyValueAbstract
             
             $this->db = new ConnectionPool($connection['keyspace'], $connection['servers']);
         } else {
-            throw new \InvalidArgumentException('First argument to OAuth2\Storage\Cassandra must be an instance of phpcassa\Connection\ConnectionPool or a configuration array');
+            throw new \InvalidArgumentException('First argument to ' . __CLASS__ . ' must be an instance of phpcassa\Connection\ConnectionPool or a configuration array');
         }
         
         $this->config = array_merge($this->config, array(
@@ -53,11 +51,11 @@ class Cassandra extends KeyValueAbstract
             return $this->cache[$key];
         }
         $cf = new ColumnFamily($this->db, $this->config['column_family']);
-
+        
         try {
-            $value = $cf->get($key, new ColumnSlice("", ""));
+            $value = $cf->get($key, new \phpcassa\ColumnSlice("", ""));
             return json_decode(current($value), true);
-        } catch (\cassandra\NotFoundException $e) {
+        } catch (\Exception $e) {
             
         }
         
@@ -95,7 +93,7 @@ class Cassandra extends KeyValueAbstract
             return true;
         } catch (\Exception $e) {
         }
-
+        
         return false;
     }
 }
