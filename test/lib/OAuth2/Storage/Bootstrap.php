@@ -480,7 +480,7 @@ class Bootstrap
         $storage->setClientDetails("oauth_test_client", "testpass", "http://example.com", 'implicit password');
         $storage->setAccessToken("testtoken", "Some Client", '', time() + 1000);
         $storage->setAuthorizationCode("testcode", "Some Client", '', '', time() + 1000);
-        $storage->setUser("testuser", "password");
+        $storage->setUser('testuser', 'password', null, null, 'testuser@test.com', true);
 
         $storage->setScope('supportedscope1 supportedscope2 supportedscope3 supportedscope4');
         $storage->setScope('defaultscope1 defaultscope2', null, 'default');
@@ -498,6 +498,8 @@ class Bootstrap
         $storage->setScope('clientscope3', 'Test Default Scope Client ID 2', 'default');
 
         $storage->setClientKey('oauth_test_client', $this->getTestPublicKey(), 'test_subject');
+
+        $storage->setServerKey(null, $this->getTestPublicKey(), $this->getTestPrivateKey(), 'RS256');
     }
 
     public function removeMongoDb(\MongoDB $db)
