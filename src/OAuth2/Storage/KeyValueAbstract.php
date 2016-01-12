@@ -365,6 +365,15 @@ abstract class KeyValueAbstract implements
         return 'RS256';
     }
 
+    public function setServerKey($client_id, $public_key, $private_key, $encryption_algorithm)
+    {
+        if (is_null($client_id)) {
+            $client_id = '';
+        }
+        
+        return $this->set($this->config['public_key_table'], $client_id, compact('client_id', 'public_key', 'private_key', 'encryption_algorithm'));
+    }
+
     // UserClaimsInterface
     public function getUserClaims($user_id, $scope)
     {
