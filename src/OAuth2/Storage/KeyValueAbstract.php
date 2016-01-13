@@ -399,30 +399,27 @@ abstract class KeyValueAbstract implements
         
         $userClaims = array();
         $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($scopeValue)));
-        $claimValues = explode(' ', $claimValuesString);
+        $claimValues = explode(' ', $claimValuesString); // claims to get from user details
         if ($scopeValue === $SCOPE_ADDRESS) {
             if (isset($userDetails[$SCOPE_ADDRESS]) && is_array($userDetails[$SCOPE_ADDRESS])) {
                 $userDetails = $userDetails[$SCOPE_ADDRESS];
             }
             $addressClaims = array();
             foreach ($claimValues as $claimValue) {
-                if (isset($userDetails[$claimValue])) {
+                if (isset($userDetails[$claimValue])) { // if claim exists in user details add it to address claim
                     $addressClaims[$claimValue] = $userDetails[$claimValue];
                 } else {
                     $addressClaims[$claimValue] = null; // we should not return claims with null values, but this is for BC
                 }
             }
-            if (count($addressClaims)) {
+            if (count($addressClaims)) { // if address claim not empty add it to return claims
                 $userClaims[$SCOPE_ADDRESS] = $addressClaims;
             }
         } else {
             foreach ($claimValues as $claimValue) {
-                if (isset($userDetails[$claimValue])) {
-                    if (in_array($claimValue, array(
-                        'email_verified',
-                        'phone_number_verified'
-                    ), true)) {
-                        $userDetails[$claimValue] = (is_string($userDetails[$claimValue]) && !strcasecmp($userDetails[$claimValue], 'true')) || ((is_numeric($userDetails[$claimValue]) || is_bool($userDetails[$claimValue])) && (bool) $userDetails[$claimValue]);
+                if (isset($userDetails[$claimValue])) { // if claim exists in user details add it to return claims
+                    if (in_array($claimValue, array('email_verified', 'phone_number_verified'), true)) {
+                        $userDetails[$claimValue] = self::parseBool($userDetails[$claimValue]);
                     }
                     $userClaims[$claimValue] = $userDetails[$claimValue];
                 } else {
@@ -431,5 +428,10 @@ abstract class KeyValueAbstract implements
             }
         }
         return $userClaims;
+    }
+    
+    protected static function parseBool($value)
+    {
+        return is_string($value) ? filter_var($value, FILTER_VALIDATE_BOOLEAN) : (bool)$value;
     }
 }
