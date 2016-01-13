@@ -14,13 +14,12 @@ class MongoDB extends KeyValueAbstract
         
         if ($connection instanceof \MongoDB\Driver\Manager) {
             $this->db = $connection;
-        } else 
-            if (is_array($connection)) {
-                $server = sprintf('mongodb://%s:%d', $connection['host'], $connection['port']);
-                $this->db = new \MongoDB\Driver\Manager($server);
-            } else {
-                throw new \InvalidArgumentException('First argument to ' . __CLASS__ . ' must be an instance of MongoDB\Driver\Manager or a configuration array');
-            }
+        } else if (is_array($connection)) {
+            $server = sprintf('mongodb://%s:%d', $connection['host'], $connection['port']);
+            $this->db = new \MongoDB\Driver\Manager($server);
+        } else {
+            throw new \InvalidArgumentException('First argument to ' . __CLASS__ . ' must be an instance of MongoDB\Driver\Manager or a configuration array');
+        }
         
         $this->config = array_merge($this->config, array(
             'database' => $connection['database']
@@ -39,7 +38,8 @@ class MongoDB extends KeyValueAbstract
             }
             
             return null;
-        } catch (\MongoDB\Driver\Exception\Exception $ex) {}
+        } catch (\MongoDB\Driver\Exception\Exception $ex) {
+        }
         
         return false;
     }
@@ -51,7 +51,8 @@ class MongoDB extends KeyValueAbstract
             $bulk->update(array('_id' => $key), array('$set' => array('value' => $value)), array('upsert' => true, 'limit' => 1));
             $result = $this->db->executeBulkWrite("{$this->config['database']}.{$this->config[$table]}", $bulk);
             return true;
-        } catch (\MongoDB\Driver\Exception\Exception $ex) {}
+        } catch (\MongoDB\Driver\Exception\Exception $ex) {
+        }
         
         return false;
     }
@@ -63,7 +64,8 @@ class MongoDB extends KeyValueAbstract
             $bulk->delete(array('_id' => $key), array('limit' => 1));
             $result = $this->db->executeBulkWrite("{$this->config['database']}.{$this->config[$table]}", $bulk);
             return true;
-        } catch (\MongoDB\Driver\Exception\Exception $ex) {}
+        } catch (\MongoDB\Driver\Exception\Exception $ex) {
+        }
         
         return false;
     }

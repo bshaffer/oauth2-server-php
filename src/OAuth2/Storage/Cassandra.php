@@ -1,5 +1,4 @@
 <?php
-
 namespace OAuth2\Storage;
 
 use phpcassa\ColumnFamily;
@@ -8,7 +7,9 @@ use phpcassa\Connection\ConnectionPool;
 
 class Cassandra extends KeyValueAbstract
 {
+
     private $cache;
+
     protected $db;
 
     public function __construct($connection = array(), array $config = array())
@@ -18,7 +19,7 @@ class Cassandra extends KeyValueAbstract
         } else if (is_array($connection)) {
             $connection = array_merge(array(
                 'keyspace' => 'oauth2',
-                'servers'  => null,
+                'servers' => null
             ), $connection);
             
             $this->db = new ConnectionPool($connection['keyspace'], $connection['servers']);
@@ -28,15 +29,15 @@ class Cassandra extends KeyValueAbstract
         
         $this->config = array_merge($this->config, array(
             'column_family' => 'auth',
-            'expire' => 0,
+            'expire' => 0
         ), $config);
     }
-    
+
     protected function _makeKey($table, $key)
     {
         return $table . ':' . $key;
     }
-    
+
     protected function get($table, $key)
     {
         $key = $this->_makeKey($table, $key);
@@ -50,7 +51,6 @@ class Cassandra extends KeyValueAbstract
             $value = $cf->get($key, new ColumnSlice("", ""));
             return json_decode(current($value), true);
         } catch (\Exception $e) {
-            
         }
         
         return false;

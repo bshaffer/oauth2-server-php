@@ -44,6 +44,7 @@ abstract class KeyValueAbstract implements
      * @param string $table
      * @param string $key
      * @param mixed $value
+     * @return bool
      */
     abstract protected function set($table, $key, $value);
 
@@ -51,6 +52,7 @@ abstract class KeyValueAbstract implements
      *
      * @param string $table
      * @param string $key
+     * @return bool
      */
     abstract protected function delete($table, $key);
 
@@ -58,7 +60,7 @@ abstract class KeyValueAbstract implements
     {
         return hash('sha256', json_encode($data));
     }
-
+    
     // AuthorizationCodeInterface
     public function getAuthorizationCode($authorization_code)
     {
@@ -166,7 +168,7 @@ abstract class KeyValueAbstract implements
         if (is_array($user)) {
             // the default behavior is to use "username" as the user_id
             return array_merge(array(
-                'user_id' => $user_id,
+                'user_id' => $user_id
             ), $user);
         }
         
@@ -309,7 +311,7 @@ abstract class KeyValueAbstract implements
         
         return false;
     }
-    
+
     public function setScope($scope, $client_id = null, $type = 'supported')
     {
         if (!in_array($type, array('default', 'supported'), true)) {

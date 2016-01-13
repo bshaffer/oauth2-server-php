@@ -3,8 +3,9 @@ namespace OAuth2\Storage;
 
 class CouchbaseDB extends KeyValueAbstract
 {
+
     protected $db;
-    
+
     public function __construct($connection, $config = array())
     {
         if ($connection instanceof \Couchbase) {
@@ -17,22 +18,22 @@ class CouchbaseDB extends KeyValueAbstract
         
         $this->config = array_merge($this->config, $config);
     }
-    
+
     protected function _makeKey($table, $key)
     {
         return $table . '-' . $key;
     }
-    
+
     public function get($table, $key)
     {
         return json_decode($this->db->get($this->_makeKey($table, $key)), true);
     }
-    
+
     public function set($table, $key, $value)
     {
         return $this->db->set($this->_makeKey($table, $key), json_encode($value));
     }
-    
+
     public function delete($table, $key)
     {
         return $this->db->delete($this->_makeKey($table, $key), '', 1);

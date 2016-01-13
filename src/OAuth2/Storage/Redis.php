@@ -3,7 +3,9 @@ namespace OAuth2\Storage;
 
 class Redis extends KeyValueAbstract
 {
+
     private $cache;
+
     protected $db;
 
     public function __construct($connection = array(), array $config = array())
@@ -13,7 +15,7 @@ class Redis extends KeyValueAbstract
         } else if (is_array($connection)) {
             $connection = array_merge(array(
                 'parameters' => null,
-                'options'    => null,
+                'options' => null
             ), $connection);
             
             $this->db = new \Predis\Client($connection['parameters'], $connection['options']);
@@ -22,7 +24,7 @@ class Redis extends KeyValueAbstract
         }
         
         $this->config = array_merge($this->config, array(
-            'expire' => 0,
+            'expire' => 0
         ), $config);
     }
 
