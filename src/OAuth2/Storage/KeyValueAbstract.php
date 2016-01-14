@@ -17,6 +17,10 @@ abstract class KeyValueAbstract implements
     OpenIDAuthorizationCodeInterface
 {
 
+    const KEY_NULL = ''; // TODO we should replace it to KEY_GLOBAL, it is only for backward compatibility with old Cassandra storage adapter (PublicKeyInterface functions)
+    const KEY_DELIMITER = ':';
+    const KEY_DEFAULT = 'default';
+    const KEY_SUPPORTED = 'supported';
     const KEY_GLOBAL = 'global';
 
     protected $config = array(
@@ -289,7 +293,7 @@ abstract class KeyValueAbstract implements
     // ScopeInterface
     public function scopeExists($scope)
     {
-        $supportedScopes = $this->get($this->config['scope_table'], 'supported' . ':' . self::KEY_GLOBAL);
+        $supportedScopes = $this->get($this->config['scope_table'], self::KEY_SUPPORTED . self::KEY_DELIMITER . self::KEY_GLOBAL);
         if (is_string($supportedScopes)) {
             $supportedScopes = explode(' ', $supportedScopes);
             $scope = explode(' ', $scope);
@@ -301,8 +305,8 @@ abstract class KeyValueAbstract implements
 
     public function getDefaultScope($client_id = null)
     {
-        if (is_null($client_id) || !$result = $this->get($this->config['scope_table'], 'default' . ':' . $client_id)) {
-            $result = $this->get($this->config['scope_table'], 'default' . ':' . self::KEY_GLOBAL);
+        if (is_null($client_id) || !$result = $this->get($this->config['scope_table'], self::KEY_DEFAULT . self::KEY_DELIMITER . $client_id)) {
+            $result = $this->get($this->config['scope_table'], self::KEY_DEFAULT . self::KEY_DELIMITER . self::KEY_GLOBAL);
         }
         
         if (is_string($result)) {
@@ -312,16 +316,16 @@ abstract class KeyValueAbstract implements
         return false;
     }
 
-    public function setScope($scope, $client_id = null, $type = 'supported')
+    public function setScope($scope, $client_id = null, $type = self::KEY_SUPPORTED)
     {
-        if (!in_array($type, array('default', 'supported'), true)) {
-            throw new \InvalidArgumentException('"$type" must be one of "default", "supported"');
+        if (!in_array($type, array(self::KEY_DEFAULT, self::KEY_SUPPORTED), true)) {
+            throw new \InvalidArgumentException('"$type" must be one of ("' . self::KEY_DEFAULT . '", "' . self::KEY_SUPPORTED . '")');
         }
         
         if (is_null($client_id)) {
-            $key = $type . ':' . self::KEY_GLOBAL;
+            $key = $type . self::KEY_DELIMITER . self::KEY_GLOBAL;
         } else {
-            $key = $type . ':' . $client_id;
+            $key = $type . self::KEY_DELIMITER . $client_id;
         }
         
         return $this->set($this->config['scope_table'], $key, $scope);
@@ -331,7 +335,7 @@ abstract class KeyValueAbstract implements
     public function getPublicKey($client_id = null)
     {
         if (is_null($client_id) || !$result = $this->get($this->config['public_key_table'], $client_id)) {
-            $result = $this->get($this->config['public_key_table'], '');
+            $result = $this->get($this->config['public_key_table'], self::KEY_NULL);
         }
         
         if (is_array($result)) {
@@ -344,7 +348,7 @@ abstract class KeyValueAbstract implements
     public function getPrivateKey($client_id = null)
     {
         if (is_null($client_id) || !$result = $this->get($this->config['public_key_table'], $client_id)) {
-            $result = $this->get($this->config['public_key_table'], '');
+            $result = $this->get($this->config['public_key_table'], self::KEY_NULL);
         }
         
         if (is_array($result)) {
@@ -357,7 +361,7 @@ abstract class KeyValueAbstract implements
     public function getEncryptionAlgorithm($client_id = null)
     {
         if (is_null($client_id) || !$result = $this->get($this->config['public_key_table'], $client_id)) {
-            $result = $this->get($this->config['public_key_table'], '');
+            $result = $this->get($this->config['public_key_table'], self::KEY_NULL);
         }
         
         if (is_array($result)) {
@@ -370,7 +374,7 @@ abstract class KeyValueAbstract implements
     public function setServerKey($client_id, $public_key, $private_key, $encryption_algorithm)
     {
         if (is_null($client_id)) {
-            $client_id = '';
+            $client_id = self::KEY_NULL;
         }
         
         return $this->set($this->config['public_key_table'], $client_id, compact('client_id', 'public_key', 'private_key', 'encryption_algorithm'));
