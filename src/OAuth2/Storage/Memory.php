@@ -71,6 +71,9 @@ class Memory extends KeyValueAbstract
             }
         }
         
+        if (isset($params['scopes']) && is_array($params['scopes'])) {
+            $this->oauth_scopes = $params['scopes'];
+        }
         if (isset($params['supported_scopes']) && is_array($params['supported_scopes'])) {
             $this->setScope(implode(' ', $params['supported_scopes']), null, self::KEY_SUPPORTED);
         }
