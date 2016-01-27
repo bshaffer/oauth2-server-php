@@ -100,18 +100,18 @@ class Memory extends KeyValueAbstract
 
     public function get($table, $key)
     {
-        return isset($this->$table[$key]) ? $this->$table[$key] : null;
+        return isset($this->{$table}[$key]) ? $this->{$table}[$key] : null;
     }
 
     public function set($table, $key, $value)
     {
-        $this->$table[$key] = $value;
+        $this->{$table}[$key] = $value;
         return true;
     }
 
     public function delete($table, $key)
     {
-        unset($this->$table[$key]);
+        unset($this->{$table}[$key]);
         return true;
     }
 }
