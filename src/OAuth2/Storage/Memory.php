@@ -98,6 +98,12 @@ class Memory extends KeyValueAbstract
         }
     }
 
+    // Override this for your application
+    protected function passwordVerify($password, $hash)
+    {
+        return $password === $hash;
+    }
+
     public function get($table, $key)
     {
         return isset($this->{$table}[$key]) ? $this->{$table}[$key] : null;
