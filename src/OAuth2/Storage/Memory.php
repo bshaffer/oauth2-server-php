@@ -34,6 +34,10 @@ class Memory extends KeyValueAbstract
         if (isset($params['client_credentials']) && is_array($params['client_credentials'])) {
             foreach ($params['client_credentials'] as $key => $val) {
                 $val['client_id'] = $key;
+                $val = array_merge(array(
+                    'redirect_uri' => null,
+                    'scope' => null,
+                ), $val);
                 $this->oauth_clients[$key] = $val;
             }
         }
