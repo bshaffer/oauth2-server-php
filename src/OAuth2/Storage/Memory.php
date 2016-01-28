@@ -81,7 +81,7 @@ class Memory extends KeyValueAbstract
         if (isset($params['supported_scopes']) && is_array($params['supported_scopes'])) {
             $this->setScope(implode(' ', $params['supported_scopes']), null, self::KEY_SUPPORTED);
         }
-        if (isset($params['default_scope']) && is_string($params['default_scope'])) {
+        if (isset($params['default_scope']) && (is_string($params['default_scope']) || $params['default_scope'] === false)) {
             $this->setScope($params['default_scope'], null, self::KEY_DEFAULT);
         }
         

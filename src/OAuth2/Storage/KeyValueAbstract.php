@@ -309,11 +309,11 @@ abstract class KeyValueAbstract implements
             $result = $this->get($this->config['scope_table'], self::KEY_DEFAULT . self::KEY_DELIMITER . self::KEY_GLOBAL);
         }
         
-        if (is_string($result)) {
+        if (is_string($result) || $result === false) {
             return $result;
         }
         
-        return false;
+        return null;
     }
 
     public function setScope($scope, $client_id = null, $type = self::KEY_SUPPORTED)
