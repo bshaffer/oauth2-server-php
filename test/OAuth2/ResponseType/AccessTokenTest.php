@@ -41,7 +41,7 @@ class AccessTokenTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->assertNotEmpty($tokenStorage->getAccessToken('revoke'));
+        $this->assertNotEmpty($tokenStorage->getRefreshToken('revoke'));
         $accessToken = new AccessToken(new Memory, $tokenStorage);
         $accessToken->revokeToken('revoke', 'refresh_token');
         $this->assertFalse($tokenStorage->getRefreshToken('revoke'));
@@ -55,7 +55,7 @@ class AccessTokenTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->assertNotEmpty($tokenStorage->getAccessToken('revoke'));
+        $this->assertNotEmpty($tokenStorage->getRefreshToken('revoke'));
         $accessToken = new AccessToken(new Memory, $tokenStorage);
         $accessToken->revokeToken('revoke');
         $this->assertFalse($tokenStorage->getRefreshToken('revoke'));
@@ -97,7 +97,7 @@ class AccessTokenTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->assertNotEmpty($tokenStorage->getAccessToken('revoke'));
+        $this->assertNotEmpty($tokenStorage->getRefreshToken('revoke'));
         $accessToken = new AccessToken(new Memory, $tokenStorage);
         $accessToken->revokeToken('revoke', 'foo');
         $this->assertFalse($tokenStorage->getRefreshToken('revoke'));
