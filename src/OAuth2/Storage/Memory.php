@@ -1,369 +1,133 @@
 <?php
-
 namespace OAuth2\Storage;
 
-use OAuth2\OpenID\Storage\UserClaimsInterface;
-use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
-
-/**
- * Simple in-memory storage for all storage types
- *
- * NOTE: This class should never be used in production, and is
- * a stub class for example use only
- *
- * @author Brent Shaffer <bshafs at gmail dot com>
- */
-class Memory implements AuthorizationCodeInterface,
-    UserCredentialsInterface,
-    UserClaimsInterface,
-    AccessTokenInterface,
-    ClientCredentialsInterface,
-    RefreshTokenInterface,
-    JwtBearerInterface,
-    ScopeInterface,
-    PublicKeyInterface,
-    OpenIDAuthorizationCodeInterface
+class Memory extends KeyValueAbstract
 {
-    public $authorizationCodes;
-    public $userCredentials;
-    public $clientCredentials;
-    public $refreshTokens;
-    public $accessTokens;
-    public $jwt;
-    public $jti;
-    public $supportedScopes;
-    public $defaultScope;
-    public $keys;
+
+    protected $oauth_clients = array();
+
+    protected $oauth_access_tokens = array();
+
+    protected $oauth_refresh_tokens = array();
+
+    protected $oauth_authorization_codes = array();
+
+    protected $oauth_users = array();
+
+    protected $oauth_jwt = array();
+
+    protected $oauth_jti = array();
+
+    protected $oauth_scopes = array();
+
+    protected $oauth_public_keys = array();
 
     public function __construct($params = array())
     {
-        $params = array_merge(array(
-            'authorization_codes' => array(),
-            'user_credentials' => array(),
-            'client_credentials' => array(),
-            'refresh_tokens' => array(),
-            'access_tokens' => array(),
-            'jwt' => array(),
-            'jti' => array(),
-            'default_scope' => null,
-            'supported_scopes' => array(),
-            'keys' => array(),
-        ), $params);
-
-        $this->authorizationCodes = $params['authorization_codes'];
-        $this->userCredentials = $params['user_credentials'];
-        $this->clientCredentials = $params['client_credentials'];
-        $this->refreshTokens = $params['refresh_tokens'];
-        $this->accessTokens = $params['access_tokens'];
-        $this->jwt = $params['jwt'];
-        $this->jti = $params['jti'];
-        $this->supportedScopes = $params['supported_scopes'];
-        $this->defaultScope = $params['default_scope'];
-        $this->keys = $params['keys'];
-    }
-
-    /* AuthorizationCodeInterface */
-    public function getAuthorizationCode($code)
-    {
-        if (!isset($this->authorizationCodes[$code])) {
-            return false;
-        }
-
-        return array_merge(array(
-            'authorization_code' => $code,
-        ), $this->authorizationCodes[$code]);
-    }
-
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
-    {
-        $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token');
-
-        return true;
-    }
-
-    public function setAuthorizationCodes($authorization_codes)
-    {
-        $this->authorizationCodes = $authorization_codes;
-    }
-
-    public function expireAuthorizationCode($code)
-    {
-        unset($this->authorizationCodes[$code]);
-    }
-
-    /* UserCredentialsInterface */
-    public function checkUserCredentials($username, $password)
-    {
-        $userDetails = $this->getUserDetails($username);
-
-        return $userDetails && $userDetails['password'] && $userDetails['password'] === $password;
-    }
-
-    public function setUser($username, $password, $firstName = null, $lastName = null)
-    {
-        $this->userCredentials[$username] = array(
-            'password'   => $password,
-            'first_name' => $firstName,
-            'last_name'  => $lastName,
-        );
-
-        return true;
-    }
-
-    public function getUserDetails($username)
-    {
-        if (!isset($this->userCredentials[$username])) {
-            return false;
-        }
-
-        return array_merge(array(
-            'user_id'    => $username,
-            'password'   => null,
-            'first_name' => null,
-            'last_name'  => null,
-        ), $this->userCredentials[$username]);
-    }
-
-    /* UserClaimsInterface */
-    public function getUserClaims($user_id, $claims)
-    {
-        if (!$userDetails = $this->getUserDetails($user_id)) {
-            return false;
-        }
-
-        $claims = explode(' ', trim($claims));
-        $userClaims = array();
-
-        // for each requested claim, if the user has the claim, set it in the response
-        $validClaims = explode(' ', self::VALID_CLAIMS);
-        foreach ($validClaims as $validClaim) {
-            if (in_array($validClaim, $claims)) {
-                if ($validClaim == 'address') {
-                    // address is an object with subfields
-                    $userClaims['address'] = $this->getUserClaim($validClaim, $userDetails['address'] ?: $userDetails);
-                } else {
-                    $userClaims = array_merge($this->getUserClaim($validClaim, $userDetails));
-                }
+        if (isset($params['authorization_codes']) && is_array($params['authorization_codes'])) {
+            foreach ($params['authorization_codes'] as $key => $val) {
+                $val['authorization_code'] = $key;
+                $this->oauth_authorization_codes[$key] = $val;
             }
         }
-
-        return $userClaims;
-    }
-
-    protected function getUserClaim($claim, $userDetails)
-    {
-        $userClaims = array();
-        $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($claim)));
-        $claimValues = explode(' ', $claimValuesString);
-
-        foreach ($claimValues as $value) {
-            $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
-        }
-
-        return $userClaims;
-    }
-
-    /* ClientCredentialsInterface */
-    public function checkClientCredentials($client_id, $client_secret = null)
-    {
-        return isset($this->clientCredentials[$client_id]['client_secret']) && $this->clientCredentials[$client_id]['client_secret'] === $client_secret;
-    }
-
-    public function isPublicClient($client_id)
-    {
-        if (!isset($this->clientCredentials[$client_id])) {
-            return false;
-        }
-
-        return empty($this->clientCredentials[$client_id]['client_secret']);
-    }
-
-    /* ClientInterface */
-    public function getClientDetails($client_id)
-    {
-        if (!isset($this->clientCredentials[$client_id])) {
-            return false;
-        }
-
-        $clientDetails = array_merge(array(
-            'client_id'     => $client_id,
-            'client_secret' => null,
-            'redirect_uri'  => null,
-            'scope'         => null,
-        ), $this->clientCredentials[$client_id]);
-
-        return $clientDetails;
-    }
-
-    public function checkRestrictedGrantType($client_id, $grant_type)
-    {
-        if (isset($this->clientCredentials[$client_id]['grant_types'])) {
-            $grant_types = explode(' ', $this->clientCredentials[$client_id]['grant_types']);
-
-            return in_array($grant_type, $grant_types);
-        }
-
-        // if grant_types are not defined, then none are restricted
-        return true;
-    }
-
-    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
-    {
-        $this->clientCredentials[$client_id] = array(
-            'client_id'     => $client_id,
-            'client_secret' => $client_secret,
-            'redirect_uri'  => $redirect_uri,
-            'grant_types'   => $grant_types,
-            'scope'         => $scope,
-            'user_id'       => $user_id,
-        );
-
-        return true;
-    }
-
-    /* RefreshTokenInterface */
-    public function getRefreshToken($refresh_token)
-    {
-        return isset($this->refreshTokens[$refresh_token]) ? $this->refreshTokens[$refresh_token] : false;
-    }
-
-    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
-    {
-        $this->refreshTokens[$refresh_token] = compact('refresh_token', 'client_id', 'user_id', 'expires', 'scope');
-
-        return true;
-    }
-
-    public function unsetRefreshToken($refresh_token)
-    {
-        unset($this->refreshTokens[$refresh_token]);
-    }
-
-    public function setRefreshTokens($refresh_tokens)
-    {
-        $this->refreshTokens = $refresh_tokens;
-    }
-
-    /* AccessTokenInterface */
-    public function getAccessToken($access_token)
-    {
-        return isset($this->accessTokens[$access_token]) ? $this->accessTokens[$access_token] : false;
-    }
-
-    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null, $id_token = null)
-    {
-        $this->accessTokens[$access_token] = compact('access_token', 'client_id', 'user_id', 'expires', 'scope', 'id_token');
-
-        return true;
-    }
-
-    public function unsetAccessToken($access_token)
-    {
-        unset($this->accessTokens[$access_token]);
-    }
-
-    public function scopeExists($scope)
-    {
-        $scope = explode(' ', trim($scope));
-
-        return (count(array_diff($scope, $this->supportedScopes)) == 0);
-    }
-
-    public function getDefaultScope($client_id = null)
-    {
-        return $this->defaultScope;
-    }
-
-    /*JWTBearerInterface */
-    public function getClientKey($client_id, $subject)
-    {
-        if (isset($this->jwt[$client_id])) {
-            $jwt = $this->jwt[$client_id];
-            if ($jwt) {
-                if ($jwt["subject"] == $subject) {
-                    return $jwt["key"];
-                }
+        
+        if (isset($params['client_credentials']) && is_array($params['client_credentials'])) {
+            foreach ($params['client_credentials'] as $key => $val) {
+                $val['client_id'] = $key;
+                $val = array_merge(array(
+                    'redirect_uri' => null,
+                    'scope' => null,
+                ), $val);
+                $this->oauth_clients[$key] = $val;
             }
         }
-
-        return false;
-    }
-
-    public function getClientScope($client_id)
-    {
-        if (!$clientDetails = $this->getClientDetails($client_id)) {
-            return false;
-        }
-
-        if (isset($clientDetails['scope'])) {
-            return $clientDetails['scope'];
-        }
-
-        return null;
-    }
-
-    public function getJti($client_id, $subject, $audience, $expires, $jti)
-    {
-        foreach ($this->jti as $storedJti) {
-            if ($storedJti['issuer'] == $client_id && $storedJti['subject'] == $subject && $storedJti['audience'] == $audience && $storedJti['expires'] == $expires && $storedJti['jti'] == $jti) {
-                return array(
-                    'issuer' => $storedJti['issuer'],
-                    'subject' => $storedJti['subject'],
-                    'audience' => $storedJti['audience'],
-                    'expires' => $storedJti['expires'],
-                    'jti' => $storedJti['jti']
-                );
+        
+        if (isset($params['user_credentials']) && is_array($params['user_credentials'])) {
+            foreach ($params['user_credentials'] as $key => $val) {
+                $val['username'] = $key;
+                $this->oauth_users[$key] = $val;
             }
         }
-
-        return null;
+        
+        if (isset($params['refresh_tokens']) && is_array($params['refresh_tokens'])) {
+            foreach ($params['refresh_tokens'] as $key => $val) {
+                $val['refresh_token'] = $key;
+                $this->oauth_refresh_tokens[$key] = $val;
+            }
+        }
+        
+        if (isset($params['access_tokens']) && is_array($params['access_tokens'])) {
+            foreach ($params['access_tokens'] as $key => $val) {
+                $val['access_token'] = $key;
+                $this->oauth_access_tokens[$key] = $val;
+            }
+        }
+        
+        if (isset($params['jwt']) && is_array($params['jwt'])) {
+            foreach ($params['jwt'] as $key => $val) {
+                $this->setClientKey($key, $val['key'], $val['subject']);
+            }
+        }
+        
+        if (isset($params['jti']) && is_array($params['jti'])) {
+            foreach ($params['jti'] as $key => $val) {
+                $this->setJti($val['issuer'], $val['subject'], $val['audience'], $val['expires'], $val['jti']);
+            }
+        }
+        
+        if (isset($params['scopes']) && is_array($params['scopes'])) {
+            $this->oauth_scopes = $params['scopes'];
+        }
+        if (isset($params['supported_scopes']) && is_array($params['supported_scopes'])) {
+            $this->setScope(implode(' ', $params['supported_scopes']), null, self::KEY_SUPPORTED);
+        }
+        if (isset($params['default_scope']) && (is_string($params['default_scope']) || $params['default_scope'] === false)) {
+            $this->setScope($params['default_scope'], null, self::KEY_DEFAULT);
+        }
+        
+        if (isset($params['keys']) && is_array($params['keys'])) {
+            if (isset($params['keys']['private_key'])) {
+                $private_key = $params['keys']['private_key'];
+                $public_key = isset($params['keys']['public_key']) ? $params['keys']['public_key'] : null;
+                $encryption_algorithm = isset($params['keys']['encryption_algorithm']) ? $params['keys']['encryption_algorithm'] : 'RS256';
+                $this->setServerKey(null, $public_key, $private_key, $encryption_algorithm);
+            }
+            unset($params['keys']['private_key']);
+            unset($params['keys']['public_key']);
+            unset($params['keys']['encryption_algorithm']);
+            
+            foreach ($params['keys'] as $key => $val) {
+                $this->setServerKey($key, $val['public_key'], $val['private_key'], $val['encryption_algorithm']);
+            }
+        }
     }
 
-    public function setJti($client_id, $subject, $audience, $expires, $jti)
+    // Override this for your application
+    protected function passwordVerify($password, $hash)
     {
-        $this->jti[] = array('issuer' => $client_id, 'subject' => $subject, 'audience' => $audience, 'expires' => $expires, 'jti' => $jti);
+        return $password === $hash;
     }
 
-    /*PublicKeyInterface */
-    public function getPublicKey($client_id = null)
+    // Override this for your application
+    protected function passwordHash($password)
     {
-        if (isset($this->keys[$client_id])) {
-            return $this->keys[$client_id]['public_key'];
-        }
-
-        // use a global encryption pair
-        if (isset($this->keys['public_key'])) {
-            return $this->keys['public_key'];
-        }
-
-        return false;
+        return $password;
     }
 
-    public function getPrivateKey($client_id = null)
+    public function get($table, $key)
     {
-        if (isset($this->keys[$client_id])) {
-            return $this->keys[$client_id]['private_key'];
-        }
-
-        // use a global encryption pair
-        if (isset($this->keys['private_key'])) {
-            return $this->keys['private_key'];
-        }
-
-        return false;
+        return isset($this->{$table}[$key]) ? $this->{$table}[$key] : null;
     }
 
-    public function getEncryptionAlgorithm($client_id = null)
+    public function set($table, $key, $value)
     {
-        if (isset($this->keys[$client_id]['encryption_algorithm'])) {
-            return $this->keys[$client_id]['encryption_algorithm'];
-        }
+        $this->{$table}[$key] = $value;
+        return true;
+    }
 
-        // use a global encryption algorithm
-        if (isset($this->keys['encryption_algorithm'])) {
-            return $this->keys['encryption_algorithm'];
-        }
-
-        return 'RS256';
+    public function delete($table, $key)
+    {
+        unset($this->{$table}[$key]);
+        return true;
     }
 }

@@ -16,9 +16,6 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
         $dynamodb = Bootstrap::getInstance()->getDynamoDbStorage();
         $couchbase = Bootstrap::getInstance()->getCouchbase();
 
-        /* hack until we can fix "default_scope" dependencies in other tests */
-        $memory->defaultScope = 'defaultscope1 defaultscope2';
-
         return array(
             array($memory),
             array($sqlite),
