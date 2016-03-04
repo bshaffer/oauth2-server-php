@@ -235,24 +235,53 @@ class Pdo implements
     }
 
     /* UserClaimsInterface */
-    public function getUserClaims($user_id, $claims)
+    public function getUserClaims($user_id, $scope)
     {
-        if (!$userDetails = $this->getUserDetails($user_id)) {
+        $userDetails = $this->getUserDetails($user_id);
+        if (!is_array($userDetails)) {
             return false;
         }
 
-        $claims = explode(' ', trim($claims));
         $userClaims = array();
+        $scopeValues = array_intersect(explode(' ', self::VALID_CLAIMS), explode(' ', $scope));
+        foreach ($scopeValues as $scopeValue) {
+            $userClaims = array_merge($userClaims, $this->getUserClaim($scopeValue, $userDetails));
+        }
 
-        // for each requested claim, if the user has the claim, set it in the response
-        $validClaims = explode(' ', self::VALID_CLAIMS);
-        foreach ($validClaims as $validClaim) {
-            if (in_array($validClaim, $claims)) {
-                if ($validClaim == 'address') {
-                    // address is an object with subfields
-                    $userClaims['address'] = $this->getUserClaim($validClaim, $userDetails['address'] ?: $userDetails);
-                } else {
-                    $userClaims = array_merge($userClaims, $this->getUserClaim($validClaim, $userDetails));
+        return $userClaims;
+    }
+
+    protected function getUserClaim($scopeValue, $userDetails)
+    {
+        $userClaims = array();
+        $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($scopeValue)));
+        $claimValues = explode(' ', $claimValuesString); // claims to get from user details
+
+        if ($scopeValue === self::SCOPE_ADDRESS) {
+            if (isset($userDetails[self::SCOPE_ADDRESS]) && is_array($userDetails[self::SCOPE_ADDRESS])) {
+                $userDetails = $userDetails[self::SCOPE_ADDRESS];
+            }
+
+            $addressClaims = array();
+
+            foreach ($claimValues as $claimValue) {
+                if (isset($userDetails[$claimValue])) { // if claim exists in user details add it to address claim
+                    $addressClaims[$claimValue] = $userDetails[$claimValue];
+                }
+            }
+
+            if (count($addressClaims)) { // if address claim not empty add it to return claims
+                $userClaims[self::SCOPE_ADDRESS] = $addressClaims;
+            }
+        }
+        else {
+            foreach ($claimValues as $claimValue) {
+                if (isset($userDetails[$claimValue])) { // if claim exists in user details add it to return claims
+                    if (in_array($claimValue, array(self::CLAIM_EMAIL_VERIFIED, self::CLAIM_PHONE_NUMBER_VERIFIED), true)) {
+                        $userDetails[$claimValue] = self::parseBool($userDetails[$claimValue]);
+                    }
+
+                    $userClaims[$claimValue] = $userDetails[$claimValue];
                 }
             }
         }
@@ -260,17 +289,9 @@ class Pdo implements
         return $userClaims;
     }
 
-    protected function getUserClaim($claim, $userDetails)
+    protected static function parseBool($value)
     {
-        $userClaims = array();
-        $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($claim)));
-        $claimValues = explode(' ', $claimValuesString);
-
-        foreach ($claimValues as $value) {
-            $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
-        }
-
-        return $userClaims;
+        return is_string($value) ? filter_var($value, FILTER_VALIDATE_BOOLEAN) : (bool)$value;
     }
 
     /* OAuth2\Storage\RefreshTokenInterface */
