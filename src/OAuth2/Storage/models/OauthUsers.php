@@ -2,17 +2,10 @@
 
 namespace OAuth2\Storage\Models;
 
-use Phalcon\Mvc\Model\Behavior\SoftDelete;
 use Phalcon\Mvc\Model\Validator\Email as Email;
 
 class OauthUsers extends \Phalcon\Mvc\Model
 {
-
-    /**
-     *
-     * @var string
-     */
-    public $id;
 
     /**
      *

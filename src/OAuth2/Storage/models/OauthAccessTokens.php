@@ -20,18 +20,6 @@ class OauthAccessTokens extends \Phalcon\Mvc\Model
      *
      * @var string
      */
-    public $client_ip;
-
-    /**
-     *
-     * @var string
-     */
-    public $client_useragent;
-
-    /**
-     *
-     * @var string
-     */
     public $user_id;
 
     /**

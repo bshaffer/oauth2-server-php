@@ -578,7 +578,7 @@ class Phalcon implements
     }
 
     /**
-     * DDL to create OAuth2 database and tables for PDO storage
+     * DDL to create OAuth2 database and tables for PDO/Phalcon storage
      *
      * @see https://github.com/dsquier/oauth2-server-php-mysql
      */
