@@ -4,20 +4,11 @@ namespace OAuth2\Storage\Models;
 
 class OauthRefreshTokens extends \Phalcon\Mvc\Model
 {
-    const VALID = 1;
-    const INVALID = 0;
-
     /**
      *
      * @var string
      */
     public $refresh_token;
-
-    /**
-     *
-     * @var boolean
-     */
-    public $valid;
 
     /**
      *
@@ -82,7 +73,6 @@ class OauthRefreshTokens extends \Phalcon\Mvc\Model
      */
     public function initialize()
     {
-        $this->keepSnapshots(true);
         $this->setSource("'oauth__refresh_tokens'");
         $this->belongsTo('user_id', 'OAuth2\Storage\Models\OauthUsers', 'username');
         $this->belongsTo('client_id', 'OAuth2\Storage\Models\OauthClients', 'client_id');

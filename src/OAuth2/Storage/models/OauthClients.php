@@ -47,8 +47,7 @@ class OauthClients extends \Phalcon\Mvc\Model
     public function initialize()
     {
         $this->setSource("'oauth__clients'");
-        $this->hasMany('client_id', 'OAuth2\Storage\Models\InventoryTransfersLogs', 'client_id', array("alias" => "TransfersLogs"));
-        $this->hasMany('client_id', 'OAuth2\Storage\Models\InventorySalesLogs', 'client_id', array("alias" => "SalesLogs"));
+        $this->belongsTo('user_id', 'OAuth2\Storage\Models\OauthUsers', 'username', array("alias" => "User"));
     }
 
     /**
@@ -83,24 +82,11 @@ class OauthClients extends \Phalcon\Mvc\Model
         return parent::findFirst($parameters);
     }
 
-
-
     /**
      * @param mixed $parameters
-     * @return \OAuth2\Storage\Models\InventorySalesLogs[]
+     * @return OauthUsers
      */
-    public function getSalesLogs($parameters = null)
-    {
-        return $this->getRelated('SalesLogs', $parameters);
+    public function getUser($parameters = null){
+        return $this->getRelated('User', $parameters);
     }
-
-    /**
-     * @param mixed $parameters
-     * @return \OAuth2\Storage\Models\InventoryTransfersLogs[]
-     */
-    public function getTransfersLogs($parameters = null)
-    {
-        return $this->getRelated('TransfersLogs', $parameters);
-    }
-
 }

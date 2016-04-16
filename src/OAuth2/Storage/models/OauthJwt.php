@@ -24,16 +24,6 @@ class OauthJwt extends \Phalcon\Mvc\Model
     public $public_key;
 
     /**
-     * Returns table name mapped in the model.
-     *
-     * @return string
-     */
-    public function getSource()
-    {
-        return 'oauth__jwt';
-    }
-
-    /**
      * Allows to query a set of records that match the specified conditions
      *
      * @param mixed $parameters
@@ -55,4 +45,27 @@ class OauthJwt extends \Phalcon\Mvc\Model
         return parent::findFirst($parameters);
     }
 
+    /**
+     * Initialize method for model.
+     */
+    public function initialize()
+    {
+        $this->setSource("'oauth__jwt'");
+        $this->belongsTo('client_id', 'OAuth2\Storage\Models\OauthClients', 'client_id', array("alias" => "Client"));
+    }
+
+    /**
+     * Returns table name mapped in the model.
+     *
+     * @return string
+     */
+    public function getSource()
+    {
+        return 'oauth__jwt';
+    }
+    
+    public function getClient($parameters = null)
+    {
+        return $this->getRelated('Client', $parameters);
+    }
 }

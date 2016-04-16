@@ -30,16 +30,6 @@ class OauthPublicKeys extends \Phalcon\Mvc\Model
     public $encryption_algorithm;
 
     /**
-     * Returns table name mapped in the model.
-     *
-     * @return string
-     */
-    public function getSource()
-    {
-        return 'oauth__public_keys';
-    }
-
-    /**
      * Allows to query a set of records that match the specified conditions
      *
      * @param mixed $parameters
@@ -61,4 +51,27 @@ class OauthPublicKeys extends \Phalcon\Mvc\Model
         return parent::findFirst($parameters);
     }
 
+    /**
+     * Initialize method for model.
+     */
+    public function initialize()
+    {
+        $this->setSource("'oauth__public_keys'");
+        $this->belongsTo('client_id', 'OAuth2\Storage\Models\OauthClients', 'client_id', array("alias" => "Client"));
+    }
+
+    /**
+     * Returns table name mapped in the model.
+     *
+     * @return string
+     */
+    public function getSource()
+    {
+        return 'oauth__public_keys';
+    }
+
+    public function getClient($parameters = null)
+    {
+        return $this->getRelated('Client', $parameters);
+    }
 }
