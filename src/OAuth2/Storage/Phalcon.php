@@ -250,8 +250,8 @@ class Phalcon implements
     {
         $user = Models\OauthUsers::findFirst(
             array(
-                "conditions" => "username = ?1 AND status = ?2",
-                "bind" => array(1 => $username, 2 => Models\OauthUsers::ACTIVE),
+                "conditions" => "username = ?1",
+                "bind" => array(1 => $username),
                 "limit" => 1
             )
         );
@@ -379,7 +379,7 @@ class Phalcon implements
 
         $user = Models\OauthUsers::findFirst(
             array(
-                "conditions" => "username = ?1 AND status = ?2",
+                "conditions" => "username = ?1",
                 "bind" => array(1 => $username),
                 "limit" => 1
             )
