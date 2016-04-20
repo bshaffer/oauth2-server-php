@@ -605,39 +605,4 @@ class Oracle implements
 
     	return $sql;
     }
-
-   /**
-    *
-    * Função de criptografia do SGL
-    *
-    * @param unknown $value
-    * @param unknown $code
-    * @return mixed
-    */
-   public function getEncryptedPassword( $value, $code ) {
-    	// Busca a senha (criptografada).
-    	//$code = $this->getUserCode();
-    	// Aplica algum algoritmo nao documentado em cima do codigo do usuario e da senha
-    	if ( strlen($code) < 11 ) {
-    		$sum = trim($code) + trim($value);
-    		if ( (strlen($sum) % 2) != 0 ) {
-    			$sum = substr( $sum, 0 , strlen($sum) - 1) . "0" .
-    					substr( $sum, strlen($sum) - 1, 1 );
-    					$code = $sum - $value;
-    		}
-    	}
-    	$cryptPasswd = "";
-    	$tmpCode = (int)$code;
-    	$tmpPasswd = (int)$value;
-    	if ( $tmpCode != 0 ) {
-    		$SQL = "select criptant('".$code."', '".$value."') senha from dual";
-    		$stmt = oci_parse($this->db,$SQL);
-    		oci_execute($stmt);
-    		if ($dyn = oci_fetch_assoc($stmt)) {
-    			$cryptPasswd = $dyn['SENHA'];
-    		}
-    	}
-    	$cryptPasswd = str_replace( "\"", "", $cryptPasswd );
-    	return $cryptPasswd;
-    }
 }
