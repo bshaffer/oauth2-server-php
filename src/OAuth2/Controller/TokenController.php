@@ -179,6 +179,10 @@ class TokenController implements TokenControllerInterface
                     $response->setError(400, 'invalid_scope', 'An unsupported scope was requested');
 
                     return null;
+                } else {
+                    $response->setError(400, 'invalid_scope', 'The scope requested is invalid for this client');
+
+                    return false;
                 }
             }
         } elseif ($availableScope) {
