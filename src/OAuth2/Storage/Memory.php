@@ -236,7 +236,13 @@ class Memory implements AuthorizationCodeInterface,
 
     public function unsetRefreshToken($refresh_token)
     {
-        unset($this->refreshTokens[$refresh_token]);
+        if (isset($this->refreshTokens[$refresh_token])) {
+            unset($this->refreshTokens[$refresh_token]);
+
+            return true;
+        }
+
+        return false;
     }
 
     public function setRefreshTokens($refresh_tokens)
@@ -259,7 +265,13 @@ class Memory implements AuthorizationCodeInterface,
 
     public function unsetAccessToken($access_token)
     {
-        unset($this->accessTokens[$access_token]);
+        if (isset($this->accessTokens[$access_token])) {
+            unset($this->accessTokens[$access_token]);
+
+            return true;
+        }
+
+        return false;
     }
 
     public function scopeExists($scope)

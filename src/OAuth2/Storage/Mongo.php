@@ -161,7 +161,11 @@ class Mongo implements AuthorizationCodeInterface,
 
     public function unsetAccessToken($access_token)
     {
-        $this->collection('access_token_table')->remove(array('access_token' => $access_token));
+        $result = $this->collection('access_token_table')->remove(array(
+            'access_token' => $access_token
+        ), array('w' => 1));
+
+        return $result['n'] > 0;
     }
 
 
@@ -254,9 +258,11 @@ class Mongo implements AuthorizationCodeInterface,
 
     public function unsetRefreshToken($refresh_token)
     {
-        $this->collection('refresh_token_table')->remove(array('refresh_token' => $refresh_token));
+        $result = $this->collection('refresh_token_table')->remove(array(
+            'refresh_token' => $refresh_token
+        ), array('w' => 1));
 
-        return true;
+        return $result['n'] > 0;
     }
 
     // plaintext passwords are bad!  Override this for your application

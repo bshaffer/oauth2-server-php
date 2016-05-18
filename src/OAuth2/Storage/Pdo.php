@@ -160,7 +160,9 @@ class Pdo implements
     {
         $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE access_token = :access_token', $this->config['access_token_table']));
 
-        return $stmt->execute(compact('access_token'));
+        $stmt->execute(compact('access_token'));
+
+        return $stmt->rowCount() > 0;
     }
 
     /* OAuth2\Storage\AuthorizationCodeInterface */
@@ -301,7 +303,9 @@ class Pdo implements
     {
         $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE refresh_token = :refresh_token', $this->config['refresh_token_table']));
 
-        return $stmt->execute(compact('refresh_token'));
+        $stmt->execute(compact('refresh_token'));
+
+        return $stmt->rowCount() > 0;
     }
 
     // plaintext passwords are bad!  Override this for your application

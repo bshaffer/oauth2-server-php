@@ -186,10 +186,11 @@ class DynamoDB implements
     {
         $result = $this->client->deleteItem(array(
             'TableName' =>  $this->config['access_token_table'],
-            'Key' => $this->client->formatAttributes(array("access_token" => $access_token))
+            'Key' => $this->client->formatAttributes(array("access_token" => $access_token)),
+            'ReturnValues' => 'ALL_OLD',
         ));
 
-        return true;
+        return null !== $result->get('Attributes');
     }
 
     /* OAuth2\Storage\AuthorizationCodeInterface */

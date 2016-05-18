@@ -64,7 +64,7 @@ class AccessTokenTest extends BaseTest
             return;
         }
 
-        // assert token we are unset does not exist
+        // assert token we are about to unset does not exist
         $token = $storage->getAccessToken('revokabletoken');
         $this->assertFalse($token);
 
@@ -73,10 +73,30 @@ class AccessTokenTest extends BaseTest
         $success = $storage->setAccessToken('revokabletoken', 'client ID', 'SOMEUSERID', $expires);
         $this->assertTrue($success);
 
-        $storage->unsetAccessToken('revokabletoken');
+        // assert unsetAccessToken returns true
+        $result = $storage->unsetAccessToken('revokabletoken');
+        $this->assertTrue($result);
 
-        // assert token we are unset does not exist
+        // assert token we unset does not exist
         $token = $storage->getAccessToken('revokabletoken');
         $this->assertFalse($token);
+    }
+
+    /** @dataProvider provideStorage */
+    public function testUnsetAccessTokenReturnsFalse(AccessTokenInterface $storage)
+    {
+        if ($storage instanceof NullStorage || !method_exists($storage, 'unsetAccessToken')) {
+            $this->markTestSkipped('Skipped Storage: ' . $storage->getMessage());
+
+            return;
+        }
+
+        // assert token we are about to unset does not exist
+        $token = $storage->getAccessToken('nonexistanttoken');
+        $this->assertFalse($token);
+
+        // assert unsetAccessToken returns false
+        $result = $storage->unsetAccessToken('nonexistanttoken');
+        $this->assertFalse($result);
     }
 }
