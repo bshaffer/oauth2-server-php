@@ -142,7 +142,7 @@ class Memory implements AuthorizationCodeInterface,
                     // address is an object with subfields
                     $userClaims['address'] = $this->getUserClaim($validClaim, $userDetails['address'] ?: $userDetails);
                 } else {
-                    $userClaims = array_merge($this->getUserClaim($validClaim, $userDetails));
+                    $userClaims = array_merge($userClaims, $this->getUserClaim($validClaim, $userDetails));
                 }
             }
         }
