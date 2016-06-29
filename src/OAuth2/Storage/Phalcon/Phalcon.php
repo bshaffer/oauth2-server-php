@@ -58,15 +58,15 @@ class Phalcon implements
      */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
-        $clients = Models\OauthClients::findFirst(
+        $client = Models\OauthClients::findFirst(
             array(
-                "conditions" => "client_id = ?1 AND client_secret = ?2",
-                "bind" => array(1 => $client_id, 2 => $client_secret),
+                "conditions" => "client_id = ?1",
+                "bind" => array(1 => $client_id),
                 "limit" => 1
             )
         );
 
-        return $clients != false;
+        return $client != false && $client->client_secret == $client_secret;
     }
 
     /**
@@ -83,44 +83,7 @@ class Phalcon implements
             )
         );
 
-        return empty($clients['client_secret']);
-    }
-
-    /**
-     * @param $client_id
-     * @param null $client_secret
-     * @param null $redirect_uri
-     * @param null $grant_types
-     * @param null $scope
-     * @param null $user_id
-     * @return mixed
-     */
-    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
-    {
-        $client = new Models\OauthClients();
-        $client->client_id = $client_id;
-
-        // Update the fields only if they are set
-        isset($client_secret) ?: $client->client_secret = $client_secret;
-        isset($redirect_uri) ?: $client->redirect_uri = $redirect_uri;
-        isset($grant_types) ?: $client->grant_types = $grant_types;
-        isset($scope) ?: $client->scope = $scope;
-        isset($user_id) ?: $client->user_id = $user_id;
-
-        return $client->save();
-    }
-
-    public function checkRestrictedGrantType($client_id, $grant_type)
-    {
-        $details = $this->getClientDetails($client_id);
-
-        if (isset($details['grant_types'])) {
-            $grant_types = explode(' ', $details['grant_types']);
-            return in_array($grant_type, (array)$grant_types);
-        }
-
-        // if grant_types are not defined, then none are restricted
-        return true;
+        return empty($clients->client_secret);
     }
 
     /**
@@ -140,6 +103,42 @@ class Phalcon implements
         return $clients->toArray();
     }
 
+    /**
+     * @param $client_id
+     * @param null $client_secret
+     * @param null $redirect_uri
+     * @param null $grant_types
+     * @param null $scope
+     * @param null $user_id
+     * @return mixed
+     */
+    public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
+    {
+        $client = new Models\OauthClients();
+        $client->client_id = $client_id;
+
+        $client->client_secret = $client_secret;
+        $client->redirect_uri = $redirect_uri;
+        $client->grant_types = $grant_types;
+        $client->scope = $scope;
+        $client->user_id = $user_id;
+
+        return $client->save();
+    }
+
+    public function checkRestrictedGrantType($client_id, $grant_type)
+    {
+        $details = $this->getClientDetails($client_id);
+
+        if (isset($details['grant_types'])) {
+            $grant_types = explode(' ', $details['grant_types']);
+            return in_array($grant_type, (array)$grant_types);
+        }
+
+        // if grant_types are not defined, then none are restricted
+        return true;
+    }
+
     /* OAuth2\Storage\AccessTokenInterface */
 
     public function getAccessToken($access_token)
@@ -151,11 +150,15 @@ class Phalcon implements
                 "limit" => 1
             )
         );
-        if ($token->count() == 1) {
-            $token['expires'] = strtotime($token['expires']);
-        }
 
-        return $token;
+        if ($token != false) {
+            $tokenArray = $token->toArray();
+            $tokenArray['expires'] = strtotime($token->expires);
+            return $tokenArray;
+        } else {
+            // If token == false, then return false
+            return false;
+        }
     }
 
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
@@ -199,30 +202,66 @@ class Phalcon implements
                 "limit" => 1
             )
         );
-        if ($code->count() == 1) {
-            $code['expires'] = strtotime($code['expires']);
+        if ($code != false) {
+            $codeArray = $code->toArray();
+            $codeArray['expires'] = strtotime($code->expires);
+            return $codeArray;
+        } else {
+            // If code == false, then return false
+            return false;
         }
-        return $code;
     }
 
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
+
         // Convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
 
-        $authCode = new Models\OauthAuthorizationCodes();
+        // if it exists, update it.
+        $authCode = $this->getAuthorizationCode($code);
+        if ($authCode == false)
+            $authCode = new Models\OauthAuthorizationCodes();
+
         $authCode->authorization_code = $code;
         $authCode->client_id = $client_id;
         $authCode->user_id = $user_id;
         $authCode->redirect_uri = $redirect_uri;
         $authCode->expires = $expires;
 
-        // Update the fields only if they are set
-        isset($scope) ?: $authCode->scope = $scope;
-        isset($id_token) ?: $authCode->id_token = $id_token;
+        $authCode->scope = $scope;
+        $authCode->id_token = $id_token;
 
         return $authCode->save();
     }
+
+    /**
+     * @deprecated No longer used.
+     * @see setAuthorizationCode.
+     */
+    public function setAuthorizationCodeWithIdToken($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
+    {
+
+        // Convert expires to datestring
+        $expires = date('Y-m-d H:i:s', $expires);
+
+        // if it exists, update it.
+        $authCode = $this->getAuthorizationCode($code);
+        if ($authCode == false)
+            $authCode = new Models\OauthAuthorizationCodes();
+
+        $authCode->authorization_code = $code;
+        $authCode->client_id = $client_id;
+        $authCode->user_id = $user_id;
+        $authCode->redirect_uri = $redirect_uri;
+        $authCode->expires = $expires;
+        $authCode->id_token = $id_token;
+
+        $authCode->scope = $scope;
+
+        return $authCode->save();
+    }
+
 
     public function expireAuthorizationCode($code)
     {
@@ -246,37 +285,12 @@ class Phalcon implements
         return false;
     }
 
-    public function getUser($username)
+    public function getUserDetails($username)
     {
-        $user = Models\OauthUsers::findFirst(
-            array(
-                "conditions" => "username = ?1",
-                "bind" => array(1 => $username),
-                "limit" => 1
-            )
-        );
-
-        if ($user == false) {
-            return false;
-        }
-
-        return array_merge(array('user_id' => $username), $user->toArray());
+        return $this->getUser($username);
     }
 
     /* UserClaimsInterface */
-
-    protected function checkPassword($user, $password)
-    {
-        return $user['password'] == $this->hashPassword($password);
-    }
-
-    protected function hashPassword($password)
-    {
-        return sha1($password);
-    }
-
-    /* OAuth2\Storage\RefreshTokenInterface */
-
     public function getUserClaims($user_id, $claims)
     {
         if (!$userDetails = $this->getUserDetails($user_id)) {
@@ -302,11 +316,6 @@ class Phalcon implements
         return $userClaims;
     }
 
-    public function getUserDetails($username)
-    {
-        return $this->getUser($username);
-    }
-
     protected function getUserClaim($claim, $userDetails)
     {
         $userClaims = array();
@@ -320,8 +329,6 @@ class Phalcon implements
         return $userClaims;
     }
 
-    // plaintext passwords are bad!  Override this for your application
-
     public function getRefreshToken($refresh_token)
     {
         $token = Models\OauthRefreshTokens::findFirst(
@@ -333,11 +340,13 @@ class Phalcon implements
         );
 
         if ($token != false) {
-            // convert expires to epoch time
-            $token->expires = strtotime($token->expires);
+            $tokenArray = $token->toArray();
+            $tokenArray['expires'] = strtotime($token->expires);
+            return $tokenArray;
+        } else {
+            // If token == false, then return false
+            return false;
         }
-
-        return $token->toArray();
     }
 
     // use a secure hashing algorithm when storing passwords. Override this for your application
@@ -354,7 +363,7 @@ class Phalcon implements
         $token->expires = $expires;
         $token->client_ip = $_SERVER['REMOTE_ADDR'];
         $token->client_useragent = $_SERVER['HTTP_USER_AGENT'];
-        isset($scope) ?: $token->scope = $scope;
+        $token->scope = $scope;
 
         return $token->save();
     }
@@ -372,11 +381,18 @@ class Phalcon implements
         return $token->delete();
     }
 
-    public function setUser($username, $password, $firstName = null, $lastName = null)
+    protected function checkPassword($user, $password)
     {
-        // do not store in plaintext
-        $password = $this->hashPassword($password);
+        return $user['password'] == $this->hashPassword($password);
+    }
 
+    protected function hashPassword($password)
+    {
+        return sha1($password);
+    }
+
+    public function getUser($username)
+    {
         $user = Models\OauthUsers::findFirst(
             array(
                 "conditions" => "username = ?1",
@@ -385,86 +401,51 @@ class Phalcon implements
             )
         );
 
-        $user->password = $password;
+        if ($user == false)
+            return false;
+        else
+            return array_merge(array('user_id' => $username), $user->toArray());
+    }
 
-        // Update values only if set
-        isset($firstName) ?: $user->first_name = $firstName;
-        isset($lastName) ?: $user->first_name = $lastName;
+    public function setUser($username, $password, $firstName = null, $lastName = null)
+    {
+        // do not store in plaintext
+        $password = $this->hashPassword($password);
+
+        // if it exists, update it.
+        $user = $this->getUser($username);
+        if ($user == false) {
+            $user = Models\OauthUsers::findFirst(
+                array(
+                    "conditions" => "username = ?1",
+                    "bind" => array(1 => $username),
+                    "limit" => 1
+                )
+            );
+            $user->username = $username;
+        }
+        $user->password = $password;
+        $user->first_name = $firstName;
+        $user->first_name = $lastName;
 
         return $user->save();
     }
 
-
-    /* JWTBearerInterface */
-    public function getClientKey($client_id, $subject)
-    {
-
-        $clientKey = Models\OauthJwt::findFirst(
-            array(
-                "conditions" => "client_id = ?1 AND subject = ?2",
-                "bind" => array(1 => $client_id, 2 => $subject),
-                "limit" => 1
-            )
-        );
-
-        return $clientKey->count() == 1 ? $clientKey->client_id : false;
-    }
-
-    public function getClientScope($client_id)
-    {
-        if (!$clientDetails = $this->getClientDetails($client_id)) {
-            return false;
-        }
-
-        if (isset($clientDetails['scope'])) {
-            return $clientDetails['scope'];
-        }
-
-        return null;
-    }
-
-    /**
-     * Check if the provided scope exists.
-     *
-     * @param $scope
-     * A space-separated string of scopes.
-     *
-     * @return boolean
-     * TRUE if it exists, FALSE otherwise.
-     */
     public function scopeExists($scope)
     {
-        $scopeRow = Models\OauthScopes::findFirst(
+        $scope = explode(' ', $scope);
+        $whereIn = implode(',', array_fill(0, count($scope), '?'));
+        $result = Models\OauthScopes::count(
             array(
-                "conditions" => "scope = ?1",
-                "bind" => array(1 => $scope),
+                "conditions" => "scope IN(?1)",
+                "bind" => array(1 => $whereIn),
                 "limit" => 1
             )
         );
 
-        return $scopeRow == 1;
+        return $result == count($scope);
     }
 
-    /**
-     * The default scope to use in the event the client
-     * does not request one. By returning "false", a
-     * request_error is returned by the server to force a
-     * scope request by the client. By returning "null",
-     * opt out of requiring scopes
-     *
-     * @param $client_id
-     * An optional client id that can be used to return customized default scopes.
-     *
-     * @return
-     * string representation of default scope, null if
-     * scopes are not defined, or false to force scope
-     * request by the client
-     *
-     * ex:
-     *     'default'
-     * ex:
-     *     null
-     */
     public function getDefaultScope($client_id = null)
     {
         $scopes = Models\OauthScopes::find(
@@ -485,35 +466,58 @@ class Phalcon implements
         return null;
     }
 
+    /* JWTBearerInterface */
+    public function getClientKey($client_id, $subject)
+    {
+
+        $clientKey = Models\OauthJwt::findFirst(
+            array(
+                "conditions" => "client_id = ?1 AND subject = ?2",
+                "bind" => array(1 => $client_id, 2 => $subject),
+                "limit" => 1
+            )
+        );
+
+        if ($clientKey != false)
+            return $clientKey->public_key;
+        else
+            return false;
+    }
+
+    public function getClientScope($client_id)
+    {
+        if (!$clientDetails = $this->getClientDetails($client_id)) {
+            return false;
+        }
+
+        if (isset($clientDetails['scope'])) {
+            return $clientDetails['scope'];
+        }
+
+        return null;
+    }
+
     public function getJti($client_id, $subject, $audience, $expires, $jti)
     {
 
         $result = Models\OauthJti::findFirst(
             array(
                 "conditions" => "client_id = :client_id: AND subject = :subject: AND audience = :audience: AND expires = :expires: AND jti = :jti:",
-                "bind" => array(
+                "bind" => [
                     "client_id" => $client_id,
                     "subject" => $subject,
                     "audience" => $audience,
                     "expires" => $expires,
                     "jti" => $jti
-                ),
+                ],
                 "limit" => 1
             )
         );
 
-        if ($result->count() == 1) {
-            $result = $result->toArray();
-            return array(
-                'issuer' => $result['issuer'],
-                'subject' => $result['subject'],
-                'audience' => $result['audience'],
-                'expires' => $result['expires'],
-                'jti' => $result['jti'],
-            );
-        }
-
-        return null;
+        if ($result != false)
+            return $result->toArray(['issuer','subject','audience','expires','jti']);
+        else
+            return null;
     }
 
     public function setJti($client_id, $subject, $audience, $expires, $jti)
@@ -533,14 +537,14 @@ class Phalcon implements
     {
         $publicKey = Models\OauthPublicKeys::findFirst(
             array(
-                "conditions" => "client_id = ?1",
+                "conditions" => "client_id = ?1 OR client_id IS NULL",
                 "bind" => array(1 => $client_id),
                 "limit" => 1
             )
         );
 
-        if ($array = $publicKey->toArray())
-            return $array['public_key'];
+        if ($publicKey != false)
+            return $publicKey-> public_key;
         else
             return false;
     }
@@ -555,8 +559,8 @@ class Phalcon implements
             )
         );
 
-        if ($array = $publicKey->toArray())
-            return $array['private_key'];
+        if ($publicKey != false)
+            return $publicKey->private_key;
         else
             return false;
     }
@@ -571,8 +575,8 @@ class Phalcon implements
             )
         );
 
-        if ($array = $publicKey->toArray())
-            return $array['encryption_algorithm'];
+        if ($publicKey != false)
+            return $publicKey->encryption_algorithm;
         else
             return 'RS256';
     }
