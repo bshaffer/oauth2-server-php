@@ -585,82 +585,90 @@ class Phalcon implements
     public function getBuildSql($dbName = 'oauth2_server_php')
     {
         $sql = "
-        CREATE TABLE {$this->config['client_table']} (
-          client_id             VARCHAR(80)   NOT NULL,
-          client_secret         VARCHAR(80),
-          redirect_uri          VARCHAR(2000),
-          grant_types           VARCHAR(80),
-          scope                 VARCHAR(4000),
-          user_id               VARCHAR(80),
-          PRIMARY KEY (client_id)
-        );
-
-        CREATE TABLE {$this->config['access_token_table']} (
-          access_token         VARCHAR(40)    NOT NULL,
-          client_id            VARCHAR(80)    NOT NULL,
-          user_id              VARCHAR(80),
-          expires              TIMESTAMP      NOT NULL,
-          scope                VARCHAR(4000),
-          PRIMARY KEY (access_token)
-        );
-
-        CREATE TABLE {$this->config['code_table']} (
-          authorization_code  VARCHAR(40)    NOT NULL,
-          client_id           VARCHAR(80)    NOT NULL,
-          user_id             VARCHAR(80),
-          redirect_uri        VARCHAR(2000),
-          expires             TIMESTAMP      NOT NULL,
-          scope               VARCHAR(4000),
-          id_token            VARCHAR(1000),
-          PRIMARY KEY (authorization_code)
-        );
-
-        CREATE TABLE {$this->config['refresh_token_table']} (
-          refresh_token       VARCHAR(40)    NOT NULL,
-          client_id           VARCHAR(80)    NOT NULL,
-          user_id             VARCHAR(80),
-          expires             TIMESTAMP      NOT NULL,
-          scope               VARCHAR(4000),
-          PRIMARY KEY (refresh_token)
-        );
-
-        CREATE TABLE {$this->config['user_table']} (
-          username            VARCHAR(80),
-          password            VARCHAR(80),
-          first_name          VARCHAR(80),
-          last_name           VARCHAR(80),
-          email               VARCHAR(80),
-          email_verified      BOOLEAN,
-          scope               VARCHAR(4000)
-        );
-
-        CREATE TABLE {$this->config['scope_table']} (
-          scope               VARCHAR(80)  NOT NULL,
-          is_default          BOOLEAN,
-          PRIMARY KEY (scope)
-        );
-
-        CREATE TABLE {$this->config['jwt_table']} (
-          client_id           VARCHAR(80)   NOT NULL,
-          subject             VARCHAR(80),
-          public_key          VARCHAR(2000) NOT NULL
-        );
-
-        CREATE TABLE {$this->config['jti_table']} (
-          issuer              VARCHAR(80)   NOT NULL,
-          subject             VARCHAR(80),
-          audience            VARCHAR(80),
-          expires             TIMESTAMP     NOT NULL,
-          jti                 VARCHAR(2000) NOT NULL
-        );
-
-        CREATE TABLE {$this->config['public_key_table']} (
-          client_id            VARCHAR(80),
-          public_key           VARCHAR(2000),
-          private_key          VARCHAR(2000),
-          encryption_algorithm VARCHAR(100) DEFAULT 'RS256'
-        )
-";
+            CREATE TABLE {$this->config['access_token_table']} (
+              `access_token` varchar(40) NOT NULL,
+              `valid` tinyint(1) NOT NULL DEFAULT '1',
+              `client_ip` varchar(155) NOT NULL,
+              `client_useragent` text NOT NULL,
+              `client_id` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+              `user_id` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+              `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              `scope` varchar(4000) DEFAULT NULL
+              PRIMARY KEY (access_token)
+            );
+            
+            CREATE TABLE {$this->config['code_table']} (
+              `authorization_code` varchar(40) NOT NULL,
+              `client_id` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+              `user_id` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+              `redirect_uri` varchar(2000) DEFAULT NULL,
+              `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              `scope` varchar(4000) DEFAULT NULL,
+              `id_token` varchar(1000) DEFAULT NULL,
+              PRIMARY KEY (authorization_code)
+            );
+            
+            CREATE TABLE {$this->config['client_table']} (
+              `client_id` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+              `client_secret` varchar(80) DEFAULT NULL,
+              `redirect_uri` varchar(2000) DEFAULT NULL,
+              `grant_types` varchar(80) DEFAULT NULL,
+              `scope` varchar(4000) DEFAULT NULL,
+              `user_id` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+              PRIMARY KEY (client_id)
+            );
+            
+            CREATE TABLE {$this->config['jti_table']} (
+              `issuer` varchar(80) NOT NULL,
+              `subject` varchar(80) DEFAULT NULL,
+              `audience` varchar(80) DEFAULT NULL,
+              `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              `jti` varchar(2000) NOT NULL
+            );
+            
+            CREATE TABLE {$this->config['jwt_table']} (
+              `client_id` varchar(80) NOT NULL,
+              `subject` varchar(80) DEFAULT NULL,
+              `public_key` varchar(2000) NOT NULL
+            );
+            
+            CREATE TABLE {$this->config['public_key_table']} (
+              `client_id` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+              `public_key` varchar(2000) DEFAULT NULL,
+              `private_key` varchar(2000) DEFAULT NULL,
+              `encryption_algorithm` varchar(100) DEFAULT 'RS256'
+            );
+            
+            CREATE TABLE {$this->config['refresh_token_table']} (
+              `refresh_token` varchar(40) NOT NULL,
+              `valid` tinyint(1) NOT NULL DEFAULT '1',
+              `client_id` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+              `user_id` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+              `client_ip` varchar(155) NOT NULL,
+              `client_useragent` text NOT NULL,
+              `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              `scope` varchar(4000) DEFAULT NULL,
+              PRIMARY KEY (refresh_token)
+            );
+            
+            CREATE TABLE {$this->config['scope_table']} (
+              `scope` varchar(80) NOT NULL,
+              `is_default` tinyint(1) DEFAULT NULL,
+              PRIMARY KEY (scope)
+            );
+            
+            CREATE TABLE {$this->config['user_table']} (
+              `id` bigint(20) NOT NULL AUTO_INCREMENT,
+              `status` tinyint(2) NOT NULL DEFAULT '0',
+              `username` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT '',
+              `password` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+              `first_name` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+              `last_name` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+              `email` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+              `email_verified` tinyint(1) DEFAULT NULL,
+              `scope` varchar(4000) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL
+            );
+        ";
 
         return $sql;
     }
