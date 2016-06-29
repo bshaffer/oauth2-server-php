@@ -1,6 +1,6 @@
 <?php
 
-namespace OAuth2\Storage\Models;
+namespace OAuth2\Storage\Phalcon\Models;
 
 class OauthAuthorizationCodes extends \Phalcon\Mvc\Model
 {

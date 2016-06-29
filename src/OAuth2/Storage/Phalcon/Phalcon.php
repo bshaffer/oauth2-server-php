@@ -1,12 +1,18 @@
 <?php
 
-namespace OAuth2\Storage;
+namespace OAuth2\Storage\Phalcon;
 
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
-use OAuth2\Storage\Models;
-use Phalcon\Di;
-use Phalcon\Mvc\Model;
+use OAuth2\Storage\AccessTokenInterface;
+use OAuth2\Storage\AuthorizationCodeInterface;
+use OAuth2\Storage\ClientCredentialsInterface;
+use OAuth2\Storage\JwtBearerInterface;
+use OAuth2\Storage\Phalcon\Models;
+use OAuth2\Storage\PublicKeyInterface;
+use OAuth2\Storage\RefreshTokenInterface;
+use OAuth2\Storage\ScopeInterface;
+use OAuth2\Storage\UserCredentialsInterface;
 
 /**
  * Phalcon adapter for OAuth data storage.
@@ -515,7 +521,7 @@ class Phalcon implements
         );
 
         if ($result != false)
-            return $result->toArray(['issuer','subject','audience','expires','jti']);
+            return $result->toArray(['issuer', 'subject', 'audience', 'expires', 'jti']);
         else
             return null;
     }
@@ -544,7 +550,7 @@ class Phalcon implements
         );
 
         if ($publicKey != false)
-            return $publicKey-> public_key;
+            return $publicKey->public_key;
         else
             return false;
     }
