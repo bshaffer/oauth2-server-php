@@ -629,7 +629,7 @@ class Phalcon implements
               `email` varchar(80) DEFAULT NULL,
               `email_verified` tinyint(1) DEFAULT NULL,
               `scope` varchar(4000) DEFAULT NULL,
-              PRIMARY KEY `id`
+              PRIMARY KEY (`id`)
             );
             
             CREATE TABLE {$this->config['scope_table']} (
