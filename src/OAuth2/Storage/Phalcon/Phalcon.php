@@ -584,6 +584,7 @@ class Phalcon implements
               `user_id` varchar(80) DEFAULT NULL,
               PRIMARY KEY (client_id)
             );
+            
             CREATE TABLE {$this->config['access_token_table']} (
               `access_token` varchar(40) NOT NULL,
               `valid` tinyint(1) NOT NULL DEFAULT '1',
@@ -629,7 +630,7 @@ class Phalcon implements
               `email` varchar(80) DEFAULT NULL,
               `email_verified` tinyint(1) DEFAULT NULL,
               `scope` varchar(4000) DEFAULT NULL,
-              PRIMARY KEY (`id`)
+              PRIMARY KEY (id)
             );
             
             CREATE TABLE {$this->config['scope_table']} (
