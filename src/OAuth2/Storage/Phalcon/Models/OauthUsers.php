@@ -78,8 +78,8 @@ class OauthUsers extends \Phalcon\Mvc\Model
     {
         $this->keepSnapshots(true);
         $this->setSource("'oauth__users'");
-        $this->hasMany('username', 'OAuth2\Storage\Models\OauthAccessTokens', 'user_id', array("alias" => "AccessTokens"));
-        $this->hasMany('username', 'OAuth2\Storage\Models\OauthRefreshTokens', 'user_id', array("alias" => "RefreshTokens"));
+        $this->hasMany('username', 'OAuth2\Storage\Phalcon\Models\OauthAccessTokens', 'user_id', array("alias" => "AccessTokens"));
+        $this->hasMany('username', 'OAuth2\Storage\Phalcon\Models\OauthRefreshTokens', 'user_id', array("alias" => "RefreshTokens"));
     }
 
     /**
@@ -117,7 +117,7 @@ class OauthUsers extends \Phalcon\Mvc\Model
 
     /**
      * @param mixed $parameters
-     * @return \OAuth2\Storage\Models\OauthAccessTokens[]
+     * @return \OAuth2\Storage\Phalcon\Models\OauthAccessTokens[]
      */
     public function getAccessTokens($parameters = null)
     {
@@ -126,7 +126,7 @@ class OauthUsers extends \Phalcon\Mvc\Model
 
     /**
      * @param mixed $parameters
-     * @return \OAuth2\Storage\Models\OauthRefreshTokens[]
+     * @return \OAuth2\Storage\Phalcon\Models\OauthRefreshTokens[]
      */
     public function getRefreshTokens($parameters = null)
     {

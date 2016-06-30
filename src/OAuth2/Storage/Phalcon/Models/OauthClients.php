@@ -69,7 +69,7 @@ class OauthClients extends \Phalcon\Mvc\Model
     public function initialize()
     {
         $this->setSource("'oauth__clients'");
-        $this->belongsTo('user_id', 'OAuth2\Storage\Models\OauthUsers', 'username', array("alias" => "User"));
+        $this->belongsTo('user_id', 'OAuth2\Storage\Phalcon\Models\OauthUsers', 'username', array("alias" => "User"));
     }
 
     /**

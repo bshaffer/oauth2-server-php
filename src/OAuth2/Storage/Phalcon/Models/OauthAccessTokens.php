@@ -62,8 +62,8 @@ class OauthAccessTokens extends \Phalcon\Mvc\Model
     public function initialize()
     {
         $this->setSource("'oauth__access_tokens'");
-        $this->belongsTo('user_id', 'OAuth2\Storage\Models\OauthUsers', 'username', array("alias" => "User"));
-        $this->belongsTo('client_id', 'OAuth2\Storage\Models\OauthClients', 'client_id', array("alias" => "Client"));
+        $this->belongsTo('user_id', 'OAuth2\Storage\Phalcon\Models\OauthUsers', 'username', array("alias" => "User"));
+        $this->belongsTo('client_id', 'OAuth2\Storage\Phalcon\Models\OauthClients', 'client_id', array("alias" => "Client"));
     }
 
     /**
@@ -78,7 +78,7 @@ class OauthAccessTokens extends \Phalcon\Mvc\Model
 
     /**
      * @param mixed $parameters
-     * @return \OAuth2\Storage\Models\OauthUsers
+     * @return \OAuth2\Storage\Phalcon\Models\OauthUsers
      */
     public function getUser($parameters = null)
     {
@@ -87,7 +87,7 @@ class OauthAccessTokens extends \Phalcon\Mvc\Model
 
     /**
      * @param mixed $parameters
-     * @return \OAuth2\Storage\Models\OauthClients
+     * @return \OAuth2\Storage\Phalcon\Models\OauthClients
      */
     public function getClient($parameters = null)
     {
