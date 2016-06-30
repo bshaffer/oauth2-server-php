@@ -57,11 +57,7 @@ class Phalcon implements
         ), $config);
     }
 
-    /**
-     * @param $client_id
-     * @param null $client_secret
-     * @return bool
-     */
+    /* OAuth2\Storage\ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
         $client = Models\OauthClients::findFirst(
@@ -75,10 +71,6 @@ class Phalcon implements
         return $client != false && $client->client_secret == $client_secret;
     }
 
-    /**
-     * @param $client_id
-     * @return bool
-     */
     public function isPublicClient($client_id)
     {
         $clients = Models\OauthClients::findFirst(
@@ -92,10 +84,6 @@ class Phalcon implements
         return empty($clients->client_secret);
     }
 
-    /**
-     * @param $client_id
-     * @return array
-     */
     public function getClientDetails($client_id)
     {
         $clients = Models\OauthClients::findFirst(
@@ -109,15 +97,6 @@ class Phalcon implements
         return $clients->toArray();
     }
 
-    /**
-     * @param $client_id
-     * @param null $client_secret
-     * @param null $redirect_uri
-     * @param null $grant_types
-     * @param null $scope
-     * @param null $user_id
-     * @return mixed
-     */
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
     {
         $client = new Models\OauthClients();
@@ -146,7 +125,6 @@ class Phalcon implements
     }
 
     /* OAuth2\Storage\AccessTokenInterface */
-
     public function getAccessToken($access_token)
     {
         $token = Models\OauthAccessTokens::findFirst(
@@ -296,7 +274,7 @@ class Phalcon implements
         return $this->getUser($username);
     }
 
-    /* UserClaimsInterface */
+    /* OAuth2\Storage\UserClaimsInterface */
     public function getUserClaims($user_id, $claims)
     {
         if (!$userDetails = $this->getUserDetails($user_id)) {
@@ -335,6 +313,7 @@ class Phalcon implements
         return $userClaims;
     }
 
+    /* OAuth2\Storage\RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
     {
         $token = Models\OauthRefreshTokens::findFirst(
@@ -356,7 +335,6 @@ class Phalcon implements
     }
 
     // use a secure hashing algorithm when storing passwords. Override this for your application
-
     public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
     {
         // convert expires to datestring
@@ -387,6 +365,7 @@ class Phalcon implements
         return $token->delete();
     }
 
+    /* OAuth2\Storage\UserCredentialsInterface */
     protected function checkPassword($user, $password)
     {
         return $user['password'] == $this->hashPassword($password);
@@ -437,6 +416,7 @@ class Phalcon implements
         return $user->save();
     }
 
+    /* OAuth2\Storage\ScopeInterface */
     public function scopeExists($scope)
     {
         $scope = explode(' ', $scope);
@@ -472,7 +452,7 @@ class Phalcon implements
         return null;
     }
 
-    /* JWTBearerInterface */
+    /* OAuth2\Storage\JWTBearerInterface */
     public function getClientKey($client_id, $subject)
     {
 
@@ -538,7 +518,7 @@ class Phalcon implements
         return $jtiModel->save();
     }
 
-    /* PublicKeyInterface */
+    /* OAuth2\Storage\PublicKeyInterface */
     public function getPublicKey($client_id = null)
     {
         $publicKey = Models\OauthPublicKeys::findFirst(
@@ -588,7 +568,7 @@ class Phalcon implements
     }
 
     /**
-     * DDL to create OAuth2 database and tables for PDO/Phalcon storage
+     * SQL to create OAuth2 tables for PDO/Phalcon storage
      *
      * @see https://github.com/dsquier/oauth2-server-php-mysql
      */
@@ -681,6 +661,5 @@ class Phalcon implements
 
         return $sql;
     }
-
 
 }

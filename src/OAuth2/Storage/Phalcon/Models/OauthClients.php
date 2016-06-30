@@ -42,25 +42,6 @@ class OauthClients extends \Phalcon\Mvc\Model
     public $user_id;
 
     /**
-     * Initialize method for model.
-     */
-    public function initialize()
-    {
-        $this->setSource("'oauth__clients'");
-        $this->belongsTo('user_id', 'OAuth2\Storage\Models\OauthUsers', 'username', array("alias" => "User"));
-    }
-
-    /**
-     * Returns table name mapped in the model.
-     *
-     * @return string
-     */
-    public function getSource()
-    {
-        return 'oauth__clients';
-    }
-
-    /**
      * Allows to query a set of records that match the specified conditions
      *
      * @param mixed $parameters
@@ -83,10 +64,31 @@ class OauthClients extends \Phalcon\Mvc\Model
     }
 
     /**
+     * Initialize method for model.
+     */
+    public function initialize()
+    {
+        $this->setSource("'oauth__clients'");
+        $this->belongsTo('user_id', 'OAuth2\Storage\Models\OauthUsers', 'username', array("alias" => "User"));
+    }
+
+    /**
+     * Returns table name mapped in the model.
+     *
+     * @return string
+     */
+    public function getSource()
+    {
+        return 'oauth__clients';
+    }
+
+    /**
      * @param mixed $parameters
      * @return OauthUsers
      */
-    public function getUser($parameters = null){
+    public function getUser($parameters = null)
+    {
         return $this->getRelated('User', $parameters);
     }
+
 }

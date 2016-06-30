@@ -132,4 +132,5 @@ class OauthUsers extends \Phalcon\Mvc\Model
     {
         return $this->getRelated('RefreshTokens', $parameters);
     }
+    
 }

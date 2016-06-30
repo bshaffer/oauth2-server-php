@@ -68,4 +68,5 @@ class OauthJwt extends \Phalcon\Mvc\Model
     {
         return $this->getRelated('Client', $parameters);
     }
+
 }
