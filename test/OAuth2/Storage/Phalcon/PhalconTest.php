@@ -13,5 +13,8 @@ use OAuth2\Storage\BaseTest;
 
 class PhalconTest extends BaseTest
 {
+    public function testTest(){
+        assert(true == true);
+    }
 
 }
