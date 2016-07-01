@@ -10,14 +10,23 @@ namespace OAuth2\Storage\Phalcon;
 
 
 use OAuth2\Storage\BaseTest;
+use Phalcon\Db\Adapter\Pdo\Mysql;
+use Phalcon\Di\FactoryDefault;
 use Phalcon\Mvc\Micro;
 
 class PhalconTest extends BaseTest
 {
     public function testGetClientDetails(){
-        $app = new Micro();
-        $storage = new Phalcon($app->getDI());
-
+        $di = new FactoryDefault();
+        $di['db'] = function() {
+            return new Mysql(array(
+                "host" => "localhost",
+                "username" => "root",
+                "password" => "",
+                "dbname" => "oauth2_server_php",
+            ));
+        };
+        $storage = new Phalcon($di);
         $this->assertNotNull($storage->getClientDetails('oauth_test_client'));
     }
 
