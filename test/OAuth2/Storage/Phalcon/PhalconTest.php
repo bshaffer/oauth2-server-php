@@ -18,15 +18,16 @@ class PhalconTest extends BaseTest
 {
     public function testGetClientDetails(){
         $di = new FactoryDefault();
-        $di['db'] = function() {
+        $di->set('db', function() {
             return new Mysql(array(
                 "host" => "localhost",
                 "username" => "root",
                 "password" => "",
                 "dbname" => "oauth2_server_php",
             ));
-        };
-        $storage = new Phalcon($di);
+        });
+        $app = new Micro($di);
+        $storage = new Phalcon($app->getDI());
         $this->assertNotNull($storage->getClientDetails('oauth_test_client'));
     }
 
