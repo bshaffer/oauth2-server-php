@@ -45,15 +45,15 @@ class Phalcon implements
     {
         $this->di = $di;
         $this->config = array_merge(array(
-            'client_table' => 'oauth__clients',
-            'access_token_table' => 'oauth__access_tokens',
-            'refresh_token_table' => 'oauth__refresh_tokens',
-            'code_table' => 'oauth__authorization_codes',
-            'user_table' => 'oauth__users',
-            'jwt_table' => 'oauth__jwt',
-            'jti_table' => 'oauth__jti',
-            'scope_table' => 'oauth__scopes',
-            'public_key_table' => 'oauth__public_keys',
+            'client_table' => 'oauth_clients',
+            'access_token_table' => 'oauth_access_tokens',
+            'refresh_token_table' => 'oauth_refresh_tokens',
+            'code_table' => 'oauth_authorization_codes',
+            'user_table' => 'oauth_users',
+            'jwt_table' => 'oauth_jwt',
+            'jti_table' => 'oauth_jti',
+            'scope_table' => 'oauth_scopes',
+            'public_key_table' => 'oauth_public_keys',
         ), $config);
     }
 
