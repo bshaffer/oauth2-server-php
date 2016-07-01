@@ -42,7 +42,7 @@ class OauthJti extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return 'oauth__jti';
+        return 'oauth_jti';
     }
 
     /**
