@@ -11,13 +11,44 @@ namespace OAuth2\Storage\Phalcon;
 
 use OAuth2\Storage\BaseTest;
 use Phalcon\Db\Adapter\Pdo\Mysql;
+use Phalcon\Di;
 use Phalcon\Di\FactoryDefault;
+use Phalcon\Escaper;
 use Phalcon\Mvc\Micro;
+use Phalcon\Mvc\Model\Manager;
+use Phalcon\Mvc\Model\MetaData\Memory;
+use Phalcon\Mvc\Url;
 
 class PhalconTest extends BaseTest
 {
-    public function testGetClientDetails(){
-        $di = new FactoryDefault();
+    private $di;
+    /**
+     * This method is called before a test is executed.
+     */
+    protected function setUp()
+    {
+        $this->checkExtension('phalcon');
+        // Reset the DI container
+        Di::reset();
+        // Instantiate a new DI container
+        $di = new Di();
+        // Set the URL
+        $di->set(
+            'url',
+            function () {
+                $url = new Url();
+                $url->setBaseUri('/');
+                return $url;
+            }
+        );
+
+        $di->set(
+            'escaper',
+            function () {
+                return new Escaper();
+            }
+        );
+
         $di->set('db', function() {
             return new Mysql(array(
                 "host" => "localhost",
@@ -26,8 +57,44 @@ class PhalconTest extends BaseTest
                 "dbname" => "oauth2_server_php",
             ));
         });
-        $app = new Micro($di);
-        $storage = new Phalcon($app->getDI());
+
+        $di->set(
+            'modelsManager',
+            function () {
+                return new Manager();
+            }
+        );
+
+        $di->set(
+            'modelsMetadata',
+            function () {
+                return new Memory();
+            }
+        );
+
+        $this->di = $di;
+    }
+
+    public function checkExtension($extension)
+    {
+        $message = function ($ext) {
+            sprintf('Warning: %s extension is not loaded', $ext);
+        };
+        if (is_array($extension)) {
+            foreach ($extension as $ext) {
+                if (!extension_loaded($ext)) {
+                    $this->markTestSkipped($message($ext));
+                    break;
+                }
+            }
+        } elseif (!extension_loaded($extension)) {
+            $this->markTestSkipped($message($extension));
+        }
+    }
+
+    public function testGetClientDetails(){
+        $this->setUp();
+        $storage = new Phalcon($this->di);
         $this->assertNotNull($storage->getClientDetails('oauth_test_client'));
     }
 
