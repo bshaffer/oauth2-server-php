@@ -45,8 +45,6 @@ class Phalcon implements
     {
         if(!isset($di['db']))
             throw new \InvalidArgumentException('Dependency injector must contain a valid database connection');
-//        if(!$di['db']->connect())
-//            throw new \InvalidArgumentException('Dependency injector must contain a valid database connection');
 
         $this->di = $di;
         $this->config = array_merge(array(

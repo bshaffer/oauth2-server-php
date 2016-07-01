@@ -92,7 +92,7 @@ class PhalconTest extends BaseTest
         }
     }
 
-    public function testGetClientDetails(){
+    public function testPhalconDataStorage(){
         $this->setUp();
         $storage = new Phalcon($this->di);
         $this->assertNotNull($storage->getClientDetails('oauth_test_client'));
