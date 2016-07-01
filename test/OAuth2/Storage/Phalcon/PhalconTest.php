@@ -6,8 +6,10 @@
  * Time: 2:08 PM
  */
 
-namespace OAuth2\Storage;
+namespace OAuth2\Storage\Phalcon;
 
+
+use OAuth2\Storage\BaseTest;
 
 class PhalconTest extends BaseTest
 {
