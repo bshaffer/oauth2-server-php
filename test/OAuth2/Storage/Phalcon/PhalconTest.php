@@ -10,11 +10,15 @@ namespace OAuth2\Storage\Phalcon;
 
 
 use OAuth2\Storage\BaseTest;
+use Phalcon\Mvc\Micro;
 
 class PhalconTest extends BaseTest
 {
-    public function testTest(){
-        assert(true == true);
+    public function testGetClientDetails(){
+        $app = new Micro();
+        $storage = new Phalcon($app->getDI());
+
+        $this->assertNotNull($storage->getClientDetails('oauth_test_client'));
     }
 
 }
