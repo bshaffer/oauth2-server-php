@@ -61,7 +61,7 @@ class OauthAccessTokens extends \Phalcon\Mvc\Model
      */
     public function initialize()
     {
-        $this->setSource("'oauth__access_tokens'");
+        $this->setSource("'oauth_access_tokens'");
         $this->belongsTo('user_id', 'OAuth2\Storage\Phalcon\Models\OauthUsers', 'username', array("alias" => "User"));
         $this->belongsTo('client_id', 'OAuth2\Storage\Phalcon\Models\OauthClients', 'client_id', array("alias" => "Client"));
     }
@@ -73,7 +73,7 @@ class OauthAccessTokens extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return 'oauth__access_tokens';
+        return 'oauth_access_tokens';
     }
 
     /**
