@@ -24,7 +24,7 @@ class OauthScopes extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return 'oauth_scopes';
+        return 'oauth__scopes';
     }
 
     /**

@@ -4,7 +4,6 @@ cache:
   directories:
     - $HOME/.composer/cache
     - vendor
-    - $HOME/cphalcon
 php:
 - 5.3
 - 5.4
@@ -21,16 +20,11 @@ services:
 - mongodb
 - redis-server
 - cassandra
-- mysql
-- memcached
 before_install:
-  - composer install --prefer-source --no-interaction
-  - vendor/bin/install-phalcon.sh
-  - phpenv config-rm xdebug.ini || return 0
+- phpenv config-rm xdebug.ini || return 0
 install:
 - composer install --no-interaction
 before_script:
-- php -m
 - psql -c 'create database oauth2_server_php;' -U postgres
 after_script:
 - php test/cleanup.php

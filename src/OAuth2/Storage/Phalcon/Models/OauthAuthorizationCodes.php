@@ -54,7 +54,7 @@ class OauthAuthorizationCodes extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return 'oauth_authorization_codes';
+        return 'oauth__authorization_codes';
     }
 
     /**

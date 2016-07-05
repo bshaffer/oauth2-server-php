@@ -12,7 +12,5 @@ class AutoloadTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(class_exists('OAuth2\Response'));
         $this->assertTrue(class_exists('OAuth2\GrantType\UserCredentials'));
         $this->assertTrue(interface_exists('OAuth2\Storage\AccessTokenInterface'));
-        $this->assertTrue(class_exists('OAuth2\Storage\Phalcon\Phalcon'));
-        $this->assertTrue(class_exists('OAuth2\Storage\Phalcon\Models\OauthUsers'));
     }
 }

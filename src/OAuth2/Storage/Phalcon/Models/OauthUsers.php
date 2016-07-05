@@ -77,7 +77,7 @@ class OauthUsers extends \Phalcon\Mvc\Model
     public function initialize()
     {
         $this->keepSnapshots(true);
-        $this->setSource("'oauth_users'");
+        $this->setSource("'oauth__users'");
         $this->hasMany('username', 'OAuth2\Storage\Phalcon\Models\OauthAccessTokens', 'user_id', array("alias" => "AccessTokens"));
         $this->hasMany('username', 'OAuth2\Storage\Phalcon\Models\OauthRefreshTokens', 'user_id', array("alias" => "RefreshTokens"));
     }
@@ -112,7 +112,7 @@ class OauthUsers extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return 'oauth_users';
+        return 'oauth__users';
     }
 
     /**

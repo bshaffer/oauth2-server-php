@@ -43,9 +43,6 @@ class Phalcon implements
      */
     public function __construct($di, $config = array())
     {
-        if(!isset($di['db']))
-            throw new \InvalidArgumentException('Dependency injector must contain a valid database connection');
-
         $this->di = $di;
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
