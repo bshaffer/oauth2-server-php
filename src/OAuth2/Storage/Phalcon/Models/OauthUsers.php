@@ -2,6 +2,7 @@
 
 namespace OAuth2\Storage\Phalcon\Models;
 
+use OAuth2\Storage\Phalcon\Phalcon;
 use Phalcon\Mvc\Model\Validator\Email as Email;
 
 class OauthUsers extends \Phalcon\Mvc\Model
@@ -77,7 +78,7 @@ class OauthUsers extends \Phalcon\Mvc\Model
     public function initialize()
     {
         $this->keepSnapshots(true);
-        $this->setSource("'oauth__users'");
+        $this->setSource("'" . $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)->getUserTable() . "'");
         $this->hasMany('username', 'OAuth2\Storage\Phalcon\Models\OauthAccessTokens', 'user_id', array("alias" => "AccessTokens"));
         $this->hasMany('username', 'OAuth2\Storage\Phalcon\Models\OauthRefreshTokens', 'user_id', array("alias" => "RefreshTokens"));
     }
@@ -112,7 +113,7 @@ class OauthUsers extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return 'oauth__users';
+        return $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)->getUserTable();
     }
 
     /**
@@ -132,5 +133,5 @@ class OauthUsers extends \Phalcon\Mvc\Model
     {
         return $this->getRelated('RefreshTokens', $parameters);
     }
-    
+
 }

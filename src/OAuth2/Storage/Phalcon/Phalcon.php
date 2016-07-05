@@ -33,7 +33,9 @@ class Phalcon implements
     UserClaimsInterface,
     OpenIDAuthorizationCodeInterface
 {
+    const KEY_PHALCON_CONFIG_ARRAY = 'oauth2_storage_phalcon_config';
     protected $db;
+    protected $di;
     protected $config;
 
     /**
@@ -43,8 +45,10 @@ class Phalcon implements
      */
     public function __construct($di, $config = array())
     {
-        $this->di = $di;
-        $this->config = array_merge(array(
+        if (!isset($di['db']))
+            throw new \InvalidArgumentException('Dependency injector must contain a valid database connection');
+
+        $phalconConf = new PhalconConf(array_merge(array(
             'client_table' => 'oauth_clients',
             'access_token_table' => 'oauth_access_tokens',
             'refresh_token_table' => 'oauth_refresh_tokens',
@@ -54,7 +58,24 @@ class Phalcon implements
             'jti_table' => 'oauth_jti',
             'scope_table' => 'oauth_scopes',
             'public_key_table' => 'oauth_public_keys',
-        ), $config);
+        ), $config));
+
+        $di->set(self::KEY_PHALCON_CONFIG_ARRAY, $phalconConf);
+
+        $manager = $di->get('modelsManager');
+        $manager->setDi($di);
+        $di->set('modelsManager', $manager);
+
+        $this->config = $phalconConf;
+        $this->di = $di;
+    }
+
+    /**
+     * @return \Phalcon\DiInterface
+     */
+    public function getDi()
+    {
+        return $this->di;
     }
 
     /* OAuth2\Storage\ClientCredentialsInterface */
@@ -575,7 +596,7 @@ class Phalcon implements
     public function getBuildSql($dbName = 'oauth2_server_php')
     {
         $sql = "
-            CREATE TABLE {$this->config['client_table']} (
+            CREATE TABLE {$this->config->getClientTable()} (
               `client_id` varchar(80) NOT NULL,
               `client_secret` varchar(80) DEFAULT NULL,
               `redirect_uri` varchar(2000) DEFAULT NULL,
@@ -585,7 +606,7 @@ class Phalcon implements
               PRIMARY KEY (client_id)
             );
             
-            CREATE TABLE {$this->config['access_token_table']} (
+            CREATE TABLE {$this->config->getAccessTokenTable()} (
               `access_token` varchar(40) NOT NULL,
               `valid` tinyint(1) NOT NULL DEFAULT '1',
               `client_ip` varchar(155) NOT NULL,
@@ -597,7 +618,7 @@ class Phalcon implements
               PRIMARY KEY (access_token)
             );
             
-            CREATE TABLE {$this->config['code_table']} (
+            CREATE TABLE {$this->config->getCodeTable()} (
               `authorization_code` varchar(40) NOT NULL,
               `client_id` varchar(80) NOT NULL,
               `user_id` varchar(80) DEFAULT NULL,
@@ -608,7 +629,7 @@ class Phalcon implements
               PRIMARY KEY (authorization_code)
             );
             
-            CREATE TABLE {$this->config['refresh_token_table']} (
+            CREATE TABLE {$this->config->getRefreshTokenTable()} (
               `refresh_token` varchar(40) NOT NULL,
               `valid` tinyint(1) NOT NULL DEFAULT '1',
               `client_id` varchar(80) NOT NULL,
@@ -620,7 +641,7 @@ class Phalcon implements
               PRIMARY KEY (refresh_token)
             );
             
-            CREATE TABLE {$this->config['user_table']} (
+            CREATE TABLE {$this->config->getUserTable()} (
               `id` bigint(20) NOT NULL AUTO_INCREMENT,
               `status` tinyint(2) NOT NULL DEFAULT '0',
               `username` varchar(80) NOT NULL DEFAULT '',
@@ -633,19 +654,19 @@ class Phalcon implements
               PRIMARY KEY (id)
             );
             
-            CREATE TABLE {$this->config['scope_table']} (
+            CREATE TABLE {$this->config->getScopeTable()} (
               `scope` varchar(80) NOT NULL,
               `is_default` tinyint(1) DEFAULT NULL,
               PRIMARY KEY (scope)
             );
             
-            CREATE TABLE {$this->config['jwt_table']} (
+            CREATE TABLE {$this->config->getJwtTable()} (
               `client_id` varchar(80) NOT NULL,
               `subject` varchar(80) DEFAULT NULL,
               `public_key` varchar(2000) NOT NULL
             );
             
-            CREATE TABLE {$this->config['jti_table']} (
+            CREATE TABLE {$this->config->getJtiTable()} (
               `issuer` varchar(80) NOT NULL,
               `subject` varchar(80) DEFAULT NULL,
               `audience` varchar(80) DEFAULT NULL,
@@ -653,7 +674,7 @@ class Phalcon implements
               `jti` varchar(2000) NOT NULL
             );
             
-            CREATE TABLE {$this->config['public_key_table']} (
+            CREATE TABLE {$this->config->getPublicKeyTable()} (
               `client_id` varchar(80) DEFAULT NULL,
               `public_key` varchar(2000) DEFAULT NULL,
               `private_key` varchar(2000) DEFAULT NULL,
@@ -662,6 +683,206 @@ class Phalcon implements
         ";
 
         return $sql;
+    }
+
+}
+
+
+/**
+ * Class PhalconConf
+ * @package OAuth2\Storage\Phalcon
+ *
+ * This config class is used purely internally for communication
+ * between the model files and the main Phalcon storage class
+ * for setting table names dynamically.
+ */
+class PhalconConf
+{
+    private $client_table;
+    private $access_token_table;
+    private $refresh_token_table;
+    private $code_table;
+    private $user_table;
+    private $jwt_table;
+    private $jti_table;
+    private $scope_table;
+    private $public_key_table;
+
+    /**
+     * PhalconConf constructor.
+     * @param array $config
+     * @throws \UnexpectedValueException
+     */
+    public function __construct($config)
+    {
+        if (
+            isset($config['client_table']) &&
+            isset($config['access_token_table']) &&
+            isset($config['refresh_token_table']) &&
+            isset($config['code_table']) &&
+            isset($config['user_table']) &&
+            isset($config['jwt_table']) &&
+            isset($config['jti_table']) &&
+            isset($config['scope_table']) &&
+            isset($config['public_key_table'])
+        ) {
+            $this->setClientTable($config['client_table']);
+            $this->setAccessTokenTable($config['access_token_table']);
+            $this->setRefreshTokenTable($config['refresh_token_table']);
+            $this->setCodeTable($config['code_table']);
+            $this->setUserTable($config['user_table']);
+            $this->setJwtTable($config['jwt_table']);
+            $this->setJtiTable($config['jti_table']);
+            $this->setScopeTable($config['scope_table']);
+            $this->setPublicKeyTable($config['public_key_table']);
+        } else {
+            throw new \UnexpectedValueException('Config array must contain all keys!');
+        }
+    }
+
+
+    /**
+     * @return mixed
+     */
+    public function getClientTable()
+    {
+        return $this->client_table;
+    }
+
+    /**
+     * @param mixed $client_table
+     */
+    public function setClientTable($client_table)
+    {
+        $this->client_table = $client_table;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAccessTokenTable()
+    {
+        return $this->access_token_table;
+    }
+
+    /**
+     * @param mixed $access_token_table
+     */
+    public function setAccessTokenTable($access_token_table)
+    {
+        $this->access_token_table = $access_token_table;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRefreshTokenTable()
+    {
+        return $this->refresh_token_table;
+    }
+
+    /**
+     * @param mixed $refresh_token_table
+     */
+    public function setRefreshTokenTable($refresh_token_table)
+    {
+        $this->refresh_token_table = $refresh_token_table;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCodeTable()
+    {
+        return $this->code_table;
+    }
+
+    /**
+     * @param mixed $code_table
+     */
+    public function setCodeTable($code_table)
+    {
+        $this->code_table = $code_table;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUserTable()
+    {
+        return $this->user_table;
+    }
+
+    /**
+     * @param mixed $user_table
+     */
+    public function setUserTable($user_table)
+    {
+        $this->user_table = $user_table;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getJwtTable()
+    {
+        return $this->jwt_table;
+    }
+
+    /**
+     * @param mixed $jwt_table
+     */
+    public function setJwtTable($jwt_table)
+    {
+        $this->jwt_table = $jwt_table;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getJtiTable()
+    {
+        return $this->jti_table;
+    }
+
+    /**
+     * @param mixed $jti_table
+     */
+    public function setJtiTable($jti_table)
+    {
+        $this->jti_table = $jti_table;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getScopeTable()
+    {
+        return $this->scope_table;
+    }
+
+    /**
+     * @param mixed $scope_table
+     */
+    public function setScopeTable($scope_table)
+    {
+        $this->scope_table = $scope_table;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPublicKeyTable()
+    {
+        return $this->public_key_table;
+    }
+
+    /**
+     * @param mixed $public_key_table
+     */
+    public function setPublicKeyTable($public_key_table)
+    {
+        $this->public_key_table = $public_key_table;
     }
 
 }

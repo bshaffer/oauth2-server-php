@@ -2,6 +2,8 @@
 
 namespace OAuth2\Storage\Phalcon\Models;
 
+use OAuth2\Storage\Phalcon\Phalcon;
+
 class OauthScopes extends \Phalcon\Mvc\Model
 {
 
@@ -24,7 +26,7 @@ class OauthScopes extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return 'oauth__scopes';
+        return $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)->getScopeTable();
     }
 
     /**

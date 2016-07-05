@@ -4,13 +4,12 @@ cache:
   directories:
     - $HOME/.composer/cache
     - vendor
+    - $HOME/cphalcon
 php:
 - 5.3
 - 5.4
 - 5.5
 - 5.6
-- 7
-- hhvm
 env:
   global:
   - SKIP_MONGO_TESTS=1
@@ -20,11 +19,16 @@ services:
 - mongodb
 - redis-server
 - cassandra
+- mysql
+- memcached
 before_install:
-- phpenv config-rm xdebug.ini || return 0
+  - composer install --prefer-source --no-interaction
+  - vendor/bin/install-phalcon.sh 2.0.x
+  - phpenv config-rm xdebug.ini || return 0
 install:
 - composer install --no-interaction
 before_script:
+- php -m
 - psql -c 'create database oauth2_server_php;' -U postgres
 after_script:
 - php test/cleanup.php
