@@ -70,7 +70,7 @@ class OauthClients extends \Phalcon\Mvc\Model
      */
     public function initialize()
     {
-        $this->setSource("'" . $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)->getClientTable() . "'");
+        $this->setSource("'" . $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)['client_table'] . "'");
         $this->belongsTo('user_id', 'OAuth2\Storage\Phalcon\Models\OauthUsers', 'username', array("alias" => "User"));
     }
 
@@ -81,7 +81,7 @@ class OauthClients extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)->getClientTable();
+        return $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)['client_table'];
     }
 
     /**

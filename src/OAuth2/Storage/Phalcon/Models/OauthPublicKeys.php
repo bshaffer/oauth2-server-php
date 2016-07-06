@@ -58,7 +58,7 @@ class OauthPublicKeys extends \Phalcon\Mvc\Model
      */
     public function initialize()
     {
-        $this->setSource("'" . $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)->getPublicKeyTable() . "'");
+        $this->setSource("'" . $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)['public_key_table'] . "'");
         $this->belongsTo('client_id', 'OAuth2\Storage\Phalcon\Models\OauthClients', 'client_id', array("alias" => "Client"));
     }
 
@@ -69,7 +69,7 @@ class OauthPublicKeys extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)->getPublicKeyTable();
+        return $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)['public_key_table'];
     }
 
 

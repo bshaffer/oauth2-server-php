@@ -63,7 +63,7 @@ class OauthRefreshTokens extends \Phalcon\Mvc\Model
      */
     public function initialize()
     {
-        $this->setSource("'" . $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)->getRefreshTokenTable() . "'");
+        $this->setSource("'" . $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)['refresh_token_table'] . "'");
         $this->belongsTo('user_id', 'OAuth2\Storage\Phalcon\Models\OauthUsers', 'username');
         $this->belongsTo('client_id', 'OAuth2\Storage\Phalcon\Models\OauthClients', 'client_id');
     }
@@ -75,6 +75,6 @@ class OauthRefreshTokens extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)->getRefreshTokenTable();
+        return $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)['refresh_token_table'];
     }
 }

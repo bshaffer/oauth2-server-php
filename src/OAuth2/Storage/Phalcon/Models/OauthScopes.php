@@ -26,7 +26,7 @@ class OauthScopes extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)->getScopeTable();
+        return $this->getDI()->get(Phalcon::KEY_PHALCON_CONFIG_ARRAY)['scope_table'];
     }
 
     /**
