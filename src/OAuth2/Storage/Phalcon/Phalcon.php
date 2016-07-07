@@ -518,19 +518,19 @@ class Phalcon implements
         $result = Models\OauthJti::findFirst(
             array(
                 "conditions" => "client_id = :client_id: AND subject = :subject: AND audience = :audience: AND expires = :expires: AND jti = :jti:",
-                "bind" => [
+                "bind" => array(
                     "client_id" => $client_id,
                     "subject" => $subject,
                     "audience" => $audience,
                     "expires" => $expires,
                     "jti" => $jti
-                ],
+                ),
                 "limit" => 1
             )
         );
 
         if ($result != false)
-            return $result->toArray(['issuer', 'subject', 'audience', 'expires', 'jti']);
+            return $result->toArray(array('issuer', 'subject', 'audience', 'expires', 'jti'));
         else
             return null;
     }
