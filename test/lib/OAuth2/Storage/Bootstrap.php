@@ -11,6 +11,7 @@ class Bootstrap
     private $sqlite;
     private $postgres;
     private $mongo;
+    private $mongodb;
     private $redis;
     private $cassandra;
     private $configDir;
@@ -142,9 +143,8 @@ class Bootstrap
                 $mongo = new \MongoClient('mongodb://localhost:27017', array('connect' => false));
                 if ($this->testMongoConnection($mongo)) {
                     $db = $mongo->oauth2_server_php;
-                    $this->removeMongoDb($db);
-                    $this->createMongoDb($db);
-
+                    $this->removeMongo($db);
+                    $this->createMongo($db);
                     $this->mongo = new Mongo($db);
                 } else {
                     $this->mongo = new NullStorage('Mongo', 'Unable to connect to mongo server on "localhost:27017"');
@@ -167,7 +167,28 @@ class Bootstrap
 
         return true;
     }
+    
+    public function getMongoDB()
+    {
+        if (!$this->mongodb) {
+            $skipMongo = $this->getEnvVar('SKIP_MONGODB_TESTS');
+            if (!$skipMongo && class_exists('\MongoDB\Driver\Manager')) {
+                try {
+                    $this->mongodb = new \MongoDB\Driver\Manager('mongodb://localhost:27017');
+                    $this->mongodb->selectServer($this->mongodb->getReadPreference());
+                } catch (\Exception $e) {
+                    $this->mongodb = new NullStorage('MongoDB', 'Unable to connect to mongoDB server on "localhost:27017"');
+                }
+                $this->removeMongoDB();
+                $this->createMongoDB();
+            } else {
+                $this->mongodb = new NullStorage('MongoDB', 'Missing mongoDB php extension. Please install mongodb.so');
+            }
+        }
 
+        return $this->mongodb;
+    }
+    
     public function getCouchbase()
     {
         if (!$this->couchbase) {
@@ -442,7 +463,7 @@ class Bootstrap
         $cb->delete('oauth_refresh_tokens-refreshtoken');
     }
 
-    private function createMongoDb(\MongoDB $db)
+    private function createMongo(\MongoDB $db)
     {
         $db->oauth_clients->insert(array(
             'client_id' => "oauth_test_client",
@@ -474,6 +495,87 @@ class Bootstrap
             'subject'   => 'test_subject',
         ));
     }
+    
+    private function createMongoDB()
+    {
+        $bulk = new \MongoDB\Driver\BulkWrite();
+        $bulk->insert([
+            'client_id' => "oauth_test_client",
+            'client_secret' => "testpass",
+            'redirect_uri' => "http://example.com",
+            'grant_types' => 'implicit password',
+            'scope' => 'clientscope1 clientscope2'
+        ]);
+        $bulk->insert([
+            'client_id' => "oauth_test_client2",
+            'client_secret' => "testpass2",
+            'redirect_uri' => "http://example.com",
+            'grant_types' => 'implicit password',
+            'scope' => 'clientscope3 clientscope4'
+        ]);
+        $this->mongodb->executeBulkWrite('oauth2_server_php.oauth_clients', $bulk);
+        
+        $bulk = new \MongoDB\Driver\BulkWrite();
+        $bulk->insert([
+            'access_token' => "testtoken",
+            'client_id' => "Some Client"
+        ]);
+        $bulk->insert([
+            'access_token' => "testtoken2",
+            'client_id' => "Some Client2"
+        ]);
+        $this->mongodb->executeBulkWrite('oauth2_server_php.oauth_access_tokens', $bulk);
+        
+        $bulk = new \MongoDB\Driver\BulkWrite();
+        $bulk->insert([
+            'authorization_code' => "testcode",
+            'client_id' => "Some Client"
+        ]);
+        $bulk->insert([
+            'authorization_code' => "testcode2",
+            'client_id' => "Some Client2"
+        ]);
+        $this->mongodb->executeBulkWrite('oauth2_server_php.oauth_authorization_codes', $bulk);
+        
+        $bulk = new \MongoDB\Driver\BulkWrite();
+        $bulk->insert([
+            'refresh_token' => 'testrefreshtoken', 
+            'client_id' => 'Some Client',
+        ]);
+        $bulk->insert([
+            'refresh_token' => 'testrefreshtoken2', 
+            'client_id' => 'Some Client2',
+        ]);
+        $this->mongodb->executeBulkWrite('oauth2_server_php.oauth_refresh_tokens', $bulk);
+        
+        $bulk = new \MongoDB\Driver\BulkWrite();
+        $bulk->insert([
+            'username' => 'testuser',
+            'password' => 'password',
+            'email' => 'testuser@test.com',
+            'email_verified' => true,
+        ]);
+        $bulk->insert([
+            'username' => 'testuser2',
+            'password' => 'password2',
+            'email' => 'testuser@test.com',
+            'email_verified' => true,
+        ]);
+        $this->mongodb->executeBulkWrite('oauth2_server_php.oauth_users', $bulk);
+        
+        $bulk = new \MongoDB\Driver\BulkWrite();
+        $bulk->insert([
+            'client_id' => 'oauth_test_client',
+            'key'       => $this->getTestPublicKey(),
+            'subject'   => 'test_subject',
+        ]);
+        $bulk->insert([
+            'client_id' => 'oauth_test_client2',
+            'key'       => $this->getTestPublicKey(),
+            'subject'   => 'test_subject2',
+        ]);
+        $this->mongodb->executeBulkWrite('oauth2_server_php.oauth_jwt', $bulk);
+    }
 
     private function createRedisDb(Redis $storage)
     {
@@ -500,9 +602,15 @@ class Bootstrap
         $storage->setClientKey('oauth_test_client', $this->getTestPublicKey(), 'test_subject');
     }
 
-    public function removeMongoDb(\MongoDB $db)
+    public function removeMongo(\MongoDB $db)
     {
         $db->drop();
+    }
+    
+    public function removeMongoDB()
+    {
+        $command = new \MongoDB\Driver\Command(['dropDatabase' => 1]);
+        $this->mongodb->executeCommand('oauth2_server_php', $command);
     }
 
     public function getTestPublicKey()
