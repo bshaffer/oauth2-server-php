@@ -136,14 +136,19 @@ class Cassandra implements AuthorizationCodeInterface,
         unset($this->cache[$key]);
 
         $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
-        try {
-            // __data key set as C* requires a field
-            $cf->remove($key, array('__data'));
-        } catch (\Exception $e) {
-            return false;
+
+        if ($cf->get_count($key) > 0) {
+            try {
+                // __data key set as C* requires a field
+                $cf->remove($key, array('__data'));
+            } catch (\Exception $e) {
+                return false;
+            }
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /* AuthorizationCodeInterface */

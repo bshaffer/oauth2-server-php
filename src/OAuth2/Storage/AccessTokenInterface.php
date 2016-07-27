@@ -55,6 +55,7 @@ interface AccessTokenInterface
      * @param $access_token
      * Access token to be expired.
      *
+     * @return BOOL true if an access token was unset, false if not
      * @ingroup oauth2_section_6
      *
      * @todo v2.0 include this method in interface. Omitted to maintain BC in v1.x
