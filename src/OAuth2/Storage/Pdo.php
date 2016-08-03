@@ -28,12 +28,17 @@ class OAuth2_Storage_Pdo implements OAuth2_Storage_AuthorizationCodeInterface,
             if (!isset($connection['dsn'])) {
                 throw new InvalidArgumentException('configuration array must contain "dsn"');
             }
-            // merge optional parameters
-            $connection = array_merge(array(
-                'username' => null,
-                'password' => null,
-            ), $connection);
-            $connection = new PDO($connection['dsn'], $connection['username'], $connection['password']);
+            // Scan for sqlite PDO
+            if (strpos($connection['dsn'],'sqlite') !== false) {
+                $connection = new PDO($connection['dsn']);
+            } else {
+                // merge optional parameters
+                $connection = array_merge(array(
+                    'username' => null,
+                    'password' => null,
+                ), $connection);
+                $connection = new PDO($connection['dsn'], $connection['username'], $connection['password']);
+            }
         }
         $this->db = $connection;
 
