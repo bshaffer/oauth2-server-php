@@ -8,7 +8,6 @@
 
 namespace OAuth2\Storage\Phalcon;
 
-
 use OAuth2\Storage\BaseTest;
 use Phalcon\Db\Adapter\Pdo\Mysql;
 use Phalcon\Di;
@@ -17,6 +16,9 @@ use Phalcon\Mvc\Model\Manager;
 use Phalcon\Mvc\Model\MetaData\Memory;
 use Phalcon\Mvc\Url;
 
+/**
+ * @requires extension phalcon
+ */
 class PhalconTest extends BaseTest
 {
     private $di;
