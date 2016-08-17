@@ -20,6 +20,7 @@ class ResourceControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($response->getStatusCode(), 401);
         $this->assertNull($response->getParameter('error'));
         $this->assertNull($response->getParameter('error_description'));
+        $this->assertEquals('', $response->getResponseBody());
     }
 
     public function testMalformedHeader()
