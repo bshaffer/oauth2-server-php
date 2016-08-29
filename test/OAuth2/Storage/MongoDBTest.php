@@ -7,14 +7,16 @@ namespace OAuth2\Storage;
  *
  * @author Roman Shuplov  <astronin@gmail.com>
  */
-class MongoDBTest extends BaseTest 
+class MongoDBTest extends BaseTest
 {
     
-    public function __construct() {
+    public function __construct()
+    {
         $mongodb = Bootstrap::getInstance()->getMongoDB();
     }
     
-    public function testSetClientDetails() {
+    public function testSetClientDetails()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         
 // comment with Bootstrap::getInstance()->getMongoDB();
@@ -34,21 +36,24 @@ class MongoDBTest extends BaseTest
         $this->assertTrue($db->checkClientCredentials('oauth_test_client', 'testpass'));
     }
     
-    public function testConnection() {
+    public function testConnection()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         $this->assertNotFalse($db->getClientDetails('oauth_test_client'));
         $db = new MongoDB(['host' => 'localhost', 'port' => '27017', 'database' => 'oauth2_server_php']);
         $this->assertNotFalse($db->getClientDetails('oauth_test_client'));
     }
 
-    public function testIsPublicClient() {
+    public function testIsPublicClient()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         
         $res = $db->isPublicClient('oauth_test_client');
         $this->assertFalse($res);
     }
     
-    public function testAccessToken() {
+    public function testAccessToken()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         
         $this->assertNotFalse($db->getAccessToken('testtoken'));
@@ -61,7 +66,8 @@ class MongoDBTest extends BaseTest
         
     }
     
-    public function testAuthorizationCode() {
+    public function testAuthorizationCode()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         
         $this->assertNotFalse($db->getAuthorizationCode('testcode'));
@@ -73,7 +79,8 @@ class MongoDBTest extends BaseTest
         $this->assertNotFalse($db->getAuthorizationCode('testcode'));
     }
     
-    public function testRefreshToken() {
+    public function testRefreshToken()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         
         $this->assertNotFalse($db->getRefreshToken('testrefreshtoken'));
@@ -85,18 +92,21 @@ class MongoDBTest extends BaseTest
         $this->assertNotFalse($db->getRefreshToken('testrefreshtoken'));
     }
     
-    public function testCheckUserCredentials() {
+    public function testCheckUserCredentials()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         
         $this->assertTrue($db->checkUserCredentials('testuser', 'password'));
     }
     
-    public function testGetUserDetails() {
+    public function testGetUserDetails()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         $this->assertNotFalse($db->getUserDetails('testuser'));
     }
     
-    public function testUser() {
+    public function testUser()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         
         $this->assertNotFalse($db->getUser('testuser'));
@@ -104,13 +114,15 @@ class MongoDBTest extends BaseTest
         $this->assertTrue($db->checkUserCredentials('testuser', 'password123123'));
     }
  
-    public function testGetClientKey() {
+    public function testGetClientKey()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         
         $this->assertNotFalse($db->getClientKey('oauth_test_client', 'test_subject'));
     }
     
-    public function testGetClientScope() {
+    public function testGetClientScope()
+    {
         $db = new MongoDB('mongodb://localhost:27017/oauth2_server_php');
         
         $this->assertStringMatchesFormat('%S', $db->getClientScope('oauth_test_client'));

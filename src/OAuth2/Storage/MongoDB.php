@@ -42,7 +42,7 @@ class MongoDB implements AuthorizationCodeInterface,
                 throw new \InvalidArgumentException("Unable to determine Database Name from dsn.");
             }
         } elseif (is_array($connection)) {
-            $a = ['mongodb://'];
+            $a = array('mongodb://');
             if (!empty($connection['username'])) {
                 $a[] = $connection['username'] . ':';
             }
@@ -61,13 +61,13 @@ class MongoDB implements AuthorizationCodeInterface,
             }
             $dsn = implode('', $a);
             
-            $o = !empty($connection['options']) ? $connection['options'] : [];
-            $options = array_merge([
+            $o = !empty($connection['options']) ? $connection['options'] : array();
+            $options = array_merge(array(
                 'w' => \MongoDB\Driver\WriteConcern::MAJORITY,
                 'j' => true,
                 'readPreference' => \MongoDB\Driver\ReadPreference::RP_NEAREST
-            ], $o);
-            $driverOptions = !empty($connection['driverOptions']) ? $connection['driverOptions'] : [];
+            ), $o);
+            $driverOptions = !empty($connection['driverOptions']) ? $connection['driverOptions'] : array();
             
             $this->db = new Manager($dsn, $options, $driverOptions);
         } else {
@@ -89,7 +89,7 @@ class MongoDB implements AuthorizationCodeInterface,
     /* ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
-        if ($result = $this->findOne('client_table', ['client_id' => $client_id])) {
+        if ($result = $this->findOne('client_table', array('client_id' => $client_id))) {
             return $result['client_secret'] == $client_secret;
         }
         return false;
@@ -101,7 +101,7 @@ class MongoDB implements AuthorizationCodeInterface,
      */
     public function isPublicClient($client_id)
     {
-        if (!$result = $this->findOne('client_table', ['client_id' => $client_id])) {
+        if (!$result = $this->findOne('client_table', array('client_id' => $client_id))) {
             return false;
         }
         return empty($result['client_secret']);
@@ -110,23 +110,23 @@ class MongoDB implements AuthorizationCodeInterface,
     /* ClientInterface */
     public function getClientDetails($client_id)
     {
-        return $this->findOne('client_table', ['client_id' => $client_id]);
+        return $this->findOne('client_table', array('client_id' => $client_id));
     }
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
     {
         $bulk = new BulkWrite();
         $bulk->update(
-            ['client_id' => $client_id], 
-            ['$set' => [
+            array('client_id' => $client_id), 
+            array('$set' => array(
                 'client_id'     => $client_id,
                 'client_secret' => $client_secret,
                 'redirect_uri'  => $redirect_uri,
                 'grant_types'   => $grant_types,
                 'scope'         => $scope,
                 'user_id'       => $user_id,
-            ]],
-            ['upsert' => true]
+            )),
+            array('upsert' => true)
         );
         $this->db->executeBulkWrite($this->collection('client_table'), $bulk);
         return true;
@@ -134,7 +134,7 @@ class MongoDB implements AuthorizationCodeInterface,
     
     public function unsetClientDetails($client_id)
     {
-        $this->delete('client_table', ['client_id' => $client_id]);
+        $this->delete('client_table', array('client_id' => $client_id));
         return true;
     }
 
@@ -154,22 +154,22 @@ class MongoDB implements AuthorizationCodeInterface,
     /* AccessTokenInterface */
     public function getAccessToken($access_token)
     {
-        return $this->findOne('access_token_table', ['access_token' => $access_token]);
+        return $this->findOne('access_token_table', array('access_token' => $access_token));
     }
 
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
         $bulk = new BulkWrite();
         $bulk->update(
-            ['access_token' => $access_token], 
-            ['$set' => [
+            array('access_token' => $access_token), 
+            array('$set' => array(
                 'access_token' => $access_token,
                 'client_id' => $client_id,
                 'expires' => $expires,
                 'user_id' => $user_id,
                 'scope' => $scope
-            ]],
-            ['upsert' => true]
+            )),
+            array('upsert' => true)
         );
         $this->db->executeBulkWrite($this->collection('access_token_table'), $bulk);
         return true;
@@ -177,7 +177,7 @@ class MongoDB implements AuthorizationCodeInterface,
 
     public function unsetAccessToken($access_token)
     {
-        $this->delete('access_token_table', ['access_token' => $access_token]);
+        $this->delete('access_token_table', array('access_token' => $access_token));
         return true;
     }
 
@@ -185,15 +185,15 @@ class MongoDB implements AuthorizationCodeInterface,
     /* AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
-        return  $this->findOne('code_table', ['authorization_code' => $code]);
+        return  $this->findOne('code_table', array('authorization_code' => $code));
     }
 
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
         $bulk = new BulkWrite();
         $bulk->update(
-            ['authorization_code' => $code], 
-            ['$set' => [
+            array('authorization_code' => $code), 
+            array('$set' => array(
                 'authorization_code' => $code,
                 'client_id' => $client_id,
                 'user_id' => $user_id,
@@ -201,8 +201,8 @@ class MongoDB implements AuthorizationCodeInterface,
                 'expires' => $expires,
                 'scope' => $scope,
                 'id_token' => $id_token,
-            ]],
-            ['upsert' => true]
+            )),
+            array('upsert' => true)
         );
         $this->db->executeBulkWrite($this->collection('code_table'), $bulk);
         return true;
@@ -210,7 +210,7 @@ class MongoDB implements AuthorizationCodeInterface,
 
     public function expireAuthorizationCode($code)
     {
-        $this->delete('code_table', ['authorization_code' => $code]);
+        $this->delete('code_table', array('authorization_code' => $code));
         return true;
     }
 
@@ -236,22 +236,22 @@ class MongoDB implements AuthorizationCodeInterface,
     /* RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
     {
-        return $this->findOne('refresh_token_table', ['refresh_token' => $refresh_token]);
+        return $this->findOne('refresh_token_table', array('refresh_token' => $refresh_token));
     }
 
     public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
     {
         $bulk = new BulkWrite();
         $bulk->update(
-            ['refresh_token' => $refresh_token], 
-            ['$set' => [
+            array('refresh_token' => $refresh_token), 
+            array('$set' => array(
                 'refresh_token' => $refresh_token,
                 'client_id' => $client_id,
                 'user_id' => $user_id,
                 'expires' => $expires,
                 'scope' => $scope
-            ]],
-            ['upsert' => true]
+            )),
+            array('upsert' => true)
         );
         $this->db->executeBulkWrite($this->collection('refresh_token_table'), $bulk);
         return true;
@@ -259,7 +259,7 @@ class MongoDB implements AuthorizationCodeInterface,
 
     public function unsetRefreshToken($refresh_token)
     {
-        $this->delete('refresh_token_table', ['refresh_token' => $refresh_token]);
+        $this->delete('refresh_token_table', array('refresh_token' => $refresh_token));
         return true;
     }
 
@@ -271,21 +271,21 @@ class MongoDB implements AuthorizationCodeInterface,
 
     public function getUser($username)
     {
-        return $this->findOne('user_table', ['username' => $username]);
+        return $this->findOne('user_table', array('username' => $username));
     }
 
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
         $bulk = new BulkWrite();
         $bulk->update(
-            ['username' => $username], 
-            ['$set' => [
+            array('username' => $username), 
+            array('$set' => array(
                 'username' => $username,
                 'password' => $password,
                 'first_name' => $firstName,
                 'last_name' => $lastName
-            ]],
-            ['upsert' => true]
+            )),
+            array('upsert' => true)
         );
         $this->db->executeBulkWrite($this->collection('user_table'), $bulk);
         return true;
@@ -293,10 +293,10 @@ class MongoDB implements AuthorizationCodeInterface,
 
     public function getClientKey($client_id, $subject)
     {
-        $result = $this->findOne('jwt_table', [
+        $result = $this->findOne('jwt_table', array(
             'client_id' => $client_id,
             'subject' => $subject
-        ]);
+        ));
         return $result ? $result['key'] : false;
     }
 
@@ -339,13 +339,13 @@ class MongoDB implements AuthorizationCodeInterface,
      */
     protected function findOne($collection, $filter) 
     {
-        $query = new Query($filter, ['limit' => 1, ['sort' => ['_id' => -1]]]);
+        $query = new Query($filter, array('limit' => 1, array('sort' => array('_id' => -1))));
         $cursor = $this->db
                 ->executeQuery($this->collection($collection), $query);
-        $cursor->setTypeMap([
+        $cursor->setTypeMap(array(
             'root' => 'array',
             'document' => 'array'
-        ]);
+        ));
         $result = $cursor->toArray();
         return current($result);
     }
