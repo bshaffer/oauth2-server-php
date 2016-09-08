@@ -126,6 +126,11 @@ class AuthorizeController implements AuthorizeControllerInterface
         return $params;
     }
 
+    /**
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @return bool
+     */
     public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response)
     {
         // Make sure a valid client id was supplied (we can not redirect because we were unable to verify the URI)
