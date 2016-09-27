@@ -74,8 +74,6 @@ class MongoDB implements AuthorizationCodeInterface,
             throw new \InvalidArgumentException('First argument to OAuth2\Storage\MongoDB must be a string or a configuration array');
         }
         
-        $this->db->selectServer($this->db->getReadPreference());
-
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
             'access_token_table' => 'oauth_access_tokens',
