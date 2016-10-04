@@ -87,6 +87,8 @@ class ResourceController implements ResourceControllerInterface
             } else {
                 return $token;
             }
+        }else{
+          $response->setError(401, 'not_found_token', 'Token not found in the request');
         }
 
         $authHeader = sprintf('%s realm="%s"', $this->tokenType->getTokenType(), $this->config['www_realm']);
