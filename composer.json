@@ -1,5 +1,5 @@
 {
-    "name": "bshaffer/oauth2-server-php",
+    "name": "memmaker/oauth2-server-php",
     "description":"OAuth2 Server for PHP",
     "keywords":["oauth","oauth2","auth"],
     "type":"library",
@@ -9,6 +9,11 @@
             "name":"Brent Shaffer",
             "email": "bshafs@gmail.com",
             "homepage":"http://brentertainment.com"
+        },
+        {
+            "name":"lrx GmbH",
+            "email": "kontakt@lrx-solutions.de",
+            "homepage":"http://lrx-solutions,de"
         }
     ],
     "homepage": "http://github.com/bshaffer/oauth2-server-php",
