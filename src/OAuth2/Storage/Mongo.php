@@ -2,6 +2,8 @@
 
 namespace OAuth2\Storage;
 
+use MongoDB;
+use MongoDB\Client;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 
 /**
@@ -17,11 +19,12 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
  * @author Julien Chaumond <chaumond@gmail.com>
  */
 class Mongo implements AuthorizationCodeInterface,
+    UserCredentialsInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
-    UserCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
+    PublicKeyInterface,
     OpenIDAuthorizationCodeInterface
 {
     protected $db;
@@ -29,17 +32,16 @@ class Mongo implements AuthorizationCodeInterface,
 
     public function __construct($connection, $config = array())
     {
-        if ($connection instanceof \MongoDB) {
+        if ($connection instanceof MongoDB\Database) {
             $this->db = $connection;
         } else {
             if (!is_array($connection)) {
-                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Mongo must be an instance of MongoDB or a configuration array');
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Mongo must be an instance of MongoDB\Database or a configuration array');
             }
             $server = sprintf('mongodb://%s:%d', $connection['host'], $connection['port']);
-            $m = new \MongoClient($server);
-            $this->db = $m->{$connection['database']};
+            $m = new Client($server);
+            $this->db = $m->selectDatabase($connection['database']);
         }
-
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
             'access_token_table' => 'oauth_access_tokens',
@@ -47,6 +49,9 @@ class Mongo implements AuthorizationCodeInterface,
             'code_table' => 'oauth_authorization_codes',
             'user_table' => 'oauth_users',
             'jwt_table' => 'oauth_jwt',
+            'jti_table' => 'oauth_jti',
+            'scope_table'  => 'oauth_scopes',
+            'key_table'  => 'oauth_keys',
         ), $config);
     }
 
@@ -54,6 +59,7 @@ class Mongo implements AuthorizationCodeInterface,
     protected function collection($name)
     {
         return $this->db->{$this->config[$name]};
+        //return $this->db->{$this->config[$name]};
     }
 
     /* ClientCredentialsInterface */
@@ -86,7 +92,7 @@ class Mongo implements AuthorizationCodeInterface,
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
     {
         if ($this->getClientDetails($client_id)) {
-            $this->collection('client_table')->update(
+            $this->collection('client_table')->updateOne(
                 array('client_id' => $client_id),
                 array('$set' => array(
                     'client_secret' => $client_secret,
@@ -105,7 +111,7 @@ class Mongo implements AuthorizationCodeInterface,
                 'scope'         => $scope,
                 'user_id'       => $user_id,
             );
-            $this->collection('client_table')->insert($client);
+            $this->collection('client_table')->insertOne($client);
         }
 
         return true;
@@ -136,7 +142,7 @@ class Mongo implements AuthorizationCodeInterface,
     {
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
-            $this->collection('access_token_table')->update(
+            $this->collection('access_token_table')->updateOne(
                 array('access_token' => $access_token),
                 array('$set' => array(
                     'client_id' => $client_id,
@@ -153,7 +159,7 @@ class Mongo implements AuthorizationCodeInterface,
                 'user_id' => $user_id,
                 'scope' => $scope
             );
-            $this->collection('access_token_table')->insert($token);
+            $this->collection('access_token_table')->insertOne($token);
         }
 
         return true;
@@ -161,11 +167,7 @@ class Mongo implements AuthorizationCodeInterface,
 
     public function unsetAccessToken($access_token)
     {
-        $result = $this->collection('access_token_table')->remove(array(
-            'access_token' => $access_token
-        ), array('w' => 1));
-
-        return $result['n'] > 0;
+        $this->collection('access_token_table')->remove(array('access_token' => $access_token));
     }
 
 
@@ -181,7 +183,7 @@ class Mongo implements AuthorizationCodeInterface,
     {
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
-            $this->collection('code_table')->update(
+            $this->collection('code_table')->updateOne(
                 array('authorization_code' => $code),
                 array('$set' => array(
                     'client_id' => $client_id,
@@ -202,7 +204,7 @@ class Mongo implements AuthorizationCodeInterface,
                 'scope' => $scope,
                 'id_token' => $id_token,
             );
-            $this->collection('code_table')->insert($token);
+            $this->collection('code_table')->insertOne($token);
         }
 
         return true;
@@ -251,18 +253,16 @@ class Mongo implements AuthorizationCodeInterface,
             'expires' => $expires,
             'scope' => $scope
         );
-        $this->collection('refresh_token_table')->insert($token);
+        $this->collection('refresh_token_table')->insertOne($token);
 
         return true;
     }
 
     public function unsetRefreshToken($refresh_token)
     {
-        $result = $this->collection('refresh_token_table')->remove(array(
-            'refresh_token' => $refresh_token
-        ), array('w' => 1));
+        $this->collection('refresh_token_table')->remove(array('refresh_token' => $refresh_token));
 
-        return $result['n'] > 0;
+        return true;
     }
 
     // plaintext passwords are bad!  Override this for your application
@@ -281,7 +281,7 @@ class Mongo implements AuthorizationCodeInterface,
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
         if ($this->getUser($username)) {
-            $this->collection('user_table')->update(
+            $this->collection('user_table')->updateOne(
                 array('username' => $username),
                 array('$set' => array(
                     'password' => $password,
@@ -296,7 +296,7 @@ class Mongo implements AuthorizationCodeInterface,
                 'first_name' => $firstName,
                 'last_name' => $lastName
             );
-            $this->collection('user_table')->insert($user);
+            $this->collection('user_table')->insertOne($user);
         }
 
         return true;
@@ -325,15 +325,119 @@ class Mongo implements AuthorizationCodeInterface,
         return null;
     }
 
-    public function getJti($client_id, $subject, $audience, $expiration, $jti)
+    public function getJti($client_id, $subject, $audience, $expires, $jti)
     {
         //TODO: Needs mongodb implementation.
-        throw new \Exception('getJti() for the MongoDB driver is currently unimplemented.');
+        //throw new \Exception('getJti() for the MongoDB driver is currently unimplemented.');
+        $result = $this->collection('jti_table')->findOne(array(
+            'issuer' => $client_id,
+            'subject' => $subject,
+            'audience' => $audience,
+            'expires' => $expires,
+            'jti' => $jti
+        ));
+
+        return is_null($result) ? false : $result['key'];
     }
 
-    public function setJti($client_id, $subject, $audience, $expiration, $jti)
+    public function setJti($client_id, $subject, $audience, $expires, $jti)
     {
         //TODO: Needs mongodb implementation.
-        throw new \Exception('setJti() for the MongoDB driver is currently unimplemented.');
+        //throw new \Exception('setJti() for the MongoDB driver is currently unimplemented.');
+        $jti = array(
+            'issuer' => $client_id,
+            'subject' => $subject,
+            'audience' => $audience,
+            'expires' => $expires,
+            'jti' => $jti
+            );
+
+        $this->collection('jti_table')->insertOne($jti);
+
+        return true;
     }
+
+    public function getPublicKey($client_id = null)
+    {
+        $result = $this->collection('key_table')->findOne(array(
+            'client_id' => $client_id
+        ));
+
+        if($result)
+        {
+            return $result['public_key'];
+        }
+
+        $result = $this->collection('key_table')->findOne(array(
+            'client_id' => 'public'
+        ));
+
+        return is_null($result) ? false : $result['public_key'];
+    }
+
+    public function getPrivateKey($client_id = null)
+    {
+        $result = $this->collection('key_table')->findOne(array(
+            'client_id' => $client_id
+        ));
+
+        if($result)
+        {
+            return $result['private_key'];
+        }
+
+        $result = $this->collection('key_table')->findOne(array(
+            'client_id' => 'public'
+        ));
+
+        return is_null($result) ? false : $result['private_key'];
+    }
+
+    public function getEncryptionAlgorithm($client_id = null)
+    {
+        $result = $this->collection('key_table')->findOne(array(
+            'client_id' => $client_id
+        ));
+
+        if($result)
+        {
+            return $result['encryption_algorithm'];
+        }
+
+        $result = $this->collection('key_table')->findOne(array(
+            'client_id' => 'public'
+        ));
+
+        return is_null($result) ? 'RS256' : $result['encryption_algorithm'];
+    }
+
+    public function setKeyPair($client_id, $publicKey, $privateKey, $encryptionAlgorithm = 'RS256')
+    {
+        $result = $this->collection('key_table')->findOne(array(
+            'client_id' => $client_id
+        ));
+
+        if ($result) {
+            $this->collection('key_table')->updateOne(
+                array('client_id' => $client_id),
+                array('$set' => array(
+                    'client_id' => $client_id,
+                    'public_key' => $publicKey,
+                    'private_key' => $privateKey,
+                    'encryption_algorithm' => $encryptionAlgorithm
+                ))
+            );
+        } else {
+            $keyPair = array(
+                'client_id' => $client_id,
+                'public_key' => $publicKey,
+                'private_key' => $privateKey,
+                'encryption_algorithm' => $encryptionAlgorithm
+            );
+            $this->collection('key_table')->insertOne($keyPair);
+        }
+
+        return true;
+    }
+
 }
