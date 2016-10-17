@@ -2,7 +2,7 @@
 
 namespace OAuth2\TokenType;
 
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 interface TokenTypeInterface
@@ -17,5 +17,5 @@ interface TokenTypeInterface
     /**
      * Retrieves the token string from the request object
      */
-    public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response);
+    public function getAccessTokenParameter(ServerRequestInterface $request, ResponseInterface $response);
 }

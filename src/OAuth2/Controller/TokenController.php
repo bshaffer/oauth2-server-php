@@ -10,7 +10,7 @@ use OAuth2\Scope;
 use OAuth2\Storage\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Zend\Diactoros\Stream;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * @see OAuth2\Controller\TokenControllerInterface
@@ -45,29 +45,33 @@ class TokenController implements TokenControllerInterface
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function handleTokenRequest(RequestInterface $request, ResponseInterface $response)
+    public function handleTokenRequest(RequestInterface $request, ResponseInterface $response, StreamInterface $stream)
     {
         $errors = null;
-        $body = new Stream('php://temp', 'rw');
+        if($stream->getContents()!="") {
+          throw new \LogicException("Stream has to be empty");
+        }
         if ($token = $this->grantAccessToken($request, $errors)) {
             // @see http://tools.ietf.org/html/rfc6749#section-5.1
             // server MUST disable caching in headers when tokens are involved
-            $body->write(json_encode($token));
+            $stream->write(json_encode($token));
             return $response
                 ->withStatus(200)
                 ->withHeader('Cache-Control', 'no-store')
+                ->withHeader('Content-Type', 'application/json')
                 ->withHeader('Pragma', 'no-cache')
-                ->withBody($body);
+                ->withBody($stream);
         }
 
-        $body->write(json_encode(array_filter(array(
-            'error' => $error['code'],
-            'error_description' => $error['description'],
-            'error_uri' => $error['uri'],
+        $stream->write(json_encode(array_filter(array(
+            'error' => $errors['code'],
+            'error_description' => $errors['description'],
+            'error_uri' => $errors['uri'] ?? null,
         ))));
         return $response
             ->withStatus($errors['code'] == 'invalid_method' ? 405 : 400)
-            ->withBody($body);
+            ->withHeader('Content-Type', 'application/json')
+            ->withBody($stream);
     }
 
     /**
@@ -99,6 +103,7 @@ class TokenController implements TokenControllerInterface
             return false;
         }
 
+
         $body = json_decode((string) $request->getBody(), true);
 
         /**
@@ -128,6 +133,7 @@ class TokenController implements TokenControllerInterface
 
         $grantType = $this->grantTypes[$grantTypeIdentifier];
 
+
         /**
          * Retrieve the client information from the request
          * ClientAssertionTypes allow for grant types which also assert the client data
@@ -149,8 +155,17 @@ class TokenController implements TokenControllerInterface
          */
         $grantType->validateRequest($request, $response);
 
+
         if ($grantType instanceof ClientAssertionTypeInterface) {
             $clientId = $grantType->getClientId();
+            if(empty($clientId)) {
+              $errors = array(
+                  'code' => 'invalid_client',
+                  'description' => 'client ID doesn\'t exists',
+              );
+
+              return false;
+            }
         } else {
             // validate the Client ID (if applicable)
             if (!is_null($storedClientId = $grantType->getClientId()) && $storedClientId != $clientId) {
@@ -162,6 +177,8 @@ class TokenController implements TokenControllerInterface
                 return false;
             }
         }
+
+
 
         /**
          * Validate the client can use the requested grant type

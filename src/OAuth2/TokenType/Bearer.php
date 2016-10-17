@@ -3,6 +3,7 @@
 namespace OAuth2\TokenType;
 
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -30,12 +31,12 @@ class Bearer implements TokenTypeInterface
      *
      * @see https://github.com/bshaffer/oauth2-server-php/issues/349#issuecomment-37993588
      */
-    public function requestHasToken(RequestInterface $request)
+    public function requestHasToken(ServerRequestInterface $request)
     {
-        $headers = $request->headers('AUTHORIZATION');
+        $header = $request->getHeader('AUTHORIZATION');
 
         // check the header, then the querystring, then the request body
-        return !empty($headers) || (bool) ($request->request($this->config['token_param_name'])) || (bool) ($request->query($this->config['token_param_name']));
+        return !empty($header) || (bool) ($request->getAttribute($this->config['token_param_name'])) || (bool) ($request->getQueryParams()[$this->config['token_param_name']]);
     }
 
     /**
@@ -60,9 +61,9 @@ class Bearer implements TokenTypeInterface
      * @see http://code.google.com/p/android/issues/detail?id=6684
      *
      */
-    public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response)
+    public function getAccessTokenParameter(ServerRequestInterface $request, ResponseInterface $response)
     {
-        $headers = $request->headers('AUTHORIZATION');
+        $headers = $request->getHeader('AUTHORIZATION');
 
         /**
          * Ensure more than one method is not used for including an
@@ -70,7 +71,7 @@ class Bearer implements TokenTypeInterface
          *
          * @see http://tools.ietf.org/html/rfc6750#section-3.1
          */
-        $methodsUsed = !empty($headers) + (bool) ($request->query($this->config['token_param_name'])) + (bool) ($request->request($this->config['token_param_name']));
+        $methodsUsed = !empty($headers) + (bool) ($request->getQueryParams()[$this->config['token_param_name']]) + (bool) ($request->getAttribute($this->config['token_param_name']));
         if ($methodsUsed > 1) {
             $response->setError(400, 'invalid_request', 'Only one method may be used to authenticate at a time (Auth header, GET or POST)');
 
@@ -100,7 +101,7 @@ class Bearer implements TokenTypeInterface
             return $matches[1];
         }
 
-        if ($request->request($this->config['token_param_name'])) {
+        if ($request->getAttribute($this->config['token_param_name'])) {
             // // POST: Get the token from POST data
             if (!in_array(strtolower($request->server('REQUEST_METHOD')), array('post', 'put'))) {
                 $response->setError(400, 'invalid_request', 'When putting the token in the body, the method must be POST or PUT', '#section-2.2');
@@ -125,6 +126,6 @@ class Bearer implements TokenTypeInterface
         }
 
         // GET method
-        return $request->query($this->config['token_param_name']);
+        return $request->getQueryParams()[$this->config['token_param_name']];
     }
 }
