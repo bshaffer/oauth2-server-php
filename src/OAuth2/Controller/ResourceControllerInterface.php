@@ -4,6 +4,7 @@ namespace OAuth2\Controller;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  *  This controller is called when a "resource" is requested.
@@ -20,7 +21,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 interface ResourceControllerInterface
 {
-    public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response, $scope = null);
+    public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response,  StreamInterface $stream, $scope = null);
 
     public function getAccessTokenData(RequestInterface $request, ResponseInterface $response);
 }

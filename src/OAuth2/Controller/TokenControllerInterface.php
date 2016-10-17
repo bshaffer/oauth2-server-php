@@ -4,6 +4,8 @@ namespace OAuth2\Controller;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
+
 
 /**
  *  This controller is called when a token is being requested.
@@ -26,7 +28,7 @@ interface TokenControllerInterface
      * OAuth2\ResponseInterface - An instance of OAuth2\ResponseInterface to contain the response data
      *
      */
-    public function handleTokenRequest(RequestInterface $request, ResponseInterface $response);
+    public function handleTokenRequest(RequestInterface $request, ResponseInterface $response, StreamInterface $stream);
 
     public function grantAccessToken(RequestInterface $request, &$errors = null);
 }

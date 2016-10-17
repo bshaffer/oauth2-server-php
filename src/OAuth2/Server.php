@@ -34,8 +34,7 @@ use OAuth2\Storage\JwtAccessToken as JwtAccessTokenStorage;
 use OAuth2\Storage\JwtAccessTokenInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Zend\Diactoros\Response;
-use Zend\Diactoros\ServerRequestFactory;
+use Psr\Http\Message\StreamInterface;
 
 /**
 * Server class for OAuth2
@@ -254,9 +253,9 @@ class Server implements ResourceControllerInterface,
      *
      * @ingroup oauth2_section_4
      */
-    public function handleTokenRequest(RequestInterface $request, ResponseInterface $response = null)
+    public function handleTokenRequest(RequestInterface $request, ResponseInterface $response, StreamInterface $stream)
     {
-        return $this->getTokenController()->handleTokenRequest($request, $response ?: new Response());
+        return $this->getTokenController()->handleTokenRequest($request, $response, $stream);
     }
 
     public function grantAccessToken(RequestInterface $request, &$errors = null)
@@ -336,12 +335,9 @@ class Server implements ResourceControllerInterface,
         return $this->getAuthorizeController()->validateAuthorizeRequest($request, $errors);
     }
 
-    public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response = null, $scope = null)
+    public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response, StreamInterface $stream, $scope = null) : ResponseInterface
     {
-        $this->response = is_null($response) ? new Response() : $response;
-        $value = $this->getResourceController()->verifyResourceRequest($request, $this->response, $scope);
-
-        return $value;
+        return $this->getResourceController()->verifyResourceRequest($request, $response, $stream, $scope);
     }
 
     public function getAccessTokenData(RequestInterface $request, ResponseInterface $response = null)

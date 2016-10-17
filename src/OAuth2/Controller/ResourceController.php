@@ -2,12 +2,12 @@
 
 namespace OAuth2\Controller;
 
-use OAuth2\ResponseException;
 use OAuth2\TokenType\TokenTypeInterface;
 use OAuth2\Storage\AccessTokenInterface;
 use OAuth2\ScopeInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use OAuth2\Scope;
 
 /**
@@ -37,7 +37,7 @@ class ResourceController implements ResourceControllerInterface
         $this->scopeUtil = $scopeUtil;
     }
 
-    public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response, $scope = null)
+    public function verifyResourceRequest(RequestInterface $request, ResponseInterface $response, StreamInterface $stream, $scope = null)
     {
         try {
             $token = $this->getAccessTokenData($request, $response);
@@ -70,15 +70,19 @@ class ResourceController implements ResourceControllerInterface
                 }
             }
 
+            $stream->write($e->getMessage());
+
             return $response
-                ->withStatusCode($e->getStatusCode() ?: 401)
-                ->withHeader('WWW-Authenticate' => $authHeader);
+                ->withStatus($e->getStatusCode() ?: 401)
+                ->withHeader('WWW-Authenticate', $authHeader)
+                ->withHeader('Content-Type', 'application/json')
+                ->withBody($stream);
         }
 
         // allow retrieval of the token
         $this->token = $token;
 
-        return (bool) $token;
+        return $response;
     }
 
     public function getAccessTokenData(RequestInterface $request, ResponseInterface $response)
@@ -109,4 +113,28 @@ class ResourceController implements ResourceControllerInterface
     {
         return $this->token;
     }
+}
+
+class ResponseException extends \LogicException {
+
+  public function __construct($short_code, $description){
+    $this->shortCode = $short_code;
+    $this->description = $description;
+    $this->statusCode = 401;
+    parent::__construct(json_encode(['code'=>$short_code, 'error_description' => $description]),   $this->statusCode);
+
+  }
+
+  public function getDescription(){
+    return $this->description;
+  }
+
+  public function getShortCode(){
+    return $this->shortCode;
+  }
+
+  public function getStatusCode(){
+    return $this->statusCode;
+  }
+
 }
