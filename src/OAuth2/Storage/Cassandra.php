@@ -240,7 +240,7 @@ class Cassandra implements AuthorizationCodeInterface,
             return false;
         }
 
-        return empty($client['client_secret']);;
+        return empty($client['client_secret']);
     }
 
     /* ClientInterface */
