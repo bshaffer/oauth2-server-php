@@ -23,5 +23,11 @@
         "thobbs/phpcassa": "Required to use the Cassandra storage engine",
         "aws/aws-sdk-php": "~2.8 is required to use the DynamoDB storage engine",
         "firebase/php-jwt": "~2.2 is required to use JWT features"
+    },
+    "require-dev": {
+        "aws/aws-sdk-php": "~2.8",
+        "firebase/php-jwt": "~2.2",
+        "predis/predis": "dev-master",
+        "thobbs/phpcassa": "dev-master"
     }
 }
