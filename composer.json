@@ -28,6 +28,7 @@
         "aws/aws-sdk-php": "~2.8",
         "firebase/php-jwt": "~2.2",
         "predis/predis": "dev-master",
-        "thobbs/phpcassa": "dev-master"
+        "thobbs/phpcassa": "dev-master",
+        "techpivot/phalcon-ci-installer": "~1.0"
     }
 }
