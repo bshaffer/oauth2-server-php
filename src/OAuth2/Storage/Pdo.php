@@ -57,17 +57,27 @@ class Pdo implements
         // debugging
         $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        $this->config = array_merge(array(
-            'client_table' => 'oauth_clients',
-            'access_token_table' => 'oauth_access_tokens',
-            'refresh_token_table' => 'oauth_refresh_tokens',
-            'code_table' => 'oauth_authorization_codes',
-            'user_table' => 'oauth_users',
-            'jwt_table'  => 'oauth_jwt',
-            'jti_table'  => 'oauth_jti',
-            'scope_table'  => 'oauth_scopes',
-            'public_key_table'  => 'oauth_public_keys',
-        ), $config);
+        $this->config = array_merge(
+            array(
+                'client_table' => 'oauth_clients',
+                'access_token_table' => 'oauth_access_tokens',
+                'refresh_token_table' => 'oauth_refresh_tokens',
+                'code_table' => 'oauth_authorization_codes',
+                'user_table' => 'oauth_users',
+                'jwt_table'  => 'oauth_jwt',
+                'jti_table'  => 'oauth_jti',
+                'scope_table'  => 'oauth_scopes',
+                'public_key_table'  => 'oauth_public_keys',
+                // defaults for column names in user queries
+                'identity' => array(
+                    'username' => 'username',
+                    'password' => 'password',
+                    'first_name' => 'first_name',
+                    'last_name' => 'last_name',
+                )
+            ),
+            $config
+        );
     }
 
     /* OAuth2\Storage\ClientCredentialsInterface */
@@ -304,15 +314,21 @@ class Pdo implements
         return $stmt->execute(compact('refresh_token'));
     }
 
-    // plaintext passwords are bad!  Override this for your application
+    // plaintext passwords are bad!  Override the hashPassword method for your application
     protected function checkPassword($user, $password)
     {
-        return $user['password'] == sha1($password);
+        return $user['password'] == $this->hashPassword($password);
     }
 
     public function getUser($username)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
+        $sql = sprintf(
+            'SELECT * from %s where %s=:username',
+            $this->config['user_table'],
+            $this->config['identity']['username']
+        );
+
+        $stmt = $this->db->prepare($sql);
         $stmt->execute(array('username' => $username));
 
         if (!$userInfo = $stmt->fetch(\PDO::FETCH_ASSOC)) {
@@ -324,17 +340,39 @@ class Pdo implements
             'user_id' => $username
         ), $userInfo);
     }
+    
+    public function hashPassword($password)
+    {
+        // default behaviour you can override this in your application
+        return sha1($password);
+    }
 
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
-        // do not store in plaintext
-        $password = sha1($password);
+        // do not store in plaintext Override the hashPassword method for your application
+        $password = $this->hashPassword($password);
 
         // if it exists, update it.
         if ($this->getUser($username)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table']));
+            $sql = sprintf(
+                'UPDATE %s SET %s=:password, %s=:firstName, %s=:lastName where %s=:username',
+                $this->config['user_table'],
+                $this->config['identity']['password'],
+                $this->config['identity']['first_name'],
+                $this->config['identity']['last_name'],
+                $this->config['identity']['username']
+            );
+            $stmt = $this->db->prepare($sql);
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
+            $sql = sprintf(
+                'INSERT INTO %s (%s, %s, %s, %s) VALUES (:username, :password, :firstName, :lastName)',
+                $this->config['user_table'],
+                $this->config['identity']['username'],
+                $this->config['identity']['password'],
+                $this->config['identity']['first_name'],
+                $this->config['identity']['last_name']
+            );
+            $stmt = $this->db->prepare($sql);
         }
 
         return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
