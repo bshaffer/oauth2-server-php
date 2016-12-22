@@ -32,6 +32,13 @@
             "redirect_uri": "",
             "expires": "9999999999",
             "id_token": "test_id_token"
+        },
+        "testcode-redirect-uri": {
+            "client_id": "Test Client ID",
+            "user_id": "",
+            "redirect_uri": "http://brentertainment.com/voil%C3%A0",
+            "expires": "9999999999",
+            "id_token": "IDTOKEN"
         }
     },
     "client_credentials" : {

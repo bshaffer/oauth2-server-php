@@ -93,6 +93,22 @@ class AuthorizationCodeTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('access_token', $token);
     }
 
+    public function testValidRedirectUri()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'authorization_code', // valid grant type
+            'client_id'     => 'Test Client ID', // valid client id
+            'redirect_uri'  => 'http://brentertainment.com/voil%C3%A0', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code'          => 'testcode-redirect-uri', // valid code
+        ));
+        $token = $server->grantAccessToken($request, new Response());
+
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+    }
+
     public function testValidCodeNoScope()
     {
         $server = $this->getTestServer();
