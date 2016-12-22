@@ -176,7 +176,7 @@ class Response implements ResponseInterface
     {
         switch ($format) {
             case 'json':
-                return json_encode($this->parameters);
+                return $this->parameters ? json_encode($this->parameters) : '';
             case 'xml':
                 // this only works for single-level arrays
                 $xml = new \SimpleXMLElement('<response/>');
