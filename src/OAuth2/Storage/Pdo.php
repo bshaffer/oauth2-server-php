@@ -58,6 +58,9 @@ class Pdo implements
         $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $this->config = array_merge(array(
+
+            /* Table names: */
+
             'client_table' => 'oauth_clients',
             'access_token_table' => 'oauth_access_tokens',
             'refresh_token_table' => 'oauth_refresh_tokens',
@@ -67,8 +70,67 @@ class Pdo implements
             'jti_table'  => 'oauth_jti',
             'scope_table'  => 'oauth_scopes',
             'public_key_table'  => 'oauth_public_keys',
+
+            /* Hash-functions configuration: */
+
+              /* Hashing algorithm */
+            'hash_algo'		  => 'sha512',
+              /* Hashing rounds; 945 is choosen as an unexpected and big enough
+                 value. The unexpectedness helps against rainbow tables. */
+            'hash_rounds'	  => 945,
+              /* How much bytes to use for salt from "/dev/random" */
+            'hash_saltsize_rand'  => 4,
+              /* How much bytes to use for salt from "/dev/urandom" */
+            'hash_saltsize_urand' => 60,
         ), $config);
     }
+
+    private function hash($string)
+    {
+        $config = &$this->config;
+
+        $salt = mcrypt_create_iv($config['hash_saltsize_rand'],  MCRYPT_DEV_RANDOM ).
+                mcrypt_create_iv($config['hash_saltsize_urand'], MCRYPT_DEV_URANDOM);
+
+        return $config['hash_algo'].':'.$config['hash_rounds'].':'.base64_encode($salt).':'.
+            base64_encode(
+                hash_pbkdf2(
+                    $config['hash_algo'],
+                    $string,
+                    $salt,
+                    $config['hash_rounds'],
+                    0,
+                    TRUE
+                )
+            );
+    }
+
+    private function hashCheck($string, $string_hash)
+    {
+        $hash_words = explode(":", $string_hash);
+        if(count($hash_words) < 4) { // algo:rounds:SALT:HASH
+                // TODO: do something here
+                return FALSE;
+        }
+
+        $hash_algo   = $hash_words[0];
+        $hash_rounds = $hash_words[1];
+        $hash_salt   = base64_decode($hash_words[2]);
+        $hash_pbkdf2 = base64_decode($hash_words[3]);
+
+        $hash_pbkdf2_gen =
+            hash_pbkdf2(
+                $hash_algo,
+                $string,
+                $hash_salt,
+                $hash_rounds,
+                0,
+                TRUE
+            );
+
+        return $hash_pbkdf2 === $hash_pbkdf2_gen;
+    }
+
 
     /* OAuth2\Storage\ClientCredentialsInterface */
     public function checkClientCredentials($client_id, $client_secret = null)
@@ -307,7 +369,7 @@ class Pdo implements
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {
-        return $user['password'] == sha1($password);
+        return $this->hashCheck($password, $user['password']);
     }
 
     public function getUser($username)
@@ -328,7 +390,7 @@ class Pdo implements
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
         // do not store in plaintext
-        $password = sha1($password);
+        $password = $this->hash($password);
 
         // if it exists, update it.
         if ($this->getUser($username)) {
