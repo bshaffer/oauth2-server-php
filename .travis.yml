@@ -22,6 +22,11 @@ services:
 - cassandra
 before_install:
 - phpenv config-rm xdebug.ini || return 0
+- if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then
+    phpenv config-add testing/mongodb.ini;
+  elif [[ ${TRAVIS_PHP_VERSION:0:3} != "5.3" ]]; then
+    pecl install mongodb || /bin/true;
+  fi
 install:
 - composer install --no-interaction
 before_script:

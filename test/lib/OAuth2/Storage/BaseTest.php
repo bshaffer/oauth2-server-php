@@ -11,6 +11,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
         $mysql = Bootstrap::getInstance()->getMysqlPdo();
         $postgres = Bootstrap::getInstance()->getPostgresPdo();
         $mongo = Bootstrap::getInstance()->getMongo();
+        $mongodb = Bootstrap::getInstance()->getMongoDB();
         $redis = Bootstrap::getInstance()->getRedisStorage();
         $cassandra = Bootstrap::getInstance()->getCassandraStorage();
         $dynamodb = Bootstrap::getInstance()->getDynamoDbStorage();
@@ -25,6 +26,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase
             array($mysql),
             array($postgres),
             array($mongo),
+            array($mongodb),
             array($redis),
             array($cassandra),
             array($dynamodb),
