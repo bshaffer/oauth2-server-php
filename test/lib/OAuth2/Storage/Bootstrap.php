@@ -11,6 +11,7 @@ class Bootstrap
     private $sqlite;
     private $postgres;
     private $mongo;
+    private $mongoDb;
     private $redis;
     private $cassandra;
     private $configDir;
@@ -137,13 +138,12 @@ class Bootstrap
     public function getMongo()
     {
         if (!$this->mongo) {
-            $skipMongo = $this->getEnvVar('SKIP_MONGO_TESTS');
-            if (!$skipMongo && class_exists('MongoClient')) {
+            if (class_exists('MongoClient')) {
                 $mongo = new \MongoClient('mongodb://localhost:27017', array('connect' => false));
                 if ($this->testMongoConnection($mongo)) {
-                    $db = $mongo->oauth2_server_php;
-                    $this->removeMongoDb($db);
-                    $this->createMongoDb($db);
+                    $db = $mongo->oauth2_server_php_legacy;
+                    $this->removeMongo($db);
+                    $this->createMongo($db);
 
                     $this->mongo = new Mongo($db);
                 } else {
@@ -157,6 +157,28 @@ class Bootstrap
         return $this->mongo;
     }
 
+    public function getMongoDb()
+    {
+        if (!$this->mongoDb) {
+            if (class_exists('MongoDB\Client')) {
+                $mongoDb = new \MongoDB\Client('mongodb://localhost:27017');
+                if ($this->testMongoDBConnection($mongoDb)) {
+                    $db = $mongoDb->oauth2_server_php;
+                    $this->removeMongoDb($db);
+                    $this->createMongoDb($db);
+
+                    $this->mongoDb = new MongoDB($db);
+                } else {
+                    $this->mongoDb = new NullStorage('MongoDB', 'Unable to connect to mongo server on "localhost:27017"');
+                }
+            } else {
+                $this->mongoDb = new NullStorage('MongoDB', 'Missing MongoDB php extension. Please install mongodb.so');
+            }
+        }
+
+        return $this->mongoDb;
+    }
+
     private function testMongoConnection(\MongoClient $mongo)
     {
         try {
@@ -165,6 +187,11 @@ class Bootstrap
             return false;
         }
 
+        return true;
+    }
+
+    private function testMongoDBConnection(\MongoDB\Client $mongo)
+    {
         return true;
     }
 
@@ -442,7 +469,7 @@ class Bootstrap
         $cb->delete('oauth_refresh_tokens-refreshtoken');
     }
 
-    private function createMongoDb(\MongoDB $db)
+    private function createMongo(\MongoDB $db)
     {
         $db->oauth_clients->insert(array(
             'client_id' => "oauth_test_client",
@@ -468,11 +495,68 @@ class Bootstrap
             'email_verified' => true,
         ));
 
+        $db->oauth_keys->insert(array(
+            'client_id'   => null,
+            'public_key' => $this->getTestPublicKey(),
+            'private_key' => $this->getTestPrivateKey(),
+            'encryption_algorithm' => 'RS256'
+        ));
+
         $db->oauth_jwt->insert(array(
             'client_id' => 'oauth_test_client',
-            'key'       => $this->getTestPublicKey(),
+            'key' => $this->getTestPublicKey(),
             'subject'   => 'test_subject',
         ));
+    }
+
+    public function removeMongo(\MongoDB $db)
+    {
+        $db->drop();
+    }
+
+    private function createMongoDB(\MongoDB\Database $db)
+    {
+        $db->oauth_clients->insertOne(array(
+            'client_id' => "oauth_test_client",
+            'client_secret' => "testpass",
+            'redirect_uri' => "http://example.com",
+            'grant_types' => 'implicit password'
+        ));
+
+        $db->oauth_access_tokens->insertOne(array(
+            'access_token' => "testtoken",
+            'client_id' => "Some Client"
+        ));
+
+        $db->oauth_authorization_codes->insertOne(array(
+            'authorization_code' => "testcode",
+            'client_id' => "Some Client"
+        ));
+
+        $db->oauth_users->insertOne(array(
+            'username' => 'testuser',
+            'password' => 'password',
+            'email' => 'testuser@test.com',
+            'email_verified' => true,
+        ));
+
+        $db->oauth_keys->insertOne(array(
+            'client_id'   => null,
+            'public_key' => $this->getTestPublicKey(),
+            'private_key' => $this->getTestPrivateKey(),
+            'encryption_algorithm' => 'RS256'
+        ));
+
+        $db->oauth_jwt->insertOne(array(
+            'client_id' => 'oauth_test_client',
+            'key' => $this->getTestPublicKey(),
+            'subject'   => 'test_subject',
+        ));
+    }
+
+    public function removeMongoDB(\MongoDB\Database $db)
+    {
+        $db->drop();
     }
 
     private function createRedisDb(Redis $storage)
@@ -498,11 +582,6 @@ class Bootstrap
         $storage->setScope('clientscope3', 'Test Default Scope Client ID 2', 'default');
 
         $storage->setClientKey('oauth_test_client', $this->getTestPublicKey(), 'test_subject');
-    }
-
-    public function removeMongoDb(\MongoDB $db)
-    {
-        $db->drop();
     }
 
     public function getTestPublicKey()
