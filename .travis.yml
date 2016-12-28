@@ -23,9 +23,10 @@ services:
 before_install:
 - phpenv config-rm xdebug.ini || return 0
 install:
-- composer install --no-interaction
+- composer install --ignore-platform-reqs
 before_script:
 - psql -c 'create database oauth2_server_php;' -U postgres
 - phpenv version-name | grep ^5.[3-6] && echo "extension=mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; true
+- phpenv version-name | grep '^7\|hhvm' && echo "extension=mongodb.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; true
 after_script:
 - php test/cleanup.php
