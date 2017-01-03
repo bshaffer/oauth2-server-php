@@ -22,7 +22,8 @@ class Redis implements AuthorizationCodeInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     ScopeInterface,
-    OpenIDAuthorizationCodeInterface
+    OpenIDAuthorizationCodeInterface,
+    DeviceCodeInterface
 {
 
     private $cache;
@@ -47,6 +48,7 @@ class Redis implements AuthorizationCodeInterface,
             'access_token_key' => 'oauth_access_tokens:',
             'refresh_token_key' => 'oauth_refresh_tokens:',
             'code_key' => 'oauth_authorization_codes:',
+            'device_code_key' => 'oauth_device_codes:'
             'user_key' => 'oauth_users:',
             'jwt_key' => 'oauth_jwt:',
             'scope_key' => 'oauth_scopes:',
@@ -87,6 +89,21 @@ class Redis implements AuthorizationCodeInterface,
         unset($this->cache[$key]);
 
         return $this->redis->del($key);
+    }
+
+    /* DeviceCodeInterface */
+    public function getDeviceCode($code, $client_id)
+    {
+        return $this->getValue($this->config['device_code_key'] . $code . $client_id);
+    }
+
+    public function setDeviceCode($device_code, $user_code, $client_id, $user_id, $expires, $scope = null)
+    {
+        return $this->setValue(
+            $this->config['device_code_key'] . $device_code . $client_id,
+            compact('device_code', 'user_code', 'client_id', 'user_id', 'expires', 'scope'),
+            $expires
+        );
     }
 
     /* AuthorizationCodeInterface */

@@ -38,7 +38,8 @@ class Cassandra implements AuthorizationCodeInterface,
     ScopeInterface,
     PublicKeyInterface,
     UserClaimsInterface,
-    OpenIDAuthorizationCodeInterface
+    OpenIDAuthorizationCodeInterface,
+    DeviceCodeInterface
 {
 
     private $cache;
@@ -80,6 +81,7 @@ class Cassandra implements AuthorizationCodeInterface,
             'access_token_key' => 'oauth_access_tokens:',
             'refresh_token_key' => 'oauth_refresh_tokens:',
             'code_key' => 'oauth_authorization_codes:',
+            'device_code_key' => 'oauth_device_codes:',
             'user_key' => 'oauth_users:',
             'jwt_key' => 'oauth_jwt:',
             'scope_key' => 'oauth_scopes:',
@@ -149,6 +151,21 @@ class Cassandra implements AuthorizationCodeInterface,
         }
 
         return false;
+    }
+
+    /* DeviceCodeInterface */
+    public function getDeviceCode($code, $client_id)
+    {
+        return $this->getValue($this->config['device_code_key'] . $code . $client_id);
+    }
+
+    public function setDeviceCode($device_code, $user_code, $client_id, $user_id, $expires, $scope = null)
+    {
+        return $this->setValue(
+            $this->config['device_code_key'] . $device_code . $client_id,
+            compact('device_code', 'user_code', 'client_id', 'user_id', 'expires', 'scope'),
+            $expires
+        );
     }
 
     /* AuthorizationCodeInterface */

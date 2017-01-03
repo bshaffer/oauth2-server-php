@@ -27,7 +27,8 @@ class Pdo implements
     ScopeInterface,
     PublicKeyInterface,
     UserClaimsInterface,
-    OpenIDAuthorizationCodeInterface
+    OpenIDAuthorizationCodeInterface,
+    DeviceCodeInterface
 {
     protected $db;
     protected $config;
@@ -67,6 +68,7 @@ class Pdo implements
             'jti_table'  => 'oauth_jti',
             'scope_table'  => 'oauth_scopes',
             'public_key_table'  => 'oauth_public_keys',
+            'device_code_table' => 'oauth_device_codes',
         ), $config);
     }
 
@@ -463,6 +465,35 @@ class Pdo implements
         return 'RS256';
     }
 
+    /* OAuth2\Storage\DeviceCodeInterface */
+    public function getDeviceCode($code, $client_id)
+    {
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where device_code=:code AND client_id=:client_id', $this->config['device_code_table']));
+
+        $code = $stmt->execute(compact('code', 'client_id'));
+        if ($code = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            // convert date string back to timestamp
+            $code['expires'] = strtotime($code['expires']);
+        }
+
+        return $code;
+    }
+
+    public function setDeviceCode($code, $user_code = null, $client_id, $user_id = null, $expires, $scope = null)
+    {
+        // convert expires to datestring
+        $expires = date('Y-m-d H:i:s', $expires);
+
+        // if it exists, update it.
+        if ($this->getDeviceCode($code, $client_id)) {
+            $stmt = $this->db->prepare(sprintf('UPDATE %s SET user_code=:user_code, expires=:expires, user_id=:user_id, scope=:scope where device_code=:code and client_id=:client_id', $this->config['device_code_table']));
+        } else {
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (device_code, user_code, client_id, expires, user_id, scope) VALUES (:code, :user_code, :client_id, :expires, :user_id, :scope)', $this->config['device_code_table']));
+        }
+
+        return $stmt->execute(compact('code', 'user_code', 'client_id', 'user_id', 'expires', 'scope'));
+    }
+
     /**
      * DDL to create OAuth2 database and tables for PDO storage
      *
@@ -546,6 +577,16 @@ class Pdo implements
           private_key          VARCHAR(2000),
           encryption_algorithm VARCHAR(100) DEFAULT 'RS256'
         )
+
+        CREATE TABLE {$this->config['device_code_table']} (
+          device_code         VARCHAR(40)    NOT NULL,
+          user_code           VARCHAR(10)    NOT NULL,
+          client_id           VARCHAR(80)    NOT NULL,
+          user_id             VARCHAR(80),
+          expires             TIMESTAMP      NOT NULL,
+          scope               VARCHAR(4000),
+          PRIMARY KEY (authorization_code)
+        );
 ";
 
         return $sql;

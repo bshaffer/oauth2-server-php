@@ -1,0 +1,104 @@
+<?php
+
+namespace OAuth2\ResponseType;
+
+/**
+ *
+ * @author TroRg <trorgg at gmail dot com>
+ */
+class DeviceCode implements AccessTokenInterface
+{
+    protected $config;
+    protected $deviceCodeStorage;
+
+    public function __construct(\OAuth2\Storage\DeviceCodeInterface $storage, $config = array())
+    {
+        $this->config = array_merge(array(
+            'token_type'             => 'bearer',
+            'device_code_lifetime'        => 1800,
+            'verification_uri' => 'http://mysite.com/device',
+            'refresh_interval' => 5
+        ), $config);
+
+        $this->storage = $storage;
+    }
+
+    public function getAuthorizeResponse($params, $user_id = null)
+    {
+        // build the URL to redirect to
+        $result = array('query' => array());
+
+        $params += array('scope' => null, 'state' => null);
+
+        $result['query']['code'] = $this->createDeviceCode($params['client_id'], $user_id, $params['redirect_uri'], $params['scope']);
+
+        if (isset($params['state'])) {
+            $result['query']['state'] = $params['state'];
+        }
+
+        return array($params['redirect_uri'], $result);
+    }
+
+    /**
+     * Handle the creation of the authorization code.
+     *
+     * @param $client_id
+     * Client identifier related to the authorization code
+     * @param $scope
+     * (optional) Scopes to be stored in space-separated string.
+     * @return
+     * An associative array as below:
+     * - code: Stored device code.
+     * - user_code: Stored user code.
+     * - expires_in: Code expiration.
+     * - verification_uri: URI where user can auth device
+     * - interval: Requeue interval
+     *
+     * @see http://tools.ietf.org/html/draft-ietf-oauth-v2-05#section-3.7
+     */
+    public function createDeviceCode($client_id, $scope = null)
+    {
+        $response = [
+            'code' => $this->generateDeviceCode(),
+            'user_code' => strtoupper($this->generateDeviceCode(6)),
+            'expires_in' => $this->config['device_code_lifetime'],
+            'verification_uri' => $this->config['verification_uri'],
+            'interval' => $this->config['refresh_interval'],
+        ];
+        $this->storage->setDeviceCode($response['code'], $response['user_code'], $client_id, null, time() + $this->config['device_code_lifetime'], $scope);
+
+        return $response;
+    }
+
+    public function createAccessToken($client_id, $user_id, $scope = null, $includeRefreshToken = true)
+    {
+        return $this->createDeviceCode($client_id, $scope);
+    }
+
+    /**
+     * Generates an unique auth code.
+     *
+     * Implementing classes may want to override this function to implement
+     * other auth code generation schemes.
+     *
+     * @return
+     * An unique auth code.
+     *
+     * @ingroup oauth2_section_4
+     */
+    protected function generateDeviceCode($tokenLen = 40)
+    {
+        $tokenLen = (int)$tokenLen;
+        if (function_exists('mcrypt_create_iv')) {
+            $randomData = mcrypt_create_iv(100, MCRYPT_DEV_URANDOM);
+        } elseif (function_exists('openssl_random_pseudo_bytes')) {
+            $randomData = openssl_random_pseudo_bytes(100);
+        } elseif (@file_exists('/dev/urandom')) { // Get 100 bytes of random data
+            $randomData = file_get_contents('/dev/urandom', false, null, 0, 100) . uniqid(mt_rand(), true);
+        } else {
+            $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
+        }
+
+        return substr(hash('sha512', $randomData), 0, $tokenLen);
+    }
+}
