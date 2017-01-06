@@ -11,7 +11,6 @@ php:
 - 5.6
 - 7.0
 - 7.1
-- hhvm
 env:
   global:
   - secure: Bc5ZqvZ1YYpoPZNNuU2eCB8DS6vBYrAdfBtTenBs5NSxzb+Vjven4kWakbzaMvZjb/Ib7Uph7DGuOtJXpmxnvBXPLd707LZ89oFWN/yqQlZKCcm8iErvJCB5XL+/ONHj2iPdR242HJweMcat6bMCwbVWoNDidjtWMH0U2mYFy3M=
@@ -23,7 +22,7 @@ services:
 before_install:
 - phpenv config-rm xdebug.ini || return 0
 - phpenv version-name | grep ^5.[3-6] && composer remove mongodb/mongodb --dev && echo "extension=mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; true
-- phpenv version-name | grep '^7\|hhvm' && echo "extension=mongodb.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; true
+- phpenv version-name | grep ^7 && echo "extension=mongodb.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; true
 install:
 - composer install
 before_script:
