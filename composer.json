@@ -12,22 +12,23 @@
         }
     ],
     "homepage": "http://github.com/bshaffer/oauth2-server-php",
-    "require":{
-        "php":">=5.3.9"
-    },
     "autoload": {
         "psr-0": { "OAuth2": "src/" }
     },
-    "suggest": {
-        "predis/predis": "Required to use the Redis storage engine",
-        "thobbs/phpcassa": "Required to use the Cassandra storage engine",
-        "aws/aws-sdk-php": "~2.8 is required to use the DynamoDB storage engine",
-        "firebase/php-jwt": "~2.2 is required to use JWT features"
+    "require":{
+        "php":">=5.3.9"
     },
     "require-dev": {
         "aws/aws-sdk-php": "~2.8",
         "firebase/php-jwt": "~2.2",
         "predis/predis": "dev-master",
-        "thobbs/phpcassa": "dev-master"
+        "thobbs/phpcassa": "dev-master",
+        "mongodb/mongodb": "^1.1"
+    },
+    "suggest": {
+        "predis/predis": "Required to use Redis storage",
+        "thobbs/phpcassa": "Required to use Cassandra storage",
+        "aws/aws-sdk-php": "~2.8 is required to use DynamoDB storage",
+        "firebase/php-jwt": "~1.1 is required to use MondoDB storage"
     }
 }

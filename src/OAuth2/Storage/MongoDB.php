@@ -2,6 +2,8 @@
 
 namespace OAuth2\Storage;
 
+use MongoDB\Client;
+use MongoDB\Database;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 
 /**
@@ -16,10 +18,10 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
  *
  * @author Julien Chaumond <chaumond@gmail.com>
  */
-class Mongo implements AuthorizationCodeInterface,
+class MongoDB implements AuthorizationCodeInterface,
+    UserCredentialsInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
-    UserCredentialsInterface,
     RefreshTokenInterface,
     JwtBearerInterface,
     PublicKeyInterface,
@@ -30,32 +32,27 @@ class Mongo implements AuthorizationCodeInterface,
 
     public function __construct($connection, $config = array())
     {
-        if ($connection instanceof \MongoDB) {
+        if ($connection instanceof Database) {
             $this->db = $connection;
         } else {
             if (!is_array($connection)) {
-                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Mongo must be an instance of MongoDB or a configuration array');
+                throw new \InvalidArgumentException('First argument to OAuth2\Storage\Mongo must be an instance of MongoDB\Database or a configuration array');
             }
             $server = sprintf('mongodb://%s:%d', $connection['host'], $connection['port']);
-            $m = new \MongoClient($server);
-            $this->db = $m->{$connection['database']};
+            $m = new Client($server);
+            $this->db = $m->selectDatabase($connection['database']);
         }
-
         $this->config = array_merge(array(
             'client_table' => 'oauth_clients',
             'access_token_table' => 'oauth_access_tokens',
             'refresh_token_table' => 'oauth_refresh_tokens',
             'code_table' => 'oauth_authorization_codes',
             'user_table' => 'oauth_users',
-            'key_table' => 'oauth_keys',
             'jwt_table' => 'oauth_jwt',
+            'jti_table' => 'oauth_jti',
+            'scope_table'  => 'oauth_scopes',
+            'key_table'  => 'oauth_keys',
         ), $config);
-    }
-
-    // Helper function to access a MongoDB collection by `type`:
-    protected function collection($name)
-    {
-        return $this->db->{$this->config[$name]};
     }
 
     /* ClientCredentialsInterface */
@@ -64,7 +61,6 @@ class Mongo implements AuthorizationCodeInterface,
         if ($result = $this->collection('client_table')->findOne(array('client_id' => $client_id))) {
             return $result['client_secret'] == $client_secret;
         }
-
         return false;
     }
 
@@ -73,7 +69,6 @@ class Mongo implements AuthorizationCodeInterface,
         if (!$result = $this->collection('client_table')->findOne(array('client_id' => $client_id))) {
             return false;
         }
-
         return empty($result['client_secret']);
     }
 
@@ -81,14 +76,13 @@ class Mongo implements AuthorizationCodeInterface,
     public function getClientDetails($client_id)
     {
         $result = $this->collection('client_table')->findOne(array('client_id' => $client_id));
-
         return is_null($result) ? false : $result;
     }
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
     {
         if ($this->getClientDetails($client_id)) {
-            $this->collection('client_table')->update(
+            $result = $this->collection('client_table')->updateOne(
                 array('client_id' => $client_id),
                 array('$set' => array(
                     'client_secret' => $client_secret,
@@ -98,19 +92,18 @@ class Mongo implements AuthorizationCodeInterface,
                     'user_id'       => $user_id,
                 ))
             );
-        } else {
-            $client = array(
-                'client_id'     => $client_id,
-                'client_secret' => $client_secret,
-                'redirect_uri'  => $redirect_uri,
-                'grant_types'   => $grant_types,
-                'scope'         => $scope,
-                'user_id'       => $user_id,
-            );
-            $this->collection('client_table')->insert($client);
+            return $result->getMatchedCount() > 0;
         }
-
-        return true;
+        $client = array(
+            'client_id'     => $client_id,
+            'client_secret' => $client_secret,
+            'redirect_uri'  => $redirect_uri,
+            'grant_types'   => $grant_types,
+            'scope'         => $scope,
+            'user_id'       => $user_id,
+        );
+        $result = $this->collection('client_table')->insertOne($client);
+        return $result->getInsertedCount() > 0;
     }
 
     public function checkRestrictedGrantType($client_id, $grant_type)
@@ -118,10 +111,8 @@ class Mongo implements AuthorizationCodeInterface,
         $details = $this->getClientDetails($client_id);
         if (isset($details['grant_types'])) {
             $grant_types = explode(' ', $details['grant_types']);
-
             return in_array($grant_type, $grant_types);
         }
-
         // if grant_types are not defined, then none are restricted
         return true;
     }
@@ -130,7 +121,6 @@ class Mongo implements AuthorizationCodeInterface,
     public function getAccessToken($access_token)
     {
         $token = $this->collection('access_token_table')->findOne(array('access_token' => $access_token));
-
         return is_null($token) ? false : $token;
     }
 
@@ -138,7 +128,7 @@ class Mongo implements AuthorizationCodeInterface,
     {
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
-            $this->collection('access_token_table')->update(
+            $result = $this->collection('access_token_table')->updateOne(
                 array('access_token' => $access_token),
                 array('$set' => array(
                     'client_id' => $client_id,
@@ -147,35 +137,33 @@ class Mongo implements AuthorizationCodeInterface,
                     'scope' => $scope
                 ))
             );
-        } else {
-            $token = array(
-                'access_token' => $access_token,
-                'client_id' => $client_id,
-                'expires' => $expires,
-                'user_id' => $user_id,
-                'scope' => $scope
-            );
-            $this->collection('access_token_table')->insert($token);
+            return $result->getMatchedCount() > 0;
         }
-
-        return true;
+        $token = array(
+            'access_token' => $access_token,
+            'client_id' => $client_id,
+            'expires' => $expires,
+            'user_id' => $user_id,
+            'scope' => $scope
+        );
+        $result = $this->collection('access_token_table')->insertOne($token);
+        return $result->getInsertedCount() > 0;
     }
 
     public function unsetAccessToken($access_token)
     {
-        $result = $this->collection('access_token_table')->remove(array(
+        $result = $this->collection('access_token_table')->deleteOne(array(
             'access_token' => $access_token
-        ), array('w' => 1));
-
-        return $result['n'] > 0;
+        ));
+        return $result->getDeletedCount() > 0;
     }
-
 
     /* AuthorizationCodeInterface */
     public function getAuthorizationCode($code)
     {
-        $code = $this->collection('code_table')->findOne(array('authorization_code' => $code));
-
+        $code = $this->collection('code_table')->findOne(array(
+            'authorization_code' => $code
+        ));
         return is_null($code) ? false : $code;
     }
 
@@ -183,7 +171,7 @@ class Mongo implements AuthorizationCodeInterface,
     {
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
-            $this->collection('code_table')->update(
+            $result = $this->collection('code_table')->updateOne(
                 array('authorization_code' => $code),
                 array('$set' => array(
                     'client_id' => $client_id,
@@ -194,27 +182,27 @@ class Mongo implements AuthorizationCodeInterface,
                     'id_token' => $id_token,
                 ))
             );
-        } else {
-            $token = array(
-                'authorization_code' => $code,
-                'client_id' => $client_id,
-                'user_id' => $user_id,
-                'redirect_uri' => $redirect_uri,
-                'expires' => $expires,
-                'scope' => $scope,
-                'id_token' => $id_token,
-            );
-            $this->collection('code_table')->insert($token);
+            return $result->getMatchedCount() > 0;
         }
-
-        return true;
+        $token = array(
+            'authorization_code' => $code,
+            'client_id' => $client_id,
+            'user_id' => $user_id,
+            'redirect_uri' => $redirect_uri,
+            'expires' => $expires,
+            'scope' => $scope,
+            'id_token' => $id_token,
+        );
+        $result = $this->collection('code_table')->insertOne($token);
+        return $result->getInsertedCount() > 0;
     }
 
     public function expireAuthorizationCode($code)
     {
-        $this->collection('code_table')->remove(array('authorization_code' => $code));
-
-        return true;
+        $result = $this->collection('code_table')->deleteOne(array(
+            'authorization_code' => $code
+        ));
+        return $result->getDeletedCount() > 0;
     }
 
     /* UserCredentialsInterface */
@@ -223,7 +211,6 @@ class Mongo implements AuthorizationCodeInterface,
         if ($user = $this->getUser($username)) {
             return $this->checkPassword($user, $password);
         }
-
         return false;
     }
 
@@ -232,15 +219,15 @@ class Mongo implements AuthorizationCodeInterface,
         if ($user = $this->getUser($username)) {
             $user['user_id'] = $user['username'];
         }
-
         return $user;
     }
 
     /* RefreshTokenInterface */
     public function getRefreshToken($refresh_token)
     {
-        $token = $this->collection('refresh_token_table')->findOne(array('refresh_token' => $refresh_token));
-
+        $token = $this->collection('refresh_token_table')->findOne(array(
+            'refresh_token' => $refresh_token
+        ));
         return is_null($token) ? false : $token;
     }
 
@@ -253,18 +240,16 @@ class Mongo implements AuthorizationCodeInterface,
             'expires' => $expires,
             'scope' => $scope
         );
-        $this->collection('refresh_token_table')->insert($token);
-
-        return true;
+        $result = $this->collection('refresh_token_table')->insertOne($token);
+        return $result->getInsertedCount() > 0;
     }
 
     public function unsetRefreshToken($refresh_token)
     {
-        $result = $this->collection('refresh_token_table')->remove(array(
+        $result = $this->collection('refresh_token_table')->deleteOne(array(
             'refresh_token' => $refresh_token
-        ), array('w' => 1));
-
-        return $result['n'] > 0;
+        ));
+        return $result->getDeletedCount() > 0;
     }
 
     // plaintext passwords are bad!  Override this for your application
@@ -276,14 +261,13 @@ class Mongo implements AuthorizationCodeInterface,
     public function getUser($username)
     {
         $result = $this->collection('user_table')->findOne(array('username' => $username));
-
         return is_null($result) ? false : $result;
     }
 
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
         if ($this->getUser($username)) {
-            $this->collection('user_table')->update(
+            $result = $this->collection('user_table')->updateOne(
                 array('username' => $username),
                 array('$set' => array(
                     'password' => $password,
@@ -291,17 +275,18 @@ class Mongo implements AuthorizationCodeInterface,
                     'last_name' => $lastName
                 ))
             );
-        } else {
-            $user = array(
-                'username' => $username,
-                'password' => $password,
-                'first_name' => $firstName,
-                'last_name' => $lastName
-            );
-            $this->collection('user_table')->insert($user);
+
+            return $result->getMatchedCount() > 0;
         }
 
-        return true;
+        $user = array(
+            'username' => $username,
+            'password' => $password,
+            'first_name' => $firstName,
+            'last_name' => $lastName
+        );
+        $result = $this->collection('user_table')->insertOne($user);
+        return $result->getInsertedCount() > 0;
     }
 
     public function getClientKey($client_id, $subject)
@@ -310,7 +295,6 @@ class Mongo implements AuthorizationCodeInterface,
             'client_id' => $client_id,
             'subject' => $subject
         ));
-
         return is_null($result) ? false : $result['key'];
     }
 
@@ -319,21 +303,19 @@ class Mongo implements AuthorizationCodeInterface,
         if (!$clientDetails = $this->getClientDetails($client_id)) {
             return false;
         }
-
         if (isset($clientDetails['scope'])) {
             return $clientDetails['scope'];
         }
-
         return null;
     }
 
-    public function getJti($client_id, $subject, $audience, $expiration, $jti)
+    public function getJti($client_id, $subject, $audience, $expires, $jti)
     {
         //TODO: Needs mongodb implementation.
         throw new \Exception('getJti() for the MongoDB driver is currently unimplemented.');
     }
 
-    public function setJti($client_id, $subject, $audience, $expiration, $jti)
+    public function setJti($client_id, $subject, $audience, $expires, $jti)
     {
         //TODO: Needs mongodb implementation.
         throw new \Exception('setJti() for the MongoDB driver is currently unimplemented.');
@@ -388,5 +370,11 @@ class Mongo implements AuthorizationCodeInterface,
             'client_id' => null
         ));
         return is_null($result) ? 'RS256' : $result['encryption_algorithm'];
+    }
+
+    // Helper function to access a MongoDB collection by `type`:
+    protected function collection($name)
+    {
+        return $this->db->{$this->config[$name]};
     }
 }
