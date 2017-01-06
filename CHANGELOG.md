@@ -8,6 +8,23 @@ To see the files changed for a given bug, go to https://github.com/bshaffer/oaut
 To get the diff between two versions, go to https://github.com/bshaffer/oauth2-server-php/compare/v1.0...v1.1
 To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-server-php/commit/XXX where XXX is the change hash
 
+* 1.9.0 (2016-01-06)
+
+  PR: https://github.com/bshaffer/oauth2-server-php/pull/788
+
+  * bug #645 - Allow null for client_secret
+  * bug #651 - Fix bug in isPublicClient of Cassandra Storage
+  * bug #670 - Bug in client's scope restriction
+  * bug #672 - Implemented method to override the password hashing algorithm
+  * bug #698 - Fix Token Response's Content-Type to application/json
+  * bug #729 - Ensures unsetAccessToken and unsetRefreshToken return a bool
+  * bug #749 - Fix UserClaims for CodeIdToken
+  * bug #784 - RFC6750 compatibility
+  * bug #776 - Fix "redirect_uri_mismatch" for URIs with encoded characters
+  * bug #759 - no access token supplied to resource controller results in empty request body
+  * bug #773 - Use OpenSSL random method before attempting Mcrypt's.
+  * bug #790 - Add mongo db
+
 * 1.8.0 (2015-09-18)
 
   PR: https://github.com/bshaffer/oauth2-server-php/pull/643

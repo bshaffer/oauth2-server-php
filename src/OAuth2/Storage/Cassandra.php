@@ -136,14 +136,19 @@ class Cassandra implements AuthorizationCodeInterface,
         unset($this->cache[$key]);
 
         $cf = new ColumnFamily($this->cassandra, $this->config['column_family']);
-        try {
-            // __data key set as C* requires a field
-            $cf->remove($key, array('__data'));
-        } catch (\Exception $e) {
-            return false;
+
+        if ($cf->get_count($key) > 0) {
+            try {
+                // __data key set as C* requires a field
+                $cf->remove($key, array('__data'));
+            } catch (\Exception $e) {
+                return false;
+            }
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /* AuthorizationCodeInterface */
@@ -182,7 +187,13 @@ class Cassandra implements AuthorizationCodeInterface,
     // plaintext passwords are bad!  Override this for your application
     protected function checkPassword($user, $password)
     {
-        return $user['password'] == sha1($password);
+        return $user['password'] == $this->hashPassword($password);
+    }
+
+    // use a secure hashing algorithm when storing passwords. Override this for your application
+    protected function hashPassword($password)
+    {
+        return sha1($password);
     }
 
     public function getUserDetails($username)
@@ -204,7 +215,7 @@ class Cassandra implements AuthorizationCodeInterface,
 
     public function setUser($username, $password, $first_name = null, $last_name = null)
     {
-        $password = sha1($password);
+        $password = $this->hashPassword($password);
 
         return $this->setValue(
             $this->config['user_key'] . $username,
@@ -229,7 +240,7 @@ class Cassandra implements AuthorizationCodeInterface,
             return false;
         }
 
-        return empty($result['client_secret']);;
+        return empty($client['client_secret']);
     }
 
     /* ClientInterface */
