@@ -59,32 +59,20 @@ class JwtAccessToken extends AccessToken
      */
     public function createAccessToken($client_id, $user_id, $scope = null, $includeRefreshToken = true)
     {
-        // token to encrypt
-        $expires = time() + $this->config['access_lifetime'];
-        $id = $this->generateAccessToken();
-        $jwtAccessToken = array(
-            'id'         => $id, // for BC (see #591)
-            'jti'        => $id,
-            'iss'        => $this->config['issuer'],
-            'aud'        => $client_id,
-            'sub'        => $user_id,
-            'exp'        => $expires,
-            'iat'        => time(),
-            'token_type' => $this->config['token_type'],
-            'scope'      => $scope
-        );
+        // payload to encrypt
+        $payload = $this->generatePayload($client_id, $user_id, $scope);
 
         /*
-         * Encode the token data into a single access_token string
+         * Encode the payload data into a single JWT access_token string
          */
-        $access_token = $this->encodeToken($jwtAccessToken, $client_id);
+        $access_token = $this->encodeToken($payload, $client_id);
 
         /*
          * Save the token to a secondary storage.  This is implemented on the
          * OAuth2\Storage\JwtAccessToken side, and will not actually store anything,
          * if no secondary storage has been supplied
          */
-        $token_to_store = $this->config['store_encrypted_token_string'] ? $access_token : $jwtAccessToken['id'];
+        $token_to_store = $this->config['store_encrypted_token_string'] ? $access_token : $payload['id'];
         $this->tokenStorage->setAccessToken($token_to_store, $client_id, $user_id, $this->config['access_lifetime'] ? time() + $this->config['access_lifetime'] : null, $scope);
 
         // token to return to the client
@@ -120,5 +108,24 @@ class JwtAccessToken extends AccessToken
         $algorithm   = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
 
         return $this->encryptionUtil->encode($token, $private_key, $algorithm);
+    }
+
+    protected function generatePayload($client_id, $user_id, $scope = null)
+    {
+        // token to encrypt
+        $expires = time() + $this->config['access_lifetime'];
+        $id = $this->generateAccessToken();
+
+        return array(
+            'id'         => $id, // for BC (see #591)
+            'jti'        => $id,
+            'iss'        => $this->config['issuer'],
+            'aud'        => $client_id,
+            'sub'        => $user_id,
+            'exp'        => $expires,
+            'iat'        => time(),
+            'token_type' => $this->config['token_type'],
+            'scope'      => $scope
+        );
     }
 }
