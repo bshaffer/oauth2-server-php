@@ -60,7 +60,7 @@ class JwtAccessToken extends AccessToken
     public function createAccessToken($client_id, $user_id, $scope = null, $includeRefreshToken = true)
     {
         // payload to encrypt
-        $payload = $this->generatePayload($client_id, $user_id, $scope);
+        $payload = $this->createPayload($client_id, $user_id, $scope);
 
         /*
          * Encode the payload data into a single JWT access_token string
@@ -110,7 +110,7 @@ class JwtAccessToken extends AccessToken
         return $this->encryptionUtil->encode($token, $private_key, $algorithm);
     }
 
-    protected function generatePayload($client_id, $user_id, $scope = null)
+    protected function createPayload($client_id, $user_id, $scope = null)
     {
         // token to encrypt
         $expires = time() + $this->config['access_lifetime'];
