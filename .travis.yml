@@ -26,6 +26,10 @@ before_install:
 install:
 - composer install
 before_script:
+- echo 'extension = "mongo.so"' >> /etc/$(phpenv version-name)/php.ini
+- phpenv config_add /etc/$(phpenv version-name)/php.ini
 - psql -c 'create database oauth2_server_php;' -U postgres
+script:
+- phpunit -v
 after_script:
 - php test/cleanup.php
