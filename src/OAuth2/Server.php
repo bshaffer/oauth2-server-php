@@ -791,7 +791,7 @@ class Server implements ResourceControllerInterface,
 
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'issuer id_lifetime')));
 
-        return new IdToken($this->storages['user_claims'], $this->storages['public_key'], $config);
+        return new IdToken($this->storages['user_claims'], $this->storages['public_key'], $this->storages['client_credentials'], $config);
     }
 
     protected function createDefaultIdTokenTokenResponseType()

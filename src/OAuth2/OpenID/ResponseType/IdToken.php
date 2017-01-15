@@ -5,19 +5,28 @@ namespace OAuth2\OpenID\ResponseType;
 use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\Encryption\Jwt;
 use OAuth2\Storage\PublicKeyInterface;
+use OAuth2\Storage\ClientCredentialsInterface;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 
 class IdToken implements IdTokenInterface
 {
     protected $userClaimsStorage;
     protected $publicKeyStorage;
+    protected $clientCredentialsStorage;
     protected $config;
     protected $encryptionUtil;
 
-    public function __construct(UserClaimsInterface $userClaimsStorage, PublicKeyInterface $publicKeyStorage, array $config = array(), EncryptionInterface $encryptionUtil = null)
-    {
+    public function __construct(
+        UserClaimsInterface $userClaimsStorage,
+        PublicKeyInterface $publicKeyStorage,
+        ClientCredentialsInterface $clientCredentialsStorage,
+        array $config = array(),
+        EncryptionInterface $encryptionUtil = null
+    ) {
         $this->userClaimsStorage = $userClaimsStorage;
         $this->publicKeyStorage = $publicKeyStorage;
+        $this->clientCredentialsStorage = $clientCredentialsStorage;
+        
         if (is_null($encryptionUtil)) {
             $encryptionUtil = new Jwt();
         }
@@ -92,10 +101,23 @@ class IdToken implements IdTokenInterface
 
     protected function encodeToken(array $token, $client_id = null)
     {
-        $private_key = $this->publicKeyStorage->getPrivateKey($client_id);
+
         $algorithm = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
 
-        return $this->encryptionUtil->encode($token, $private_key, $algorithm);
+        /* If openid_connect and using MAC based algorithm, signature should be keyed
+         * with client_secret, not private key. */
+        switch ($algorithm) {
+            case 'HS256':
+            case 'HS384':
+            case 'HS512':
+                $client_details = $this->clientCredentialsStorage->getClientDetails($client_id);
+                $key = $client_details['client_secret'];
+                break;
+            default:
+                $key = $this->publicKeyStorage->getPrivateKey($client_id);
+        }
+
+        return $this->encryptionUtil->encode($token, $key, $algorithm);
     }
 
     private function getUserIdAndAuthTime($userInfo)
