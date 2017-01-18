@@ -74,7 +74,14 @@ class ResourceController implements ResourceControllerInterface
     public function getAccessTokenData(RequestInterface $request, ResponseInterface $response)
     {
         // Get the token parameter
-        if ($token_param = $this->tokenType->getAccessTokenParameter($request, $response)) {
+        $token_param = $this->tokenType->getAccessTokenParameter($request, $response);
+        // Make sure the token is provided
+
+        if (is_null($token_param)) {
+            $response->setError(401, 'invalid_token', 'Protected resource and no access token provided.');
+        }
+
+        if ($token_param) {
             // Get the stored token data (from the implementing subclass)
             // Check we have a well formed token
             // Check token expiration (expires is a mandatory paramter)
