@@ -128,11 +128,14 @@ class JwtAccessToken extends AccessToken
             'scope'      => $scope
         );
         
-        if (isset($this->config['jwt_extra_payload']) && is_callable($this->config['jwt_extra_payload'])) {
-            $func = $this->config['jwt_extra_payload'];
-            $extra = $func($client_id, $user_id, $scope);
-            if (is_array($extra)) {
-                $payload = array_merge($extra, $payload);
+        if (isset($this->config['jwt_extra_payload'])) {
+            if (is_callable($this->config['jwt_extra_payload'])) {
+                $extra = call_user_func($this->config['jwt_extra_payload'], $client_id, $user_id, $scope);
+                if (is_array($extra)) {
+                    $payload = array_merge($extra, $payload);
+                }
+            } else {
+                throw new \InvalidArgumentException("config['jwt_extra_payload'] is not callable");
             }
         }
         
