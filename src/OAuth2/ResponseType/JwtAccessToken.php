@@ -116,7 +116,7 @@ class JwtAccessToken extends AccessToken
         $expires = time() + $this->config['access_lifetime'];
         $id = $this->generateAccessToken();
 
-        return array(
+        $payload = array(
             'id'         => $id, // for BC (see #591)
             'jti'        => $id,
             'iss'        => $this->config['issuer'],
@@ -127,5 +127,15 @@ class JwtAccessToken extends AccessToken
             'token_type' => $this->config['token_type'],
             'scope'      => $scope
         );
+        
+        if (isset($this->config['jwt_extra_payload']) && is_callable($this->config['jwt_extra_payload'])) {
+            $func = $this->config['jwt_extra_payload'];
+            $extra = $func($client_id, $user_id, $scope);
+            if (is_array($extra)) {
+                $payload = array_merge($extra, $payload);
+            }
+        }
+        
+        return $payload;
     }
 }
