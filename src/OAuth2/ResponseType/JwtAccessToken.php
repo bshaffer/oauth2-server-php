@@ -133,6 +133,8 @@ class JwtAccessToken extends AccessToken
                 $extra = call_user_func($this->config['jwt_extra_payload'], $client_id, $user_id, $scope);
                 if (is_array($extra)) {
                     $payload = array_merge($extra, $payload);
+                } else {
+                    throw new \InvalidArgumentException("config['jwt_extra_payload'] callable must return array");
                 }
             } else {
                 throw new \InvalidArgumentException("config['jwt_extra_payload'] is not callable");
