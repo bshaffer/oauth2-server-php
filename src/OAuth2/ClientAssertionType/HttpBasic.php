@@ -34,6 +34,7 @@ class HttpBasic implements ClientAssertionTypeInterface
         $this->config = array_merge(array(
             'allow_credentials_in_request_body' => true,
             'allow_public_clients' => true,
+            'token_bearer_header_name' => 'Bearer',
         ), $config);
     }
 
@@ -97,7 +98,7 @@ class HttpBasic implements ClientAssertionTypeInterface
      */
     public function getClientCredentials(RequestInterface $request, ResponseInterface $response = null)
     {
-        if (!is_null($request->headers('PHP_AUTH_USER')) && !is_null($request->headers('PHP_AUTH_PW'))) {
+        if (preg_match('/' . $this->config['token_bearer_header_name'] . '\s(\S+)/', $request->headers('AUTHORIZATION')) && !is_null($request->headers('PHP_AUTH_USER')) && !is_null($request->headers('PHP_AUTH_PW'))) {
             return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));
         }
 

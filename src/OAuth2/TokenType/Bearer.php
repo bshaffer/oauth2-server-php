@@ -25,6 +25,21 @@ class Bearer implements TokenTypeInterface
         return 'Bearer';
     }
 
+    /* 
+     * in practical, it's pretty common to use http basic auth when it is under dev, therefore you would have 'Basic' auth type in your http header.
+     * This could confuse with oauth bearer header. This function is used to solve the issue as it only returns bearer header or nothing.
+     */
+    public function getBearerAuthorizationHeader($request)
+    {
+        $headers = $request->headers('AUTHORIZATION');
+        if (!preg_match('/' . $this->config['token_bearer_header_name'] . '\s(\S+)/', $headers, $matches)) {
+            return null;
+        }
+
+        return $matches[1];
+    }
+
+
     /**
      * Check if the request has supplied token
      *
@@ -32,7 +47,7 @@ class Bearer implements TokenTypeInterface
      */
     public function requestHasToken(RequestInterface $request)
     {
-        $headers = $request->headers('AUTHORIZATION');
+        $headers = $this->getBearerAuthorizationHeader($request);
 
         // check the header, then the querystring, then the request body
         return !empty($headers) || (bool) ($request->request($this->config['token_param_name'])) || (bool) ($request->query($this->config['token_param_name']));
@@ -62,7 +77,7 @@ class Bearer implements TokenTypeInterface
      */
     public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response)
     {
-        $headers = $request->headers('AUTHORIZATION');
+        $headers = $this->getBearerAuthorizationHeader($request);
 
         /**
          * Ensure more than one method is not used for including an
