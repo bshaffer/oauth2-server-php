@@ -16,8 +16,6 @@ use OAuth2\ResponseInterface;
  */
 class UserInfoController extends ResourceController implements UserInfoControllerInterface
 {
-    private $token;
-
     protected $tokenType;
     protected $tokenStorage;
     protected $userClaimsStorage;
