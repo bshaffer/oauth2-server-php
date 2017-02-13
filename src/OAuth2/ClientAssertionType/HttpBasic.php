@@ -97,8 +97,17 @@ class HttpBasic implements ClientAssertionTypeInterface
      */
     public function getClientCredentials(RequestInterface $request, ResponseInterface $response = null)
     {
-        if (!is_null($request->headers('PHP_AUTH_USER')) && !is_null($request->headers('PHP_AUTH_PW'))) {
-            return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));
+        if (!is_null($request->server('PHP_AUTH_USER')) && !is_null($request->server('PHP_AUTH_PW'))) {
+            return array('client_id' => $request->server('PHP_AUTH_USER'), 'client_secret' => $request->server('PHP_AUTH_PW'));
+        }
+
+        $authorizationHeader = $request->headers('AUTHORIZATION');
+
+        if ($authorizationHeader && 0 === stripos($authorizationHeader, 'basic')) {
+            $exploded = explode(':', base64_decode(substr($authorizationHeader, 6)));
+            if (count($exploded) == 2) {
+                return array('client_id' => $exploded[0], 'client_secret' => $exploded[1]);
+            }
         }
 
         if ($this->config['allow_credentials_in_request_body']) {
