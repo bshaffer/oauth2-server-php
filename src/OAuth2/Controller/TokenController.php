@@ -12,14 +12,33 @@ use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 
 /**
- * @see OAuth2\Controller\TokenControllerInterface
+ * @see \OAuth2\Controller\TokenControllerInterface
  */
 class TokenController implements TokenControllerInterface
 {
+    /**
+     * @var AccessTokenInterface
+     */
     protected $accessToken;
+
+    /**
+     * @var array
+     */
     protected $grantTypes;
+
+    /**
+     * @var ClientAssertionTypeInterface
+     */
     protected $clientAssertionType;
+
+    /**
+     * @var Scope|ScopeInterface
+     */
     protected $scopeUtil;
+
+    /**
+     * @var ClientInterface
+     */
     protected $clientStorage;
 
     public function __construct(AccessTokenInterface $accessToken, ClientInterface $clientStorage, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null)
@@ -64,11 +83,11 @@ class TokenController implements TokenControllerInterface
      * This would be called from the "/token" endpoint as defined in the spec.
      * You can call your endpoint whatever you want.
      *
-     * @param $request - RequestInterface
-     * Request object to grant access token
+     * @param RequestInterface $request Request object to grant access token
+     * @param ResponseInterface $response
      *
-     * @throws InvalidArgumentException
-     * @throws LogicException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      *
      * @see http://tools.ietf.org/html/rfc6749#section-4
      * @see http://tools.ietf.org/html/rfc6749#section-10.6
@@ -208,10 +227,8 @@ class TokenController implements TokenControllerInterface
     /**
      * addGrantType
      *
-     * @param grantType - OAuth2\GrantTypeInterface
-     * the grant type to add for the specified identifier
-     * @param identifier - string
-     * a string passed in as "grant_type" in the response that will call this grantType
+     * @param GrantTypeInterface $grantType the grant type to add for the specified identifier
+     * @param string $identifier a string passed in as "grant_type" in the response that will call this grantType
      */
     public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
     {

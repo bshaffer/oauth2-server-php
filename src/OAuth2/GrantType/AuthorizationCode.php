@@ -17,7 +17,7 @@ class AuthorizationCode implements GrantTypeInterface
     protected $authCode;
 
     /**
-     * @param OAuth2\Storage\AuthorizationCodeInterface $storage REQUIRED Storage class for retrieving authorization code information
+     * @param \OAuth2\Storage\AuthorizationCodeInterface $storage REQUIRED Storage class for retrieving authorization code information
      */
     public function __construct(AuthorizationCodeInterface $storage)
     {
@@ -49,7 +49,7 @@ class AuthorizationCode implements GrantTypeInterface
          * @uri - http://tools.ietf.org/html/rfc6749#section-4.1.3
          */
         if (isset($authCode['redirect_uri']) && $authCode['redirect_uri']) {
-            if (!$request->request('redirect_uri') || urldecode($request->request('redirect_uri')) != $authCode['redirect_uri']) {
+            if (!$request->request('redirect_uri') || urldecode($request->request('redirect_uri')) != urldecode($authCode['redirect_uri'])) {
                 $response->setError(400, 'redirect_uri_mismatch', "The redirect URI is missing or do not match", "#section-4.1.3");
 
                 return false;
