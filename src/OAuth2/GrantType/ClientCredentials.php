@@ -13,7 +13,7 @@ use OAuth2\Storage\ClientCredentialsInterface;
  */
 class ClientCredentials extends HttpBasic implements GrantTypeInterface
 {
-    private $clientData;
+    protected $clientData;
 
     public function __construct(ClientCredentialsInterface $storage, array $config = array())
     {
@@ -58,7 +58,7 @@ class ClientCredentials extends HttpBasic implements GrantTypeInterface
         return $accessToken->createAccessToken($client_id, $user_id, $scope, $includeRefreshToken);
     }
 
-    private function loadClientData()
+    protected function loadClientData()
     {
         if (!$this->clientData) {
             $this->clientData = $this->storage->getClientDetails($this->getClientId());

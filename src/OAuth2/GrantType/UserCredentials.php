@@ -13,7 +13,7 @@ use OAuth2\ResponseInterface;
  */
 class UserCredentials implements GrantTypeInterface
 {
-    private $userInfo;
+    protected $userInfo;
 
     protected $storage;
 
