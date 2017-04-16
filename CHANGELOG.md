@@ -110,6 +110,19 @@ To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-
   * bug #333 fixes Pdo storage for getClientKey
   * bug #336 fixes Redis storage for expireAuthorizationCode
 
+* 1.3 (2014-02-27)
+
+  PR: https://github.com/bshaffer/oauth2-server-php/pull/325
+
+  * bug #311 adds cassandra storage
+  * bug #298 fixes response code for user credentials grant type
+  * bug #318 adds 'use_crypto_tokens' config to Server class for better DX
+  * bug #320 pass client_id to getDefaultScope
+  * bug #324 better feedback when running tests
+  * bug #335 adds support for non-expiring refresh tokens
+  * bug #333 fixes Pdo storage for getClientKey
+  * bug #336 fixes Redis storage for expireAuthorizationCode
+
 * 1.2 (2014-01-03)
 
   PR: https://github.com/bshaffer/oauth2-server-php/pull/288
