@@ -16,28 +16,13 @@ use OAuth2\ResponseInterface;
  */
 class UserInfoController extends ResourceController implements UserInfoControllerInterface
 {
-    private $token;
-
-    protected $tokenType;
-    protected $tokenStorage;
     protected $userClaimsStorage;
-    protected $config;
-    protected $scopeUtil;
 
     public function __construct(TokenTypeInterface $tokenType, AccessTokenInterface $tokenStorage, UserClaimsInterface $userClaimsStorage, $config = array(), ScopeInterface $scopeUtil = null)
     {
-        $this->tokenType = $tokenType;
-        $this->tokenStorage = $tokenStorage;
+        parent::__construct($tokenType, $tokenStorage, $config, $scopeUtil);
+        
         $this->userClaimsStorage = $userClaimsStorage;
-
-        $this->config = array_merge(array(
-            'www_realm' => 'Service',
-        ), $config);
-
-        if (is_null($scopeUtil)) {
-            $scopeUtil = new Scope();
-        }
-        $this->scopeUtil = $scopeUtil;
     }
 
     public function handleUserInfoRequest(RequestInterface $request, ResponseInterface $response)
