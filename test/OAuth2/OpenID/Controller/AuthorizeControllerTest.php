@@ -6,6 +6,7 @@ use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
 use OAuth2\Request;
 use OAuth2\Response;
+use OAuth2\Encryption\Jwt;
 
 class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
 {
@@ -164,6 +165,43 @@ class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($authorize->needsIdToken('openid profile'));
         $this->assertFalse($authorize->needsIdToken(''));
         $this->assertFalse($authorize->needsIdToken('some-scope'));
+    }
+
+    public function testValidateAuthorizaitionCodeWhenUsingAuthTime()
+    {
+        $jwt = new Jwt();
+        $server = $this->getTestServer();
+
+        $response = new Response();
+        $request = new Request(array(
+            'client_id'     => 'Test Client ID', // valid client id
+            'redirect_uri'  => 'http://adobe.com', // valid redirect URI
+            'response_type' => 'code',
+            'scope'         => 'openid',
+            'state'         => 'af0ifjsldkj',
+            'nonce'         => 'n-0S6_WzA2Mj',
+        ));
+
+        // Test valid id_token request
+        $user_info = array(
+            'user_id' => 'testuser',
+            'auth_time' => time()-100,
+            );
+        $server->handleAuthorizeRequest($request, $response, true, $user_info);
+
+        $this->assertEquals($response->getStatusCode(), 302);
+
+        $parts = parse_url($response->getHttpHeader('Location'));
+        parse_str($parts['query'], $query);
+
+        $authCode = $server->getStorage('authorization_code')->getAuthorizationCode( $query['code'] );
+
+        $this->assertEquals('Test Client ID', $authCode['client_id']);
+        $this->assertEquals($user_info['user_id'], $authCode['user_id']);
+        $this->assertEquals('http://adobe.com', $authCode['redirect_uri']);
+        $this->assertGreaterThan(time(), $authCode['expires']);
+        $this->assertEquals('openid', $authCode['scope']);
+        $this->assertNotEmpty($authCode['id_token']);
     }
 
     private function getTestServer($config = array())
