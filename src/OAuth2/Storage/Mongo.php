@@ -338,6 +338,7 @@ class Mongo implements AuthorizationCodeInterface,
         //TODO: Needs mongodb implementation.
         throw new \Exception('setJti() for the MongoDB driver is currently unimplemented.');
     }
+<<<<<<< HEAD
 
     public function getPublicKey($client_id = null)
     {
@@ -390,3 +391,6 @@ class Mongo implements AuthorizationCodeInterface,
         return is_null($result) ? 'RS256' : $result['encryption_algorithm'];
     }
 }
+=======
+}
+>>>>>>> 5ebc25b37d4aab72ae56f25fb194f775fa1f0aff
