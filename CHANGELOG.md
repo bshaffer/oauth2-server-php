@@ -87,7 +87,7 @@ To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-
   * bug #346 Fixes open_basedir warning
   * bug #351 Adds OpenID Connect support
   * bug #355 Adds php 5.6 and HHVM to travis.ci testing
-  * [BC] bug #358 Adds `getQuerystringIdentifier()` to the GrantType interface
+  * [BC] bug #358 Adds `getQueryStringIdentifier()` to the GrantType interface
   * bug #363 Encryption\JWT - Allows for subclassing JWT Headers
   * bug #349 Bearer Tokens - adds requestHasToken method for when access tokens are optional
   * bug #301 Encryption\JWT - fixes urlSafeB64Encode(): ensures newlines are replaced as expected
