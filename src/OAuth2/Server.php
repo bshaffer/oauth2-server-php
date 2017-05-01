@@ -51,7 +51,7 @@ class Server implements ResourceControllerInterface,
     UserInfoControllerInterface
 {
     /**
-     * @var
+     * @var ResponseInterface
      */
     protected $response;
 
