@@ -704,21 +704,12 @@ class Pdo implements
               PRIMARY KEY (scope)
             );
 
-<<<<<<< HEAD
-        CREATE TABLE {$this->config['jti_table']} (
-          issuer              VARCHAR(80)   NOT NULL,
-          subject             VARCHAR(80),
-          audience            VARCHAR(80),
-          expires             TIMESTAMP     NOT NULL,
-          jti                 VARCHAR(2000) NOT NULL
-        );
-=======
             CREATE TABLE {$this->config['jwt_table']} (
               client_id           VARCHAR(80)   NOT NULL,
               subject             VARCHAR(80),
               public_key          VARCHAR(2000) NOT NULL
             );
-    
+
             CREATE TABLE {$this->config['jti_table']} (
               issuer              VARCHAR(80)   NOT NULL,
               subject             VARCHAR(80),
@@ -726,7 +717,6 @@ class Pdo implements
               expires             TIMESTAMP     NOT NULL,
               jti                 VARCHAR(2000) NOT NULL
             );
->>>>>>> 5ebc25b37d4aab72ae56f25fb194f775fa1f0aff
 
             CREATE TABLE {$this->config['public_key_table']} (
               client_id            VARCHAR(80),
