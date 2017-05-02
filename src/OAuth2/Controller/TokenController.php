@@ -301,7 +301,7 @@ class TokenController implements TokenControllerInterface
 
         if (strtolower($request->server('REQUEST_METHOD')) !== 'post') {
             $response->setError(405, 'invalid_request', 'The request method must be POST when revoking an access token', '#section-3.2');
-            $response->addHttpHeaders(array('Allow' => 'POST'));
+            $response->addHttpHeaders(array('Allow' => 'POST, OPTIONS'));
 
             return null;
         }
