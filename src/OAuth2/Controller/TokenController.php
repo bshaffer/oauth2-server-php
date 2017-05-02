@@ -118,9 +118,15 @@ class TokenController implements TokenControllerInterface
      */
     public function grantAccessToken(RequestInterface $request, ResponseInterface $response)
     {
-        if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
+        if (strtolower($request->server('REQUEST_METHOD')) === 'options') {
+            $response->addHttpHeaders(array('Allow' => 'POST, OPTIONS'));
+
+            return null;
+        }
+
+        if (strtolower($request->server('REQUEST_METHOD')) !== 'post') {
             $response->setError(405, 'invalid_request', 'The request method must be POST when requesting an access token', '#section-3.2');
-            $response->addHttpHeaders(array('Allow' => 'POST'));
+            $response->addHttpHeaders(array('Allow' => 'POST, OPTIONS'));
 
             return null;
         }

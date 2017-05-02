@@ -45,9 +45,14 @@ class TestRequest extends Request implements RequestInterface
         $this->query = $query;
     }
 
+    public function setMethod($method)
+    {
+        $this->server['REQUEST_METHOD'] = $method;
+    }
+
     public function setPost(array $params)
     {
-        $this->server['REQUEST_METHOD'] = 'POST';
+        $this->setMethod('POST');
         $this->request = $params;
     }
 
