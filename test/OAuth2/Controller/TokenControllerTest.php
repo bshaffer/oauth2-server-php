@@ -271,6 +271,48 @@ class TokenControllerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($response->getParameter('error_description'), 'The request method must be POST when revoking an access token');
     }
 
+    public function testCanUseCrossOriginRequestForRevoke()
+    {
+        $server = $this->getTestServer();
+
+        $request = new TestRequest();
+        $request->setMethod('OPTIONS');
+
+        $server->handleRevokeRequest($request, $response = new Response());
+        $this->assertTrue($response instanceof Response);
+        $this->assertEquals(200, $response->getStatusCode(), var_export($response, 1));
+        $this->assertEquals($response->getHttpHeader('Allow'), 'POST, OPTIONS');
+    }
+
+    public function testInvalidRequestMethodForAccessToken()
+    {
+        $server = $this->getTestServer();
+
+        $request = new TestRequest();
+        $request->setQuery(array(
+            'token_type_hint' => 'access_token'
+        ));
+
+        $server->handleTokenRequest($request, $response = new Response());
+        $this->assertTrue($response instanceof Response);
+        $this->assertEquals(405, $response->getStatusCode(), var_export($response, 1));
+        $this->assertEquals($response->getParameter('error'), 'invalid_request');
+        $this->assertEquals($response->getParameter('error_description'), 'The request method must be POST when requesting an access token');
+    }
+
+    public function testCanUseCrossOriginRequestForAccessToken()
+    {
+        $server = $this->getTestServer();
+
+        $request = new TestRequest();
+        $request->setMethod('OPTIONS');
+
+        $server->handleTokenRequest($request, $response = new Response());
+        $this->assertTrue($response instanceof Response);
+        $this->assertEquals(200, $response->getStatusCode(), var_export($response, 1));
+        $this->assertEquals($response->getHttpHeader('Allow'), 'POST, OPTIONS');
+    }
+
     public function testCreateController()
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
