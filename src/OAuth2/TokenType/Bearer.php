@@ -113,7 +113,7 @@ class Bearer implements TokenTypeInterface
                 $contentType = substr($contentType, 0, $pos);
             }
 
-            if ($contentType !== null && $contentType != 'application/x-www-form-urlencoded') {
+            if ($contentType !== null && !in_array($contentType, array('application/x-www-form-urlencoded','application/json', true)) {
                 // IETF specifies content-type. NB: Not all webservers populate this _SERVER variable
                 // @see http://tools.ietf.org/html/rfc6750#section-2.2
                 $response->setError(400, 'invalid_request', 'The content type for POST requests must be "application/x-www-form-urlencoded"');
