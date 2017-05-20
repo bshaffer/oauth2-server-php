@@ -47,9 +47,9 @@ class TokenController implements TokenControllerInterface
 
     public function handleTokenRequest(RequestInterface $request, ResponseInterface $response)
     {
-        $errors = null;
+        $error = null;
         $body = new Stream('php://temp', 'rw');
-        if ($token = $this->grantAccessToken($request, $errors)) {
+        if ($token = $this->grantAccessToken($request, $error)) {
             // @see http://tools.ietf.org/html/rfc6749#section-5.1
             // server MUST disable caching in headers when tokens are involved
             $body->write(json_encode($token));
@@ -66,7 +66,7 @@ class TokenController implements TokenControllerInterface
             'error_uri' => $error['uri'],
         ))));
         return $response
-            ->withStatus($errors['code'] == 'invalid_method' ? 405 : 400)
+            ->withStatus($error['code'] == 'invalid_method' ? 405 : 400)
             ->withBody($body);
     }
 
