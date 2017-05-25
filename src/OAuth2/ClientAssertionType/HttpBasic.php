@@ -118,6 +118,18 @@ class HttpBasic implements ClientAssertionTypeInterface
             return array('client_id' => $request->headers('PHP_AUTH_USER'), 'client_secret' => $request->headers('PHP_AUTH_PW'));
         }
 
+        if (!is_null($request->headers('Authorization'))) {
+          $auth = $request->headers('Authorization');
+          if (preg_match('/^Basic\s/', $auth)) {
+            $authBase = base64_decode(preg_replace('/^Basic\s/', '', $auth));
+            $data = explode(':', $authBase);
+
+            if (!empty($data[0]) && !empty($data[1])) {
+              return array('client_id' => $data[0], 'client_secret' => $data[1]);
+            }
+          }
+        }
+
         if ($this->config['allow_credentials_in_request_body']) {
             // Using POST for HttpBasic authorization is not recommended, but is supported by specification
             if (!is_null($request->request('client_id'))) {
