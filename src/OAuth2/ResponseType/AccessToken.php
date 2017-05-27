@@ -132,6 +132,12 @@ class AccessToken implements AccessTokenInterface
      */
     protected function generateAccessToken()
     {
+        if (function_exists('random_bytes')) {
+            $randomData = random_bytes(20);
+            if ($randomData !== false && strlen($randomData) === 20) {
+                return bin2hex($randomData);
+            }
+        }
         if (function_exists('openssl_random_pseudo_bytes')) {
             $randomData = openssl_random_pseudo_bytes(20);
             if ($randomData !== false && strlen($randomData) === 20) {
