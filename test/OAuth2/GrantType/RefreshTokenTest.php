@@ -41,7 +41,7 @@ class RefreshTokenTest extends \PHPUnit_Framework_TestCase
         ));
         $server->grantAccessToken($request, $response = new Response());
 
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals($response->getStatusCode(), 401);
         $this->assertEquals($response->getParameter('error'), 'invalid_grant');
         $this->assertEquals($response->getParameter('error_description'), 'Invalid refresh token');
     }
