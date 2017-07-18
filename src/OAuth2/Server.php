@@ -41,9 +41,9 @@ use LogicException;
 * Server class for OAuth2
 * This class serves as a convience class which wraps the other Controller classes
 *
-* @see OAuth2\Controller\ResourceController
-* @see OAuth2\Controller\AuthorizeController
-* @see OAuth2\Controller\TokenController
+* @see \OAuth2\Controller\ResourceController
+* @see \OAuth2\Controller\AuthorizeController
+* @see \OAuth2\Controller\TokenController
 */
 class Server implements ResourceControllerInterface,
     AuthorizeControllerInterface,
@@ -443,7 +443,7 @@ class Server implements ResourceControllerInterface,
 
     /**
      * @param GrantTypeInterface $grantType
-     * @param mixed              $key
+     * @param mixed              $identifier
      */
     public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
     {
