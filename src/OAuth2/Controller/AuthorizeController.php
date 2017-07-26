@@ -318,7 +318,7 @@ class AuthorizeController implements AuthorizeControllerInterface
             $defaultScope = $this->scopeUtil->getDefaultScope($client_id);
 
             if (false === $defaultScope) {
-                $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_client', 'This application requires you specify a scope parameter', null);
+                $response->setRedirect($this->config['redirect_status_code'], $redirect_uri, $state, 'invalid_scope', 'This application requires you specify a scope parameter', null);
 
                 return false;
             }
