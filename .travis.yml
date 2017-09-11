@@ -28,3 +28,5 @@ before_script:
 - psql -c 'create database oauth2_server_php;' -U postgres
 after_script:
 - php test/cleanup.php
+script:
+- vendor/bin/phpunit
