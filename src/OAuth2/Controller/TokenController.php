@@ -10,24 +10,56 @@ use OAuth2\Scope;
 use OAuth2\Storage\ClientInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
+use InvalidArgumentException;
+use LogicException;
+use RuntimeException;
 
 /**
- * @see OAuth2\Controller\TokenControllerInterface
+ * @see TokenControllerInterface
  */
 class TokenController implements TokenControllerInterface
 {
+    /**
+     * @var AccessTokenInterface
+     */
     protected $accessToken;
+
+    /**
+     * @var array<GrantTypeInterface>
+     */
     protected $grantTypes;
+
+    /**
+     * @var ClientAssertionTypeInterface
+     */
     protected $clientAssertionType;
+
+    /**
+     * @var ScopeInterface
+     */
     protected $scopeUtil;
+
+    /**
+     * @var ClientInterface
+     */
     protected $clientStorage;
 
+    /**
+     * Constructor
+     *
+     * @param AccessTokenInterface         $accessToken
+     * @param ClientInterface              $clientStorage
+     * @param array                        $grantTypes
+     * @param ClientAssertionTypeInterface $clientAssertionType
+     * @param ScopeInterface               $scopeUtil
+     * @throws InvalidArgumentException
+     */
     public function __construct(AccessTokenInterface $accessToken, ClientInterface $clientStorage, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null)
     {
         if (is_null($clientAssertionType)) {
             foreach ($grantTypes as $grantType) {
                 if (!$grantType instanceof ClientAssertionTypeInterface) {
-                    throw new \InvalidArgumentException('You must supply an instance of OAuth2\ClientAssertionType\ClientAssertionTypeInterface or only use grant types which implement OAuth2\ClientAssertionType\ClientAssertionTypeInterface');
+                    throw new InvalidArgumentException('You must supply an instance of OAuth2\ClientAssertionType\ClientAssertionTypeInterface or only use grant types which implement OAuth2\ClientAssertionType\ClientAssertionTypeInterface');
                 }
             }
         }
@@ -44,6 +76,12 @@ class TokenController implements TokenControllerInterface
         $this->scopeUtil = $scopeUtil;
     }
 
+    /**
+     * Handle the token request.
+     *
+     * @param RequestInterface  $request  - Request object to grant access token
+     * @param ResponseInterface $response - Response object
+     */
     public function handleTokenRequest(RequestInterface $request, ResponseInterface $response)
     {
         if ($token = $this->grantAccessToken($request, $response)) {
@@ -51,7 +89,11 @@ class TokenController implements TokenControllerInterface
             // server MUST disable caching in headers when tokens are involved
             $response->setStatusCode(200);
             $response->addParameters($token);
-            $response->addHttpHeaders(array('Cache-Control' => 'no-store', 'Pragma' => 'no-cache'));
+            $response->addHttpHeaders(array(
+                'Cache-Control' => 'no-store',
+                'Pragma' => 'no-cache',
+                'Content-Type' => 'application/json'
+            ));
         }
     }
 
@@ -60,11 +102,13 @@ class TokenController implements TokenControllerInterface
      * This would be called from the "/token" endpoint as defined in the spec.
      * You can call your endpoint whatever you want.
      *
-     * @param $request - RequestInterface
-     * Request object to grant access token
+     * @param RequestInterface  $request  - Request object to grant access token
+     * @param ResponseInterface $response - Response object
      *
-     * @throws InvalidArgumentException
-     * @throws LogicException
+     * @return bool|null|array
+     *
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      *
      * @see http://tools.ietf.org/html/rfc6749#section-4
      * @see http://tools.ietf.org/html/rfc6749#section-10.6
@@ -74,9 +118,15 @@ class TokenController implements TokenControllerInterface
      */
     public function grantAccessToken(RequestInterface $request, ResponseInterface $response)
     {
-        if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
+        if (strtolower($request->server('REQUEST_METHOD')) === 'options') {
+            $response->addHttpHeaders(array('Allow' => 'POST, OPTIONS'));
+
+            return null;
+        }
+
+        if (strtolower($request->server('REQUEST_METHOD')) !== 'post') {
             $response->setError(405, 'invalid_request', 'The request method must be POST when requesting an access token', '#section-3.2');
-            $response->addHttpHeaders(array('Allow' => 'POST'));
+            $response->addHttpHeaders(array('Allow' => 'POST, OPTIONS'));
 
             return null;
         }
@@ -98,6 +148,7 @@ class TokenController implements TokenControllerInterface
             return null;
         }
 
+        /** @var GrantTypeInterface $grantType */
         $grantType = $this->grantTypes[$grantTypeIdentifier];
 
         /**
@@ -105,8 +156,8 @@ class TokenController implements TokenControllerInterface
          * ClientAssertionTypes allow for grant types which also assert the client data
          * in which case ClientAssertion is handled in the validateRequest method
          *
-         * @see OAuth2\GrantType\JWTBearer
-         * @see OAuth2\GrantType\ClientCredentials
+         * @see \OAuth2\GrantType\JWTBearer
+         * @see \OAuth2\GrantType\ClientCredentials
          */
         if (!$grantType instanceof ClientAssertionTypeInterface) {
             if (!$this->clientAssertionType->validateRequest($request, $response)) {
@@ -155,7 +206,6 @@ class TokenController implements TokenControllerInterface
          *
          * @see http://tools.ietf.org/html/rfc6749#section-3.3
          */
-
         $requestedScope = $this->scopeUtil->getScopeFromRequest($request);
         $availableScope = $grantType->getScope();
 
@@ -202,22 +252,24 @@ class TokenController implements TokenControllerInterface
     }
 
     /**
-     * addGrantType
+     * Add grant type
      *
-     * @param grantType - OAuth2\GrantTypeInterface
-     * the grant type to add for the specified identifier
-     * @param identifier - string
-     * a string passed in as "grant_type" in the response that will call this grantType
+     * @param GrantTypeInterface $grantType  - the grant type to add for the specified identifier
+     * @param string|null        $identifier - a string passed in as "grant_type" in the response that will call this grantType
      */
     public function addGrantType(GrantTypeInterface $grantType, $identifier = null)
     {
         if (is_null($identifier) || is_numeric($identifier)) {
-            $identifier = $grantType->getQuerystringIdentifier();
+            $identifier = $grantType->getQueryStringIdentifier();
         }
 
         $this->grantTypes[$identifier] = $grantType;
     }
 
+    /**
+     * @param RequestInterface  $request
+     * @param ResponseInterface $response
+     */
     public function handleRevokeRequest(RequestInterface $request, ResponseInterface $response)
     {
         if ($this->revokeToken($request, $response)) {
@@ -236,13 +288,20 @@ class TokenController implements TokenControllerInterface
      *
      * @param RequestInterface $request
      * @param ResponseInterface $response
+     * @throws RuntimeException
      * @return bool|null
      */
     public function revokeToken(RequestInterface $request, ResponseInterface $response)
     {
-        if (strtolower($request->server('REQUEST_METHOD')) != 'post') {
+        if (strtolower($request->server('REQUEST_METHOD')) === 'options') {
+            $response->addHttpHeaders(array('Allow' => 'POST, OPTIONS'));
+
+            return null;
+        }
+
+        if (strtolower($request->server('REQUEST_METHOD')) !== 'post') {
             $response->setError(405, 'invalid_request', 'The request method must be POST when revoking an access token', '#section-3.2');
-            $response->addHttpHeaders(array('Allow' => 'POST'));
+            $response->addHttpHeaders(array('Allow' => 'POST, OPTIONS'));
 
             return null;
         }
@@ -264,7 +323,7 @@ class TokenController implements TokenControllerInterface
         // @todo remove this check for v2.0
         if (!method_exists($this->accessToken, 'revokeToken')) {
             $class = get_class($this->accessToken);
-            throw new \RuntimeException("AccessToken {$class} does not implement required revokeToken method");
+            throw new RuntimeException("AccessToken {$class} does not implement required revokeToken method");
         }
 
         $this->accessToken->revokeToken($token, $token_type_hint);

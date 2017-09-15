@@ -3,7 +3,6 @@
 namespace OAuth2\ResponseType;
 
 /**
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
 interface AuthorizationCodeInterface extends ResponseTypeInterface
@@ -17,11 +16,12 @@ interface AuthorizationCodeInterface extends ResponseTypeInterface
     /**
      * Handle the creation of the authorization code.
      *
-     * @param $client_id    client identifier related to the authorization code
-     * @param $user_id      user id associated with the authorization code
-     * @param $redirect_uri an absolute URI to which the authorization server will redirect the
-     *                      user-agent to when the end-user authorization step is completed.
-     * @param $scope        OPTIONAL scopes to be stored in space-separated string.
+     * @param mixed  $client_id    - Client identifier related to the authorization code
+     * @param mixed  $user_id      - User ID associated with the authorization code
+     * @param string $redirect_uri - An absolute URI to which the authorization server will redirect the
+     *                               user-agent to when the end-user authorization step is completed.
+     * @param string $scope        - OPTIONAL Scopes to be stored in space-separated string.
+     * @return string
      *
      * @see http://tools.ietf.org/html/rfc6749#section-4
      * @ingroup oauth2_section_4

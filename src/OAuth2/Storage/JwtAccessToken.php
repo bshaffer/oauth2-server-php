@@ -6,7 +6,6 @@ use OAuth2\Encryption\EncryptionInterface;
 use OAuth2\Encryption\Jwt;
 
 /**
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class JwtAccessToken implements JwtAccessTokenInterface
