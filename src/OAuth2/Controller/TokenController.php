@@ -156,8 +156,8 @@ class TokenController implements TokenControllerInterface
          * ClientAssertionTypes allow for grant types which also assert the client data
          * in which case ClientAssertion is handled in the validateRequest method
          *
-         * @see OAuth2\GrantType\JWTBearer
-         * @see OAuth2\GrantType\ClientCredentials
+         * @see \OAuth2\GrantType\JWTBearer
+         * @see \OAuth2\GrantType\ClientCredentials
          */
         if (!$grantType instanceof ClientAssertionTypeInterface) {
             if (!$this->clientAssertionType->validateRequest($request, $response)) {
