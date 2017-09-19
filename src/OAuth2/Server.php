@@ -93,7 +93,7 @@ class Server implements ResourceControllerInterface,
     /**
      * @var array
      */
-    protected $responseTypes;
+    protected $responseTypes = [];
 
     /**
      * @var TokenTypeInterface
