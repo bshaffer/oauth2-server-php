@@ -167,7 +167,7 @@ class IdTokenTest extends \PHPUnit_Framework_TestCase
         );
 
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
-        $memoryStorage->supportedScopes[] = 'email';
+        $memoryStorage->setScope('email');
         $storage = array(
             'client' => $memoryStorage,
             'scope' => $memoryStorage,
