@@ -6,7 +6,7 @@ class Memcached extends KeyValueAbstract
 
     protected $db;
 
-    public function __construct($connection, $config = array())
+    public function __construct($connection, array $config = array())
     {
         if (!extension_loaded('memcached')) {
             throw new \LogicException('memcached extension not loaded');
@@ -14,7 +14,7 @@ class Memcached extends KeyValueAbstract
         
         if ($connection instanceof \Memcached) {
             $this->db = $connection;
-        } else if (is_array($connection) && isset($connection['servers']) && is_array($connection['servers'])) {
+        } elseif (is_array($connection) && isset($connection['servers']) && is_array($connection['servers'])) {
             $this->db = new \Memcached();
             $this->db->addServers($connection['servers']);
             if (isset($connection['options']) && is_array($connection['options'])) {
@@ -27,23 +27,23 @@ class Memcached extends KeyValueAbstract
         $this->config = array_merge($this->config, $config);
     }
 
-    protected function _makeKey($table, $key)
+    protected function makeKey($table, $key)
     {
         return $table . '-' . $key;
     }
 
     public function get($table, $key)
     {
-        return $this->db->get($this->_makeKey($table, $key));
+        return $this->db->get($this->makeKey($table, $key));
     }
 
     public function set($table, $key, $value)
     {
-        return $this->db->set($this->_makeKey($table, $key), $value);
+        return $this->db->set($this->makeKey($table, $key), $value);
     }
 
     public function delete($table, $key)
     {
-        return $this->db->delete($this->_makeKey($table, $key));
+        return $this->db->delete($this->makeKey($table, $key));
     }
 }

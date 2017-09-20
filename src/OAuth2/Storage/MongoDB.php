@@ -6,7 +6,7 @@ class MongoDB extends KeyValueAbstract
 
     protected $db;
 
-    public function __construct($connection, $config = array())
+    public function __construct($connection, array $config = array())
     {
         if (!extension_loaded('mongodb')) {
             throw new \LogicException('mongodb extension not loaded');
@@ -14,7 +14,7 @@ class MongoDB extends KeyValueAbstract
         
         if ($connection instanceof \MongoDB\Driver\Manager) {
             $this->db = $connection;
-        } else if (is_array($connection)) {
+        } elseif (is_array($connection)) {
             $server = sprintf('mongodb://%s:%d', $connection['host'], $connection['port']);
             $this->db = new \MongoDB\Driver\Manager($server);
         } else {
@@ -22,7 +22,7 @@ class MongoDB extends KeyValueAbstract
         }
         
         $this->config = array_merge($this->config, array(
-            'database' => $connection['database']
+            'database' => $connection['database'],
         ), $config);
     }
 

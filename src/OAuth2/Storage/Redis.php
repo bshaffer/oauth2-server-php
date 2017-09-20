@@ -12,10 +12,10 @@ class Redis extends KeyValueAbstract
     {
         if ($connection instanceof \Predis\Client) {
             $this->db = $connection;
-        } else if (is_array($connection)) {
+        } elseif (is_array($connection)) {
             $connection = array_merge(array(
                 'parameters' => null,
-                'options' => null
+                'options' => null,
             ), $connection);
             
             $this->db = new \Predis\Client($connection['parameters'], $connection['options']);
@@ -24,18 +24,18 @@ class Redis extends KeyValueAbstract
         }
         
         $this->config = array_merge($this->config, array(
-            'expire' => 0
+            'expire' => 0,
         ), $config);
     }
 
-    protected function _makeKey($table, $key)
+    protected function makeKey($table, $key)
     {
         return $table . ':' . $key;
     }
 
     protected function get($table, $key)
     {
-        $key = $this->_makeKey($table, $key);
+        $key = $this->makeKey($table, $key);
         
         if (isset($this->cache[$key])) {
             return $this->cache[$key];
@@ -51,7 +51,7 @@ class Redis extends KeyValueAbstract
 
     protected function set($table, $key, $value)
     {
-        $key = $this->_makeKey($table, $key);
+        $key = $this->makeKey($table, $key);
         
         $this->cache[$key] = $value;
         
@@ -68,7 +68,7 @@ class Redis extends KeyValueAbstract
 
     protected function delete($table, $key)
     {
-        $key = $this->_makeKey($table, $key);
+        $key = $this->makeKey($table, $key);
         
         unset($this->cache[$key]);
         

@@ -16,10 +16,10 @@ class Cassandra extends KeyValueAbstract
     {
         if ($connection instanceof ConnectionPool) {
             $this->db = $connection;
-        } else if (is_array($connection)) {
+        } elseif (is_array($connection)) {
             $connection = array_merge(array(
                 'keyspace' => 'oauth2',
-                'servers' => null
+                'servers' => null,
             ), $connection);
             
             $this->db = new ConnectionPool($connection['keyspace'], $connection['servers']);
@@ -29,18 +29,18 @@ class Cassandra extends KeyValueAbstract
         
         $this->config = array_merge($this->config, array(
             'column_family' => 'auth',
-            'expire' => 0
+            'expire' => 0,
         ), $config);
     }
 
-    protected function _makeKey($table, $key)
+    protected function makeKey($table, $key)
     {
         return $table . ':' . $key;
     }
 
     protected function get($table, $key)
     {
-        $key = $this->_makeKey($table, $key);
+        $key = $this->makeKey($table, $key);
         
         if (isset($this->cache[$key])) {
             return $this->cache[$key];
@@ -58,7 +58,7 @@ class Cassandra extends KeyValueAbstract
 
     protected function set($table, $key, $value)
     {
-        $key = $this->_makeKey($table, $key);
+        $key = $this->makeKey($table, $key);
         
         $this->cache[$key] = $value;
         
@@ -76,7 +76,7 @@ class Cassandra extends KeyValueAbstract
 
     protected function delete($table, $key)
     {
-        $key = $this->_makeKey($table, $key);
+        $key = $this->makeKey($table, $key);
         
         unset($this->cache[$key]);
         

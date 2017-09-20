@@ -17,7 +17,7 @@ abstract class KeyValueAbstract implements
     OpenIDAuthorizationCodeInterface
 {
 
-    const KEY_NULL = ''; // TODO we should replace it to KEY_GLOBAL, it is only for backward compatibility with old Cassandra storage adapter (PublicKeyInterface functions)
+    const KEY_NULL = ''; // TODO we should replace it by KEY_GLOBAL, it is only for backward compatibility with old Cassandra storage adapter (PublicKeyInterface functions)
     const KEY_DELIMITER = ':';
     const KEY_DEFAULT = 'default';
     const KEY_SUPPORTED = 'supported';
@@ -32,10 +32,11 @@ abstract class KeyValueAbstract implements
         'jwt_table' => 'oauth_jwt',
         'jti_table' => 'oauth_jti',
         'scope_table' => 'oauth_scopes',
-        'public_key_table' => 'oauth_public_keys'
+        'public_key_table' => 'oauth_public_keys',
     );
 
     /**
+     * Get from storage
      *
      * @param string $table
      * @param string $key
@@ -44,6 +45,7 @@ abstract class KeyValueAbstract implements
     abstract protected function get($table, $key);
 
     /**
+     * Write to storage
      *
      * @param string $table
      * @param string $key
@@ -53,6 +55,7 @@ abstract class KeyValueAbstract implements
     abstract protected function set($table, $key, $value);
 
     /**
+     * Delete from storage
      *
      * @param string $table
      * @param string $key
@@ -60,7 +63,7 @@ abstract class KeyValueAbstract implements
      */
     abstract protected function delete($table, $key);
 
-    protected static function _hash($data)
+    protected static function hash($data)
     {
         return hash('sha256', json_encode($data));
     }
@@ -234,10 +237,10 @@ abstract class KeyValueAbstract implements
     // JwtBearerInterface
     public function getClientKey($client_id, $subject)
     {
-        $keydata = compact('client_id', 'subject');
-        $keystring = self::_hash($keydata);
+        $storageKey = compact('client_id', 'subject');
+        $storageKey = self::hash($storageKey);
         
-        $result = $this->get($this->config['jwt_table'], $keystring);
+        $result = $this->get($this->config['jwt_table'], $storageKey);
         
         if (is_string($result)) {
             return $result;
@@ -248,10 +251,10 @@ abstract class KeyValueAbstract implements
 
     public function setClientKey($client_id, $key, $subject = null)
     {
-        $keydata = compact('client_id', 'subject');
-        $keystring = self::_hash($keydata);
+        $storageKey = compact('client_id', 'subject');
+        $storageKey = self::hash($storageKey);
         
-        return $this->set($this->config['jwt_table'], $keystring, $key);
+        return $this->set($this->config['jwt_table'], $storageKey, $key);
     }
 
     public function getJti($client_id, $subject, $audience, $expiration, $jti)
@@ -261,12 +264,12 @@ abstract class KeyValueAbstract implements
             'subject' => $subject,
             'audience' => $audience,
             'expires' => $expiration,
-            'jti' => $jti
+            'jti' => $jti,
         );
         
-        $key = self::_hash($data);
+        $storageKey = self::hash($data);
         
-        $result = $this->get($this->config['jti_table'], $key);
+        $result = $this->get($this->config['jti_table'], $storageKey);
         
         if (is_array($result)) {
             return $result;
@@ -282,12 +285,12 @@ abstract class KeyValueAbstract implements
             'subject' => $subject,
             'audience' => $audience,
             'expires' => $expiration,
-            'jti' => $jti
+            'jti' => $jti,
         );
         
-        $key = self::_hash($data);
+        $storageKey = self::hash($data);
         
-        $this->set($this->config['jti_table'], $key, $data);
+        $this->set($this->config['jti_table'], $storageKey, $data);
     }
 
     // ScopeInterface
@@ -434,7 +437,7 @@ abstract class KeyValueAbstract implements
         return $userClaims;
     }
     
-    protected static function parseBool($value)
+    private static function parseBool($value)
     {
         return is_string($value) ? filter_var($value, FILTER_VALIDATE_BOOLEAN) : (bool)$value;
     }

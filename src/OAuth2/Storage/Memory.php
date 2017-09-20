@@ -22,7 +22,7 @@ class Memory extends KeyValueAbstract
 
     protected $oauth_public_keys = array();
 
-    public function __construct($params = array())
+    public function __construct(array $params = array())
     {
         if (isset($params['authorization_codes']) && is_array($params['authorization_codes'])) {
             foreach ($params['authorization_codes'] as $key => $val) {
