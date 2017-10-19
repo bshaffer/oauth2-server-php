@@ -1,5 +1,5 @@
 {
-    "name": "bshaffer/oauth2-server-php",
+    "name": "shuangfeilee/oauth2-server-php",
     "description":"OAuth2 Server for PHP",
     "keywords":["oauth","oauth2","auth"],
     "type":"library",
@@ -11,7 +11,7 @@
             "homepage":"http://brentertainment.com"
         }
     ],
-    "homepage": "http://github.com/bshaffer/oauth2-server-php",
+    "homepage": "http://github.com/shuangfeilee/oauth2-server-php",
     "autoload": {
         "psr-0": { "OAuth2": "src/" }
     },
