@@ -3,8 +3,9 @@
 namespace OAuth2\Encryption;
 
 use OAuth2\Storage\Bootstrap;
+use PHPUnit\Framework\TestCase;
 
-class FirebaseJwtTest extends \PHPUnit_Framework_TestCase
+class FirebaseJwtTest extends TestCase
 {
     private $privateKey;
 

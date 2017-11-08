@@ -6,8 +6,9 @@ use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
 use OAuth2\Request\TestRequest;
 use OAuth2\Response;
+use PHPUnit\Framework\TestCase;
 
-class AuthorizationCodeTest extends \PHPUnit_Framework_TestCase
+class AuthorizationCodeTest extends TestCase
 {
     public function testValidCode()
     {

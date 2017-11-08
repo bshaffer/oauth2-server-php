@@ -3,8 +3,9 @@
 namespace OAuth2\Encryption;
 
 use OAuth2\Storage\Bootstrap;
+use PHPUnit\Framework\TestCase;
 
-class JwtTest extends \PHPUnit_Framework_TestCase
+class JwtTest extends TestCase
 {
     private $privateKey;
 
