@@ -7,8 +7,9 @@ use OAuth2\Request;
 use OAuth2\Response;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\GrantType\ClientCredentials;
+use PHPUnit\Framework\TestCase;
 
-class CodeIdTokenTest extends \PHPUnit_Framework_TestCase
+class CodeIdTokenTest extends TestCase
 {
     public function testHandleAuthorizeRequest()
     {

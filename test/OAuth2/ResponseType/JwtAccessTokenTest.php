@@ -11,8 +11,9 @@ use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\UserCredentials;
 use OAuth2\GrantType\RefreshToken;
 use OAuth2\Encryption\Jwt;
+use PHPUnit\Framework\TestCase;
 
-class JwtAccessTokenTest extends \PHPUnit_Framework_TestCase
+class JwtAccessTokenTest extends TestCase
 {
     public function testCreateAccessToken()
     {

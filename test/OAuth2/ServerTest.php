@@ -5,8 +5,9 @@ namespace OAuth2;
 use OAuth2\Request\TestRequest;
 use OAuth2\ResponseType\AuthorizationCode;
 use OAuth2\Storage\Bootstrap;
+use PHPUnit\Framework\TestCase;
 
-class ServerTest extends \PHPUnit_Framework_TestCase
+class ServerTest extends TestCase
 {
     /**
      * @expectedException LogicException OAuth2\Storage\ClientInterface
