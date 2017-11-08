@@ -8,8 +8,9 @@ use OAuth2\Response;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\ResponseType\AccessToken;
+use PHPUnit\Framework\TestCase;
 
-class IdTokenTokenTest extends \PHPUnit_Framework_TestCase
+class IdTokenTokenTest extends TestCase
 {
 
     public function testHandleAuthorizeRequest()

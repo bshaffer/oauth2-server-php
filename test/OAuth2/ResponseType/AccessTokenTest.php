@@ -4,8 +4,9 @@ namespace OAuth2\ResponseType;
 
 use OAuth2\Server;
 use OAuth2\Storage\Memory;
+use PHPUnit\Framework\TestCase;
 
-class AccessTokenTest extends \PHPUnit_Framework_TestCase
+class AccessTokenTest extends TestCase
 {
     public function testRevokeAccessTokenWithTypeHint()
     {

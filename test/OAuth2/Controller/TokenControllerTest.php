@@ -10,8 +10,9 @@ use OAuth2\GrantType\UserCredentials;
 use OAuth2\Scope;
 use OAuth2\Request\TestRequest;
 use OAuth2\Response;
+use PHPUnit\Framework\TestCase;
 
-class TokenControllerTest extends \PHPUnit_Framework_TestCase
+class TokenControllerTest extends TestCase
 {
     public function testNoGrantType()
     {

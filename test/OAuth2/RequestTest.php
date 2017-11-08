@@ -5,8 +5,9 @@ namespace OAuth2;
 use OAuth2\Request\TestRequest;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\GrantType\AuthorizationCode;
+use PHPUnit\Framework\TestCase;
 
-class RequestTest extends \PHPUnit_Framework_TestCase
+class RequestTest extends TestCase
 {
     public function testRequestOverride()
     {
