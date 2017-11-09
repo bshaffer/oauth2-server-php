@@ -74,7 +74,7 @@ interface RefreshTokenInterface
      * and provide a descriptive fail message.
      *
      * @param $refresh_token
-     * Refresh token to be expirse.
+     * Refresh token to be expired.
      *
      * @ingroup oauth2_section_6
      */
