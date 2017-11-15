@@ -8,6 +8,24 @@ To see the files changed for a given bug, go to https://github.com/bshaffer/oaut
 To get the diff between two versions, go to https://github.com/bshaffer/oauth2-server-php/compare/v1.0...v1.1
 To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-server-php/commit/XXX where XXX is the change hash
 
+* 1.10.0 (2017-12-14)
+
+  PR: https://github.com/bshaffer/oauth2-server-php/pull/889
+
+  * #795 - [feature] added protected createPayload method to allow easier customization of JWT payload
+  * #807 - [refactor] simplifies UserInfoController constructor
+  * #814 - [docs] Adds https to README link
+  * #827 - [testing] Explicitly pulls in phpunit 4
+  * #828 - [docs] PHPDoc improvements and type hinting of variables.
+  * #829 - [bug] Fix CORS issue for revoking and requesting an access token
+  * #869 - [testing] Remove php 5.3 from travis and use vendored phpunit
+  * #834 - [feature] use random_bytes if available
+  * #851 - [docs] Fix PHPDoc
+  * #872 - [bug] Fix count() error on PHP 7.2
+  * #873 - [testing] adds php 7.2 to travis
+  * #794 - [docs] Fix typo in composer.json
+  * #885 - [testing] Use PHPUnit\Framework\TestCase instead of PHPUnit_Framework_TestCase
+
 * 1.9.0 (2016-01-06)
 
   PR: https://github.com/bshaffer/oauth2-server-php/pull/788
@@ -87,7 +105,7 @@ To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-
   * bug #346 Fixes open_basedir warning
   * bug #351 Adds OpenID Connect support
   * bug #355 Adds php 5.6 and HHVM to travis.ci testing
-  * [BC] bug #358 Adds `getQuerystringIdentifier()` to the GrantType interface
+  * [BC] bug #358 Adds `getQueryStringIdentifier()` to the GrantType interface
   * bug #363 Encryption\JWT - Allows for subclassing JWT Headers
   * bug #349 Bearer Tokens - adds requestHasToken method for when access tokens are optional
   * bug #301 Encryption\JWT - fixes urlSafeB64Encode(): ensures newlines are replaced as expected

@@ -19,6 +19,7 @@
         "php":">=5.3.9"
     },
     "require-dev": {
+        "phpunit/phpunit": "^4.0",
         "aws/aws-sdk-php": "~2.8",
         "firebase/php-jwt": "~2.2",
         "predis/predis": "dev-master",
@@ -29,6 +30,7 @@
         "predis/predis": "Required to use Redis storage",
         "thobbs/phpcassa": "Required to use Cassandra storage",
         "aws/aws-sdk-php": "~2.8 is required to use DynamoDB storage",
-        "firebase/php-jwt": "~1.1 is required to use MondoDB storage"
+        "firebase/php-jwt": "~2.2 is required to use JWT features",
+        "mongodb/mongodb": "^1.1 is required to use MongoDB storage"
     }
 }

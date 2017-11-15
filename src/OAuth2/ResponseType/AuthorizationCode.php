@@ -5,7 +5,6 @@ namespace OAuth2\ResponseType;
 use OAuth2\Storage\AuthorizationCodeInterface as AuthorizationCodeStorageInterface;
 
 /**
- *
  * @author Brent Shaffer <bshafs at gmail dot com>
  */
 class AuthorizationCode implements AuthorizationCodeInterface
@@ -85,7 +84,9 @@ class AuthorizationCode implements AuthorizationCodeInterface
     protected function generateAuthorizationCode()
     {
         $tokenLen = 40;
-        if (function_exists('openssl_random_pseudo_bytes')) {
+        if (function_exists('random_bytes')) {
+            $randomData = random_bytes(100);
+        } elseif (function_exists('openssl_random_pseudo_bytes')) {
             $randomData = openssl_random_pseudo_bytes(100);
         } elseif (function_exists('mcrypt_create_iv')) {
             $randomData = mcrypt_create_iv(100, MCRYPT_DEV_URANDOM);

@@ -7,8 +7,9 @@ use OAuth2\Server;
 use OAuth2\GrantType\AuthorizationCode;
 use OAuth2\Request;
 use OAuth2\Response;
+use PHPUnit\Framework\TestCase;
 
-class ResourceControllerTest extends \PHPUnit_Framework_TestCase
+class ResourceControllerTest extends TestCase
 {
     public function testNoAccessToken()
     {

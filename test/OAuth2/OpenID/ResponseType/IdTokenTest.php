@@ -8,8 +8,9 @@ use OAuth2\Response;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\Encryption\Jwt;
+use PHPUnit\Framework\TestCase;
 
-class IdTokenTest extends \PHPUnit_Framework_TestCase
+class IdTokenTest extends TestCase
 {
     public function testValidateAuthorizeRequest()
     {

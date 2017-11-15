@@ -15,12 +15,13 @@ interface IdTokenInterface extends ResponseTypeInterface
      * If the Implicit Flow is used, the token and id_token are generated and
      * returned together.
      *
-     * @param string $client_id    The client id.
-     * @param string $user_id      The user id.
-     * @param string $nonce        OPTIONAL The nonce.
-     * @param string $userClaims   OPTIONAL Claims about the user.
-     * @param string $access_token OPTIONAL The access token, if known.
-     *
+     * @param string $client_id        - The client id.
+     * @param mixed  $userInfo         - User info
+     * @param string $nonce            - OPTIONAL The nonce.
+     * @param string $userClaims       - OPTIONAL Claims about the user.
+     * @param string $access_token     - OPTIONAL The access token, if known.
+
+     * @internal param string $user_id - The user id.
      * @return string The ID Token represented as a JSON Web Token (JWT).
      *
      * @see http://openid.net/specs/openid-connect-core-1_0.html#IDToken

@@ -2,6 +2,8 @@
 
 namespace OAuth2;
 
+use LogicException;
+
 /**
  * OAuth2\Request
  * This class is taken from the Symfony2 Framework and is part of the Symfony package.
@@ -21,13 +23,14 @@ class Request implements RequestInterface
     /**
      * Constructor.
      *
-     * @param array  $query      The GET parameters
-     * @param array  $request    The POST parameters
-     * @param array  $attributes The request attributes (parameters parsed from the PATH_INFO, ...)
-     * @param array  $cookies    The COOKIE parameters
-     * @param array  $files      The FILES parameters
-     * @param array  $server     The SERVER parameters
-     * @param string $content    The raw body data
+     * @param array  $query      - The GET parameters
+     * @param array  $request    - The POST parameters
+     * @param array  $attributes - The request attributes (parameters parsed from the PATH_INFO, ...)
+     * @param array  $cookies    - The COOKIE parameters
+     * @param array  $files      - The FILES parameters
+     * @param array  $server     - The SERVER parameters
+     * @param string $content    - The raw body data
+     * @param array  $headers    - The headers
      *
      * @api
      */
@@ -41,13 +44,14 @@ class Request implements RequestInterface
      *
      * This method also re-initializes all properties.
      *
-     * @param array  $query      The GET parameters
-     * @param array  $request    The POST parameters
-     * @param array  $attributes The request attributes (parameters parsed from the PATH_INFO, ...)
-     * @param array  $cookies    The COOKIE parameters
-     * @param array  $files      The FILES parameters
-     * @param array  $server     The SERVER parameters
-     * @param string $content    The raw body data
+     * @param array  $query      - The GET parameters
+     * @param array  $request    - The POST parameters
+     * @param array  $attributes - The request attributes (parameters parsed from the PATH_INFO, ...)
+     * @param array  $cookies    - The COOKIE parameters
+     * @param array  $files      - The FILES parameters
+     * @param array  $server     - The SERVER parameters
+     * @param string $content    - The raw body data
+     * @param array  $headers    - The headers
      *
      * @api
      */
@@ -63,21 +67,41 @@ class Request implements RequestInterface
         $this->headers = is_null($headers) ? $this->getHeadersFromServer($this->server) : $headers;
     }
 
+    /**
+     * @param string $name
+     * @param mixed  $default
+     * @return mixed
+     */
     public function query($name, $default = null)
     {
         return isset($this->query[$name]) ? $this->query[$name] : $default;
     }
 
+    /**
+     * @param string $name
+     * @param mixed  $default
+     * @return mixed
+     */
     public function request($name, $default = null)
     {
         return isset($this->request[$name]) ? $this->request[$name] : $default;
     }
 
+    /**
+     * @param string $name
+     * @param mixed  $default
+     * @return mixed
+     */
     public function server($name, $default = null)
     {
         return isset($this->server[$name]) ? $this->server[$name] : $default;
     }
 
+    /**
+     * @param string $name
+     * @param mixed  $default
+     * @return mixed
+     */
     public function headers($name, $default = null)
     {
         $headers = array_change_key_case($this->headers);
@@ -86,6 +110,9 @@ class Request implements RequestInterface
         return isset($headers[$name]) ? $headers[$name] : $default;
     }
 
+    /**
+     * @return array
+     */
     public function getAllQueryParameters()
     {
         return $this->query;
@@ -94,14 +121,15 @@ class Request implements RequestInterface
     /**
      * Returns the request body content.
      *
-     * @param Boolean $asResource If true, a resource will be returned
+     * @param boolean $asResource - If true, a resource will be returned
+     * @return string|resource    - The request body content or a resource to read the body stream.
      *
-     * @return string|resource The request body content or a resource to read the body stream.
+     * @throws LogicException
      */
     public function getContent($asResource = false)
     {
         if (false === $this->content || (true === $asResource && null !== $this->content)) {
-            throw new \LogicException('getContent() can only be called once when using the resource return type.');
+            throw new LogicException('getContent() can only be called once when using the resource return type.');
         }
 
         if (true === $asResource) {
@@ -117,6 +145,10 @@ class Request implements RequestInterface
         return $this->content;
     }
 
+    /**
+     * @param array $server
+     * @return array
+     */
     private function getHeadersFromServer($server)
     {
         $headers = array();
@@ -185,13 +217,15 @@ class Request implements RequestInterface
     /**
      * Creates a new request with values from PHP's super globals.
      *
-     * @return Request A new request
+     * @return Request - A new request
      *
      * @api
      */
     public static function createFromGlobals()
     {
         $class = get_called_class();
+
+        /** @var Request $request */
         $request = new $class($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER);
 
         $contentType = $request->server('CONTENT_TYPE', '');
