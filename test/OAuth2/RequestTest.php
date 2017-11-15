@@ -86,6 +86,24 @@ class RequestTest extends TestCase
         $this->assertEquals('correct', $request->query('client_id', $request->request('client_id')));
     }
 
+    public function testRequestHasHeadersAndServerHeaders()
+    {
+        $request = new Request(
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            array('CONTENT_TYPE' => 'text/xml', 'PHP_AUTH_USER' => 'client_id', 'PHP_AUTH_PW' => 'client_pass'),
+            null,
+            array('CONTENT_TYPE' => 'application/json')
+        );
+
+        $this->assertSame('client_id', $request->headers('PHP_AUTH_USER'));
+        $this->assertSame('client_pass', $request->headers('PHP_AUTH_PW'));
+        $this->assertSame('application/json', $request->headers('CONTENT_TYPE'));
+    }
+
     private function getTestServer($config = array())
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
