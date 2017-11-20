@@ -64,7 +64,12 @@ class Request implements RequestInterface
         $this->files = $files;
         $this->server = $server;
         $this->content = $content;
-        $this->headers = is_null($headers) ? $this->getHeadersFromServer($this->server) : $headers;
+
+        if ($headers === null) {
+            $headers = array();
+        }
+
+        $this->headers = $headers + $this->getHeadersFromServer($this->server);
     }
 
     /**
