@@ -1,7 +1,7 @@
 oauth2-server-php
 =================
 
-# The `develop` branch is no longer used, please see the [`master`][master-branch] branch instead.
+## The `develop` branch is no longer used, please see the [`master`][master-branch] branch instead.
 
 [![Build Status](https://travis-ci.org/bshaffer/oauth2-server-php.svg?branch=develop)](https://travis-ci.org/bshaffer/oauth2-server-php)
 
