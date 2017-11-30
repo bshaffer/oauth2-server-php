@@ -154,7 +154,7 @@ class AuthorizeControllerTest extends TestCase
         $parts = parse_url($response->getHttpHeader('Location'));
         parse_str($parts['query'], $query);
 
-        $this->assertEquals($query['error'], 'invalid_client');
+        $this->assertEquals($query['error'], 'invalid_scope');
         $this->assertEquals($query['error_description'], 'This application requires you specify a scope parameter');
 
         $request->query['scope'] = 'testscope';
