@@ -10,8 +10,9 @@ use OAuth2\GrantType\AuthorizationCode;
 use OAuth2\Request;
 use OAuth2\Response;
 use OAuth2\Request\TestRequest;
+use PHPUnit\Framework\TestCase;
 
-class AuthorizeControllerTest extends \PHPUnit_Framework_TestCase
+class AuthorizeControllerTest extends TestCase
 {
     public function testNoClientIdResponse()
     {

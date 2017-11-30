@@ -88,12 +88,12 @@ class Server implements ResourceControllerInterface,
     /**
      * @var array
      */
-    protected $grantTypes;
+    protected $grantTypes = [];
 
     /**
      * @var array
      */
-    protected $responseTypes;
+    protected $responseTypes = [];
 
     /**
      * @var TokenTypeInterface

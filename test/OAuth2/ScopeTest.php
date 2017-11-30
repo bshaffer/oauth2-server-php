@@ -3,8 +3,9 @@
 namespace OAuth2;
 
 use OAuth2\Storage\Memory;
+use PHPUnit\Framework\TestCase;
 
-class ScopeTest extends \PHPUnit_Framework_TestCase
+class ScopeTest extends TestCase
 {
     public function testCheckScope()
     {

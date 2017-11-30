@@ -6,8 +6,9 @@ use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
 use OAuth2\Request;
 use OAuth2\Response;
+use PHPUnit\Framework\TestCase;
 
-class ImplicitTest extends \PHPUnit_Framework_TestCase
+class ImplicitTest extends TestCase
 {
     public function testImplicitNotAllowedResponse()
     {

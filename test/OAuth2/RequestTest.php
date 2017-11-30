@@ -5,8 +5,9 @@ namespace OAuth2;
 use OAuth2\Request\TestRequest;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\GrantType\AuthorizationCode;
+use PHPUnit\Framework\TestCase;
 
-class RequestTest extends \PHPUnit_Framework_TestCase
+class RequestTest extends TestCase
 {
     public function testRequestOverride()
     {
@@ -83,6 +84,24 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->assertEquals('correct', $request->query('client_id', $request->request('client_id')));
+    }
+
+    public function testRequestHasHeadersAndServerHeaders()
+    {
+        $request = new Request(
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            array('CONTENT_TYPE' => 'text/xml', 'PHP_AUTH_USER' => 'client_id', 'PHP_AUTH_PW' => 'client_pass'),
+            null,
+            array('CONTENT_TYPE' => 'application/json')
+        );
+
+        $this->assertSame('client_id', $request->headers('PHP_AUTH_USER'));
+        $this->assertSame('client_pass', $request->headers('PHP_AUTH_PW'));
+        $this->assertSame('application/json', $request->headers('CONTENT_TYPE'));
     }
 
     private function getTestServer($config = array())

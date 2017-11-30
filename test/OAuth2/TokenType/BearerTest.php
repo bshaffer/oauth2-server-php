@@ -4,8 +4,9 @@ namespace OAuth2\TokenType;
 
 use OAuth2\Request\TestRequest;
 use OAuth2\Response;
+use PHPUnit\Framework\TestCase;
 
-class BearerTest extends \PHPUnit_Framework_TestCase
+class BearerTest extends TestCase
 {
     public function testValidContentTypeWithCharset()
     {
