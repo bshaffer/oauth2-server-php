@@ -161,6 +161,7 @@ class Server implements ResourceControllerInterface,
         // merge all config values.  These get passed to our controller objects
         $this->config = array_merge(array(
             'use_jwt_access_tokens'        => false,
+            'jwt_extra_payload_callable' => null,
             'store_encrypted_token_string' => true,
             'use_openid_connect'       => false,
             'id_lifetime'              => 3600,
@@ -840,7 +841,7 @@ class Server implements ResourceControllerInterface,
             $refreshStorage = $this->storages['refresh_token'];
         }
 
-        $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string issuer access_lifetime refresh_token_lifetime')));
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string issuer access_lifetime refresh_token_lifetime jwt_extra_payload_callable')));
 
         return new JwtAccessToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config);
     }
