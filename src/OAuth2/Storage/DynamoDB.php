@@ -80,6 +80,7 @@ class DynamoDB implements
     public function checkClientCredentials($client_id, $client_secret = null)
     {
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['client_table'],
             "Key" => array('client_id'   => array('S' => $client_id))
         ));
@@ -90,6 +91,7 @@ class DynamoDB implements
     public function isPublicClient($client_id)
     {
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['client_table'],
             "Key" => array('client_id'   => array('S' => $client_id))
         ));
@@ -105,6 +107,7 @@ class DynamoDB implements
     public function getClientDetails($client_id)
     {
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['client_table'],
             "Key" => array('client_id'   => array('S' => $client_id))
         ));
@@ -151,6 +154,7 @@ class DynamoDB implements
     public function getAccessToken($access_token)
     {
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['access_token_table'],
             "Key" => array('access_token'   => array('S' => $access_token))
         ));
@@ -197,6 +201,7 @@ class DynamoDB implements
     public function getAuthorizationCode($code)
     {
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['code_table'],
             "Key" => array('authorization_code'   => array('S' => $code))
         ));
@@ -302,6 +307,7 @@ class DynamoDB implements
     public function getRefreshToken($refresh_token)
     {
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['refresh_token_table'],
             "Key" => array('refresh_token'   => array('S' => $refresh_token))
         ));
@@ -355,6 +361,7 @@ class DynamoDB implements
     public function getUser($username)
     {
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['user_table'],
             "Key" => array('username'   => array('S' => $username))
         ));
@@ -438,6 +445,7 @@ class DynamoDB implements
     public function getClientKey($client_id, $subject)
     {
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['jwt_table'],
             "Key" => array('client_id'   => array('S' => $client_id), 'subject' => array('S' => $subject))
         ));
@@ -477,6 +485,7 @@ class DynamoDB implements
     {
 
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['public_key_table'],
             "Key" => array('client_id'   => array('S' => $client_id))
         ));
@@ -492,6 +501,7 @@ class DynamoDB implements
     public function getPrivateKey($client_id = '0')
     {
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['public_key_table'],
             "Key" => array('client_id'   => array('S' => $client_id))
         ));
@@ -506,6 +516,7 @@ class DynamoDB implements
     public function getEncryptionAlgorithm($client_id = null)
     {
         $result = $this->client->getItem(array(
+            "ConsistenRead" => (array_key_exists('ConsistenRead', $this->config)? $this->config['ConsistenRead']: 'false'), 
             "TableName"=> $this->config['public_key_table'],
             "Key" => array('client_id'   => array('S' => $client_id))
         ));
