@@ -507,18 +507,31 @@ class Pdo implements
      */
     public function getDefaultScope($client_id = null)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s WHERE is_default=:is_default', $this->config['scope_table']));
-        $stmt->execute(array('is_default' => true));
+        $getGlobalDefaults = true;
+        $defaultScopes = array();
 
-        if ($result = $stmt->fetchAll(\PDO::FETCH_ASSOC)) {
-            $defaultScope = array_map(function ($row) {
-                return $row['scope'];
-            }, $result);
-
-            return implode(' ', $defaultScope);
+        if (!is_null($client_id)) {
+            // Get (default) scopes from client table
+            $clientScope = $this->getClientScope($client_id);
+            if (!is_null($clientScope)) {
+                $getGlobalDefaults = false;
+                $defaultScopes = explode(' ', trim($clientScope));
+            }
         }
 
-        return null;
+        if ($getGlobalDefaults) {
+            // Get default scopes
+            $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s WHERE is_default=:is_default', $this->config['scope_table']));
+            $stmt->execute(array('is_default' => true));
+
+            if ($result = $stmt->fetchAll(\PDO::FETCH_ASSOC)) {
+                $defaultScopes = array_map(function ($row) {
+                    return $row['scope'];
+                }, $result);
+            }
+        }
+        
+        return ( (!empty($defaultScopes)) ? implode(' ', $defaultScopes) : null );
     }
 
     /**
