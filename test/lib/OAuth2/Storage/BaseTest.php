@@ -18,6 +18,7 @@ abstract class BaseTest extends TestCase
         $cassandra = Bootstrap::getInstance()->getCassandraStorage();
         $dynamodb = Bootstrap::getInstance()->getDynamoDbStorage();
         $couchbase = Bootstrap::getInstance()->getCouchbase();
+        $cassandraCql = Bootstrap::getInstance()->getCassandraCqlStorage();
 
         /* hack until we can fix "default_scope" dependencies in other tests */
         $memory->defaultScope = 'defaultscope1 defaultscope2';
@@ -33,6 +34,7 @@ abstract class BaseTest extends TestCase
             array($cassandra),
             array($dynamodb),
             array($couchbase),
+            array($cassandraCql),
         );
     }
 }
