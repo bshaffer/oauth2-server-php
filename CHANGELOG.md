@@ -8,7 +8,7 @@ To see the files changed for a given bug, go to https://github.com/bshaffer/oaut
 To get the diff between two versions, go to https://github.com/bshaffer/oauth2-server-php/compare/v1.0...v1.1
 To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-server-php/commit/XXX where XXX is the change hash
 
-* 1.10.0 (2017-12-14)
+* 1.10.0 (2017-11-15)
 
   PR: https://github.com/bshaffer/oauth2-server-php/pull/889
 
@@ -26,7 +26,7 @@ To get the diff for a specific change, go to https://github.com/bshaffer/oauth2-
   * #794 - [docs] Fix typo in composer.json
   * #885 - [testing] Use PHPUnit\Framework\TestCase instead of PHPUnit_Framework_TestCase
 
-* 1.9.0 (2016-01-06)
+* 1.9.0 (2017-01-06)
 
   PR: https://github.com/bshaffer/oauth2-server-php/pull/788
 
