@@ -38,7 +38,7 @@ class ClientCredentialsTest extends TestCase
 
         $this->assertNotNull($token);
         $this->assertArrayHasKey('scope', $token);
-        $this->assertNull($token['scope']);
+        $this->assertEquals($token['scope'], $server->getScopeUtil()->getDefaultScope('Test Client ID'));
     }
 
     public function testValidCredentialsWithScope()

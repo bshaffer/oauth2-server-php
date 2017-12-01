@@ -4,33 +4,33 @@
             "client_id": "Test Client ID",
             "user_id": "",
             "redirect_uri": "",
-            "expires": "9999999999",
+            "expires": 2147483647,
             "id_token": "IDTOKEN"
         },
         "testcode-with-scope": {
             "client_id": "Test Client ID",
             "user_id": "",
             "redirect_uri": "",
-            "expires": "9999999999",
+            "expires": 2147483647,
             "scope": "scope1 scope2"
         },
         "testcode-expired": {
             "client_id": "Test Client ID",
             "user_id": "",
             "redirect_uri": "",
-            "expires": "1356998400"
+            "expires": 1356998400
         },
         "testcode-empty-secret": {
             "client_id": "Test Client ID Empty Secret",
             "user_id": "",
             "redirect_uri": "",
-            "expires": "9999999999"
+            "expires": 2147483647
         },
         "testcode-openid": {
             "client_id": "Test Client ID",
             "user_id": "",
             "redirect_uri": "",
-            "expires": "9999999999",
+            "expires": 2147483647,
             "id_token": "test_id_token"
         },
         "testcode-redirect-uri": {
@@ -122,19 +122,19 @@
         "accesstoken-scope": {
             "access_token": "accesstoken-scope",
             "client_id": "Test Client ID",
-            "expires": 99999999900,
+            "expires": 2147483647,
             "scope": "testscope"
         },
         "accesstoken-openid-connect": {
             "access_token": "accesstoken-openid-connect",
             "client_id": "Test Client ID",
             "user_id": "testuser",
-            "expires": 99999999900,
+            "expires": 2147483647,
             "scope": "openid email"
         },
         "accesstoken-malformed": {
             "access_token": "accesstoken-mallformed",
-            "expires": 99999999900,
+            "expires": 2147483647,
             "scope": "testscope"
         }
     },
@@ -165,7 +165,7 @@
             "issuer": "Test Client ID",
             "subject": "testuser@ourdomain.com",
             "audience": "http://myapp.com/oauth/auth",
-            "expires": 99999999900,
+            "expires": 2147483647,
             "jti": "used_jti"
         }
     ],
