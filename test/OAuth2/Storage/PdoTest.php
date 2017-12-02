@@ -6,7 +6,8 @@ class PdoTest extends BaseTest
 {
     public function testCreatePdoStorageUsingPdoClass()
     {
-        $pdo = new \PDO(sprintf('sqlite://%s', Bootstrap::getInstance()->getSqliteDir()));
+        $dsn = sprintf('sqlite:%s', Bootstrap::getInstance()->getSqliteDir());
+        $pdo = new \PDO($dsn);
         $storage = new Pdo($pdo);
 
         $this->assertNotNull($storage->getClientDetails('oauth_test_client'));
@@ -14,7 +15,7 @@ class PdoTest extends BaseTest
 
     public function testCreatePdoStorageUsingDSN()
     {
-        $dsn = sprintf('sqlite://%s', Bootstrap::getInstance()->getSqliteDir());
+        $dsn = sprintf('sqlite:%s', Bootstrap::getInstance()->getSqliteDir());
         $storage = new Pdo($dsn);
 
         $this->assertNotNull($storage->getClientDetails('oauth_test_client'));
@@ -22,7 +23,8 @@ class PdoTest extends BaseTest
 
     public function testCreatePdoStorageUsingConfig()
     {
-        $config = array('dsn' => sprintf('sqlite://%s', Bootstrap::getInstance()->getSqliteDir()));
+        $dsn = sprintf('sqlite:%s', Bootstrap::getInstance()->getSqliteDir());
+        $config = array('dsn' => $dsn);
         $storage = new Pdo($config);
 
         $this->assertNotNull($storage->getClientDetails('oauth_test_client'));

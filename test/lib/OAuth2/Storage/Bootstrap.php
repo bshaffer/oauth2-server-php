@@ -36,7 +36,7 @@ class Bootstrap
     {
         if (!$this->sqlite) {
             $this->removeSqliteDb();
-            $pdo = new \PDO(sprintf('sqlite://%s', $this->getSqliteDir()));
+            $pdo = new \PDO(sprintf('sqlite:%s', $this->getSqliteDir()));
             $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $this->createSqliteDb($pdo);
 
