@@ -1,5 +1,6 @@
 language: php
 sudo: false
+dist: precise
 cache:
   directories:
     - $HOME/.composer/cache
