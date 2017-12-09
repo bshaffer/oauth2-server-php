@@ -1,10 +1,12 @@
 language: php
 sudo: false
+dist: precise
 cache:
   directories:
     - $HOME/.composer/cache
     - vendor
 php:
+- 5.3
 - 5.4
 - 5.5
 - 5.6
