@@ -7,6 +7,7 @@ use OAuth2\Encryption\Jwt;
 use OAuth2\Storage\PublicKeyInterface;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 use LogicException;
+use OAuth2\OpenID\Storage\OpenIDConnectInterface;
 
 class IdToken implements IdTokenInterface
 {
@@ -30,6 +31,13 @@ class IdToken implements IdTokenInterface
     protected $encryptionUtil;
 
     /**
+     *
+     * @var OpenIDConnectInterface 
+     */
+    protected $openIDStorage;
+    
+    protected $subjectIdentifierType;
+    /**
      * Constructor
      *
      * @param UserClaimsInterface $userClaimsStorage
@@ -38,10 +46,11 @@ class IdToken implements IdTokenInterface
      * @param EncryptionInterface $encryptionUtil
      * @throws LogicException
      */
-    public function __construct(UserClaimsInterface $userClaimsStorage, PublicKeyInterface $publicKeyStorage, array $config = array(), EncryptionInterface $encryptionUtil = null)
-    {
+    public function __construct(UserClaimsInterface $userClaimsStorage, PublicKeyInterface $publicKeyStorage, OpenIDConnectInterface $openIDStorage, array $config = array(), EncryptionInterface $encryptionUtil = null, $subjectIdentifierType = self::SUBJECT_IDENTIFIER_PAIRWISE) {
         $this->userClaimsStorage = $userClaimsStorage;
         $this->publicKeyStorage = $publicKeyStorage;
+        $this->openIDStorage = $openIDStorage;
+        $this->subjectIdentifierType = $subjectIdentifierType;
         if (is_null($encryptionUtil)) {
             $encryptionUtil = new Jwt();
         }
@@ -96,7 +105,7 @@ class IdToken implements IdTokenInterface
 
         $token = array(
             'iss'        => $this->config['issuer'],
-            'sub'        => $user_id,
+            'sub'        => $this->openIDStorage->getOpenID($user_id, $client_id,$this->subjectIdentifierType),
             'aud'        => $client_id,
             'iat'        => time(),
             'exp'        => time() + $this->config['id_lifetime'],
@@ -117,7 +126,7 @@ class IdToken implements IdTokenInterface
 
         return $this->encodeToken($token, $client_id);
     }
-
+    
     /**
      * @param $access_token
      * @param null $client_id

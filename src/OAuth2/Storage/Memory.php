@@ -4,6 +4,8 @@ namespace OAuth2\Storage;
 
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
+use OAuth2\OpenID\Storage\OpenIDConnectInterface;
+use OAuth2\OpenID\ResponseType\IdTokenInterface;
 
 /**
  * Simple in-memory storage for all storage types
@@ -22,7 +24,8 @@ class Memory implements AuthorizationCodeInterface,
     JwtBearerInterface,
     ScopeInterface,
     PublicKeyInterface,
-    OpenIDAuthorizationCodeInterface
+    OpenIDAuthorizationCodeInterface,
+    OpenIDConnectInterface
 {
     public $authorizationCodes;
     public $userCredentials;
@@ -34,6 +37,7 @@ class Memory implements AuthorizationCodeInterface,
     public $supportedScopes;
     public $defaultScope;
     public $keys;
+    public $openId;
 
     public function __construct($params = array())
     {
@@ -74,6 +78,25 @@ class Memory implements AuthorizationCodeInterface,
         ), $this->authorizationCodes[$code]);
     }
 
+    public function getOpenID($userId, $clientId, $type) {
+        if ($this->openId !== null) {
+            return $this->openId;
+        }
+
+        if ($type === IdTokenInterface::SUBJECT_IDENTIFIER_PUBLIC) {
+            $this->setOpenID($userId, $userId, $clientId);
+            return $userId;
+        }
+
+        $openid = hash_hmac('sha256', $userId, $clientId);
+        $this->setOpenID($openid, $userId, $clientId);
+
+        return $openid;
+    }
+
+    public function setOpenID($openid,$userId,$clientId) {
+        $this->openId = $openid;
+    }
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
         $this->authorizationCodes[$code] = compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token');

@@ -4,8 +4,11 @@ namespace OAuth2\OpenID\ResponseType;
 
 use OAuth2\ResponseType\ResponseTypeInterface;
 
-interface IdTokenInterface extends ResponseTypeInterface
-{
+interface IdTokenInterface extends ResponseTypeInterface {
+
+    const SUBJECT_IDENTIFIER_PUBLIC = 'public';
+    const SUBJECT_IDENTIFIER_PAIRWISE = 'pairwise';
+
     /**
      * Create the id token.
      *
