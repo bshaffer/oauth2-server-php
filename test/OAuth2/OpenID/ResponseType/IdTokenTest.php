@@ -168,7 +168,6 @@ class IdTokenTest extends TestCase
         );
 
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
-        $memoryStorage = Bootstrap::getInstance()->getMysqlPdo();
         $memoryStorage->supportedScopes[] = 'email';
         $storage = array(
             'client' => $memoryStorage,
