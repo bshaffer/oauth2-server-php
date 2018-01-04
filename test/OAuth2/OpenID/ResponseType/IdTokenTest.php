@@ -168,10 +168,12 @@ class IdTokenTest extends TestCase
         );
 
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
+        $memoryStorage = Bootstrap::getInstance()->getMysqlPdo();
         $memoryStorage->supportedScopes[] = 'email';
         $storage = array(
             'client' => $memoryStorage,
             'scope' => $memoryStorage,
+            'openid_connect' => $memoryStorage
         );
         $responseTypes = array(
             'id_token' => new IdToken($memoryStorage, $memoryStorage, $memoryStorage, $config),
@@ -181,5 +183,37 @@ class IdTokenTest extends TestCase
         $server->addGrantType(new ClientCredentials($memoryStorage));
 
         return $server;
+    }
+    
+    public function testOpenIDConnectWithSubjectIdentifierTypePairwise(){
+        // add the test parameters in memory
+        $server = $this->getTestServer(array('allow_implicit' => true));
+        $server->getResponseType('id_token')->setSubjectIdentifierType(IdToken::SUBJECT_IDENTIFIER_PAIRWISE);
+        $request = new Request(array(
+            'response_type' => 'id_token',
+            'redirect_uri'  => 'http://adobe.com',
+            'client_id'     => 'Test Client ID',
+            'scope'         => 'openid email',
+            'state'         => 'test',
+            'nonce'         => 'test',
+        ));
+
+        $user_id = 'testuser';
+        $server->handleAuthorizeRequest($request, $response = new Response(), true, $user_id);
+
+        $this->assertEquals($response->getStatusCode(), 302);
+        $location = $response->getHttpHeader('Location');
+        $this->assertNotContains('error', $location);
+
+        $parts = parse_url($location);
+        $this->assertArrayHasKey('fragment', $parts);
+        $this->assertFalse(isset($parts['query']));
+
+        // assert fragment is in "application/x-www-form-urlencoded" format
+        parse_str($parts['fragment'], $params);
+        $this->assertNotNull($params);
+        $this->assertArrayHasKey('id_token', $params);
+        $this->assertArrayNotHasKey('access_token', $params);
+        $this->validateIdToken($params['id_token']);
     }
 }

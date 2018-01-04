@@ -66,6 +66,9 @@ class IdToken implements IdTokenInterface
         ), $config);
     }
 
+    public function setSubjectIdentifierType($type){        
+        $this->subjectIdentifierType = $type;
+    }
     /**
      * @param array $params
      * @param null $userInfo

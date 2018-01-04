@@ -390,8 +390,8 @@ class Bootstrap
         }
 
         // set up clients
-        $sql = 'INSERT INTO oauth_clients (client_id, client_secret, scope, grant_types) VALUES (?, ?, ?, ?)';
-        $pdo->prepare($sql)->execute(array('Test Client ID', 'TestSecret', 'clientscope1 clientscope2', null));
+        $sql = 'INSERT INTO oauth_clients (client_id, client_secret, grant_types, scope) VALUES (?, ?, ?, ?)';
+        $pdo->prepare($sql)->execute(array('Test Client ID', 'TestSecret', 'implicit authorization_code', 'openid email'));
         $pdo->prepare($sql)->execute(array('Test Client ID 2', 'TestSecret', 'clientscope1 clientscope2 clientscope3', null));
         $pdo->prepare($sql)->execute(array('Test Default Scope Client ID', 'TestSecret', 'clientscope1 clientscope2', null));
         $pdo->prepare($sql)->execute(array('oauth_test_client', 'testpass', null, 'implicit password'));
@@ -627,6 +627,7 @@ class Bootstrap
                         'jwt_table'  => $prefix.'oauth_jwt',
                         'scope_table'  => $prefix.'oauth_scopes',
                         'public_key_table'  => $prefix.'oauth_public_keys',
+                        'openid_connect_table'  => $prefix.'oauth_openid_connect',
                     );
                     $this->dynamodb = new DynamoDB($client, $config);
                 } elseif (!$this->dynamodb) {
@@ -668,7 +669,7 @@ class Bootstrap
 
     private function deleteDynamoDb(\Aws\DynamoDb\DynamoDbClient $client, $prefix = null, $waitForDeletion = false)
     {
-        $tablesList = explode(' ', 'oauth_access_tokens oauth_authorization_codes oauth_clients oauth_jwt oauth_public_keys oauth_refresh_tokens oauth_scopes oauth_users');
+        $tablesList = explode(' ', 'oauth_access_tokens oauth_authorization_codes oauth_clients oauth_jwt oauth_public_keys oauth_refresh_tokens oauth_scopes oauth_users oauth_openid_connect');
         $nbTables  = count($tablesList);
 
         // Delete all table.
@@ -711,7 +712,7 @@ class Bootstrap
 
     private function createDynamoDb(\Aws\DynamoDb\DynamoDbClient $client, $prefix = null)
     {
-        $tablesList = explode(' ', 'oauth_access_tokens oauth_authorization_codes oauth_clients oauth_jwt oauth_public_keys oauth_refresh_tokens oauth_scopes oauth_users');
+        $tablesList = explode(' ', 'oauth_access_tokens oauth_authorization_codes oauth_clients oauth_jwt oauth_public_keys oauth_refresh_tokens oauth_scopes oauth_users oauth_openid_connect');
         $nbTables  = count($tablesList);
         $client->createTable(array(
             'TableName' => $prefix.'oauth_access_tokens',
@@ -722,6 +723,17 @@ class Bootstrap
             'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
         ));
 
+        $client->createTable(array(
+            'TableName' => $prefix.'oauth_openid_connect',
+            'AttributeDefinitions' => array(
+                array('AttributeName' => 'openid','AttributeType' => 'S'),
+                array('AttributeName' => 'client_id','AttributeType' => 'S'),
+                array('AttributeName' => 'user_id','AttributeType' => 'S'),
+            ),
+            'KeySchema' => array(array('AttributeName' => 'access_token','KeyType' => 'HASH')),
+            'ProvisionedThroughput' => array('ReadCapacityUnits'  => 1,'WriteCapacityUnits' => 1)
+        ));
+        
         $client->createTable(array(
             'TableName' => $prefix.'oauth_authorization_codes',
             'AttributeDefinitions' => array(
