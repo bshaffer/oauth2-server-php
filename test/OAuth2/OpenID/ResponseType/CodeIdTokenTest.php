@@ -171,7 +171,7 @@ class CodeIdTokenTest extends TestCase
         $memoryStorage->supportedScopes[] = 'email';
         $responseTypes = array(
             'code'     => $code    = new AuthorizationCode($memoryStorage),
-            'id_token' => $idToken = new IdToken($memoryStorage, $memoryStorage, $config),
+            'id_token' => $idToken = new IdToken($memoryStorage, $memoryStorage, $memoryStorage, $config),
             'code id_token' => new CodeIdToken($code, $idToken),
         );
 

@@ -174,7 +174,7 @@ class IdTokenTest extends TestCase
             'scope' => $memoryStorage,
         );
         $responseTypes = array(
-            'id_token' => new IdToken($memoryStorage, $memoryStorage, $config),
+            'id_token' => new IdToken($memoryStorage, $memoryStorage, $memoryStorage, $config),
         );
 
         $server = new Server($storage, $config, array(), $responseTypes);

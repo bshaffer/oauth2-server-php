@@ -79,9 +79,6 @@ class Memory implements AuthorizationCodeInterface,
     }
 
     public function getOpenID($userId, $clientId, $type) {
-        if ($this->openId !== null) {
-            return $this->openId;
-        }
 
         if ($type === IdTokenInterface::SUBJECT_IDENTIFIER_PUBLIC) {
             $this->setOpenID($userId, $userId, $clientId);

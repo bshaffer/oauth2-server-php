@@ -39,14 +39,16 @@ class IdToken implements IdTokenInterface
     protected $subjectIdentifierType;
     /**
      * Constructor
-     *
+     * 
      * @param UserClaimsInterface $userClaimsStorage
      * @param PublicKeyInterface $publicKeyStorage
+     * @param OpenIDConnectInterface $openIDStorage
      * @param array $config
      * @param EncryptionInterface $encryptionUtil
+     * @param type $subjectIdentifierType
      * @throws LogicException
      */
-    public function __construct(UserClaimsInterface $userClaimsStorage, PublicKeyInterface $publicKeyStorage, OpenIDConnectInterface $openIDStorage, array $config = array(), EncryptionInterface $encryptionUtil = null, $subjectIdentifierType = self::SUBJECT_IDENTIFIER_PAIRWISE) {
+    public function __construct(UserClaimsInterface $userClaimsStorage, PublicKeyInterface $publicKeyStorage, OpenIDConnectInterface $openIDStorage, array $config = array(), EncryptionInterface $encryptionUtil = null, $subjectIdentifierType = self::SUBJECT_IDENTIFIER_PUBLIC) {
         $this->userClaimsStorage = $userClaimsStorage;
         $this->publicKeyStorage = $publicKeyStorage;
         $this->openIDStorage = $openIDStorage;
