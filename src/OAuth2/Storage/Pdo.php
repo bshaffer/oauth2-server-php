@@ -600,7 +600,7 @@ class Pdo implements
      */
     public function getPublicKey($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id DESC', $this->config['public_key_table']));
 
         $stmt->execute(compact('client_id'));
         if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
@@ -614,7 +614,7 @@ class Pdo implements
      */
     public function getPrivateKey($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT private_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT private_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id DESC', $this->config['public_key_table']));
 
         $stmt->execute(compact('client_id'));
         if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
@@ -628,7 +628,7 @@ class Pdo implements
      */
     public function getEncryptionAlgorithm($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT encryption_algorithm FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+        $stmt = $this->db->prepare($sql = sprintf('SELECT encryption_algorithm FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id DESC', $this->config['public_key_table']));
 
         $stmt->execute(compact('client_id'));
         if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
