@@ -32,4 +32,4 @@ before_script:
 after_script:
 - php test/cleanup.php
 script:
-- vendor/bin/phpunit
+- vendor/bin/phpunit -v
