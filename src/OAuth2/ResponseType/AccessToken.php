@@ -32,7 +32,7 @@ class AccessToken implements AccessTokenInterface
      * @param array                       $config         - OPTIONAL Configuration options for the server
      * @code
      *     $config = array(
-     *         'token_type' => 'bearer',            // token type identifier
+     *         'token_type' => 'Bearer',            // token type identifier
      *         'access_lifetime' => 3600,           // time before access token expires
      *         'refresh_token_lifetime' => 1209600, // time before refresh token expires
      *     );
@@ -44,7 +44,7 @@ class AccessToken implements AccessTokenInterface
         $this->refreshStorage = $refreshStorage;
 
         $this->config = array_merge(array(
-            'token_type'             => 'bearer',
+            'token_type'             => 'Bearer',
             'access_lifetime'        => 3600,
             'refresh_token_lifetime' => 1209600,
         ), $config);
