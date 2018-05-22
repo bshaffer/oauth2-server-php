@@ -10,14 +10,14 @@ class FirebaseJwt implements EncryptionInterface
 {
     public function __construct()
     {
-        if (!class_exists('\JWT')) {
+        if (!class_exists('\Firebase\JWT\JWT')) {
             throw new \ErrorException('firebase/php-jwt must be installed to use this feature. You can do this by running "composer require firebase/php-jwt"');
         }
     }
 
     public function encode($payload, $key, $alg = 'HS256', $keyId = null)
     {
-        return \JWT::encode($payload, $key, $alg, $keyId);
+        return \Firebase\JWT\JWT::encode($payload, $key, $alg, $keyId);
     }
 
     public function decode($jwt, $key = null, $allowedAlgorithms = null)
@@ -29,7 +29,7 @@ class FirebaseJwt implements EncryptionInterface
                 $key = null;
             }
 
-            return (array)\JWT::decode($jwt, $key, $allowedAlgorithms);
+            return (array)\Firebase\JWT\JWT::decode($jwt, $key, $allowedAlgorithms);
         } catch (\Exception $e) {
             return false;
         }
@@ -37,11 +37,11 @@ class FirebaseJwt implements EncryptionInterface
 
     public function urlSafeB64Encode($data)
     {
-        return \JWT::urlsafeB64Encode($data);
+        return \Firebase\JWT\JWT::urlsafeB64Encode($data);
     }
 
     public function urlSafeB64Decode($b64)
     {
-        return \JWT::urlsafeB64Decode($b64);
+        return \Firebase\JWT\JWT::urlsafeB64Decode($b64);
     }
 }
