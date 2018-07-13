@@ -77,7 +77,7 @@ class JwtAccessToken extends AccessToken
         // token to return to the client
         $token = array(
             'access_token' => $access_token,
-            'expires_in' => $this->config['access_lifetime'],
+            'expires_in' => (int)$this->config['access_lifetime'],
             'token_type' => $this->config['token_type'],
             'scope' => $scope
         );
