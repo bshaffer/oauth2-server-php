@@ -107,16 +107,24 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
         $code_challenge = $request->query('code_challenge');
         $code_challenge_method = $request->query('code_challenge_method');
 
-        if (!$code_challenge && $this->config['enforce_pkce']) {
-            $response->setError(400, 'missing_code_challenge', 'This application requires you specify provide a PKCE code challenge');
+        if ($this->config['enforce_pkce']) {
+            if (!$code_challenge) {
+                $response->setError(400, 'missing_code_challenge', 'This application requires you provide a PKCE code challenge');
+
+                return false;
+            }
+
+            if (preg_match('/^[A-Za-z0-9-._~]{43,128}$/', $code_challenge) !== 1) {
+            $response->setError(400, 'invalid_code_challenge', 'The PKCE code challenge supplied is invalid');
 
             return false;
-        }
+          }
 
-        if (!in_array($code_challenge_method, array('plain', 'S256'), TRUE) && $this->config['enforce_pkce']) {
-            $response->setError(400, 'missing_code_challenge_method', 'This application requires you specify provide a PKCE code challenge method');
+            if (!in_array($code_challenge_method, array('plain', 'S256'), true)) {
+                $response->setError(400, 'missing_code_challenge_method', 'This application requires you specify a PKCE code challenge method');
 
-            return false;
+                return false;
+            }
         }
 
         $this->code_challenge = $code_challenge;
