@@ -24,7 +24,7 @@ services:
 before_install:
 - phpenv config-rm xdebug.ini || return 0
 - phpenv version-name | grep ^5.[3-6] && composer remove mongodb/mongodb --dev && echo "extension=mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; true
-- phpenv version-name | grep ^7 && pecl install mongodb-1.4.4 && echo "extension=mongodb.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; true
+- phpenv version-name | grep ^7 && apt-get remove --auto-remove php-mongodb && pecl install mongodb && echo "extension=mongodb.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; true
 install:
 - composer install
 before_script:
