@@ -172,6 +172,7 @@ class Server implements ResourceControllerInterface,
             'enforce_state'            => true,
             'require_exact_redirect_uri' => true,
             'allow_implicit'           => false,
+            'enforce_pkce'             => false,
             'allow_credentials_in_request_body' => true,
             'allow_public_clients'     => true,
             'always_issue_new_refresh_token' => false,
@@ -577,7 +578,7 @@ class Server implements ResourceControllerInterface,
             }
         }
 
-        $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state require_exact_redirect_uri')));
+        $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state require_exact_redirect_uri enforce_pkce')));
 
         if ($this->config['use_openid_connect']) {
             return new OpenIDAuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->getScopeUtil());

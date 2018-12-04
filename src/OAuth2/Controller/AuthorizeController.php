@@ -87,6 +87,7 @@ class AuthorizeController implements AuthorizeControllerInterface
             'enforce_state'  => true,
             'require_exact_redirect_uri' => true,
             'redirect_status_code' => 302,
+            'enforce_pkce' => false,
         ), $config);
 
         if (is_null($scopeUtil)) {
