@@ -144,7 +144,7 @@ class IdToken implements IdTokenInterface
         $private_key = $this->publicKeyStorage->getPrivateKey($client_id);
         $algorithm = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
 
-        return $this->encryptionUtil->encode($token, $private_key, $algorithm);
+        return $this->encryptionUtil->encode($token, $private_key, $algorithm, $client_id);
     }
 
     /**
