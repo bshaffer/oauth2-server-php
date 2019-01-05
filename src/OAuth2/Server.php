@@ -124,6 +124,7 @@ class Server implements ResourceControllerInterface,
         'public_key' => 'OAuth2\Storage\PublicKeyInterface',
         'jwt_bearer' => 'OAuth2\Storage\JWTBearerInterface',
         'scope' => 'OAuth2\Storage\ScopeInterface',
+        'openid_connect' => 'OAuth2\OpenID\Storage\OpenIDConnectInterface',
     );
 
     /**
@@ -176,6 +177,7 @@ class Server implements ResourceControllerInterface,
             'allow_public_clients'     => true,
             'always_issue_new_refresh_token' => false,
             'unset_refresh_token_after_use' => true,
+            'subject_identifier_type' => IdToken::SUBJECT_IDENTIFIER_PUBLIC,
         ), $config);
 
         foreach ($grantTypes as $key => $grantType) {
@@ -879,10 +881,14 @@ class Server implements ResourceControllerInterface,
         if (!isset($this->storages['public_key'])) {
             throw new LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use openid connect");
         }
+        
+        if (!isset($this->storages['openid_connect'])) {
+            throw new LogicException("You must supply a storage object implementing OAuth2\OpenID\Storage\OpenIDConnectInterface to use openid connect");
+        }
 
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'issuer id_lifetime')));
 
-        return new IdToken($this->storages['user_claims'], $this->storages['public_key'], $config);
+        return new IdToken($this->storages['user_claims'], $this->storages['public_key'], $this->storages['openid_connect'], $config, null, $this->config['subject_identifier_type']);
     }
 
     /**

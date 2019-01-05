@@ -487,7 +487,21 @@ class ServerTest extends TestCase
     public function testUsingOpenIDConnectWithoutUserClaimsThrowsException()
     {
         $client = $this->getMock('OAuth2\Storage\ClientInterface');
-        $server = new Server($client, array('use_openid_connect' => true));
+        $openidConnect = $this->getMock('OAuth2\OpenID\Storage\OpenIDConnectInterface');
+        $server = new Server(array($client, $openidConnect), array('use_openid_connect' => true));
+
+        $server->getAuthorizeController();
+    }
+    
+    /**
+     * @expectedException LogicException OpenIDConnectInterface
+     **/
+    public function testUsingOpenIDConnectWithoutOpenIDConnectStorageThrowsException()
+    {
+        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $userClaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $server = new Server(array($client, $userClaims, $pubkey), array('use_openid_connect' => true));
 
         $server->getAuthorizeController();
     }
@@ -512,7 +526,8 @@ class ServerTest extends TestCase
         $client = $this->getMock('OAuth2\Storage\ClientInterface');
         $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
         $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        $server = new Server(array($client, $userclaims, $pubkey), array('use_openid_connect' => true));
+        $openidConnect = $this->getMock('OAuth2\OpenID\Storage\OpenIDConnectInterface');
+        $server = new Server(array($client, $userclaims, $pubkey, $openidConnect), array('use_openid_connect' => true));
 
         $server->getAuthorizeController();
     }
@@ -522,7 +537,8 @@ class ServerTest extends TestCase
         $client = $this->getMock('OAuth2\Storage\ClientInterface');
         $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
         $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        $server = new Server(array($client, $userclaims, $pubkey), array(
+        $openidConnect = $this->getMock('OAuth2\OpenID\Storage\OpenIDConnectInterface');
+        $server = new Server(array($client, $userclaims, $pubkey, $openidConnect), array(
             'use_openid_connect' => true,
             'issuer' => 'someguy',
         ));
@@ -549,13 +565,14 @@ class ServerTest extends TestCase
 
         $server->getAuthorizeController();
     }
-
+    
     public function testUsingOpenIDConnectWithAllowImplicitAndUseJwtAccessTokensIsOkay()
     {
         $client = $this->getMock('OAuth2\Storage\ClientInterface');
         $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
         $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        $server = new Server(array($client, $userclaims, $pubkey), array(
+        $openidConnect = $this->getMock('OAuth2\OpenID\Storage\OpenIDConnectInterface');
+        $server = new Server(array($client, $userclaims, $pubkey, $openidConnect), array(
             'use_openid_connect' => true,
             'issuer' => 'someguy',
             'allow_implicit' => true,
@@ -574,7 +591,8 @@ class ServerTest extends TestCase
         $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
         $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
         $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
-        $server = new Server(array($client, $userclaims, $pubkey, $token), array(
+        $openidConnect = $this->getMock('OAuth2\OpenID\Storage\OpenIDConnectInterface');
+        $server = new Server(array($client, $userclaims, $pubkey, $token, $openidConnect), array(
             'use_openid_connect' => true,
             'issuer' => 'someguy',
             'allow_implicit' => true,
@@ -591,8 +609,9 @@ class ServerTest extends TestCase
         $client = $this->getMock('OAuth2\Storage\ClientInterface');
         $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
         $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $openidConnect = $this->getMock('OAuth2\OpenID\Storage\OpenIDConnectInterface');
         // $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
-        $server = new Server(array($client, $userclaims, $pubkey), array(
+        $server = new Server(array($client, $userclaims, $pubkey, $openidConnect), array(
             'use_openid_connect' => true,
             'issuer' => 'someguy',
             'allow_implicit' => true,

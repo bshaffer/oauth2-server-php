@@ -5,7 +5,8 @@ namespace OAuth2\Storage;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 use InvalidArgumentException;
-
+use OAuth2\OpenID\Storage\OpenIDConnectInterface;
+use OAuth2\OpenID\ResponseType\IdTokenInterface;
 /**
  * Simple PDO storage for all storage types
  *
@@ -28,7 +29,8 @@ class Pdo implements
     ScopeInterface,
     PublicKeyInterface,
     UserClaimsInterface,
-    OpenIDAuthorizationCodeInterface
+    OpenIDAuthorizationCodeInterface,
+    OpenIDConnectInterface
 {
     /**
      * @var \PDO
@@ -81,6 +83,7 @@ class Pdo implements
             'jti_table'  => 'oauth_jti',
             'scope_table'  => 'oauth_scopes',
             'public_key_table'  => 'oauth_public_keys',
+            'openid_connect_table'  => 'oauth_openid_connect',
         ), $config);
     }
 
@@ -115,6 +118,27 @@ class Pdo implements
         return empty($result['client_secret']);
     }
 
+    public function getOpenID($user_id, $client_id, $type) {
+        
+        if ($type === IdTokenInterface::SUBJECT_IDENTIFIER_PUBLIC) {
+            return $user_id;
+        }
+        $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id and user_id = :user_id', $this->config['openid_connect_table']));
+        $stmt->execute(compact('client_id', 'user_id'));
+        $tmp = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        if ($tmp === false) {
+            $openid = hash_hmac('sha256', $user_id, $client_id);
+            $this->setOpenID($openid, $user_id, $client_id);
+            return $openid;
+        }
+        return $tmp['openid'];
+    }
+    
+    public function setOpenID($openid, $user_id, $client_id) {
+        $stmt = $this->db->prepare(sprintf('INSERT INTO %s (openid, client_id, user_id) VALUES (:openid, :client_id, :user_id)', $this->config['openid_connect_table']));
+        return $stmt->execute(compact('openid', 'client_id', 'user_id'));
+    }
     /**
      * @param string $client_id
      * @return array|mixed
@@ -723,6 +747,13 @@ class Pdo implements
               public_key           VARCHAR(2000),
               private_key          VARCHAR(2000),
               encryption_algorithm VARCHAR(100) DEFAULT 'RS256'
+            );
+            
+            CREATE TABLE {$this->config['openid_connect_table']} (
+              openid            VARCHAR(255),
+              user_id           VARCHAR(80),
+              client_id          VARCHAR(80),
+              PRIMARY KEY (client_id,user_id)
             )
         ";
 

@@ -80,7 +80,7 @@ class IdTokenTokenTest extends TestCase
         $memoryStorage = Bootstrap::getInstance()->getMemoryStorage();
         $responseTypes = array(
             'token'     => $token   = new AccessToken($memoryStorage, $memoryStorage),
-            'id_token'  => $idToken = new IdToken($memoryStorage, $memoryStorage, $config),
+            'id_token'  => $idToken = new IdToken($memoryStorage, $memoryStorage, $memoryStorage, $config),
             'id_token token' => new IdTokenToken($token, $idToken),
         );
 
