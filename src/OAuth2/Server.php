@@ -36,6 +36,10 @@ use OAuth2\Storage\JwtAccessToken as JwtAccessTokenStorage;
 use OAuth2\Storage\JwtAccessTokenInterface;
 use InvalidArgumentException;
 use LogicException;
+// bdegoy added for Introspection
+use OAuth2\OpenID\Controller\IntrospectControllerInterface; 
+use OAuth2\OpenID\Controller\IntrospectController;
+use OAuth2\OpenID\Storage\ClientKeyInterface;
 
 /**
 * Server class for OAuth2
@@ -48,7 +52,8 @@ use LogicException;
 class Server implements ResourceControllerInterface,
     AuthorizeControllerInterface,
     TokenControllerInterface,
-    UserInfoControllerInterface
+    UserInfoControllerInterface,
+    IntrospectControllerInterface       // bdegoy added for Introspection
 {
     /**
      * @var ResponseInterface
@@ -84,6 +89,11 @@ class Server implements ResourceControllerInterface,
      * @var UserInfoControllerInterface
      */
     protected $userInfoController;
+    
+    /**
+     * @var IntrospectControllerInterface
+     */
+    protected $introspectController;
 
     /**
      * @var array
@@ -242,6 +252,18 @@ class Server implements ResourceControllerInterface,
 
         return $this->userInfoController;
     }
+    
+    /**
+     * @return IntrospectControllerInterface
+     */
+    public function getIntrospectController()                   // bdegoy added for introspection
+    {
+        if (is_null($this->introspectController)) {
+            $this->introspectController = $this->createDefaultIntrospectController();
+        }
+
+        return $this->introspectController;
+    }
 
     /**
      * @param AuthorizeControllerInterface $authorizeController
@@ -273,6 +295,14 @@ class Server implements ResourceControllerInterface,
     public function setUserInfoController(UserInfoControllerInterface $userInfoController)
     {
         $this->userInfoController = $userInfoController;
+    }
+    
+    /**
+     * @param IntrospectControllerInterface $introspectController
+     */
+    public function setIntrospectController(IntrospectControllerInterface $introspectController)     // bdegoy added for introspection
+    {
+        $this->IntrospectController = $introspectController;
     }
 
     /**
@@ -318,6 +348,27 @@ class Server implements ResourceControllerInterface,
     {
         $this->response = is_null($response) ? new Response() : $response;
         $this->getTokenController()->handleTokenRequest($request, $this->response);
+
+        return $this->response;
+    }
+    
+    /**
+     * Verify an JWT ID Token.
+     * This would be called from the "/introspect" endpoint as defined in the spec.
+     * Obviously, you can call your endpoint whatever you want.
+     *
+     * @param RequestInterface $request   - Request object including JWT ID Token
+     * @param ResponseInterface $response - Response object containing error messages (failure) or decoded ID Token (success)
+     * @return ResponseInterface
+     *
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     *
+     */
+    public function handleIntrospectRequest(RequestInterface $request, ResponseInterface $response = null)   // bdegoy added for introspection
+    {
+        $this->response = is_null($response) ? new Response() : $response;
+        $this->getIntrospectController()->handleIntrospectRequest($request, $this->response);
 
         return $this->response;
     }
@@ -669,6 +720,34 @@ class Server implements ResourceControllerInterface,
         $config = array_intersect_key($this->config, array('www_realm' => ''));
 
         return new UserInfoController($this->tokenType, $this->storages['access_token'], $this->storages['user_claims'], $config, $this->getScopeUtil());
+    }
+    
+    /**
+     * @return IntrospectControllerInterface
+     * @throws LogicException
+     */
+    protected function createDefaultIntrospectController()              // bdegoy added for introspection
+    {        
+        if ($this->config['use_jwt_access_tokens']) {
+            // overwrites access token storage with crypto token storage if "use_jwt_access_tokens" is set
+            if (!isset($this->storages['access_token']) || !$this->storages['access_token'] instanceof JwtAccessTokenInterface) {
+                $this->storages['access_token'] = $this->createDefaultJwtAccessTokenStorage();
+            }
+        } elseif (!isset($this->storages['access_token'])) {
+            throw new \LogicException('You must supply a storage object implementing OAuth2\Storage\AccessTokenInterface or use JwtAccessTokens to use the Introspect server');
+        }
+        
+        if (!isset($this->storages['public_key'])) {
+            throw new LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use openid connect");
+        }
+
+        if (!$this->tokenType) {
+            $this->tokenType = $this->getDefaultTokenType();
+        }
+
+        $config = array_intersect_key($this->config, array('www_realm' => ''));
+
+        return new IntrospectController($this->tokenType, $this->storages['access_token'], $this->storages['public_key'], $config, $this->getScopeUtil());
     }
 
     /**
