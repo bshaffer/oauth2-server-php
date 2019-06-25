@@ -63,5 +63,4 @@ interface ClientInterface
      * @ingroup oauth2_section_4
      */
     public function checkRestrictedGrantType($client_id, $grant_type);
-    
 }
