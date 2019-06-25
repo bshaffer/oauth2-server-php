@@ -64,10 +64,10 @@ interface ClientInterface
      */
     public function checkRestrictedGrantType($client_id, $grant_type);
     
-    /**    bdegoy added
+    /**    bdegoy added (not used yet)
      * Return public key of the provided client id, or global public key if not provided.
      * @param mixed  $client_id - The id of the client for which public key should be returned, or null for global key.
      * @return string - the public key.
      */
-    //public function getPublicKey($user_id, $scope);
+    public function getPublicKey($user_id, $scope);
 }
