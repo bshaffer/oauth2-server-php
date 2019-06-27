@@ -580,7 +580,7 @@ class Server implements ResourceControllerInterface,
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'allow_implicit enforce_state require_exact_redirect_uri')));
 
         if ($this->config['use_openid_connect']) {
-            return new OpenIDAuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->getScopeUtil());
+            return new OpenIDAuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->getScopeUtil(), $this->storages['user_claims']);
         }
 
         return new AuthorizeController($this->storages['client'], $this->responseTypes, $config, $this->getScopeUtil());
