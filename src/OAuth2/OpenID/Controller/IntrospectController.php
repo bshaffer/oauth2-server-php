@@ -15,32 +15,6 @@ OPTIONAL. IP of client issuing the token to be verified. (TODO)
 audience :
 OPTIONAL. If token has an audience claim it will be checked against this one.
 
-Authorization of caller :
-
-According to rfc7662 Section 2.1., "the endpoint MUST require some form of authorization to access this endpoint".
-( What we could have done to comply with this specification :
-This implementation is waiting for a bearer access token issued for a registered (not public) client.
-Where this access token is coming from is depending upon the service. 
-It may have been obtained from the server by the caller as a client application.
-Or, if the caller is a resource server queried by a client application, it may have been passed to the caller by the application.)
-
-We submit to the reader's sagacity the following observations:
-
-- The purpose of this autorisation is "To prevent token scanning attacks". 
-This kind of attacks are usually mitigated at the firewall level in relation with the service. 
-For instance, with Apache, we could set a HTTP Basic authentication at the directory level. 
-Then, on a WHM/cPanel managed server, we could use CSF/LFD to block repetitive login failure. 
-We could also configure a particular Apache Modsec rule for that purpose. 
-
-- Requiring the resource server to authenticate itself makes the asumption that the server appartains to the corporate realm.
-It is true in most cases, but we may expect foreign RS be able to check JWT.
-
-   
-
-
-Introspection response :
-
-
 Author :
 Bertrand Degoy https://oa.dnc.global
 Credits :
@@ -63,6 +37,7 @@ use OAuth2\Encryption\Jwt;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 use OAuth2\Bearer;
+use OAuth2\Storage\ClientInterface;
 
 /**
 * @see OAuth2\Controller\IntrospectControllerInterface
@@ -73,6 +48,11 @@ class IntrospectController extends ResourceController implements IntrospectContr
     * @var PublicKeyInterface
     */
     protected $publicKeyStorage;
+
+    /**
+    * @var ClientInterface
+    */
+    protected $clientStorage;
 
     /**
     * @var EncryptionInterface
@@ -87,13 +67,14 @@ class IntrospectController extends ResourceController implements IntrospectContr
     * @param array                $config
     * @param ScopeInterface       $scopeUtil
     */
-    public function __construct(TokenTypeInterface $tokenType, AccessTokenInterface $tokenStorage, PublicKeyInterface $publicKeyStorage, $config = array(), ScopeInterface $scopeUtil = null)
+    public function __construct(TokenTypeInterface $tokenType, AccessTokenInterface $tokenStorage, ClientInterface $clientStorage, PublicKeyInterface $publicKeyStorage, $config = array(), ScopeInterface $scopeUtil = null)
     {
-        //DebugBreak("435347910947900005@127.0.0.1;d=1");  //DEBUG
 
         parent::__construct($tokenType, $tokenStorage, $config, $scopeUtil);
 
         $this->publicKeyStorage = $publicKeyStorage;
+
+        $this->clientStorage = $clientStorage;
 
         $this->encryptionUtil = new Jwt();
     }
@@ -108,8 +89,6 @@ class IntrospectController extends ResourceController implements IntrospectContr
     */
     public function handleIntrospectRequest(RequestInterface $request, ResponseInterface $response)
     {
-        //DebugBreak("435347910947900005@127.0.0.1;d=1");  //DEBUG
-
         // Get and decode ID token
         $id_token = $this->tokenType->getAccessTokenParameter($request,$response);
         $jwt = $this->encryptionUtil->decode($id_token, null, false);
@@ -170,7 +149,7 @@ class IntrospectController extends ResourceController implements IntrospectContr
             }
         }
 
-        // Check the audience if required to match
+        // Check the audience if required to match.
         $audience = $request->request('audience', $request->query('audience'));
         if ( isset($jwt['aud']) && !is_null($audience) ) {  
             if ( $jwt['aud'] != $audience )  {
@@ -179,8 +158,52 @@ class IntrospectController extends ResourceController implements IntrospectContr
                 return null;
             }
         }
-        
-        //TODO: Check the IP if required to match
+
+        /** Check requester's requester IP if required to match.
+        * If the requester passed the IP of its own requester, we must check that this IP is in the subnet 
+        * of the client application identified by 'aud'.
+        * @see https://tools.ietf.org/html/rfc7662#section-2.1 
+        */
+        if ( !empty( $requester_ip = $request->request('requester_ip', $request->query('requester_ip')) ) ) {
+
+            // Get client host from redirect URI
+            $clientData = $this->clientStorage->getClientDetails($jwt['aud']);
+            $registered_redirect_uri = $clientData['redirect_uri'];
+            $hostname = parse_url($registered_redirect_uri)['host'];
+
+            // Get array of host IPs from dns
+            $client_ips = gethostbynamel($hostname); 
+
+            // Check same subnet 
+            if ( $client_ips ) {
+
+                $subnetmask = $this->config['check_client_ip_mask'] ? $this->config['check_client_ip_mask'] : '255.255.255.255';
+                $long_requester_subnet = ip2long($requester_ip) & ip2long($subnetmask);
+
+                $Ok = false;
+                foreach( $client_ips as $n => $client_ip ) {
+                    $long_client_subnet = ip2long($client_ip) & ip2long($subnetmask); 
+                    if ( $Ok = ($long_requester_subnet === $long_client_subnet) ) {     
+                        break;
+                    } 
+                }
+
+                if ( !$Ok ) {
+                    // not in any subnet of client
+                    $response->setError(400,'invalid_grant', 'Invalid IP');
+
+                    return null;
+                }   
+
+            } else {
+                // Error : we MUST check the IP but we can't.
+                $response->setError(400,'invalid_grant', 'Hostname not resolved');
+
+                return null;
+            }
+
+        } 
+
 
         // Check the jti (nonce)
         // @see http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-13#section-4.1.7
@@ -254,6 +277,8 @@ class IntrospectController extends ResourceController implements IntrospectContr
 
         $response->addParameters($answer);
 
-    }           
+    } 
+
+
 
 }
