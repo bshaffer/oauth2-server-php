@@ -353,7 +353,7 @@ class Server implements ResourceControllerInterface,
     }
     
     /**
-     * Verify an JWT ID Token.
+     * Verify a JWT ID Token.
      * This would be called from the "/introspect" endpoint as defined in the spec.
      * Obviously, you can call your endpoint whatever you want.
      *
@@ -740,6 +740,10 @@ class Server implements ResourceControllerInterface,
         if (!isset($this->storages['public_key'])) {
             throw new LogicException("You must supply a storage object implementing OAuth2\Storage\PublicKeyInterface to use openid connect");
         }
+        
+        if (!isset($this->storages['client'])) {
+            throw new LogicException("You must supply a storage object implementing OAuth2\Storage\ClientInterface to use openid connect");
+        }
 
         if (!$this->tokenType) {
             $this->tokenType = $this->getDefaultTokenType();
@@ -747,7 +751,7 @@ class Server implements ResourceControllerInterface,
 
         $config = array_intersect_key($this->config, array('www_realm' => ''));
 
-        return new IntrospectController($this->tokenType, $this->storages['access_token'], $this->storages['public_key'], $config, $this->getScopeUtil());
+        return new IntrospectController($this->tokenType, $this->storages['access_token'], $this->storages['client'], $this->storages['public_key'], $this->config, $this->getScopeUtil());
     }
 
     /**
