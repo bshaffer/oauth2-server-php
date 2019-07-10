@@ -105,7 +105,7 @@ class Pdo implements
      */
     public function isPublicClient($client_id)
     {
-		if (!$client_id || $client_id == ''){
+        if (!$client_id || $client_id == ''){
             return true;
         }
 		
