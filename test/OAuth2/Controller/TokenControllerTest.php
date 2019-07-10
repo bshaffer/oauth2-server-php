@@ -39,21 +39,6 @@ class TokenControllerTest extends TestCase
         $this->assertEquals($response->getParameter('error_description'), 'Grant type "invalid_grant_type" not supported');
     }
 
-    public function testNoClientId()
-    {
-        // add the test parameters in memory
-        $server = $this->getTestServer();
-        $request = TestRequest::createPost(array(
-            'grant_type' => 'authorization_code', // valid grant type
-            'code'       => 'testcode',
-        ));
-        $server->handleTokenRequest($request, $response = new Response());
-
-        $this->assertEquals($response->getStatusCode(), 400);
-        $this->assertEquals($response->getParameter('error'), 'invalid_client');
-        $this->assertEquals($response->getParameter('error_description'), 'Client credentials were not found in the headers or body');
-    }
-
     public function testNoClientSecretWithConfidentialClient()
     {
         // add the test parameters in memory
