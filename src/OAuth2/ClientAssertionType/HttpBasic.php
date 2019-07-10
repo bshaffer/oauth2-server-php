@@ -51,7 +51,7 @@ class HttpBasic implements ClientAssertionTypeInterface
     public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$clientData = $this->getClientCredentials($request, $response)) {
-            return false;
+            $clientData = array('client_id' => '', 'client_secret' => '');
         }
 
         if (!isset($clientData['client_id'])) {
@@ -130,8 +130,11 @@ class HttpBasic implements ClientAssertionTypeInterface
         }
 
         if ($response) {
-            $message = $this->config['allow_credentials_in_request_body'] ? ' or body' : '';
-            $response->setError(400, 'invalid_client', 'Client credentials were not found in the headers'.$message);
+            // Only consider not having client credentials a problem when public_clients are not allowed
+            if (!$this->config['allow_public_clients']){
+                $message = $this->config['allow_credentials_in_request_body'] ? ' or body' : '';
+                $response->setError(400, 'invalid_client', 'Client credentials were not found in the headers'.$message);
+            }
         }
 
         return null;

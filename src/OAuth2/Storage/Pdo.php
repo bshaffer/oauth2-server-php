@@ -105,6 +105,10 @@ class Pdo implements
      */
     public function isPublicClient($client_id)
     {
+		if (!$client_id || $client_id == ''){
+            return true;
+        }
+		
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
         $stmt->execute(compact('client_id'));
 
