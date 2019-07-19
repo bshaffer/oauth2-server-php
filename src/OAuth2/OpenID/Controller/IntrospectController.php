@@ -1,27 +1,29 @@
 <?php
 /**
 * Introspection
-References:
-https://datatracker.ietf.org/doc/rfc7662/
-
-Posted parameters :
-
-token 
-REQUIRED. : (TODO :déterminer les types acceptés : JWT et ???)
-token_type_hint : 
-OPTIONAL. not implemented.
-ip :
-OPTIONAL. IP of client issuing the token to be verified. (TODO)
-audience :
-OPTIONAL. If token has an audience claim it will be checked against this one.
-
-Author :
-Bertrand Degoy https://oa.dnc.global
-Credits :
-bschaffer https://github.com/bshaffer/oauth2-server-php
-
-Licence : GPL v3.0
-Copyright (c) 2019 - DnC
+* 
+* References: 
+*   https://datatracker.ietf.org/doc/rfc7662/
+* 
+* Posted parameters :
+* token 
+*   REQUIRED. 
+* token_type_hint : 
+*   OPTIONAL. not implemented.
+* requester_ip :
+*   OPTIONAL. IP of client issuing the token to be verified.
+* audience :
+*   OPTIONAL. If token has an audience claim it will be checked against this one.
+*
+* Author :
+*   Bertrand Degoy https://oa.dnc.global
+* Credits :
+*   bschaffer https://github.com/bshaffer/oauth2-server-php
+* 
+* Licence : 
+*   GPL v3.0
+* Copyright (c) 2019 - DnC
+* 
 */
 
 namespace OAuth2\OpenID\Controller;
