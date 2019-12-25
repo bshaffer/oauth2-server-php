@@ -4,6 +4,7 @@ namespace OAuth2;
 
 use OAuth2\Controller\ResourceControllerInterface;
 use OAuth2\Controller\ResourceController;
+use OAuth2\OpenID\Controller\TokenController as OpenIDTokenController;
 use OAuth2\OpenID\Controller\UserInfoControllerInterface;
 use OAuth2\OpenID\Controller\UserInfoController;
 use OAuth2\OpenID\Controller\AuthorizeController as OpenIDAuthorizeController;
@@ -615,6 +616,10 @@ class Server implements ResourceControllerInterface,
         }
 
         $accessTokenResponseType = $this->getAccessTokenResponseType();
+
+        if ($this->config['use_openid_connect']) {
+            return new OpenIDTokenController($accessTokenResponseType, $this->storages['client'], $this->getIdTokenResponseType(), $this->storages['user_claims'], $this->grantTypes, $this->clientAssertionType, $this->getScopeUtil());
+        }
 
         return new TokenController($accessTokenResponseType, $this->storages['client'], $this->grantTypes, $this->clientAssertionType, $this->getScopeUtil());
     }
