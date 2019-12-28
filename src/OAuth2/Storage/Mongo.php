@@ -179,7 +179,7 @@ class Mongo implements AuthorizationCodeInterface,
         return is_null($code) ? false : $code;
     }
 
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
+    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)    //TODO: [pkce]
     {
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
