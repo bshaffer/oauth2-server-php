@@ -91,6 +91,10 @@ class Pdo implements
      */
     public function checkClientCredentials($client_id, $client_secret = null)
     {
+        //[dnc3]
+        $client_id = urldecode($client_id);
+        $client_secret = urldecode($client_secret);
+
         $stmt = $this->db->prepare(sprintf('SELECT * from %s where client_id = :client_id', $this->config['client_table']));
         $stmt->execute(compact('client_id'));
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -186,15 +190,17 @@ class Pdo implements
     /**
      * @param string $access_token
      * @param mixed  $client_id
-     * @param mixed  $user_id
+     * @param mixed  $userinfo  //[dnc49] may be array or scalar.
      * @param int    $expires
      * @param string $scope
      * @return bool
      */
-    public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
+    public function setAccessToken($access_token, $client_id, $userinfo, $expires, $scope = null)
     {
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
+       
+        $user_id = (is_array($userinfo)? $userinfo['user_id'] : $userinfo);   //[dnc49]
 
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
@@ -240,20 +246,24 @@ class Pdo implements
     /**
      * @param string $code
      * @param mixed  $client_id
-     * @param mixed  $user_id
+     * @param mixed  $userinfo  //[dnc49] keep $user_id notation for scalar
      * @param string $redirect_uri
      * @param int    $expires
      * @param string $scope
      * @param string $id_token
-     * @param string $code_challenge
-     * @param string $code_challenge_method
      * @return bool|mixed
      */
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null, $code_challenge = null, $code_challenge_method = null) //[pkce']
+    public function setAuthorizationCode($code, $client_id, $userinfo, $redirect_uri, $expires, $scope = null, $id_token = null, $code_challenge = null, $code_challenge_method = null) //[pkce']
     {
+        $user_id = (is_array($userinfo)? $userinfo['user_id'] : $userinfo);   //[dnc49]
+
+        /* [dnc1] 
         if (func_num_args() > 6) {
-            // we are calling with an id token
-            return call_user_func_array(array($this, 'setAuthorizationCodeWithIdToken'), func_get_args());
+        // we are calling with an id token
+        return call_user_func_array(array($this, 'setAuthorizationCodeWithIdToken'), func_get_args());
+        } */ 
+        if ( !is_null($id_token) ) {  //[dnc1] 
+            return $this->setAuthorizationCodeWithIdToken($code, $client_id, $user_id, $redirect_uri, $expires, $scope, $id_token, $code_challenge, $code_challenge_method);   //[pkce']
         }
 
         // convert expires to datestring
@@ -272,15 +282,17 @@ class Pdo implements
     /**
      * @param string $code
      * @param mixed  $client_id
-     * @param mixed  $user_id
+     * @param mixed  $userinfo  //[dnc49] keep $user_id notation for scalar
      * @param string $redirect_uri
      * @param string $expires
      * @param string $scope
      * @param string $id_token
      * @return bool
      */
-    private function setAuthorizationCodeWithIdToken($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null, $code_challenge = null, $code_challenge_method = null) //[pkce']
+    private function setAuthorizationCodeWithIdToken($code, $client_id, $userinfo, $redirect_uri, $expires, $scope = null, $id_token = null, $code_challenge = null, $code_challenge_method = null) //[pkce']
     {
+        $user_id = (is_array($userinfo)? $userinfo['user_id'] : $userinfo);   //[dnc49]
+
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
 
@@ -297,11 +309,12 @@ class Pdo implements
     /**
      * @param string $code
      * @return bool
+     * [dnc50] Instead of deleting, set expires to Null.
      */
     public function expireAuthorizationCode($code)
     {
-        $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE authorization_code = :code', $this->config['code_table']));
-
+        //[dnc50] $stmt = $this->db->prepare(sprintf('DELETE FROM %s WHERE authorization_code = :code', $this->config['code_table']));
+        $stmt = $this->db->prepare(sprintf('UPDATE %s SET expires=NULL WHERE authorization_code = :code', $this->config['code_table']));
         return $stmt->execute(compact('code'));
     }
 
@@ -329,12 +342,14 @@ class Pdo implements
     }
 
     /**
-     * @param mixed  $user_id
+     * @param mixed  $userinfo  //[dnc49] keep $user_id notation for scalar
      * @param string $claims
      * @return array|bool
      */
-    public function getUserClaims($user_id, $claims)
+    public function getUserClaims($userinfo, $claims)
     {
+        $user_id = (is_array($userinfo)? $userinfo['user_id'] : $userinfo);   //[dnc49]
+
         if (!$userDetails = $this->getUserDetails($user_id)) {
             return false;
         }
@@ -348,7 +363,7 @@ class Pdo implements
             if (in_array($validClaim, $claims)) {
                 if ($validClaim == 'address') {
                     // address is an object with subfields
-                    $userClaims['address'] = $this->getUserClaim($validClaim, $userDetails['address'] ?: $userDetails);
+                    $userClaims['address'] = $this->getUserClaim($validClaim, @$userDetails['address'] ?: $userDetails);
                 } else {
                     $userClaims = array_merge($userClaims, $this->getUserClaim($validClaim, $userDetails));
                 }
@@ -366,7 +381,7 @@ class Pdo implements
     protected function getUserClaim($claim, $userDetails)
     {
         $userClaims = array();
-        $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($claim)));
+        $claimValuesString = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($claim)));     // voir [dnc2']
         $claimValues = explode(' ', $claimValuesString);
 
         foreach ($claimValues as $value) {
@@ -396,13 +411,15 @@ class Pdo implements
     /**
      * @param string $refresh_token
      * @param mixed  $client_id
-     * @param mixed  $user_id
+     * @param mixed  $userinfo  //[dnc49] keep $user_id notation for scalar
      * @param string $expires
      * @param string $scope
      * @return bool
      */
-    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
+    public function setRefreshToken($refresh_token, $client_id, $userinfo, $expires, $scope = null)
     {
+        $user_id = (is_array($userinfo)? $userinfo['user_id'] : $userinfo);   //[dnc49]
+        
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
 
@@ -443,9 +460,9 @@ class Pdo implements
     }
 
     /**
-     * @param string $username
-     * @return array|bool
-     */
+    * @param string $username
+    * @return array|bool
+    */
     public function getUser($username)
     {
         $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
@@ -458,7 +475,7 @@ class Pdo implements
         // the default behavior is to use "username" as the user_id
         return array_merge(array(
             'user_id' => $username
-        ), $userInfo);
+            ), $userInfo);
     }
 
     /**
@@ -515,7 +532,7 @@ class Pdo implements
         if ($result = $stmt->fetchAll(\PDO::FETCH_ASSOC)) {
             $defaultScope = array_map(function ($row) {
                 return $row['scope'];
-            }, $result);
+                }, $result);
 
             return implode(' ', $defaultScope);
         }
@@ -614,6 +631,20 @@ class Pdo implements
      * @param mixed $client_id
      * @return mixed
      */
+    public function getPrivateKeyData($client_id = null) //[dnc4] added
+    {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT * FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
+
+        $stmt->execute(compact('client_id'));
+        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            return $result;
+        }
+    }
+
+    /**
+     * @param mixed $client_id
+     * @return mixed
+     */
     public function getPrivateKey($client_id = null)
     {
         $stmt = $this->db->prepare($sql = sprintf('SELECT private_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
@@ -648,6 +679,11 @@ class Pdo implements
      * @param string $dbName
      * @return string
      */
+    
+/*[dnc57] 2019/06/16 - Bug : Le flux client credentials produit un access_token de type JWT (et pourquoi donc ???).
+Le champ access_token de la table access_tokens est trop court pour un JWT. Le token se trouve tronqué et on obtient une erreur d'index primaire dupliqué (parce que le JWT a toujours le même header).
+Porté la longeur de 40 à 1000 (longueur maximale d'une clé d'index). 
+*/
     public function getBuildSql($dbName = 'oauth2_server_php')
     {
         $sql = "
@@ -662,7 +698,7 @@ class Pdo implements
         );
 
             CREATE TABLE {$this->config['access_token_table']} (
-              access_token         VARCHAR(40)    NOT NULL,
+              access_token         VARCHAR(1000)    NOT NULL,    
               client_id            VARCHAR(80)    NOT NULL,
               user_id              VARCHAR(80),
               expires              TIMESTAMP      NOT NULL,
