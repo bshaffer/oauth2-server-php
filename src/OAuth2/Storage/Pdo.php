@@ -667,8 +667,6 @@ class Pdo implements
               user_id              VARCHAR(80),
               expires              TIMESTAMP      NOT NULL,
               scope                VARCHAR(4000),
-              code_challenge       VARCHAR(256),
-              code_challenge_method       VARCHAR(256),
               PRIMARY KEY (access_token)
             );
 
@@ -680,6 +678,8 @@ class Pdo implements
               expires             TIMESTAMP      NOT NULL,
               scope               VARCHAR(4000),
               id_token            VARCHAR(1000),
+              code_challenge       VARCHAR(256),
+              code_challenge_method       VARCHAR(256),
               PRIMARY KEY (authorization_code)
             );
 
