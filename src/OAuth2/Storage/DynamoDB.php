@@ -213,7 +213,7 @@ class DynamoDB implements
 
     }
 
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null, $code_challenge = null, $code_challenge_method = null) //[pkce']
+    public function setAuthorizationCode($authorization_code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null, $code_challenge = null, $code_challenge_method = null) //[pkce']
     {
         // convert expires to datestring
         $expires = date('Y-m-d H:i:s', $expires);
