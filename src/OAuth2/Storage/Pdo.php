@@ -677,9 +677,9 @@ class Pdo implements
               redirect_uri        VARCHAR(2000),
               expires             TIMESTAMP      NOT NULL,
               scope               VARCHAR(4000),
-              id_token            VARCHAR(1000),
-              code_challenge       VARCHAR(256),
-              code_challenge_method       VARCHAR(256),
+              id_token            VARCHAR(1000) NULL,
+              code_challenge       VARCHAR(256) NULL,
+              code_challenge_method       VARCHAR(256) NULL,
               PRIMARY KEY (authorization_code)
             );
 

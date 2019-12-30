@@ -48,7 +48,7 @@ class AuthorizationCodeTest extends BaseTest
         // change existing code
         $expires = time() + 42;
         $new_id_token = 'fake_id_token-2';
-        $success = $storage->setAuthorizationCode('new-openid-code', 'client ID2', 'SOMEOTHERID', 'http://example.org', $expires, $scope, $new_id_token, '', '');
+        $success = $storage->setAuthorizationCode('new-openid-code', 'client ID2', 'SOMEOTHERID', 'http://example.org', $expires, $scope, $new_id_token, '', '');  //[pkce]
         $this->assertTrue($success);
 
         $code = $storage->getAuthorizationCode('new-openid-code');
