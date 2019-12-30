@@ -401,7 +401,7 @@ class Bootstrap
         $pdo->prepare($sql)->execute(array('testtoken', 'Some Client', date('Y-m-d H:i:s', strtotime('+1 hour')), null));
         $pdo->prepare($sql)->execute(array('accesstoken-openid-connect', 'Some Client', date('Y-m-d H:i:s', strtotime('+1 hour')), 'testuser'));
 
-        $sql = 'INSERT INTO oauth_authorization_codes (authorization_code, client_id, expires, scope, code_challenge, code_challenge_method) VALUES (?, ?, ?, ?, ?, ?)';     //[pkce]
+        $sql = 'INSERT INTO oauth_authorization_codes (authorization_code, client_id, expires, scope) VALUES (?, ?, ?, ?)';     //[pkce] ?
         $pdo->prepare($sql)->execute(array('testcode', 'Some Client', date('Y-m-d H:i:s', strtotime('+1 hour'))));
 
         $sql = 'INSERT INTO oauth_users (username, password, email, email_verified) VALUES (?, ?, ?, ?)';
