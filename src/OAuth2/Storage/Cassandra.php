@@ -197,7 +197,7 @@ class Cassandra implements AuthorizationCodeInterface,
     {
         return $this->setValue(
             $this->config['code_key'] . $code,  //dgy
-            compact('authorization_code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'),
+            compact('authorization_code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token', 'code_challenge', 'code_challenge_method'),  //[pkce']
             $expires
         );
     }
