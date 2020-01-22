@@ -13,6 +13,8 @@ php:
 - 7.0
 - 7.1
 - 7.2
+- 7.3
+- 7.4
 env:
   global:
   - secure: Bc5ZqvZ1YYpoPZNNuU2eCB8DS6vBYrAdfBtTenBs5NSxzb+Vjven4kWakbzaMvZjb/Ib7Uph7DGuOtJXpmxnvBXPLd707LZ89oFWN/yqQlZKCcm8iErvJCB5XL+/ONHj2iPdR242HJweMcat6bMCwbVWoNDidjtWMH0U2mYFy3M=
