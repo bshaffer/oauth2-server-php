@@ -1,6 +1,6 @@
 language: php
 sudo: false
-dist: precise
+dist: xenial
 cache:
   directories:
     - $HOME/.composer/cache
