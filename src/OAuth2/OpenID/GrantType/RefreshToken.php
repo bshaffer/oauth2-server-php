@@ -85,7 +85,7 @@ class RefreshToken extends BaseRefreshToken
 
         // TODO: Set configuration
         $tempConfig = true;
-        if ($this->config['issue_id_token_on_new_refresh_token'] || $tempConfig) {
+        if ($this->config['issue_id_token_on_token_refresh'] || $tempConfig) {
 //            $client_id, $userInfo, $nonce = null, $userClaims = null, $access_token = null
             $jwt = new FirebaseJwt();
             $decodedIdToken = $jwt->decode($this->refreshToken['id_token'], null, false);
