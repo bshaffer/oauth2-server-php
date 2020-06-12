@@ -7,6 +7,7 @@ use OAuth2\Controller\ResourceController;
 use OAuth2\OpenID\Controller\UserInfoControllerInterface;
 use OAuth2\OpenID\Controller\UserInfoController;
 use OAuth2\OpenID\Controller\AuthorizeController as OpenIDAuthorizeController;
+use OAuth2\OpenID\GrantType\RefreshToken as OpenIdRefreshTokenGrantType;
 use OAuth2\OpenID\ResponseType\AuthorizationCode as OpenIDAuthorizationCodeResponseType;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 use OAuth2\OpenID\GrantType\AuthorizationCode as OpenIDAuthorizationCodeGrantType;
@@ -901,6 +902,11 @@ class Server implements ResourceControllerInterface,
         $authCodeGrant = $this->getGrantType('authorization_code');
         if (!empty($authCodeGrant) && !$authCodeGrant instanceof OpenIDAuthorizationCodeGrantType) {
             throw new \InvalidArgumentException('You have enabled OpenID Connect, but supplied a grant type that does not support it.');
+        }
+
+        $refreshTokenGrant = $this->getGrantType('refresh_token');
+        if (!empty($refreshTokenGrant) && !$refreshTokenGrant instanceof OpenIdRefreshTokenGrantType) {
+            throw new InvalidArgumentException('You have enabled OpenID connect, but supplied a refresh token grant type that does not support it.');
         }
     }
 

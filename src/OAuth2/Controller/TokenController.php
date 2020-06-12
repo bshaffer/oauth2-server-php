@@ -148,6 +148,8 @@ class TokenController implements TokenControllerInterface
             return null;
         }
 
+//        $grantTypeIdentifier = in_array('openid', explode(' ', $request->request('scope'))) ? 'refresh_token_openid' : $grantTypeIdentifier;
+
         /** @var GrantTypeInterface $grantType */
         $grantType = $this->grantTypes[$grantTypeIdentifier];
 

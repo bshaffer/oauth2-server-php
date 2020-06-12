@@ -110,6 +110,14 @@
             "user_id": "test-username",
             "expires": 0,
             "scope": "scope1 scope2"
+        },
+        "test-refreshtoken-with-idtoken": {
+            "refresh_token": "test-refreshtoken-with-idtoken",
+            "client_id": "Test Client ID",
+            "user_id": "test-username",
+            "expires": 0,
+            "scope": null,
+            "id_token": "old id token"
         }
     },
     "access_tokens" : {
