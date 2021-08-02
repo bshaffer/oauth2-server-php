@@ -123,6 +123,11 @@ class AuthorizeController implements AuthorizeControllerInterface
             $registered_redirect_uri = $clientData['redirect_uri'];
         }
 
+        if (empty($user_id)) {
+            $clientData = $this->clientStorage->getClientDetails($this->client_id);
+            $user_id    = $clientData['user_id'];
+        }
+        
         // the user declined access to the client's application
         if ($is_authorized === false) {
             $redirect_uri = $this->redirect_uri ?: $registered_redirect_uri;
