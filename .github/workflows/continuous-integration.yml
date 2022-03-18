@@ -31,8 +31,10 @@ jobs:
       - name: Setup Cassandra
         uses: fabasoad/setup-cassandra-action@v1.0.0
         with:
-          host: 'localhost'
+          host: '127.0.0.1'
           port: 9160
+          username: 'cassandra'
+          password: 'cassandra'
           connect-timeout: 30
           keyspace: oauth2_test
           scripts_path: './'
