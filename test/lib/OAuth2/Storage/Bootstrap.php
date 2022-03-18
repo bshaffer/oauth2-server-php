@@ -945,21 +945,6 @@ class Bootstrap
         ));
     }
 
-    public function cleanupTravisDynamoDb($prefix = null)
-    {
-        if (is_null($prefix)) {
-            // skip this when not applicable
-            if (!$this->getEnvVar('TRAVIS') || self::DYNAMODB_PHP_VERSION != $this->getEnvVar('TRAVIS_PHP_VERSION')) {
-                return;
-            }
-
-            $prefix = sprintf('build_%s_', $this->getEnvVar('TRAVIS_JOB_NUMBER'));
-        }
-
-        $client = $this->getDynamoDbClient();
-        $this->deleteDynamoDb($client, $prefix);
-    }
-
     private function getEnvVar($var, $default = null)
     {
         return isset($_SERVER[$var]) ? $_SERVER[$var] : (getenv($var) ?: $default);

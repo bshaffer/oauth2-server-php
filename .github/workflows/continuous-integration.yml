@@ -14,6 +14,10 @@ jobs:
         ports:
           - 6379:6379
         options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
       postgres:
         image: postgres
         env:
@@ -34,7 +38,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, intl, redis, pdo_mysql
+          extensions: mongodb, mbstring, intl, redis, pdo_mysql
       - name: Install composer dependencies
         uses: nick-invision/retry@v1
         with:
@@ -43,5 +47,3 @@ jobs:
           command: composer install
       - name: Run PHPUnit
         run: vendor/bin/phpunit -v
-      - name: Cleanup
-        run: php test/cleanup.php
