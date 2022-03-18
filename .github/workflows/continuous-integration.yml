@@ -28,19 +28,21 @@ jobs:
         uses: supercharge/redis-github-action@1.4.0
         with:
           redis-version: '6'
-#      - uses: fabasoad/setup-cassandra-action@v1.0.0
-#        with:
-#          host: '127.0.0.1'
-#          port: 9160
-#          keyspace: oauth2_test
-#          scripts_path: './scripts'
+      - name: Setup Cassandra
+        uses: fabasoad/setup-cassandra-action@v1.0.0
+        with:
+          host: 'localhost'
+          port: 9160
+          connect-timeout: 30
+          keyspace: oauth2_test
+          scripts_path: './'
       - name: Install composer dependencies
         uses: nick-invision/retry@v1
         with:
           timeout_minutes: 10
           max_attempts: 3
           command: composer install
-      - name: Run script
+      - name: Run PHPUnit
         run: vendor/bin/phpunit -v
       - name: Cleanup
         run: php test/cleanup.php
