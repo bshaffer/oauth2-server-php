@@ -41,7 +41,7 @@ jobs:
           max_attempts: 3
           command: composer install
       - name: Setup database
-        run: psql -c 'create database oauth2_server_php;' -U postgres -h postgres
+        run: psql -c 'create database oauth2_server_php;' -U postgres -h 127.0.0.1
       - name: Run PHPUnit
         run: vendor/bin/phpunit -v
       - name: Cleanup
