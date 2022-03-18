@@ -19,6 +19,23 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: '5.0'
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.4.0
+        with:
+          redis-version: '6'
+      - uses: fabasoad/setup-cassandra-action@v1.0.0
+        with:
+          host: '192.13.131.0'
+          port: 9042
+          username: ${{ secrets.CASSANDRA_USERNAME }}
+          password: ${{ secrets.CASSANDRA_PASSWORD }}
+          connect-timeout: 30
+          keyspace: test
+          scripts_path: './scripts'
       - name: Install composer dependencies
         uses: nick-invision/retry@v1
         with:
