@@ -21,9 +21,10 @@ jobs:
       myriadb:
         image: mariadb
         env:
-          MARIADB_ROOT_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: root
         ports:
           - 3808:3808
+          - 3306:3306
       postgres:
         image: postgres
         env:
