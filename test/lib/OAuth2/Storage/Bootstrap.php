@@ -118,7 +118,7 @@ class Bootstrap
         if (!$this->mysql) {
             $pdo = null;
             try {
-                $pdo = new \PDO('mysql:host=localhost;', 'root');
+                $pdo = new \PDO('mysql:host=localhost;', 'root', 'root');
             } catch (\PDOException $e) {
                 $this->mysql = new NullStorage('MySQL', 'Unable to connect to MySQL on root@localhost');
             }

@@ -21,8 +21,7 @@ jobs:
       myriadb:
         image: mariadb
         env:
-          MARIADB_USER: root
-          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: yes
+          MARIADB_ROOT_PASSWORD: root
         ports:
           - 3808:3808
       postgres:
