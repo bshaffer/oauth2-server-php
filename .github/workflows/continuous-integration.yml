@@ -37,7 +37,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mongodb, mbstring, intl, redis, pdo_mysql
+          extensions: mongo, mongodb, mbstring, intl, redis, pdo_mysql
       - name: Install composer dependencies
         uses: nick-invision/retry@v1
         with:
