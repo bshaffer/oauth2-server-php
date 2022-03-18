@@ -20,8 +20,15 @@ jobs:
           - 8081
       postgres:
         image: postgres
+        env:
+          POSTGRES_DB: oauth2_server_php
         ports:
           - 5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       matrix:
         php: [ 7.2, 7.3, 7.4 ]
@@ -40,8 +47,6 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           command: composer install
-      - name: Setup database
-        run: psql -c 'create database oauth2_server_php;' -U postgres -h 127.0.0.1
       - name: Run PHPUnit
         run: vendor/bin/phpunit -v
       - name: Cleanup
