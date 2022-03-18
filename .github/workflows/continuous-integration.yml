@@ -12,18 +12,18 @@ jobs:
       redis:
         image: redis
         ports:
-          - 6379
+          - 6379:6379
         options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
       mongodb:
         image: mongo
         ports:
-          - 27017
+          - 27017:27017
       myriadb:
         image: mariadb
         env:
           MARIADB_ROOT_PASSWORD: root
         ports:
-          - 3808
+          - 3808:3808
       postgres:
         image: postgres
         env:
@@ -31,7 +31,7 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         ports:
-          - 5432
+          - 5432:5432
         options: --health-cmd="pg_isready -h localhost" --health-interval=10s --health-timeout=5s --health-retries=5
     strategy:
       matrix:

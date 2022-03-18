@@ -68,7 +68,7 @@ class Bootstrap
     public function getPostgresDriver()
     {
         try {
-            $pdo = new \PDO('pgsql:host=localhost;dbname=oauth2_server_php', 'postgres');
+            $pdo = new \PDO('pgsql:host=localhost;dbname=oauth2_server_php', 'postgres', 'postgres');
 
             return $pdo;
         } catch (\PDOException $e) {
