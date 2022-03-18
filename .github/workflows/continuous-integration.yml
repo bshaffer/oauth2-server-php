@@ -12,8 +12,16 @@ jobs:
       redis:
         image: redis
         ports:
-          - 6379/tcp
+          - 6379
         options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      mongodb:
+        image: mongo
+        ports:
+          - 8081
+      postgres:
+        image: postgres
+        ports:
+          - 8080
     strategy:
       matrix:
         php: [ 7.2, 7.3, 7.4 ]
@@ -32,6 +40,8 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           command: composer install
+      - name: Setup database
+        run: psql -c 'create database oauth2_server_php;' -U postgres
       - name: Run PHPUnit
         run: vendor/bin/phpunit -v
       - name: Cleanup
