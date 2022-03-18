@@ -21,7 +21,7 @@ jobs:
       postgres:
         image: postgres
         ports:
-          - 8080
+          - 5432
     strategy:
       matrix:
         php: [ 7.2, 7.3, 7.4 ]
