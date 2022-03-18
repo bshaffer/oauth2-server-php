@@ -28,14 +28,6 @@ jobs:
         with:
           redis-version: '6'
       - uses: fabasoad/setup-cassandra-action@v1.0.0
-        with:
-          host: '192.13.131.0'
-          port: 9042
-          username: ${{ secrets.CASSANDRA_USERNAME }}
-          password: ${{ secrets.CASSANDRA_PASSWORD }}
-          connect-timeout: 30
-          keyspace: test
-          scripts_path: './scripts'
       - name: Install composer dependencies
         uses: nick-invision/retry@v1
         with:
@@ -46,21 +38,3 @@ jobs:
         run: vendor/bin/phpunit -v
       - name: Cleanup
         run: php test/cleanup.php
-
-  style:
-    runs-on: ubuntu-latest
-    name: PHP Style Check
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 7.4
-      - name: Install Dependencies
-        uses: nick-invision/retry@v1
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          command: composer install
-      - name: Run Script
-        run: vendor/bin/php-cs-fixer fix --dry-run --diff .
