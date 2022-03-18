@@ -1,33 +1,49 @@
-name: "Continuous Integration"
-
+name: Test Suite
 on:
-  pull_request:
   push:
     branches:
-      - '[0-9]+.[0-9]+.x'
+      - master
       - 'refs/pull/*'
-    tags:
-
+  pull_request:
 jobs:
-  matrix:
-    name: Generate job matrix
+  test:
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
-    steps:
-      - name: Gather CI configuration
-        id: matrix
-        uses: laminas/laminas-ci-matrix-action@v1
-
-  qa:
-    name: QA Checks
-    needs: [matrix]
-    runs-on: ${{ matrix.operatingSystem }}
     strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.matrix.outputs.matrix) }}
+      matrix:
+        php: [ 7.1, 7.2, 7.3, 7.4, 8.0, 8.1 ]
+    name: "PHP ${{ matrix.php }} Unit Test"
     steps:
-      - name: ${{ matrix.name }}
-        uses: laminas/laminas-continuous-integration-action@v1
+      - uses: actions/checkout@v2
+      - uses: codecov/codecov-action@v1
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          job: ${{ matrix.job }}
+          php-version: ${{ matrix.php }}
+      - name: Install composer dependencies
+        uses: nick-invision/retry@v1
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: composer install
+      - name: Run script
+        run: vendor/bin/phpunit -v
+      - name: Cleanup
+        run: php test/cleanup.php
+
+  style:
+    runs-on: ubuntu-latest
+    name: PHP Style Check
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 7.4
+      - name: Install Dependencies
+        uses: nick-invision/retry@v1
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: composer install
+      - name: Run Script
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff .
