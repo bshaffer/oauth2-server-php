@@ -22,7 +22,7 @@
         "phpunit/phpunit": "^4.0",
         "aws/aws-sdk-php": "~2.8",
         "firebase/php-jwt": "~2.2",
-        "predis/predis": "dev-master",
+        "predis/predis": "dev-main",
         "thobbs/phpcassa": "dev-master",
         "mongodb/mongodb": "^1.1"
     },
