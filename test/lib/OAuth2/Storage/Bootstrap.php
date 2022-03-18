@@ -352,7 +352,7 @@ class Bootstrap
 
     private function createPostgresDb()
     {
-        if (!`PGPASSWORD=postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='postgres'" -h localhost`) {
+        if (!`PGPASSWORD=postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='postgres'" -h localhost -U postgres`) {
             `createuser -s -r postgres`;
         }
 
@@ -366,7 +366,7 @@ class Bootstrap
 
     private function removePostgresDb()
     {
-        if (trim(`PGPASSWORD=postgres psql -l -h localhost | grep oauth2_server_php | wc -l`)) {
+        if (trim(`PGPASSWORD=postgres psql -l -h localhost -U postgres | grep oauth2_server_php | wc -l`)) {
             `dropdb oauth2_server_php`;
         }
     }

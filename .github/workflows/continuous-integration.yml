@@ -22,6 +22,7 @@ jobs:
         image: postgres
         env:
           POSTGRES_DB: oauth2_server_php
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
