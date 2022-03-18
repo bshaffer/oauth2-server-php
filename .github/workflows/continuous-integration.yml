@@ -18,6 +18,13 @@ jobs:
         image: mongo
         ports:
           - 27017:27017
+      myriadb:
+        image: mariadb
+        env:
+          MARIADB_USER: root
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: yes
+        ports:
+          - 3808:3808
       postgres:
         image: postgres
         env:
@@ -38,7 +45,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mongo.so, mongodb, mbstring, intl, redis, pdo_mysql
+          extensions: mongodb, mbstring, intl, redis, pdo_mysql
       - name: Install composer dependencies
         uses: nick-invision/retry@v1
         with:
