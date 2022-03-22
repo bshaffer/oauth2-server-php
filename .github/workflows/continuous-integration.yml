@@ -1,9 +1,6 @@
 name: Test Suite
 on:
   push:
-    branches:
-      - master
-      - 'refs/pull/*'
   pull_request:
 jobs:
   test:
