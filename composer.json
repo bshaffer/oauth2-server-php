@@ -16,7 +16,7 @@
         "psr-0": { "OAuth2": "src/" }
     },
     "require":{
-        "php":">=5.3.9"
+        "php":">=7.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^8.0",

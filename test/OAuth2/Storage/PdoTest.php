@@ -30,11 +30,9 @@ class PdoTest extends BaseTest
         $this->assertNotNull($storage->getClientDetails('oauth_test_client'));
     }
 
-    /**
-     * @expectedException InvalidArgumentException dsn
-     */
     public function testCreatePdoStorageWithoutDSNThrowsException()
     {
+        $this->expectErrorMessage('dsn');
         $config = array('username' => 'brent', 'password' => 'brentisaballer');
         $storage = new Pdo($config);
     }

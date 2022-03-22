@@ -9,24 +9,20 @@ use PHPUnit\Framework\TestCase;
 
 class ServerTest extends TestCase
 {
-    /**
-     * @expectedException LogicException OAuth2\Storage\ClientInterface
-     **/
     public function testGetAuthorizeControllerWithNoClientStorageThrowsException()
     {
+        $this->expectExceptionMessage('OAuth2\Storage\ClientInterface');
         // must set Client Storage
         $server = new Server();
         $server->getAuthorizeController();
     }
 
-    /**
-     * @expectedException LogicException OAuth2\Storage\AccessTokenInterface
-     **/
     public function testGetAuthorizeControllerWithNoAccessTokenStorageThrowsException()
     {
+        $this->expectExceptionMessage('OAuth2\Storage\AccessTokenInterface');
         // must set AccessToken or AuthorizationCode
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientInterface'));
         $server->getAuthorizeController();
     }
 
@@ -34,8 +30,8 @@ class ServerTest extends TestCase
     {
         // must set AccessToken or AuthorizationCode
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientInterface'));
-        $server->addResponseType($this->getMock('OAuth2\ResponseType\AccessTokenInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientInterface'));
+        $server->addResponseType($this->createMock('OAuth2\ResponseType\AccessTokenInterface'));
 
         $this->assertNotNull($server->getAuthorizeController());
     }
@@ -44,21 +40,19 @@ class ServerTest extends TestCase
     {
         // must set AccessToken or AuthorizationCode
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientInterface'));
-        $server->addResponseType($this->getMock('OAuth2\ResponseType\AuthorizationCodeInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientInterface'));
+        $server->addResponseType($this->createMock('OAuth2\ResponseType\AuthorizationCodeInterface'));
 
         $this->assertNotNull($server->getAuthorizeController());
     }
 
-    /**
-     * @expectedException LogicException allow_implicit
-     **/
     public function testGetAuthorizeControllerWithClientStorageAndAccessTokenStorageThrowsException()
     {
         // must set AuthorizationCode or AccessToken / implicit
+        $this->expectExceptionMessage('allow_implicit');
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientInterface'));
-        $server->addStorage($this->getMock('OAuth2\Storage\AccessTokenInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\AccessTokenInterface'));
 
         $this->assertNotNull($server->getAuthorizeController());
     }
@@ -67,8 +61,8 @@ class ServerTest extends TestCase
     {
         // must set AuthorizationCode or AccessToken / implicit
         $server = new Server(array(), array('allow_implicit' => true));
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientInterface'));
-        $server->addStorage($this->getMock('OAuth2\Storage\AccessTokenInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\AccessTokenInterface'));
 
         $this->assertNotNull($server->getAuthorizeController());
     }
@@ -77,63 +71,55 @@ class ServerTest extends TestCase
     {
         // must set AccessToken or AuthorizationCode
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientInterface'));
-        $server->addStorage($this->getMock('OAuth2\Storage\AuthorizationCodeInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\AuthorizationCodeInterface'));
 
         $this->assertNotNull($server->getAuthorizeController());
     }
 
-    /**
-     * @expectedException LogicException grant_types
-     **/
     public function testGetTokenControllerWithGrantTypeStorageThrowsException()
     {
+        $this->expectExceptionMessage('grant_types');
         $server = new Server();
         $server->getTokenController();
     }
 
-    /**
-     * @expectedException LogicException OAuth2\Storage\ClientCredentialsInterface
-     **/
     public function testGetTokenControllerWithNoClientCredentialsStorageThrowsException()
     {
+        $this->expectExceptionMessage('OAuth2\Storage\ClientCredentialsInterface');
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\UserCredentialsInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\UserCredentialsInterface'));
         $server->getTokenController();
     }
 
-    /**
-     * @expectedException LogicException OAuth2\Storage\AccessTokenInterface
-     **/
     public function testGetTokenControllerWithNoAccessTokenStorageThrowsException()
     {
+        $this->expectExceptionMessage('OAuth2\Storage\AccessTokenInterface');
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientCredentialsInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientCredentialsInterface'));
         $server->getTokenController();
     }
 
     public function testGetTokenControllerWithAccessTokenAndClientCredentialsStorage()
     {
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\AccessTokenInterface'));
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientCredentialsInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\AccessTokenInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientCredentialsInterface'));
         $server->getTokenController();
     }
 
     public function testGetTokenControllerAccessTokenStorageAndClientCredentialsStorageAndGrantTypes()
     {
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\AccessTokenInterface'));
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientCredentialsInterface'));
-        $server->addGrantType($this->getMockBuilder('OAuth2\GrantType\AuthorizationCode')->disableOriginalConstructor()->getMock());
+        $server->addStorage($this->createMock('OAuth2\Storage\AccessTokenInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientCredentialsInterface'));
+        $server->addGrantType($this->createMock('OAuth2\GrantType\AuthorizationCode'));
         $server->getTokenController();
     }
 
-    /**
-     * @expectedException LogicException OAuth2\Storage\AccessTokenInterface
-     **/
     public function testGetResourceControllerWithNoAccessTokenStorageThrowsException()
     {
+        $this->expectExceptionMessage('OAuth2\Storage\AccessTokenInterface');
         $server = new Server();
         $server->getResourceController();
     }
@@ -141,41 +127,35 @@ class ServerTest extends TestCase
     public function testGetResourceControllerWithAccessTokenStorage()
     {
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\AccessTokenInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\AccessTokenInterface'));
         $server->getResourceController();
     }
 
-    /**
-     * @expectedException InvalidArgumentException OAuth2\Storage\AccessTokenInterface
-     **/
     public function testAddingStorageWithInvalidClass()
     {
+        $this->expectExceptionMessage('OAuth2\Storage\AccessTokenInterface');
         $server = new Server();
         $server->addStorage(new \StdClass());
     }
 
-    /**
-     * @expectedException InvalidArgumentException access_token
-     **/
     public function testAddingStorageWithInvalidKey()
     {
+        $this->expectExceptionMessage('access_token');
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\AccessTokenInterface'), 'nonexistant_storage');
+        $server->addStorage($this->createMock('OAuth2\Storage\AccessTokenInterface'), 'nonexistant_storage');
     }
 
-    /**
-     * @expectedException InvalidArgumentException OAuth2\Storage\AuthorizationCodeInterface
-     **/
     public function testAddingStorageWithInvalidKeyStorageCombination()
     {
+        $this->expectExceptionMessage('OAuth2\Storage\AuthorizationCodeInterface');
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\AccessTokenInterface'), 'authorization_code');
+        $server->addStorage($this->createMock('OAuth2\Storage\AccessTokenInterface'), 'authorization_code');
     }
 
     public function testAddingStorageWithValidKeyOnlySetsThatKey()
     {
         $server = new Server();
-        $server->addStorage($this->getMock('OAuth2\Storage\Memory'), 'access_token');
+        $server->addStorage($this->createMock('OAuth2\Storage\Memory'), 'access_token');
 
         $reflection = new \ReflectionClass($server);
         $prop = $reflection->getProperty('storages');
@@ -191,7 +171,7 @@ class ServerTest extends TestCase
     public function testAddingClientStorageSetsClientCredentialsStorageByDefault()
     {
         $server = new Server();
-        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $memory = $this->createMock('OAuth2\Storage\Memory');
         $server->addStorage($memory, 'client');
 
         $client_credentials = $server->getStorage('client_credentials');
@@ -202,7 +182,7 @@ class ServerTest extends TestCase
 
     public function testAddStorageWithNullValue()
     {
-        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $memory = $this->createMock('OAuth2\Storage\Memory');
         $server = new Server($memory);
         $server->addStorage(null, 'refresh_token');
 
@@ -218,7 +198,7 @@ class ServerTest extends TestCase
 
     public function testNewServerWithNullStorageValue()
     {
-        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $memory = $this->createMock('OAuth2\Storage\Memory');
         $server = new Server(array(
             'client_credentials' => $memory,
             'refresh_token'      => null,
@@ -237,7 +217,7 @@ class ServerTest extends TestCase
     public function testAddingClientCredentialsStorageSetsClientStorageByDefault()
     {
         $server = new Server();
-        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $memory = $this->createMock('OAuth2\Storage\Memory');
         $server->addStorage($memory, 'client_credentials');
 
         $client = $server->getStorage('client');
@@ -249,10 +229,9 @@ class ServerTest extends TestCase
     public function testSettingClientStorageByDefaultDoesNotOverrideSetStorage()
     {
         $server = new Server();
-        $pdo = $this->getMockBuilder('OAuth2\Storage\Pdo')
-            ->disableOriginalConstructor()->getMock();
+        $pdo = $this->createMock('OAuth2\Storage\Pdo');
 
-        $memory = $this->getMock('OAuth2\Storage\Memory');
+        $memory = $this->createMock('OAuth2\Storage\Memory');
 
         $server->addStorage($pdo, 'client');
         $server->addStorage($memory, 'client_credentials');
@@ -266,7 +245,7 @@ class ServerTest extends TestCase
 
     public function testAddingResponseType()
     {
-        $storage = $this->getMock('OAuth2\Storage\Memory');
+        $storage = $this->createMock('OAuth2\Storage\Memory');
         $storage
           ->expects($this->any())
           ->method('getClientDetails')
@@ -323,7 +302,7 @@ class ServerTest extends TestCase
             'code' => 'testcode',
         ));
         // verify the mock clientAssertionType was called as expected
-        $clientAssertionType = $this->getMock('OAuth2\ClientAssertionType\ClientAssertionTypeInterface', array('validateRequest', 'getClientId'));
+        $clientAssertionType = $this->createMock('OAuth2\ClientAssertionType\ClientAssertionTypeInterface');
         $clientAssertionType
             ->expects($this->once())
             ->method('validateRequest')
@@ -420,98 +399,84 @@ class ServerTest extends TestCase
         $this->assertFalse($used_token, 'the refresh token used is no longer valid');
     }
 
-    /**
-     * @expectedException InvalidArgumentException OAuth2\ResponseType\AuthorizationCodeInterface
-     **/
     public function testAddingUnknownResponseTypeThrowsException()
     {
+        $this->expectExceptionMessage('OAuth2\ResponseType\AuthorizationCodeInterface');
         $server = new Server();
-        $server->addResponseType($this->getMock('OAuth2\ResponseType\ResponseTypeInterface'));
+        $server->addResponseType($this->createMock('OAuth2\ResponseType\ResponseTypeInterface'));
     }
 
-    /**
-     * @expectedException LogicException OAuth2\Storage\PublicKeyInterface
-     **/
     public function testUsingJwtAccessTokensWithoutPublicKeyStorageThrowsException()
     {
+        $this->expectExceptionMessage('OAuth2\Storage\PublicKeyInterface');
         $server = new Server(array(), array('use_jwt_access_tokens' => true));
-        $server->addGrantType($this->getMock('OAuth2\GrantType\GrantTypeInterface'));
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientCredentialsInterface'));
-        $server->addStorage($this->getMock('OAuth2\Storage\ClientCredentialsInterface'));
+        $server->addGrantType($this->createMock('OAuth2\GrantType\GrantTypeInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientCredentialsInterface'));
+        $server->addStorage($this->createMock('OAuth2\Storage\ClientCredentialsInterface'));
 
         $server->getTokenController();
     }
 
     public function testUsingJustJwtAccessTokenStorageWithResourceControllerIsOkay()
     {
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
         $server = new Server(array($pubkey), array('use_jwt_access_tokens' => true));
 
         $this->assertNotNull($server->getResourceController());
         $this->assertInstanceOf('OAuth2\Storage\PublicKeyInterface', $server->getStorage('public_key'));
     }
 
-    /**
-     * @expectedException LogicException OAuth2\Storage\ClientInterface
-     **/
     public function testUsingJustJwtAccessTokenStorageWithAuthorizeControllerThrowsException()
     {
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $this->expectExceptionMessage('OAuth2\Storage\ClientInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
         $server = new Server(array($pubkey), array('use_jwt_access_tokens' => true));
         $this->assertNotNull($server->getAuthorizeController());
     }
 
-    /**
-     * @expectedException LogicException grant_types
-     **/
     public function testUsingJustJwtAccessTokenStorageWithTokenControllerThrowsException()
     {
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $this->expectExceptionMessage('grant_types');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
         $server = new Server(array($pubkey), array('use_jwt_access_tokens' => true));
         $server->getTokenController();
     }
 
     public function testUsingJwtAccessTokenAndClientStorageWithAuthorizeControllerIsOkay()
     {
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
         $server = new Server(array($pubkey, $client), array('use_jwt_access_tokens' => true, 'allow_implicit' => true));
         $this->assertNotNull($server->getAuthorizeController());
 
         $this->assertInstanceOf('OAuth2\ResponseType\JwtAccessToken', $server->getResponseType('token'));
     }
 
-    /**
-     * @expectedException LogicException UserClaims
-     **/
     public function testUsingOpenIDConnectWithoutUserClaimsThrowsException()
     {
-        $client = $this->getMock('OAuth2\Storage\ClientInterface');
+        $this->expectExceptionMessage('UserClaims');
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
         $server = new Server($client, array('use_openid_connect' => true));
 
         $server->getAuthorizeController();
     }
 
-    /**
-     * @expectedException LogicException PublicKeyInterface
-     **/
     public function testUsingOpenIDConnectWithoutPublicKeyThrowsException()
     {
-        $client = $this->getMock('OAuth2\Storage\ClientInterface');
-        $userclaims = $this->getMock('OAuth2\OPenID\Storage\UserClaimsInterface');
+        $this->expectExceptionMessage('PublicKeyInterface');
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->createMock('OAuth2\OPenID\Storage\UserClaimsInterface');
         $server = new Server(array($client, $userclaims), array('use_openid_connect' => true));
 
         $server->getAuthorizeController();
     }
 
-    /**
-     * @expectedException LogicException issuer
-     **/
     public function testUsingOpenIDConnectWithoutIssuerThrowsException()
     {
-        $client = $this->getMock('OAuth2\Storage\ClientInterface');
-        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $this->expectExceptionMessage('issuer');
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
         $server = new Server(array($client, $userclaims, $pubkey), array('use_openid_connect' => true));
 
         $server->getAuthorizeController();
@@ -519,9 +484,9 @@ class ServerTest extends TestCase
 
     public function testUsingOpenIDConnectWithIssuerPublicKeyAndUserClaimsIsOkay()
     {
-        $client = $this->getMock('OAuth2\Storage\ClientInterface');
-        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
         $server = new Server(array($client, $userclaims, $pubkey), array(
             'use_openid_connect' => true,
             'issuer' => 'someguy',
@@ -533,14 +498,12 @@ class ServerTest extends TestCase
         $this->assertNull($server->getResponseType('id_token token'));
     }
 
-    /**
-     * @expectedException LogicException OAuth2\ResponseType\AccessTokenInterface
-     **/
     public function testUsingOpenIDConnectWithAllowImplicitWithoutTokenStorageThrowsException()
     {
-        $client = $this->getMock('OAuth2\Storage\ClientInterface');
-        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $this->expectErrorMessage('OAuth2\ResponseType\AccessTokenInterface');
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
         $server = new Server(array($client, $userclaims, $pubkey), array(
             'use_openid_connect' => true,
             'issuer' => 'someguy',
@@ -552,9 +515,9 @@ class ServerTest extends TestCase
 
     public function testUsingOpenIDConnectWithAllowImplicitAndUseJwtAccessTokensIsOkay()
     {
-        $client = $this->getMock('OAuth2\Storage\ClientInterface');
-        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
         $server = new Server(array($client, $userclaims, $pubkey), array(
             'use_openid_connect' => true,
             'issuer' => 'someguy',
@@ -570,10 +533,10 @@ class ServerTest extends TestCase
 
     public function testUsingOpenIDConnectWithAllowImplicitAndAccessTokenStorageIsOkay()
     {
-        $client = $this->getMock('OAuth2\Storage\ClientInterface');
-        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
+        $token = $this->createMock('OAuth2\Storage\AccessTokenInterface');
         $server = new Server(array($client, $userclaims, $pubkey, $token), array(
             'use_openid_connect' => true,
             'issuer' => 'someguy',
@@ -588,17 +551,17 @@ class ServerTest extends TestCase
 
     public function testUsingOpenIDConnectWithAllowImplicitAndAccessTokenResponseTypeIsOkay()
     {
-        $client = $this->getMock('OAuth2\Storage\ClientInterface');
-        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        // $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
+        // $token = $this->createMock('OAuth2\Storage\AccessTokenInterface');
         $server = new Server(array($client, $userclaims, $pubkey), array(
             'use_openid_connect' => true,
             'issuer' => 'someguy',
             'allow_implicit' => true,
         ));
 
-        $token = $this->getMock('OAuth2\ResponseType\AccessTokenInterface');
+        $token = $this->createMock('OAuth2\ResponseType\AccessTokenInterface');
         $server->addResponseType($token, 'token');
 
         $server->getAuthorizeController();
@@ -607,17 +570,15 @@ class ServerTest extends TestCase
         $this->assertInstanceOf('OAuth2\OpenID\ResponseType\IdTokenTokenInterface', $server->getResponseType('id_token token'));
     }
 
-    /**
-     * @expectedException LogicException OAuth2\OpenID\Storage\AuthorizationCodeInterface
-     **/
     public function testUsingOpenIDConnectWithAuthorizationCodeStorageThrowsException()
     {
-        $client = $this->getMock('OAuth2\Storage\ClientCredentialsInterface');
-        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
-        $authcode = $this->getMock('OAuth2\Storage\AuthorizationCodeInterface');
+        $client = $this->createMock('OAuth2\Storage\ClientCredentialsInterface');
+        $userclaims = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
+        $token = $this->createMock('OAuth2\Storage\AccessTokenInterface');
+        $authcode = $this->createMock('OAuth2\Storage\AuthorizationCodeInterface');
 
+        $this->expectErrorMessage('OAuth2\OpenID\Storage\AuthorizationCodeInterface');
         $server = new Server(array($client, $userclaims, $pubkey, $token, $authcode), array(
             'use_openid_connect' => true,
             'issuer' => 'someguy'
@@ -630,11 +591,11 @@ class ServerTest extends TestCase
 
     public function testUsingOpenIDConnectWithOpenIDAuthorizationCodeStorageCreatesOpenIDAuthorizationCodeGrantType()
     {
-        $client = $this->getMock('OAuth2\Storage\ClientCredentialsInterface');
-        $userclaims = $this->getMock('OAuth2\OpenID\Storage\UserClaimsInterface');
-        $pubkey = $this->getMock('OAuth2\Storage\PublicKeyInterface');
-        $token = $this->getMock('OAuth2\Storage\AccessTokenInterface');
-        $authcode = $this->getMock('OAuth2\OpenID\Storage\AuthorizationCodeInterface');
+        $client = $this->createMock('OAuth2\Storage\ClientCredentialsInterface');
+        $userclaims = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
+        $token = $this->createMock('OAuth2\Storage\AccessTokenInterface');
+        $authcode = $this->createMock('OAuth2\OpenID\Storage\AuthorizationCodeInterface');
 
         $server = new Server(array($client, $userclaims, $pubkey, $token, $authcode), array(
             'use_openid_connect' => true,
@@ -648,7 +609,7 @@ class ServerTest extends TestCase
 
     public function testMultipleValuedResponseTypeOrderDoesntMatter()
     {
-        $responseType = $this->getMock('OAuth2\OpenID\ResponseType\IdTokenTokenInterface');
+        $responseType = $this->createMock('OAuth2\OpenID\ResponseType\IdTokenTokenInterface');
         $server = new Server(array(), array(), array(), array(
             'token id_token' => $responseType,
         ));
@@ -659,7 +620,7 @@ class ServerTest extends TestCase
     public function testAddGrantTypeWithoutKey()
     {
         $server = new Server();
-        $server->addGrantType(new \OAuth2\GrantType\AuthorizationCode($this->getMock('OAuth2\Storage\AuthorizationCodeInterface')));
+        $server->addGrantType(new \OAuth2\GrantType\AuthorizationCode($this->createMock('OAuth2\Storage\AuthorizationCodeInterface')));
 
         $grantTypes = $server->getGrantTypes();
         $this->assertEquals('authorization_code', key($grantTypes));
@@ -668,7 +629,7 @@ class ServerTest extends TestCase
     public function testAddGrantTypeWithKey()
     {
         $server = new Server();
-        $server->addGrantType(new \OAuth2\GrantType\AuthorizationCode($this->getMock('OAuth2\Storage\AuthorizationCodeInterface')), 'ac');
+        $server->addGrantType(new \OAuth2\GrantType\AuthorizationCode($this->createMock('OAuth2\Storage\AuthorizationCodeInterface')), 'ac');
 
         $grantTypes = $server->getGrantTypes();
         $this->assertEquals('ac', key($grantTypes));
@@ -677,7 +638,7 @@ class ServerTest extends TestCase
     public function testAddGrantTypeWithKeyNotString()
     {
         $server = new Server();
-        $server->addGrantType(new \OAuth2\GrantType\AuthorizationCode($this->getMock('OAuth2\Storage\AuthorizationCodeInterface')), 42);
+        $server->addGrantType(new \OAuth2\GrantType\AuthorizationCode($this->createMock('OAuth2\Storage\AuthorizationCodeInterface')), 42);
 
         $grantTypes = $server->getGrantTypes();
         $this->assertEquals('authorization_code', key($grantTypes));
