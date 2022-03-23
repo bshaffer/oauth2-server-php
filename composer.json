@@ -20,9 +20,9 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^5.7||^8.0",
-        "aws/aws-sdk-php": "~2.8",
-        "firebase/php-jwt": "~2.2",
-        "predis/predis": "dev-main",
+        "aws/aws-sdk-php": "^2.8",
+        "firebase/php-jwt": "^2.2",
+        "predis/predis": "^1.1",
         "thobbs/phpcassa": "dev-master",
         "mongodb/mongodb": "^1.1"
     },
