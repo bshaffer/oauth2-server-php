@@ -2,8 +2,12 @@
 
 namespace OAuth2\Storage;
 
+use Yoast\PHPUnitPolyfills\Polyfills\ExpectPHPException;
+
 class PdoTest extends BaseTest
 {
+    use ExpectPHPException;
+
     public function testCreatePdoStorageUsingPdoClass()
     {
         $dsn = sprintf('sqlite:%s', Bootstrap::getInstance()->getSqliteDir());

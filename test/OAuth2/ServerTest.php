@@ -6,9 +6,12 @@ use OAuth2\Request\TestRequest;
 use OAuth2\ResponseType\AuthorizationCode;
 use OAuth2\Storage\Bootstrap;
 use PHPUnit\Framework\TestCase;
+use Yoast\PHPUnitPolyfills\Polyfills\ExpectPHPException;
 
 class ServerTest extends TestCase
 {
+    use ExpectPHPException;
+
     public function testGetAuthorizeControllerWithNoClientStorageThrowsException()
     {
         $this->expectExceptionMessage('OAuth2\Storage\ClientInterface');
