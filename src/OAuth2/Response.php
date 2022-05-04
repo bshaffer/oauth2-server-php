@@ -367,7 +367,7 @@ class Response implements ResponseInterface
             // add parameters to URL redirection
             $parts = parse_url($url);
             $sep = isset($parts['query']) && !empty($parts['query']) ? '&' : '?';
-            $url .= $sep . http_build_query($this->parameters);
+            $url .= $sep . http_build_query($this->parameters, '', '&');
         }
 
         $this->addHttpHeaders(array('Location' =>  $url));
