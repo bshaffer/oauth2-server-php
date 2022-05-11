@@ -39,7 +39,7 @@ class Autoloader
      * Handles autoloading of classes.
      *
      * @param string $class - A class name.
-     * @return boolean      - Returns true if the class has been loaded
+     * @return void      - Returns true if the class has been loaded
      */
     public function autoload($class)
     {

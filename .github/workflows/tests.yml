@@ -53,3 +53,19 @@ jobs:
           command: composer install
       - name: Run PHPUnit
         run: vendor/bin/phpunit -v
+  phpstan:
+    name: "PHPStan"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.1
+      - name: Install composer dependencies
+        uses: nick-invision/retry@v1
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: composer install
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --level=0 src/
