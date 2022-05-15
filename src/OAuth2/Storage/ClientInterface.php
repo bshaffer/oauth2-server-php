@@ -35,7 +35,7 @@ interface ClientInterface
      *
      * @ingroup oauth2_section_4
      */
-    public function getClientDetails($client_id);
+    public function getClientDetails(string $client_id): mixed;
 
     /**
      * Get the scope associated with this client
@@ -43,8 +43,7 @@ interface ClientInterface
      * @return
      * STRING the space-delineated scope list for the specified client_id
      */
-    public function getClientScope($client_id);
-
+    public function getClientScope(string $client_id = null): string;
     /**
      * Check restricted grant types of corresponding client identifier.
      *
@@ -62,5 +61,5 @@ interface ClientInterface
      *
      * @ingroup oauth2_section_4
      */
-    public function checkRestrictedGrantType($client_id, $grant_type);
+    public function checkRestrictedGrantType(string $client_id, string $grant_type): bool;
 }

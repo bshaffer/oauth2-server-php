@@ -34,7 +34,7 @@ interface UserCredentialsInterface
      *
      * @ingroup oauth2_section_4
      */
-    public function checkUserCredentials($username, $password);
+    public function checkUserCredentials(string $username, string $password);
 
     /**
      * @param string $username - username to get details for
@@ -48,5 +48,5 @@ interface UserCredentialsInterface
      *     );
      * @endcode
      */
-    public function getUserDetails($username);
+    public function getUserDetails(string $username);
 }

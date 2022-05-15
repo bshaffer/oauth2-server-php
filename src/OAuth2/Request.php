@@ -11,14 +11,14 @@ use LogicException;
  */
 class Request implements RequestInterface
 {
-    public $attributes;
-    public $request;
-    public $query;
-    public $server;
-    public $files;
-    public $cookies;
-    public $headers;
-    public $content;
+    public array $attributes;
+    public array $request;
+    public array $query;
+    public array $server;
+    public array $files;
+    public array $cookies;
+    public array $headers;
+    public string $content;
 
     /**
      * Constructor.
@@ -34,7 +34,7 @@ class Request implements RequestInterface
      *
      * @api
      */
-    public function __construct(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null, array $headers = null)
+    public function __construct(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), string $content = null, array $headers = null)
     {
         $this->initialize($query, $request, $attributes, $cookies, $files, $server, $content, $headers);
     }
@@ -55,7 +55,7 @@ class Request implements RequestInterface
      *
      * @api
      */
-    public function initialize(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null, array $headers = null)
+    public function initialize(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), string $content = null, array $headers = null)
     {
         $this->request = $request;
         $this->query = $query;
@@ -77,7 +77,7 @@ class Request implements RequestInterface
      * @param mixed  $default
      * @return mixed
      */
-    public function query($name, $default = null)
+    public function query(string $name, $default = null)
     {
         return isset($this->query[$name]) ? $this->query[$name] : $default;
     }
@@ -87,7 +87,7 @@ class Request implements RequestInterface
      * @param mixed  $default
      * @return mixed
      */
-    public function request($name, $default = null)
+    public function request(string $name, $default = null)
     {
         return isset($this->request[$name]) ? $this->request[$name] : $default;
     }
@@ -97,7 +97,7 @@ class Request implements RequestInterface
      * @param mixed  $default
      * @return mixed
      */
-    public function server($name, $default = null)
+    public function server(string $name, $default = null)
     {
         return isset($this->server[$name]) ? $this->server[$name] : $default;
     }
@@ -107,7 +107,7 @@ class Request implements RequestInterface
      * @param mixed  $default
      * @return mixed
      */
-    public function headers($name, $default = null)
+    public function headers(string $name, $default = null)
     {
         $headers = array_change_key_case($this->headers);
         $name = strtolower($name);

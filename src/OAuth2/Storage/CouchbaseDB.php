@@ -2,6 +2,7 @@
 
 namespace OAuth2\Storage;
 
+use OAuth2\Exception\NotImplementedException;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 
 /**
@@ -68,7 +69,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
     }
 
     /* ClientCredentialsInterface */
-    public function checkClientCredentials($client_id, $client_secret = null)
+    public function checkClientCredentials($client_id, $client_secret = null): bool
     {
         if ($result = $this->getObjectByType('client_table',$client_id)) {
             return $result['client_secret'] == $client_secret;
@@ -77,7 +78,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         return false;
     }
 
-    public function isPublicClient($client_id)
+    public function isPublicClient($client_id): bool
     {
         if (!$result = $this->getObjectByType('client_table',$client_id)) {
             return false;
@@ -87,7 +88,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
     }
 
     /* ClientInterface */
-    public function getClientDetails($client_id)
+    public function getClientDetails(string $client_id): mixed
     {
         $result = $this->getObjectByType('client_table',$client_id);
 
@@ -120,7 +121,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         return true;
     }
 
-    public function checkRestrictedGrantType($client_id, $grant_type)
+    public function checkRestrictedGrantType(string $client_id, string $grant_type): bool
     {
         $details = $this->getClientDetails($client_id);
         if (isset($details['grant_types'])) {
@@ -248,7 +249,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         return true;
     }
 
-    public function unsetRefreshToken($refresh_token)
+    public function unsetRefreshToken($refresh_token): bool
     {
         $this->deleteObjectByType('refresh_token_table',$refresh_token);
 
@@ -291,7 +292,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         return true;
     }
 
-    public function getClientKey($client_id, $subject)
+    public function getClientKey(string $client_id, string $subject): string
     {
         if (!$jwt = $this->getObjectByType('jwt_table',$client_id)) {
             return false;
@@ -304,7 +305,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         return false;
     }
 
-    public function getClientScope($client_id)
+    public function getClientScope(string $client_id = null): string
     {
         if (!$clientDetails = $this->getClientDetails($client_id)) {
             return false;
@@ -317,15 +318,15 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         return null;
     }
 
-    public function getJti($client_id, $subject, $audience, $expiration, $jti)
+    public function getJti(string $client_id, string $subject, string $audience, string $expiration, string $jti): array
     {
         //TODO: Needs couchbase implementation.
-        throw new \Exception('getJti() for the Couchbase driver is currently unimplemented.');
+        throw new NotImplementedException('getJti() for the Couchbase driver is currently unimplemented.');
     }
 
-    public function setJti($client_id, $subject, $audience, $expiration, $jti)
+    public function setJti(string $client_id, string $subject, string $audience, string $expiration, string $jti): ?bool
     {
         //TODO: Needs couchbase implementation.
-        throw new \Exception('setJti() for the Couchbase driver is currently unimplemented.');
+        throw new NotImplementedException('setJti() for the Couchbase driver is currently unimplemented.');
     }
 }

@@ -34,7 +34,7 @@ interface RefreshTokenInterface
      *
      * @ingroup oauth2_section_6
      */
-    public function getRefreshToken($refresh_token);
+    public function getRefreshToken(string $refresh_token);
 
     /**
      * Take the provided refresh token values and store them somewhere.
@@ -60,7 +60,7 @@ interface RefreshTokenInterface
      *
      * @ingroup oauth2_section_6
      */
-    public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null);
+    public function setRefreshToken(string $refresh_token, string $client_id, string $user_id, string $expires, string $scope = null);
 
     /**
      * Expire a used refresh token.
@@ -78,5 +78,5 @@ interface RefreshTokenInterface
      *
      * @ingroup oauth2_section_6
      */
-    public function unsetRefreshToken($refresh_token);
+    public function unsetRefreshToken(string $refresh_token): bool;
 }

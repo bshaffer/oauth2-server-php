@@ -14,17 +14,17 @@ interface PublicKeyInterface
      * @param mixed $client_id
      * @return mixed
      */
-    public function getPublicKey($client_id = null);
+    public function getPublicKey(string $client_id = null): mixed;
 
     /**
      * @param mixed $client_id
      * @return mixed
      */
-    public function getPrivateKey($client_id = null);
+    public function getPrivateKey(string $client_id = null): mixed;
 
     /**
      * @param mixed $client_id
      * @return mixed
      */
-    public function getEncryptionAlgorithm($client_id = null);
+    public function getEncryptionAlgorithm(string $client_id = null): mixed;
 }

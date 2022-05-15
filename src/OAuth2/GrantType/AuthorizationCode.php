@@ -7,6 +7,7 @@ use OAuth2\ResponseType\AccessTokenInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
 use Exception;
+use OAuth2\Exception\InvalidResponseException;
 
 /**
  * @author Brent Shaffer <bshafs at gmail dot com>
@@ -75,7 +76,7 @@ class AuthorizationCode implements GrantTypeInterface
         }
 
         if (!isset($authCode['expires'])) {
-            throw new \Exception('Storage must return authcode with a value for "expires"');
+            throw new InvalidResponseException('Storage must return authcode with a value for "expires"');
         }
 
         if ($authCode["expires"] < time()) {

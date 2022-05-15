@@ -9,31 +9,31 @@ interface RequestInterface
      * @param mixed  $default
      * @return mixed
      */
-    public function query($name, $default = null);
+    public function query(string $name, mixed $default = null);
 
     /**
      * @param string $name
      * @param mixed  $default
      * @return mixed
      */
-    public function request($name, $default = null);
+    public function request(string $name, mixed $default = null);
 
     /**
      * @param string $name
      * @param mixed  $default
      * @return mixed
      */
-    public function server($name, $default = null);
+    public function server(string $name, mixed $default = null);
 
     /**
      * @param string $name
      * @param mixed  $default
      * @return mixed
      */
-    public function headers($name, $default = null);
+    public function headers(string $name, mixed $default = null);
 
     /**
      * @return mixed
      */
-    public function getAllQueryParameters();
+    public function getAllQueryParameters(): mixed;
 }

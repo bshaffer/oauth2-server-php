@@ -12,10 +12,10 @@ interface TokenTypeInterface
      *
      * ex: "bearer" or "mac"
      */
-    public function getTokenType();
+    public function getTokenType(): string;
 
     /**
      * Retrieves the token string from the request object
      */
-    public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response);
+    public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response): string;
 }

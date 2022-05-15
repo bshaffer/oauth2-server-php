@@ -27,16 +27,16 @@ interface ClientCredentialsInterface extends ClientInterface
      *
      * @ingroup oauth2_section_3
      */
-    public function checkClientCredentials($client_id, $client_secret = null);
+    public function checkClientCredentials(string $client_id, string $client_secret = null): bool;
 
     /**
      * Determine if the client is a "public" client, and therefore
      * does not require passing credentials for certain grant types
      *
-     * @param $client_id
+     * @param string $client_id
      * Client identifier to be check with.
      *
-     * @return
+     * @return bool
      * TRUE if the client is public, and FALSE if it isn't.
      * @endcode
      *
@@ -45,5 +45,5 @@ interface ClientCredentialsInterface extends ClientInterface
      *
      * @ingroup oauth2_section_2
      */
-    public function isPublicClient($client_id);
+    public function isPublicClient(string $client_id): bool;
 }

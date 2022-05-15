@@ -30,7 +30,7 @@ interface AccessTokenInterface
      *
      * @ingroup oauth2_section_7
      */
-    public function getAccessToken($oauth_token);
+    public function getAccessToken(string $oauth_token);
 
     /**
      * Store the supplied access token values to storage.
@@ -38,14 +38,14 @@ interface AccessTokenInterface
      * We need to store access token data as we create and verify tokens.
      *
      * @param string $oauth_token - oauth_token to be stored.
-     * @param mixed  $client_id   - client identifier to be stored.
-     * @param mixed  $user_id     - user identifier to be stored.
+     * @param string  $client_id   - client identifier to be stored.
+     * @param string  $user_id     - user identifier to be stored.
      * @param int    $expires     - expiration to be stored as a Unix timestamp.
      * @param string $scope       - OPTIONAL Scopes to be stored in space-separated string.
      *
      * @ingroup oauth2_section_4
      */
-    public function setAccessToken($oauth_token, $client_id, $user_id, $expires, $scope = null);
+    public function setAccessToken(string $oauth_token, string $client_id, string $user_id, $expires, ?string $scope = null);
 
     /**
      * Expire an access token.

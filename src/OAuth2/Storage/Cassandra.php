@@ -8,6 +8,7 @@ use phpcassa\Connection\ConnectionPool;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 use InvalidArgumentException;
+use OAuth2\Exception\NotImplementedException;
 
 /**
  * Cassandra storage for all storage types
@@ -30,7 +31,8 @@ use InvalidArgumentException;
  *
  * @see test/lib/OAuth2/Storage/Bootstrap::getCassandraStorage
  */
-class Cassandra implements AuthorizationCodeInterface,
+class Cassandra implements
+    AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
@@ -291,7 +293,7 @@ class Cassandra implements AuthorizationCodeInterface,
      * @param string $client_secret
      * @return bool
      */
-    public function checkClientCredentials($client_id, $client_secret = null)
+    public function checkClientCredentials(string $client_id, string $client_secret = null): bool
     {
         if (!$client = $this->getClientDetails($client_id)) {
             return false;
@@ -305,7 +307,7 @@ class Cassandra implements AuthorizationCodeInterface,
      * @param $client_id
      * @return bool
      */
-    public function isPublicClient($client_id)
+    public function isPublicClient(string $client_id): bool
     {
         if (!$client = $this->getClientDetails($client_id)) {
             return false;
@@ -345,7 +347,7 @@ class Cassandra implements AuthorizationCodeInterface,
      * @param $grant_type
      * @return bool
      */
-    public function checkRestrictedGrantType($client_id, $grant_type)
+    public function checkRestrictedGrantType(string $client_id, string $grant_type): bool
     {
         $details = $this->getClientDetails($client_id);
         if (isset($details['grant_types'])) {
@@ -388,7 +390,7 @@ class Cassandra implements AuthorizationCodeInterface,
      * @param $refresh_token
      * @return bool
      */
-    public function unsetRefreshToken($refresh_token)
+    public function unsetRefreshToken(string $refresh_token): bool
     {
         return $this->expireValue($this->config['refresh_token_key'] . $refresh_token);
     }
@@ -399,7 +401,7 @@ class Cassandra implements AuthorizationCodeInterface,
      */
     public function getAccessToken($access_token)
     {
-        return $this->getValue($this->config['access_token_key'].$access_token);
+        return $this->getValue($this->config['access_token_key'] . $access_token);
     }
 
     /**
@@ -413,7 +415,7 @@ class Cassandra implements AuthorizationCodeInterface,
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
         return $this->setValue(
-            $this->config['access_token_key'].$access_token,
+            $this->config['access_token_key'] . $access_token,
             compact('access_token', 'client_id', 'user_id', 'expires', 'scope'),
             $expires
         );
@@ -432,11 +434,11 @@ class Cassandra implements AuthorizationCodeInterface,
      * @param $scope
      * @return bool
      */
-    public function scopeExists($scope)
+    public function scopeExists(string $scope): bool
     {
         $scope = explode(' ', $scope);
 
-        $result = $this->getValue($this->config['scope_key'].'supported:global');
+        $result = $this->getValue($this->config['scope_key'] . 'supported:global');
 
         $supportedScope = explode(' ', (string) $result);
 
@@ -447,10 +449,10 @@ class Cassandra implements AuthorizationCodeInterface,
      * @param null $client_id
      * @return bool|mixed
      */
-    public function getDefaultScope($client_id = null)
+    public function getDefaultScope(string $client_id = null): string
     {
-        if (is_null($client_id) || !$result = $this->getValue($this->config['scope_key'].'default:'.$client_id)) {
-            $result = $this->getValue($this->config['scope_key'].'default:global');
+        if (is_null($client_id) || !$result = $this->getValue($this->config['scope_key'] . 'default:' . $client_id)) {
+            $result = $this->getValue($this->config['scope_key'] . 'default:global');
         }
 
         return $result;
@@ -470,9 +472,9 @@ class Cassandra implements AuthorizationCodeInterface,
         }
 
         if (is_null($client_id)) {
-            $key = $this->config['scope_key'].$type.':global';
+            $key = $this->config['scope_key'] . $type . ':global';
         } else {
-            $key = $this->config['scope_key'].$type.':'.$client_id;
+            $key = $this->config['scope_key'] . $type . ':' . $client_id;
         }
 
         return $this->setValue($key, $scope);
@@ -489,7 +491,7 @@ class Cassandra implements AuthorizationCodeInterface,
             return false;
         }
 
-        if (isset($jwt['subject']) && $jwt['subject'] == $subject ) {
+        if (isset($jwt['subject']) && $jwt['subject'] == $subject) {
             return $jwt['key'];
         }
 
@@ -512,19 +514,18 @@ class Cassandra implements AuthorizationCodeInterface,
 
     /**
      * @param $client_id
-     * @return bool|null
+     * @return string
      */
-    public function getClientScope($client_id)
+    public function getClientScope(string $client_id = null): string
     {
         if (!$clientDetails = $this->getClientDetails($client_id)) {
-            return false;
-        }
-
-        if (isset($clientDetails['scope'])) {
+            return "";
+        } elseif (isset($clientDetails['scope'])) {
             return $clientDetails['scope'];
-        }
+        } else {
 
-        return null;
+            return "";
+        }
     }
 
     /**
@@ -533,12 +534,12 @@ class Cassandra implements AuthorizationCodeInterface,
      * @param $audience
      * @param $expiration
      * @param $jti
-     * @throws \Exception
+     * @throws NotImplementedException
      */
     public function getJti($client_id, $subject, $audience, $expiration, $jti)
     {
         //TODO: Needs cassandra implementation.
-        throw new \Exception('getJti() for the Cassandra driver is currently unimplemented.');
+        throw new NotImplementedException('getJti() for the Cassandra driver is currently unimplemented.');
     }
 
     /**
@@ -547,12 +548,12 @@ class Cassandra implements AuthorizationCodeInterface,
      * @param $audience
      * @param $expiration
      * @param $jti
-     * @throws \Exception
+     * @throws NotImplementedException
      */
     public function setJti($client_id, $subject, $audience, $expiration, $jti)
     {
         //TODO: Needs cassandra implementation.
-        throw new \Exception('setJti() for the Cassandra driver is currently unimplemented.');
+        throw new NotImplementedException('setJti() for the Cassandra driver is currently unimplemented.');
     }
 
     /**
@@ -649,7 +650,7 @@ class Cassandra implements AuthorizationCodeInterface,
 
         foreach ($claimValues as $value) {
             if ($value == 'email_verified') {
-                $userClaims[$value] = $userDetails[$value]=='true' ? true : false;
+                $userClaims[$value] = $userDetails[$value] == 'true' ? true : false;
             } else {
                 $userClaims[$value] = isset($userDetails[$value]) ? $userDetails[$value] : null;
             }

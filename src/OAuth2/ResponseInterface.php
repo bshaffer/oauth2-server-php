@@ -23,7 +23,7 @@ interface ResponseInterface
     /**
      * @param int $statusCode
      */
-    public function setStatusCode($statusCode);
+    public function setStatusCode(int $statusCode);
 
     /**
      * @param int    $statusCode
@@ -32,7 +32,7 @@ interface ResponseInterface
      * @param string $uri
      * @return mixed
      */
-    public function setError($statusCode, $name, $description = null, $uri = null);
+    public function setError(int $statusCode, string $name, string $description = null, string $uri = null): mixed;
 
     /**
      * @param int    $statusCode
@@ -43,11 +43,11 @@ interface ResponseInterface
      * @param string $errorUri
      * @return mixed
      */
-    public function setRedirect($statusCode, $url, $state = null, $error = null, $errorDescription = null, $errorUri = null);
+    public function setRedirect(int $statusCode, string $url, string $state = null, string $error = null, string $errorDescription = null, string $errorUri = null): mixed;
 
     /**
      * @param string $name
      * @return mixed
      */
-    public function getParameter($name);
+    public function getParameter(string $name): mixed;
 }

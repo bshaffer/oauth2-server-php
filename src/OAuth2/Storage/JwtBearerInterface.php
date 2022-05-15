@@ -23,7 +23,7 @@ interface JwtBearerInterface
      * @return
      * STRING Return the public key for the client_id if it exists, and MUST return FALSE if it doesn't.
      */
-    public function getClientKey($client_id, $subject);
+    public function getClientKey(string $client_id, string $subject): string;
 
     /**
      * Get a jti (JSON token identifier) by matching against the client_id, subject, audience and expiration.
@@ -51,7 +51,7 @@ interface JwtBearerInterface
      * - expires: Stored expiration in unix timestamp.
      * - jti: The stored jti.
      */
-    public function getJti($client_id, $subject, $audience, $expiration, $jti);
+    public function getJti(string $client_id, string $subject, string $audience, string $expiration, string $jti): array;
 
     /**
      * Store a used jti so that we can check against it to prevent replay attacks.
@@ -70,5 +70,5 @@ interface JwtBearerInterface
      * @param $jti
      * The jti to insert.
      */
-    public function setJti($client_id, $subject, $audience, $expiration, $jti);
+    public function setJti(string $client_id, string $subject, string $audience, string $expiration, string $jti): ?bool;
 }

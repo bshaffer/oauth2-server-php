@@ -164,12 +164,12 @@ class Memory implements AuthorizationCodeInterface,
     }
 
     /* ClientCredentialsInterface */
-    public function checkClientCredentials($client_id, $client_secret = null)
+    public function checkClientCredentials(string $client_id, string $client_secret = null): bool
     {
         return isset($this->clientCredentials[$client_id]['client_secret']) && $this->clientCredentials[$client_id]['client_secret'] === $client_secret;
     }
 
-    public function isPublicClient($client_id)
+    public function isPublicClient(string $client_id): bool
     {
         if (!isset($this->clientCredentials[$client_id])) {
             return false;
@@ -179,23 +179,21 @@ class Memory implements AuthorizationCodeInterface,
     }
 
     /* ClientInterface */
-    public function getClientDetails($client_id)
+    public function getClientDetails(string $client_id): mixed
     {
         if (!isset($this->clientCredentials[$client_id])) {
             return false;
         }
 
-        $clientDetails = array_merge(array(
+        return array_merge(array(
             'client_id'     => $client_id,
             'client_secret' => null,
             'redirect_uri'  => null,
             'scope'         => null,
         ), $this->clientCredentials[$client_id]);
-
-        return $clientDetails;
     }
 
-    public function checkRestrictedGrantType($client_id, $grant_type)
+    public function checkRestrictedGrantType($client_id, $grant_type): bool 
     {
         if (isset($this->clientCredentials[$client_id]['grant_types'])) {
             $grant_types = explode(' ', $this->clientCredentials[$client_id]['grant_types']);
@@ -234,7 +232,7 @@ class Memory implements AuthorizationCodeInterface,
         return true;
     }
 
-    public function unsetRefreshToken($refresh_token)
+    public function unsetRefreshToken($refresh_token): bool
     {
         if (isset($this->refreshTokens[$refresh_token])) {
             unset($this->refreshTokens[$refresh_token]);
@@ -251,7 +249,7 @@ class Memory implements AuthorizationCodeInterface,
     }
 
     /* AccessTokenInterface */
-    public function getAccessToken($access_token)
+    public function getAccessToken(string $access_token): array
     {
         return isset($this->accessTokens[$access_token]) ? $this->accessTokens[$access_token] : false;
     }
@@ -274,20 +272,20 @@ class Memory implements AuthorizationCodeInterface,
         return false;
     }
 
-    public function scopeExists($scope)
+    public function scopeExists($scope): bool 
     {
         $scope = explode(' ', trim($scope));
 
         return (count(array_diff($scope, $this->supportedScopes)) == 0);
     }
 
-    public function getDefaultScope($client_id = null)
+    public function getDefaultScope($client_id = null): string
     {
         return $this->defaultScope;
     }
 
     /*JWTBearerInterface */
-    public function getClientKey($client_id, $subject)
+    public function getClientKey(string $client_id, string $subject): string
     {
         if (isset($this->jwt[$client_id])) {
             $jwt = $this->jwt[$client_id];
@@ -301,7 +299,7 @@ class Memory implements AuthorizationCodeInterface,
         return false;
     }
 
-    public function getClientScope($client_id)
+    public function getClientScope(string $client_id = null): string
     {
         if (!$clientDetails = $this->getClientDetails($client_id)) {
             return false;
@@ -314,7 +312,7 @@ class Memory implements AuthorizationCodeInterface,
         return null;
     }
 
-    public function getJti($client_id, $subject, $audience, $expires, $jti)
+    public function getJti(string $client_id, string $subject, string $audience, string $expires, string $jti): array
     {
         foreach ($this->jti as $storedJti) {
             if ($storedJti['issuer'] == $client_id && $storedJti['subject'] == $subject && $storedJti['audience'] == $audience && $storedJti['expires'] == $expires && $storedJti['jti'] == $jti) {
@@ -331,9 +329,10 @@ class Memory implements AuthorizationCodeInterface,
         return null;
     }
 
-    public function setJti($client_id, $subject, $audience, $expires, $jti)
+    public function setJti(string $client_id, string $subject, string $audience, string $expires, string $jti): ?bool
     {
         $this->jti[] = array('issuer' => $client_id, 'subject' => $subject, 'audience' => $audience, 'expires' => $expires, 'jti' => $jti);
+        return true;
     }
 
     /*PublicKeyInterface */

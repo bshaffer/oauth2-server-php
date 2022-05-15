@@ -4,6 +4,7 @@ namespace OAuth2\Storage;
 
 use MongoDB\Client;
 use MongoDB\Database;
+use OAuth2\Exception\NotImplementedException;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 
 /**
@@ -56,7 +57,7 @@ class MongoDB implements AuthorizationCodeInterface,
     }
 
     /* ClientCredentialsInterface */
-    public function checkClientCredentials($client_id, $client_secret = null)
+    public function checkClientCredentials(string $client_id, string $client_secret = null): bool
     {
         if ($result = $this->collection('client_table')->findOne(array('client_id' => $client_id))) {
             return $result['client_secret'] == $client_secret;
@@ -64,7 +65,7 @@ class MongoDB implements AuthorizationCodeInterface,
         return false;
     }
 
-    public function isPublicClient($client_id)
+    public function isPublicClient(string $client_id): bool
     {
         if (!$result = $this->collection('client_table')->findOne(array('client_id' => $client_id))) {
             return false;
@@ -73,7 +74,7 @@ class MongoDB implements AuthorizationCodeInterface,
     }
 
     /* ClientInterface */
-    public function getClientDetails($client_id)
+    public function getClientDetails(string $client_id): mixed
     {
         $result = $this->collection('client_table')->findOne(array('client_id' => $client_id));
         return is_null($result) ? false : $result;
@@ -106,7 +107,7 @@ class MongoDB implements AuthorizationCodeInterface,
         return $result->getInsertedCount() > 0;
     }
 
-    public function checkRestrictedGrantType($client_id, $grant_type)
+    public function checkRestrictedGrantType(string $client_id, string $grant_type): bool
     {
         $details = $this->getClientDetails($client_id);
         if (isset($details['grant_types'])) {
@@ -244,7 +245,7 @@ class MongoDB implements AuthorizationCodeInterface,
         return $result->getInsertedCount() > 0;
     }
 
-    public function unsetRefreshToken($refresh_token)
+    public function unsetRefreshToken(string $refresh_token): bool
     {
         $result = $this->collection('refresh_token_table')->deleteOne(array(
             'refresh_token' => $refresh_token
@@ -289,7 +290,7 @@ class MongoDB implements AuthorizationCodeInterface,
         return $result->getInsertedCount() > 0;
     }
 
-    public function getClientKey($client_id, $subject)
+    public function getClientKey(string $client_id, string $subject): string
     {
         $result = $this->collection('jwt_table')->findOne(array(
             'client_id' => $client_id,
@@ -298,7 +299,7 @@ class MongoDB implements AuthorizationCodeInterface,
         return is_null($result) ? false : $result['key'];
     }
 
-    public function getClientScope($client_id)
+    public function getClientScope(string $client_id = null): string
     {
         if (!$clientDetails = $this->getClientDetails($client_id)) {
             return false;
@@ -309,16 +310,16 @@ class MongoDB implements AuthorizationCodeInterface,
         return null;
     }
 
-    public function getJti($client_id, $subject, $audience, $expires, $jti)
+    public function getJti(string $client_id, string $subject, string $audience, string $expiration, string $jti): array
     {
         //TODO: Needs mongodb implementation.
-        throw new \Exception('getJti() for the MongoDB driver is currently unimplemented.');
+        throw new NotImplementedException('getJti() for the MongoDB driver is currently unimplemented.');
     }
 
-    public function setJti($client_id, $subject, $audience, $expires, $jti)
+    public function setJti(string $client_id, string $subject, string $audience, string $expiration, string $jti): ?bool
     {
         //TODO: Needs mongodb implementation.
-        throw new \Exception('setJti() for the MongoDB driver is currently unimplemented.');
+        throw new NotImplementedException('setJti() for the MongoDB driver is currently unimplemented.');
     }
 
     public function getPublicKey($client_id = null)

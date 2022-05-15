@@ -45,7 +45,7 @@ class Scope implements ScopeInterface
      *
      * @ingroup oauth2_section_7
      */
-    public function checkScope($required_scope, $available_scope)
+    public function checkScope(string $required_scope, string $available_scope): bool
     {
         $required_scope = explode(' ', trim($required_scope));
         $available_scope = explode(' ', trim($available_scope));
@@ -59,7 +59,7 @@ class Scope implements ScopeInterface
      * @param string $scope - A space-separated string of scopes.
      * @return bool         - TRUE if it exists, FALSE otherwise.
      */
-    public function scopeExists($scope)
+    public function scopeExists(string $scope): bool
     {
         // Check reserved scopes first.
         $scope = explode(' ', trim($scope));
@@ -79,17 +79,17 @@ class Scope implements ScopeInterface
      * @param RequestInterface $request
      * @return string
      */
-    public function getScopeFromRequest(RequestInterface $request)
+    public function getScopeFromRequest(RequestInterface $request): string
     {
         // "scope" is valid if passed in either POST or QUERY
         return $request->request('scope', $request->query('scope'));
     }
 
     /**
-     * @param null $client_id
+     * @param string $client_id
      * @return mixed
      */
-    public function getDefaultScope($client_id = null)
+    public function getDefaultScope(string $client_id = null): ?string
     {
         return $this->storage->getDefaultScope($client_id);
     }

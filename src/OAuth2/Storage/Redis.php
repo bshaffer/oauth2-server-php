@@ -2,6 +2,7 @@
 
 namespace OAuth2\Storage;
 
+use OAuth2\Exception\NotImplementedException;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 
 /**
@@ -15,7 +16,8 @@ use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeI
  *  $storage->setClientDetails($client_id, $client_secret, $redirect_uri);
  * </code>
  */
-class Redis implements AuthorizationCodeInterface,
+class Redis implements
+    AuthorizationCodeInterface,
     AccessTokenInterface,
     ClientCredentialsInterface,
     UserCredentialsInterface,
@@ -39,7 +41,7 @@ class Redis implements AuthorizationCodeInterface,
      * @param \Predis\Client $redis
      * @param array          $config
      */
-    public function __construct($redis, $config=array())
+    public function __construct($redis, $config = array())
     {
         $this->redis = $redis;
         $this->config = array_merge(array(
@@ -55,18 +57,18 @@ class Redis implements AuthorizationCodeInterface,
 
     protected function getValue($key)
     {
-        if ( isset($this->cache[$key]) ) {
+        if (isset($this->cache[$key])) {
             return $this->cache[$key];
         }
         $value = $this->redis->get($key);
-        if ( isset($value) ) {
+        if (isset($value)) {
             return json_decode($value, true);
         } else {
             return false;
         }
     }
 
-    protected function setValue($key, $value, $expire=0)
+    protected function setValue($key, $value, $expire = 0)
     {
         $this->cache[$key] = $value;
         $str = json_encode($value);
@@ -146,7 +148,7 @@ class Redis implements AuthorizationCodeInterface,
     }
 
     /* ClientCredentialsInterface */
-    public function checkClientCredentials($client_id, $client_secret = null)
+    public function checkClientCredentials(string $client_id, string $client_secret = null): bool
     {
         if (!$client = $this->getClientDetails($client_id)) {
             return false;
@@ -156,7 +158,7 @@ class Redis implements AuthorizationCodeInterface,
             && $client['client_secret'] == $client_secret;
     }
 
-    public function isPublicClient($client_id)
+    public function isPublicClient(string $client_id): bool
     {
         if (!$client = $this->getClientDetails($client_id)) {
             return false;
@@ -179,7 +181,7 @@ class Redis implements AuthorizationCodeInterface,
         );
     }
 
-    public function checkRestrictedGrantType($client_id, $grant_type)
+    public function checkRestrictedGrantType(string $client_id, string $grant_type): bool
     {
         $details = $this->getClientDetails($client_id);
         if (isset($details['grant_types'])) {
@@ -207,7 +209,7 @@ class Redis implements AuthorizationCodeInterface,
         );
     }
 
-    public function unsetRefreshToken($refresh_token)
+    public function unsetRefreshToken(string $refresh_token): bool
     {
         $result = $this->expireValue($this->config['refresh_token_key'] . $refresh_token);
 
@@ -217,13 +219,13 @@ class Redis implements AuthorizationCodeInterface,
     /* AccessTokenInterface */
     public function getAccessToken($access_token)
     {
-        return $this->getValue($this->config['access_token_key'].$access_token);
+        return $this->getValue($this->config['access_token_key'] . $access_token);
     }
 
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
         return $this->setValue(
-            $this->config['access_token_key'].$access_token,
+            $this->config['access_token_key'] . $access_token,
             compact('access_token', 'client_id', 'user_id', 'expires', 'scope'),
             $expires
         );
@@ -237,21 +239,21 @@ class Redis implements AuthorizationCodeInterface,
     }
 
     /* ScopeInterface */
-    public function scopeExists($scope)
+    public function scopeExists(string $scope): bool
     {
         $scope = explode(' ', $scope);
 
-        $result = $this->getValue($this->config['scope_key'].'supported:global');
+        $result = $this->getValue($this->config['scope_key'] . 'supported:global');
 
         $supportedScope = explode(' ', (string) $result);
 
         return (count(array_diff($scope, $supportedScope)) == 0);
     }
 
-    public function getDefaultScope($client_id = null)
+    public function getDefaultScope($client_id = null): ?string
     {
-        if (is_null($client_id) || !$result = $this->getValue($this->config['scope_key'].'default:'.$client_id)) {
-            $result = $this->getValue($this->config['scope_key'].'default:global');
+        if (is_null($client_id) || !$result = $this->getValue($this->config['scope_key'] . 'default:' . $client_id)) {
+            $result = $this->getValue($this->config['scope_key'] . 'default:global');
         }
 
         return $result;
@@ -264,9 +266,9 @@ class Redis implements AuthorizationCodeInterface,
         }
 
         if (is_null($client_id)) {
-            $key = $this->config['scope_key'].$type.':global';
+            $key = $this->config['scope_key'] . $type . ':global';
         } else {
-            $key = $this->config['scope_key'].$type.':'.$client_id;
+            $key = $this->config['scope_key'] . $type . ':' . $client_id;
         }
 
         return $this->setValue($key, $scope);
@@ -294,28 +296,26 @@ class Redis implements AuthorizationCodeInterface,
         ));
     }
 
-    public function getClientScope($client_id)
+    public function getClientScope(string $client_id = null): string
     {
         if (!$clientDetails = $this->getClientDetails($client_id)) {
-            return false;
-        }
-
-        if (isset($clientDetails['scope'])) {
+            return "";
+        } elseif (isset($clientDetails['scope'])) {
             return $clientDetails['scope'];
+        } else {
+            return "";
         }
-
-        return null;
     }
 
     public function getJti($client_id, $subject, $audience, $expiration, $jti)
     {
         //TODO: Needs redis implementation.
-        throw new \Exception('getJti() for the Redis driver is currently unimplemented.');
+        throw new NotImplementedException('getJti() for the Redis driver is currently unimplemented.');
     }
 
     public function setJti($client_id, $subject, $audience, $expiration, $jti)
     {
         //TODO: Needs redis implementation.
-        throw new \Exception('setJti() for the Redis driver is currently unimplemented.');
+        throw new NotImplementedException('setJti() for the Redis driver is currently unimplemented.');
     }
 }

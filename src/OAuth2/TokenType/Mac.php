@@ -10,12 +10,12 @@ use OAuth2\ResponseInterface;
 */
 class Mac implements TokenTypeInterface
 {
-    public function getTokenType()
+    public function getTokenType(): string
     {
         return 'mac';
     }
 
-    public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response)
+    public function getAccessTokenParameter(RequestInterface $request, ResponseInterface $response): string
     {
         throw new \LogicException("Not supported");
     }

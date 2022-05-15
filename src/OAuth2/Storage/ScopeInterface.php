@@ -20,7 +20,7 @@ interface ScopeInterface
      * @return
      * TRUE if it exists, FALSE otherwise.
      */
-    public function scopeExists($scope);
+    public function scopeExists(string $scope): bool;
 
     /**
      * The default scope to use in the event the client
@@ -42,5 +42,5 @@ interface ScopeInterface
      * ex:
      *     null
      */
-    public function getDefaultScope($client_id = null);
+    public function getDefaultScope(string $client_id = null): ?string;
 }

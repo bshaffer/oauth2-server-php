@@ -3,7 +3,7 @@
 namespace OAuth2\Storage;
 
 use Aws\DynamoDb\DynamoDbClient;
-
+use OAuth2\Exception\NotImplementedException;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
 /**
@@ -77,7 +77,7 @@ class DynamoDB implements
     }
 
     /* OAuth2\Storage\ClientCredentialsInterface */
-    public function checkClientCredentials($client_id, $client_secret = null)
+    public function checkClientCredentials(string $client_id, string $client_secret = null): bool
     {
         $result = $this->client->getItem(array(
             "TableName"=> $this->config['client_table'],
@@ -87,7 +87,7 @@ class DynamoDB implements
         return  $result->count()==1 && $result["Item"]["client_secret"]["S"] == $client_secret;
     }
 
-    public function isPublicClient($client_id)
+    public function isPublicClient(string $client_id): bool
     {
         $result = $this->client->getItem(array(
             "TableName"=> $this->config['client_table'],
@@ -102,7 +102,7 @@ class DynamoDB implements
     }
 
     /* OAuth2\Storage\ClientInterface */
-    public function getClientDetails($client_id)
+    public function getClientDetails(string $client_id): mixed
     {
         $result = $this->client->getItem(array(
             "TableName"=> $this->config['client_table'],
@@ -113,7 +113,7 @@ class DynamoDB implements
         }
         $result = $this->dynamo2array($result);
         foreach (array('client_id', 'client_secret', 'redirect_uri', 'grant_types', 'scope', 'user_id') as $key => $val) {
-            if (!array_key_exists ($val, $result)) {
+            if (!array_key_exists ($val, (array) $result)) {
                 $result[$val] = null;
             }
         }
@@ -134,7 +134,7 @@ class DynamoDB implements
         return true;
     }
 
-    public function checkRestrictedGrantType($client_id, $grant_type)
+    public function checkRestrictedGrantType(string $client_id, string $grant_type): bool
     {
         $details = $this->getClientDetails($client_id);
         if (isset($details['grant_types'])) {
@@ -148,7 +148,7 @@ class DynamoDB implements
     }
 
     /* OAuth2\Storage\AccessTokenInterface */
-    public function getAccessToken($access_token)
+    public function getAccessToken(string $access_token)
     {
         $result = $this->client->getItem(array(
             "TableName"=> $this->config['access_token_table'],
@@ -158,7 +158,7 @@ class DynamoDB implements
             return false ;
         }
         $token = $this->dynamo2array($result);
-        if (array_key_exists ('expires', $token)) {
+        if (array_key_exists ('expires', (array) $token)) {
             $token['expires'] = strtotime($token['expires']);
         }
 
@@ -204,7 +204,7 @@ class DynamoDB implements
             return false ;
         }
         $token = $this->dynamo2array($result);
-        if (!array_key_exists("id_token", $token )) {
+        if (!array_key_exists("id_token", (array) $token )) {
             $token['id_token'] = null;
         }
         $token['expires'] = strtotime($token['expires']);
@@ -330,7 +330,7 @@ class DynamoDB implements
         return true;
     }
 
-    public function unsetRefreshToken($refresh_token)
+    public function unsetRefreshToken(string $refresh_token): bool
     {
         $result = $this->client->deleteItem(array(
             'TableName' =>  $this->config['refresh_token_table'],
@@ -385,7 +385,7 @@ class DynamoDB implements
     }
 
     /* ScopeInterface */
-    public function scopeExists($scope)
+    public function scopeExists(string $scope): bool
     {
         $scope = explode(' ', $scope);
         $scope_query = array();
@@ -407,7 +407,7 @@ class DynamoDB implements
         return $count == count($scope);
     }
 
-    public function getDefaultScope($client_id = null)
+    public function getDefaultScope(string $client_id = null): string
     {
 
         $result = $this->client->query(array(
@@ -435,7 +435,7 @@ class DynamoDB implements
     }
 
     /* JWTBearerInterface */
-    public function getClientKey($client_id, $subject)
+    public function getClientKey(string $client_id, string $subject): string
     {
         $result = $this->client->getItem(array(
             "TableName"=> $this->config['jwt_table'],
@@ -449,7 +449,7 @@ class DynamoDB implements
         return $token['public_key'];
     }
 
-    public function getClientScope($client_id)
+    public function getClientScope(string $client_id = null): string
     {
         if (!$clientDetails = $this->getClientDetails($client_id)) {
             return false;
@@ -462,14 +462,16 @@ class DynamoDB implements
         return null;
     }
 
-    public function getJti($client_id, $subject, $audience, $expires, $jti)
+    public function getJti(string $client_id, string $subject, string $audience, string $expires, string $jti): array
     {
         //TODO not use.
+        throw new NotImplementedException("Method not in use");
     }
 
-    public function setJti($client_id, $subject, $audience, $expires, $jti)
+    public function setJti(string $client_id, string $subject, string $audience, string $expires, string $jti): ?bool
     {
         //TODO not use.
+        throw new NotImplementedException("Method not in use");
     }
 
     /* PublicKeyInterface */
