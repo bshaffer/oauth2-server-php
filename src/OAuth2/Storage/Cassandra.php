@@ -233,13 +233,13 @@ class Cassandra implements AuthorizationCodeInterface,
      * @param string $password
      * @return bool
      */
-    protected function checkPassword($user, $password)
+    protected function checkPassword($user, $password, string $salt = ""): string
     {
-        return $user['password'] == $this->hashPassword($password);
+        return $user['password'] == $this->hashPassword($password, $salt);
     }
 
     // use a secure hashing algorithm when storing passwords. Override this for your application
-    protected function hashPassword($password)
+    protected function hashPassword($password, string $salt = ""): string
     {
         return sha1($password);
     }
@@ -276,9 +276,9 @@ class Cassandra implements AuthorizationCodeInterface,
      * @param string $last_name
      * @return bool
      */
-    public function setUser($username, $password, $first_name = null, $last_name = null)
+    public function setUser($username, $password, $first_name = null, $last_name = null, string $salt = ""): bool
     {
-        $password = $this->hashPassword($password);
+        $password = $this->hashPassword($password, $salt);
 
         return $this->setValue(
             $this->config['user_key'] . $username,

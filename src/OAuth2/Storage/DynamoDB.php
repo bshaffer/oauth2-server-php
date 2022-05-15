@@ -341,13 +341,13 @@ class DynamoDB implements
     }
 
     // plaintext passwords are bad!  Override this for your application
-    protected function checkPassword($user, $password)
+    protected function checkPassword($user, $password, string $salt = ""): string
     {
-        return $user['password'] == $this->hashPassword($password);
+        return $user['password'] == $this->hashPassword($password, $salt);
     }
 
     // use a secure hashing algorithm when storing passwords. Override this for your application
-    protected function hashPassword($password)
+    protected function hashPassword($password, string $salt = ""): string
     {
         return sha1($password);
     }
@@ -367,10 +367,10 @@ class DynamoDB implements
         return $token;
     }
 
-    public function setUser($username, $password, $first_name = null, $last_name = null)
+    public function setUser($username, $password, $first_name = null, $last_name = null, string $salt = ""): bool
     {
         // do not store in plaintext
-        $password = $this->hashPassword($password);
+        $password = $this->hashPassword($password, $salt);
 
         $clientData = compact('username', 'password', 'first_name', 'last_name');
         $clientData = array_filter($clientData, 'self::isNotEmpty');
