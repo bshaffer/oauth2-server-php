@@ -476,12 +476,12 @@ class Pdo implements
 
         // if it exists, update it.
         if ($this->getUser($username)) {
-            $stmt = $this->db->prepare(sprintf('UPDATE %s SET password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table']));
+            $stmt = $this->db->prepare(sprintf('UPDATE %s SET password=:password, first_name=:firstName, last_name=:lastName, scope=:scope where username=:username', $this->config['user_table']));
         } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
+            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name, scope) VALUES (:username, :password, :firstName, :lastName, :scope)', $this->config['user_table']));
         }
 
-        return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
+        return $stmt->execute(compact('username', 'password', 'firstName', 'lastName', 'scope'));
     }
 
     /**
