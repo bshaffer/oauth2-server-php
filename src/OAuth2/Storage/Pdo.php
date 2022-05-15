@@ -430,13 +430,13 @@ class Pdo implements
      * @param string $password
      * @return bool
      */
-    protected function checkPassword(array $user, string  $password)
+    protected function checkPassword(array $user, string  $password, string $salt = ""): string
     {
-        return $user['password'] == $this->hashPassword($password);
+        return $user['password'] == $this->hashPassword($password, $salt);
     }
 
     // use a secure hashing algorithm when storing passwords. Override this for your application
-    protected function hashPassword(string $password)
+    protected function hashPassword(string $password, string $salt = ""): string
     {
         return sha1($password);
     }
@@ -469,10 +469,10 @@ class Pdo implements
      * @param string $lastName
      * @return bool
      */
-    public function setUser(string $username, string $password, string $firstName = null, string $lastName = null): bool
+    public function setUser(string $username, string $password, string $firstName = null, string $lastName = null, string $salt = ""): bool
     {
         // do not store in plaintext
-        $password = $this->hashPassword($password);
+        $password = $this->hashPassword($password, $salt);
 
         // if it exists, update it.
         if ($this->getUser($username)) {
