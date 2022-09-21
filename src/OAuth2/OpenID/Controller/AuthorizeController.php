@@ -79,7 +79,7 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
             return false;
         }
 
-        $nonce = $request->query('nonce');
+        $nonce = $request->request('nonce');
 
         // Validate required nonce for "id_token" and "id_token token"
         if (!$nonce && in_array($this->getResponseType(), array(self::RESPONSE_TYPE_ID_TOKEN, self::RESPONSE_TYPE_ID_TOKEN_TOKEN))) {
