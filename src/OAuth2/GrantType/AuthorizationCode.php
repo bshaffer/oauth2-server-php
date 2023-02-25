@@ -84,7 +84,6 @@ class AuthorizationCode implements GrantTypeInterface
             return false;
         }
 
-        // @TODO: Should we enforce presence of a non-falsy code challenge?
         if (isset($authCode['code_challenge']) && $authCode['code_challenge']) {
           if (!($code_verifier = $request->request('code_verifier'))) {
             $response->setError(400, 'code_verifier_missing', "The PKCE code verifier parameter is required.");
