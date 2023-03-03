@@ -21,7 +21,7 @@ class JwtAccessToken implements JwtAccessTokenInterface
      *                                                                is not necessary when using this grant type.
      * @param OAuth2\Encryption\EncryptionInterface $encryptionUtil   OPTIONAL class to use for "encode" and "decode" functions.
      */
-    public function __construct(PublicKeyInterface $publicKeyStorage, AccessTokenInterface $tokenStorage = null, EncryptionInterface $encryptionUtil = null)
+    public function __construct(PublicKeyInterface $publicKeyStorage, AccessTokenInterface $tokenStorage, EncryptionInterface $encryptionUtil = null)
     {
         $this->publicKeyStorage = $publicKeyStorage;
         $this->tokenStorage = $tokenStorage;
@@ -34,11 +34,11 @@ class JwtAccessToken implements JwtAccessTokenInterface
     public function getAccessToken($oauth_token)
     {
         // just decode the token, don't verify
-        if (!$tokenData = $this->encryptionUtil->decode($oauth_token, null, false)) {
+        if (!$tokenData = $this->tokenStorage->getAccessToken($oauth_token)) {
             return false;
         }
 
-        $client_id  = isset($tokenData['aud']) ? $tokenData['aud'] : null;
+        $client_id  = isset($tokenData['client_id']) ? $tokenData['client_id'] : null;
         $public_key = $this->publicKeyStorage->getPublicKey($client_id);
         $algorithm  = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
 
