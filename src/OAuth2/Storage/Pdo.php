@@ -249,7 +249,7 @@ class Pdo implements
      */
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null, $code_challenge = null, $code_challenge_method = null)
     {
-        if ($id_token) {
+        if (func_num_args() > 6) {
             // we are calling with an id token
             return call_user_func_array(array($this, 'setAuthorizationCodeWithIdToken'), func_get_args());
         }
