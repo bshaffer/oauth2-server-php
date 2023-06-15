@@ -178,7 +178,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
         return is_null($code) ? false : $code;
     }
 
-    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
+    public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null, $code_challenge = null, $code_challenge_method = null)
     {
         // if it exists, update it.
         if ($this->getAuthorizationCode($code)) {
@@ -190,6 +190,8 @@ class CouchbaseDB implements AuthorizationCodeInterface,
                 'expires' => $expires,
                 'scope' => $scope,
                 'id_token' => $id_token,
+                'code_challenge' => $code_challenge,
+                'code_challenge_method' => $code_challenge_method,
             ));
         } else {
             $this->setObjectByType('code_table',$code,array(
@@ -200,6 +202,8 @@ class CouchbaseDB implements AuthorizationCodeInterface,
                 'expires' => $expires,
                 'scope' => $scope,
                 'id_token' => $id_token,
+                'code_challenge' => $code_challenge,
+                'code_challenge_method' => $code_challenge_method,
             ));
         }
 

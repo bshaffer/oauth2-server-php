@@ -127,7 +127,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         }
 
         // Check expiration
-        if (ctype_digit($jwt['exp'])) {
+        if (ctype_digit((string)$jwt['exp'])) {
             if ($jwt['exp'] <= time()) {
                 $response->setError(400, 'invalid_grant', "JWT has expired");
 
@@ -141,7 +141,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
 
         // Check the not before time
         if ($notBefore = $jwt['nbf']) {
-            if (ctype_digit($notBefore)) {
+            if (ctype_digit((string)$notBefore)) {
                 if ($notBefore > time()) {
                     $response->setError(400, 'invalid_grant', "JWT cannot be used before the Not Before (nbf) time");
 
