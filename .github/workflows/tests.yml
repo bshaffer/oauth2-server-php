@@ -2,7 +2,7 @@ name: Test Suite
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
 jobs:
   test:
@@ -35,7 +35,7 @@ jobs:
         options: --health-cmd="pg_isready -h localhost" --health-interval=10s --health-timeout=5s --health-retries=5
     strategy:
       matrix:
-        php: [ 7.2, 7.3, 7.4, "8.0", 8.1 ]
+        php: [ 7.2, 7.3, 7.4, "8.0", 8.1, 8.2 ]
     name: "PHP ${{ matrix.php }} Unit Test"
     steps:
       - uses: actions/checkout@v2
@@ -53,3 +53,22 @@ jobs:
           command: composer install
       - name: Run PHPUnit
         run: vendor/bin/phpunit -v
+  phpstan:
+    name: "PHPStan"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.1
+      - name: Install composer dependencies
+        uses: nick-invision/retry@v1
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: composer install
+      - name: Run PHPStan
+        run: |
+          composer require phpstan/phpstan
+          vendor/bin/phpstan analyse --level=0 src/
