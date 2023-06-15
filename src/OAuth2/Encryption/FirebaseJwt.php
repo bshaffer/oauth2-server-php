@@ -2,6 +2,7 @@
 
 namespace OAuth2\Encryption;
 
+use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 /**
@@ -12,14 +13,14 @@ class FirebaseJwt implements EncryptionInterface
 {
     public function __construct()
     {
-        if (!class_exists('\Firebase\JWT\JWT')) {
+        if (!class_exists(JWT::class)) {
             throw new \ErrorException('firebase/php-jwt must be installed to use this feature. You can do this by running "composer require firebase/php-jwt"');
         }
     }
 
     public function encode($payload, $key, $alg = 'HS256', $keyId = null)
     {
-        return \Firebase\JWT\JWT::encode($payload, $key, $alg, $keyId);
+        return JWT::encode($payload, $key, $alg, $keyId);
     }
 
     public function decode($jwt, $key = null, $allowedAlgorithms = null)
@@ -30,8 +31,8 @@ class FirebaseJwt implements EncryptionInterface
                 $tks = \explode('.', $jwt);
                 if (\count($tks) === 3) {
                     [$headb64] = $tks;
-                    $headerRaw = \Firebase\JWT\JWT::urlsafeB64Decode($headb64);
-                    if (($header = \Firebase\JWT\JWT::jsonDecode($headerRaw))) {
+                    $headerRaw = JWT::urlsafeB64Decode($headb64);
+                    if (($header = JWT::jsonDecode($headerRaw))) {
                         $key = new Key($key, $header->alg);
                     }
                 }
@@ -41,7 +42,7 @@ class FirebaseJwt implements EncryptionInterface
                 $key = new Key($key, $allowedAlgorithms);
             }
 
-            return (array)\Firebase\JWT\JWT::decode($jwt, $key);
+            return (array) JWT::decode($jwt, $key);
         } catch (\Exception $e) {
             return false;
         }
@@ -49,11 +50,11 @@ class FirebaseJwt implements EncryptionInterface
 
     public function urlSafeB64Encode($data)
     {
-        return \Firebase\JWT\JWT::urlsafeB64Encode($data);
+        return JWT::urlsafeB64Encode($data);
     }
 
     public function urlSafeB64Decode($b64)
     {
-        return \Firebase\JWT\JWT::urlsafeB64Decode($b64);
+        return JWT::urlsafeB64Decode($b64);
     }
 }
