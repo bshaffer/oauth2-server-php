@@ -46,13 +46,13 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
             $jwtUtil = new Jwt();
         }
 
-        $this->config = array_merge(array(
+        $config = array_merge(array(
             'allowed_algorithms' => array('RS256', 'RS384', 'RS512')
         ), $config);
 
         $this->jwtUtil = $jwtUtil;
 
-        $this->allowedAlgorithms = $this->config['allowed_algorithms'];
+        $this->allowedAlgorithms = $config['allowed_algorithms'];
     }
 
     /**
