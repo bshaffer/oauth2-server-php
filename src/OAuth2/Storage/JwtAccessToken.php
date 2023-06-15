@@ -34,11 +34,11 @@ class JwtAccessToken implements JwtAccessTokenInterface
     public function getAccessToken($oauth_token)
     {
         // just decode the token, don't verify
-        if (!$tokenData = $this->tokenStorage->getAccessToken($oauth_token)) {
+        if (!$tokenData = $this->encryptionUtil->decode($oauth_token, null, false)) {
             return false;
         }
 
-        $client_id  = isset($tokenData['client_id']) ? $tokenData['client_id'] : null;
+        $client_id  = isset($tokenData['aud']) ? $tokenData['aud'] : null;
         $public_key = $this->publicKeyStorage->getPublicKey($client_id);
         $algorithm  = $this->publicKeyStorage->getEncryptionAlgorithm($client_id);
 
