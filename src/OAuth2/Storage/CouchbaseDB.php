@@ -28,7 +28,7 @@ class CouchbaseDB implements AuthorizationCodeInterface,
 
     public function __construct($connection, $config = array())
     {
-        if (! class_exists(Couchbase::class)) {
+        if (!class_exists(Couchbase::class)) {
             throw new \RuntimeException('Missing Couchbase');
         }
 

@@ -32,6 +32,9 @@ class MongoDB implements AuthorizationCodeInterface,
 
     public function __construct($connection, $config = array())
     {
+        if (!class_exists(Database::class) || !class_exists(Client::class)) {
+            throw new \LogicException('Missing MongoDB php extension. Please install mongodb.so');
+        }
         if ($connection instanceof Database) {
             $this->db = $connection;
         } else {
