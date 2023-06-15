@@ -69,4 +69,6 @@ jobs:
           max_attempts: 3
           command: composer install
       - name: Run PHPStan
-        run: vendor/bin/phpstan analyse --level=0 src/
+        run: |
+          composer require phpstan/phpstan
+          vendor/bin/phpstan analyse --level=0 src/
