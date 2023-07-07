@@ -245,6 +245,15 @@ class Request implements RequestInterface
         ) {
             $data = json_decode($request->getContent(), true);
             $request->request = $data;
+        } elseif (
+            0 === strpos($contentType, 'application/xml')
+            && in_array(strtoupper($requestMethod), array('POST', 'PUT', 'DELETE'))
+        ) {
+            $data = json_decode(
+                json_encode(simplexml_load_string($request->getContent())),
+                true
+            );
+            $request->request = $data;
         }
 
         return $request;
