@@ -56,7 +56,7 @@ class AuthorizationCode implements AuthorizationCodeInterface
     public function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null, $code_challenge = null, $code_challenge_method = null)
     {
         $code = $this->generateAuthorizationCode();
-        $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->config['auth_code_lifetime'], $scope, $code_challenge, $code_challenge_method);
+        $this->storage->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, time() + $this->config['auth_code_lifetime'], $scope, null, $code_challenge, $code_challenge_method);
 
         return $code;
     }
