@@ -2,6 +2,8 @@
 
 namespace OAuth2;
 
+use OAuth2\Encryption\EncryptionInterface;
+use OAuth2\OpenID\ResponseType\IdToken;
 use OAuth2\Request\TestRequest;
 use OAuth2\ResponseType\AuthorizationCode;
 use OAuth2\Storage\Bootstrap;
@@ -645,5 +647,26 @@ class ServerTest extends TestCase
 
         $grantTypes = $server->getGrantTypes();
         $this->assertEquals('authorization_code', key($grantTypes));
+    }
+
+    public function testUsingCustomEncryptionObjectForIdToken()
+    {
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
+        $server = new Server(array($client, $userclaims, $pubkey), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy',
+        ));
+
+        $stub = $this->createStub(EncryptionInterface::class);
+        $stub->method('encode')->willReturn('mocked-encryption');
+        $server->setEncryptionUtil($stub);
+
+        $server->getAuthorizeController();
+
+        $responseType = $server->getResponseType('id_token');
+        /* @var IdToken $responseType*/
+        $this->assertEquals('mocked-encryption', $responseType->createIdToken('unit-tests', 'dummy-user'));
     }
 }
