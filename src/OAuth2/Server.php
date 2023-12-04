@@ -4,6 +4,8 @@ namespace OAuth2;
 
 use OAuth2\Controller\ResourceControllerInterface;
 use OAuth2\Controller\ResourceController;
+use OAuth2\Encryption\EncryptionInterface;
+use OAuth2\Encryption\Jwt;
 use OAuth2\OpenID\Controller\UserInfoControllerInterface;
 use OAuth2\OpenID\Controller\UserInfoController;
 use OAuth2\OpenID\Controller\AuthorizeController as OpenIDAuthorizeController;
@@ -109,6 +111,11 @@ class Server implements ResourceControllerInterface,
      * @var ClientAssertionTypeInterface
      */
     protected $clientAssertionType;
+
+    /**
+     * @var EncryptionInterface
+     */
+    protected $encryptionUtil;
 
     /**
      * @var array
@@ -844,7 +851,7 @@ class Server implements ResourceControllerInterface,
 
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string issuer access_lifetime refresh_token_lifetime jwt_extra_payload_callable')));
 
-        return new JwtAccessToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config);
+        return new JwtAccessToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config, $this->getEncryptionUtil());
     }
 
     /**
@@ -883,7 +890,7 @@ class Server implements ResourceControllerInterface,
 
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'issuer id_lifetime')));
 
-        return new IdToken($this->storages['user_claims'], $this->storages['public_key'], $config);
+        return new IdToken($this->storages['user_claims'], $this->storages['public_key'], $config, $this->getEncryptionUtil());
     }
 
     /**
@@ -1016,5 +1023,25 @@ class Server implements ResourceControllerInterface,
     public function getConfig($name, $default = null)
     {
         return isset($this->config[$name]) ? $this->config[$name] : $default;
+    }
+
+    /**
+     * @return EncryptionInterface
+     */
+    private function getEncryptionUtil(): EncryptionInterface
+    {
+        if (empty($this->encryptionUtil)) {
+            $this->encryptionUtil = new Jwt();
+        }
+        return $this->encryptionUtil;
+    }
+
+    /**
+     * @param EncryptionInterface $encryptionUtil
+     * @return void
+     */
+    public function setEncryptionUtil(EncryptionInterface $encryptionUtil): void
+    {
+        $this->encryptionUtil = $encryptionUtil;
     }
 }
