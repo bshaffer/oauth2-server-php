@@ -851,7 +851,7 @@ class Server implements ResourceControllerInterface,
 
         $config = array_intersect_key($this->config, array_flip(explode(' ', 'store_encrypted_token_string issuer access_lifetime refresh_token_lifetime jwt_extra_payload_callable')));
 
-        return new JwtAccessToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config);
+        return new JwtAccessToken($this->storages['public_key'], $tokenStorage, $refreshStorage, $config, $this->getEncryptionUtil());
     }
 
     /**
