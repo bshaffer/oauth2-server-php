@@ -1,5 +1,5 @@
 {
-    "name": "bshaffer/oauth2-server-php",
+    "name": "igamesinc/oauth2-server-php",
     "description":"OAuth2 Server for PHP",
     "keywords":["oauth","oauth2","auth"],
     "type":"library",
@@ -9,9 +9,14 @@
             "name":"Brent Shaffer",
             "email": "bshafs@gmail.com",
             "homepage":"http://brentertainment.com"
+        },
+        {
+            "name":"John Frykland",
+            "email": "john@igamesinc.com",
+            "homepage":"https://igamesinc.com"
         }
     ],
-    "homepage": "http://github.com/bshaffer/oauth2-server-php",
+    "homepage": "http://github.com/igamesinc/oauth2-server-php",
     "autoload": {
         "psr-0": { "OAuth2": "src/" }
     },
