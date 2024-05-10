@@ -8,9 +8,10 @@ interface EncryptionInterface
      * @param $payload
      * @param $key
      * @param null $algorithm
+     * @param null $keyId
      * @return mixed
      */
-    public function encode($payload, $key, $algorithm = null);
+    public function encode($payload, $key, $algorithm = null, $keyId = null);
 
     /**
      * @param $payload

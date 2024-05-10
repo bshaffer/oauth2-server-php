@@ -27,4 +27,10 @@ interface PublicKeyInterface
      * @return mixed
      */
     public function getEncryptionAlgorithm($client_id = null);
+
+    /**
+     * @param mixed $client_id
+     * @return mixed
+     */
+    public function getKeyId($client_id = null);
 }
