@@ -518,6 +518,15 @@ class DynamoDB implements
     }
 
     /**
+     * @param mixed $client_id
+     * @return mixed
+     */
+    public function getKeyId($client_id = null)
+    {
+        return $client_id;
+    }
+
+    /**
      * Transform dynamodb resultset to an array.
      * @param $dynamodbResult
      * @return $array

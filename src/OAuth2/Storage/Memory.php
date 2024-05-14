@@ -378,4 +378,13 @@ class Memory implements AuthorizationCodeInterface,
 
         return 'RS256';
     }
+
+    /**
+     * @param mixed $client_id
+     * @return mixed
+     */
+    public function getKeyId($client_id = null)
+    {
+        return $client_id;
+    }
 }

@@ -393,4 +393,13 @@ class Mongo implements AuthorizationCodeInterface,
         ));
         return is_null($result) ? 'RS256' : $result['encryption_algorithm'];
     }
+
+    /**
+     * @param mixed $client_id
+     * @return mixed
+     */
+    public function getKeyId($client_id = null)
+    {
+        return $client_id;
+    }
 }

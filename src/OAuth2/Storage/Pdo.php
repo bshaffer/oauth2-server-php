@@ -639,6 +639,15 @@ class Pdo implements
     }
 
     /**
+     * @param mixed $client_id
+     * @return mixed
+     */
+    public function getKeyId($client_id = null)
+    {
+        return $client_id;
+    }    
+
+    /**
      * DDL to create OAuth2 database and tables for PDO storage
      *
      * @see https://github.com/dsquier/oauth2-server-php-mysql
