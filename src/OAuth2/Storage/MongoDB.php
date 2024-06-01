@@ -129,6 +129,13 @@ class MongoDB implements AuthorizationCodeInterface,
 
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
+
+        //Dont create multiple access tokens when one has not expired yet for efficient purposes and security. Included this to avoid too much of new tokens when one has not expired - Also updated OAuth2\ResponseType\AccessToken to use the existing token that has not expired instead of creating a new one
+        $result = $this->collection('access_token_table')->findOne(array('client_id' => $client_id, 'expires' => ['$gt' => time()]));
+        if(!is_null($result)){
+            return $result;
+        }
+
         // if it exists, update it.
         if ($this->getAccessToken($access_token)) {
             $result = $this->collection('access_token_table')->updateOne(
