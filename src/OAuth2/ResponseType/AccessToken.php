@@ -103,10 +103,10 @@ class AccessToken implements AccessTokenInterface
         $response = $this->tokenStorage->setAccessToken($token["access_token"], $client_id, $user_id, $this->config['access_lifetime'] ? time() + $this->config['access_lifetime'] : null, $scope);
 
         //update token to the existing one for efficiency purposes
-        if(is_array($response)){
-            $token['access_token'] = $response['access_token'];
-            $token['expires_in'] = $response['expires'];
-            $token['scope'] = $response['scope'];
+        if(is_object($response)){
+            $token['access_token'] = $response->access_token;
+            $token['expires_in'] = $response->expires;
+            $token['scope'] = $response->scope;
         }
 
         /*
