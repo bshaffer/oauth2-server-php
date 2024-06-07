@@ -2,6 +2,7 @@
 
 namespace OAuth2\Controller;
 
+use OAuth2\Storage\ClientCredentialsInterface;
 use OAuth2\Storage\ClientInterface;
 use OAuth2\ScopeInterface;
 use OAuth2\RequestInterface;
@@ -62,6 +63,16 @@ class AuthorizeController implements AuthorizeControllerInterface
     protected $scopeUtil;
 
     /**
+     * @var string|null
+     */
+    protected $code_challenge;
+
+    /**
+     * @var string|null
+     */
+    protected $code_challenge_method;
+
+    /**
      * Constructor
      *
      * @param ClientInterface $clientStorage REQUIRED Instance of OAuth2\Storage\ClientInterface to retrieve client information
@@ -88,6 +99,8 @@ class AuthorizeController implements AuthorizeControllerInterface
             'require_exact_redirect_uri' => true,
             'redirect_status_code' => 302,
             'enforce_pkce' => false,
+            'enforce_pkce_for_public_clients' => false,
+            'supported_code_challenge_methods' => ['plain', 'S256'],
         ), $config);
 
         if (is_null($scopeUtil)) {
@@ -139,7 +152,7 @@ class AuthorizeController implements AuthorizeControllerInterface
 
         $authResult = $this->responseTypes[$this->response_type]->getAuthorizeResponse($params, $user_id);
 
-        list($redirect_uri, $uri_params) = $authResult;
+        [$redirect_uri, $uri_params] = $authResult;
 
         if (empty($redirect_uri) && !empty($registered_redirect_uri)) {
             $redirect_uri = $registered_redirect_uri;
@@ -186,6 +199,8 @@ class AuthorizeController implements AuthorizeControllerInterface
             'client_id'     => $this->client_id,
             'redirect_uri'  => $this->redirect_uri,
             'response_type' => $this->response_type,
+            'code_challenge' => $this->code_challenge,
+            'code_challenge_method' => $this->code_challenge_method,
         );
 
         return $params;
@@ -257,7 +272,7 @@ class AuthorizeController implements AuthorizeControllerInterface
         $response_type = $request->query('response_type', $request->request('response_type'));
 
         // for multiple-valued response types - make them alphabetical
-        if (false !== strpos($response_type, ' ')) {
+        if ($response_type && false !== strpos($response_type, ' ')) {
             $types = explode(' ', $response_type);
             sort($types);
             $response_type = ltrim(implode(' ', $types));
@@ -334,6 +349,41 @@ class AuthorizeController implements AuthorizeControllerInterface
             return false;
         }
 
+        $code_challenge = $request->query('code_challenge');
+        $code_challenge_method = $request->query('code_challenge_method');
+        if ($code_challenge) {
+            if (preg_match('/^[A-Za-z0-9-._~]{43,128}$/', $code_challenge) !== 1) {
+                $response->setError(400, 'invalid_code_challenge', 'The PKCE code challenge supplied is invalid');
+
+                return false;
+            }
+
+            $supported_challenge_methods = $this->config['supported_code_challenge_methods'] ?? ['plain', 'S256'];
+            if (!$code_challenge_method) {
+                $response->setError(400, 'missing_code_challenge_method', 'This application requires you specify a PKCE code challenge method. Supported methods: ' . implode(', ', $supported_challenge_methods)
+                );
+
+                return false;
+            }
+            if (!in_array($code_challenge_method, $supported_challenge_methods, true)) {
+                $response->setError(400, 'invalid_code_challenge_method', 'The PKCE code challenge method supplied is invalid. Supported methods: ' . implode(', ', $supported_challenge_methods)
+                );
+
+                return false;
+            }
+        } else {
+            $isPublic = false;
+            if ($this->clientStorage instanceof ClientCredentialsInterface) {
+                $isPublic = $this->clientStorage->isPublicClient($client_id);
+            }
+
+            if ($this->config['enforce_pkce'] || ($this->config['enforce_pkce_for_public_clients'] && $isPublic)) {
+                $response->setError(400, 'missing_code_challenge', 'This application requires you provide a PKCE code challenge');
+
+                return false;
+            }
+        }
+
         // save the input data and return true
         $this->scope         = $requestedScope;
         $this->state         = $state;
@@ -341,6 +391,8 @@ class AuthorizeController implements AuthorizeControllerInterface
         // Only save the SUPPLIED redirect URI (@see http://tools.ietf.org/html/rfc6749#section-4.1.3)
         $this->redirect_uri  = $supplied_redirect_uri;
         $this->response_type = $response_type;
+        $this->code_challenge = $code_challenge;
+        $this->code_challenge_method = $code_challenge_method;
 
         return true;
     }
