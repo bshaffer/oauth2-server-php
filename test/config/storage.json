@@ -39,11 +39,41 @@
             "redirect_uri": "http://brentertainment.com/voil%C3%A0",
             "expires": "9999999999",
             "id_token": "IDTOKEN"
+        },
+        "testcode-pkce-challenge-plain": {
+            "client_id": "Test Client ID",
+            "user_id": "",
+            "redirect_uri": "",
+            "expires": "9999999999",
+            "id_token": "IDTOKEN",
+            "code_challenge": "testcodechallengetestcodechallengetestcodechallenge",
+            "code_challenge_method": "plain"
+        },
+        "testcode-pkce-challenge-s256": {
+            "client_id": "Test Client ID",
+            "user_id": "",
+            "redirect_uri": "",
+            "expires": "9999999999",
+            "id_token": "IDTOKEN",
+            "code_challenge": "F9mz8u-tLgIAl5bWYGpmI0h1g7C5SAszNM85Ra-kd1E",
+            "code_challenge_method": "S256"
+        },
+        "testcode-pkce-challenge-invalid-method": {
+            "client_id": "Test Client ID",
+            "user_id": "",
+            "redirect_uri": "",
+            "expires": "9999999999",
+            "id_token": "IDTOKEN",
+            "code_challenge": "F9mz8u-tLgIAl5bWYGpmI0h1g7C5SAszNM85Ra-kd1E",
+            "code_challenge_method": "md5"
         }
     },
     "client_credentials" : {
         "Test Client ID": {
             "client_secret": "TestSecret"
+        },
+        "Test Public Client ID": {
+            "is_public": true
         },
         "Test Client ID with Redirect Uri": {
             "client_secret": "TestSecret2",
