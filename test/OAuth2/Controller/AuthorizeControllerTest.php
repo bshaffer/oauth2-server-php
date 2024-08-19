@@ -342,6 +342,125 @@ class AuthorizeControllerTest extends TestCase
         $this->assertEquals($query['error_description'], 'The user denied access to your application');
     }
 
+    public function testEnforcePkce()
+    {
+        $server = $this->getTestServer(array('enforce_pkce' => true));
+        $request = new Request(array(
+            'client_id' => 'Test Client ID', // valid client id
+            'redirect_uri' => 'http://adobe.com', // valid redirect URI
+            'response_type' => 'code',
+            'state' => 'xyz',
+        ));
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals('missing_code_challenge', $response->getParameter('error'));
+        $this->assertEquals('This application requires you provide a PKCE code challenge', $response->getParameter('error_description'));
+    }
+
+    public function testEnforcePkcePublicClient()
+    {
+        $server = $this->getTestServer(array('enforce_pkce_for_public_clients' => true));
+        $request = new Request(array(
+            'client_id' => 'Test Public Client ID', // valid client id
+            'redirect_uri' => 'http://adobe.com', // valid redirect URI
+            'response_type' => 'code',
+            'state' => 'xyz',
+        ));
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals('missing_code_challenge', $response->getParameter('error'));
+        $this->assertEquals('This application requires you provide a PKCE code challenge', $response->getParameter('error_description'));
+    }
+
+    public function testInvalidCodeChallenge()
+    {
+        $server = $this->getTestServer(array('enforce_pkce' => true));
+        $request = new Request(array(
+            'client_id' => 'Test Client ID', // valid client id
+            'redirect_uri' => 'http://adobe.com', // valid redirect URI
+            'response_type' => 'code',
+            'state' => 'xyz',
+            'code_challenge' => 'invalid!',
+            'code_challenge_method' => 'plain',
+        ));
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals('invalid_code_challenge', $response->getParameter('error'));
+        $this->assertEquals('The PKCE code challenge supplied is invalid', $response->getParameter('error_description'));
+    }
+
+    public function testMissingCodeChallengeMethod()
+    {
+        $server = $this->getTestServer(array('enforce_pkce' => true));
+        $request = new Request(array(
+            'client_id' => 'Test Client ID', // valid client id
+            'redirect_uri' => 'http://adobe.com', // valid redirect URI
+            'response_type' => 'code',
+            'state' => 'xyz',
+            'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+        ));
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals('missing_code_challenge_method', $response->getParameter('error'));
+        $this->assertEquals('This application requires you specify a PKCE code challenge method. Supported methods: plain, S256', $response->getParameter('error_description'));
+    }
+
+    public function testInvalidCodeChallengeMethod()
+    {
+        $server = $this->getTestServer(array('enforce_pkce' => true));
+        $request = new Request(array(
+            'client_id' => 'Test Client ID', // valid client id
+            'redirect_uri' => 'http://adobe.com', // valid redirect URI
+            'response_type' => 'code',
+            'state' => 'xyz',
+            'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+            'code_challenge_method' => 'invalid',
+        ));
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals('invalid_code_challenge_method', $response->getParameter('error'));
+        $this->assertEquals('The PKCE code challenge method supplied is invalid. Supported methods: plain, S256', $response->getParameter('error_description'));
+    }
+
+    public function testSuccessfulPkceChallenge()
+    {
+        $server = $this->getTestServer(array('enforce_pkce' => true));
+        $request = new Request(array(
+            'client_id' => 'Test Client ID', // valid client id
+            'redirect_uri' => 'http://adobe.com', // valid redirect URI
+            'response_type' => 'code',
+            'state' => 'xyz',
+            'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+            'code_challenge_method' => 'S256',
+        ));
+        $server->handleAuthorizeRequest($request, $response = new Response(), true);
+
+        $this->assertEquals($response->getStatusCode(), 302);
+        $location = $response->getHttpHeader('Location');
+        $parts = parse_url($location);
+        parse_str($parts['query'], $query);
+
+        $this->assertEquals('http', $parts['scheme']); // same as passed in to redirect_uri
+        $this->assertEquals('adobe.com', $parts['host']); // same as passed in to redirect_uri
+        $this->assertArrayHasKey('query', $parts);
+        $this->assertFalse(isset($parts['fragment']));
+
+        // assert fragment is in "application/x-www-form-urlencoded" format
+        parse_str($parts['query'], $query);
+        $this->assertNotNull($query);
+        $this->assertArrayHasKey('code', $query);
+
+        // assert code challenge is stored
+        $code = $server->getStorage('authorization_code')->getAuthorizationCode($query['code']);
+        $this->assertEquals($code['code_challenge'], 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM');
+        $this->assertEquals($code['code_challenge_method'], 'S256');
+    }
+
     public function testCodeQueryParamIsSet()
     {
         $server = $this->getTestServer();
@@ -478,6 +597,8 @@ class AuthorizeControllerTest extends TestCase
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
         $controller = new AuthorizeController($storage);
+
+        $this->expectNotToPerformAssertions();
     }
 
     private function getTestServer($config = array())
