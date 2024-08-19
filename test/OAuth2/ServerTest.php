@@ -2,8 +2,11 @@
 
 namespace OAuth2;
 
+use OAuth2\Encryption\EncryptionInterface;
+use OAuth2\OpenID\ResponseType\IdToken;
 use OAuth2\Request\TestRequest;
 use OAuth2\ResponseType\AuthorizationCode;
+use OAuth2\ResponseType\JwtAccessToken;
 use OAuth2\Storage\Bootstrap;
 use PHPUnit\Framework\TestCase;
 use Yoast\PHPUnitPolyfills\Polyfills\ExpectPHPException;
@@ -645,5 +648,45 @@ class ServerTest extends TestCase
 
         $grantTypes = $server->getGrantTypes();
         $this->assertEquals('authorization_code', key($grantTypes));
+    }
+
+    public function testUsingCustomEncryptionObjectForIdToken()
+    {
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
+        $userclaims = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
+        $server = new Server(array($client, $userclaims, $pubkey), array(
+            'use_openid_connect' => true,
+            'issuer' => 'someguy',
+        ));
+
+        $stub = $this->createStub(EncryptionInterface::class);
+        $stub->method('encode')->willReturn('mocked-encryption');
+        $server->setEncryptionUtil($stub);
+
+        $server->getAuthorizeController();
+
+        $responseType = $server->getResponseType('id_token');
+        /* @var IdToken $responseType*/
+        $this->assertEquals('mocked-encryption', $responseType->createIdToken('unit-tests', 'dummy-user'));
+    }
+
+    public function testUsingCustomEncryptionObjectForJwtAccessToken()
+    {
+        $pubkey = $this->createMock('OAuth2\Storage\PublicKeyInterface');
+        $client = $this->createMock('OAuth2\Storage\ClientInterface');
+        $server = new Server(array($pubkey, $client), array('use_jwt_access_tokens' => true, 'allow_implicit' => true));
+
+        $stub = $this->createStub(EncryptionInterface::class);
+        $stub->method('encode')->willReturn('mocked-encryption-access-token');
+        $server->setEncryptionUtil($stub);
+
+        $server->getAuthorizeController();
+
+        $responseType = $server->getResponseType('token');
+        /* @var JwtAccessToken $responseType*/
+        $accessToken = $responseType->createAccessToken('unit-tests', 'dummy-user');
+        $this->assertArrayHasKey('access_token', $accessToken);
+        $this->assertEquals('mocked-encryption-access-token', $accessToken['access_token']);
     }
 }
