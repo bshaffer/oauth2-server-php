@@ -3,8 +3,11 @@
 namespace OAuth2\OpenID\Controller;
 
 use OAuth2\Controller\AuthorizeController as BaseAuthorizeController;
+use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
+use OAuth2\ScopeInterface;
+use OAuth2\Storage\ClientInterface;
 
 /**
  * @see OAuth2\Controller\AuthorizeControllerInterface
@@ -25,6 +28,19 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
      * @var mixed
      */
     protected $code_challenge_method;
+
+    private $userClaimsStorage;
+
+    public function __construct(
+        ClientInterface $clientStorage,
+        array $responseTypes = array(),
+        array $config = array(),
+        ScopeInterface $scopeUtil = null,
+        UserClaimsInterface $userClaimsStorage = null
+    ) {
+        parent::__construct($clientStorage, $responseTypes, $config, $scopeUtil);
+        $this->userClaimsStorage = $userClaimsStorage;
+    }
 
     /**
      * Set not authorized response
@@ -69,7 +85,11 @@ class AuthorizeController extends BaseAuthorizeController implements AuthorizeCo
 
         // Generate an id token if needed.
         if ($this->needsIdToken($this->getScope()) && $this->getResponseType() == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
-            $params['id_token'] = $this->responseTypes['id_token']->createIdToken($this->getClientId(), $user_id, $this->nonce);
+            $userClaims = null;
+            if (!is_null($this->userClaimsStorage)) {
+                $userClaims = $this->userClaimsStorage->getUserClaims($user_id, $this->getScope());
+            }
+            $params['id_token'] = $this->responseTypes['id_token']->createIdToken($this->getClientId(), $user_id, $this->nonce, $userClaims);
         }
 
         // add the nonce to return with the redirect URI
