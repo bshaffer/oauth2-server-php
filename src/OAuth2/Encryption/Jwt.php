@@ -36,7 +36,7 @@ class Jwt implements EncryptionInterface
 
     /**
      * @param string      $jwt
-     * @param null        $key
+     * @param             $key
      * @param array|bool  $allowedAlgorithms
      * @return bool|mixed
      */
