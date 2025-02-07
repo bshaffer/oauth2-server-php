@@ -3,3 +3,4 @@ test/config/test.sqlite
 vendor
 composer.lock
 .idea
+.php-cs-fixer.cache
