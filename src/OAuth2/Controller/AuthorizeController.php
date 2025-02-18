@@ -78,7 +78,7 @@ class AuthorizeController implements AuthorizeControllerInterface
      *     );
      * @endcode
      */
-    public function __construct(ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), ScopeInterface $scopeUtil = null)
+    public function __construct(ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), ScopeInterface|null $scopeUtil = null)
     {
         $this->clientStorage = $clientStorage;
         $this->responseTypes = $responseTypes;

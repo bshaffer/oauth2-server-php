@@ -37,7 +37,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
      * @param EncryptionInterface|JWT $jwtUtil  - OPTONAL The class used to decode, encode and verify JWTs.
      * @param array                   $config
      */
-    public function __construct(JwtBearerInterface $storage, $audience, EncryptionInterface $jwtUtil = null, array $config = array())
+    public function __construct(JwtBearerInterface $storage, $audience, EncryptionInterface|null $jwtUtil = null, array $config = array())
     {
         $this->storage = $storage;
         $this->audience = $audience;
