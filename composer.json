@@ -24,7 +24,8 @@
         "firebase/php-jwt": "^6.4",
         "predis/predis": "^1.1",
         "thobbs/phpcassa": "dev-master",
-        "yoast/phpunit-polyfills": "^1.0"
+        "yoast/phpunit-polyfills": "^1.0",
+        "friendsofphp/php-cs-fixer": "^3.9"
     },
     "suggest": {
         "predis/predis": "Required to use Redis storage",
