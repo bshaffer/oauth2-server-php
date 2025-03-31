@@ -213,10 +213,111 @@ class AuthorizationCodeTest extends TestCase
         $this->assertEquals($response->getParameter('error_description'), 'authorization_code doesn\'t exist or is invalid for the client');
     }
 
-    private function getTestServer()
+    public function testMissingCodeVerifier()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'authorization_code', // valid grant type
+            'client_id'     => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code'          => 'testcode-pkce-challenge-plain', // valid code
+        ));
+        $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals('code_verifier_missing', $response->getParameter('error'));
+        $this->assertEquals("The PKCE code verifier parameter is required.", $response->getParameter('error_description'));
+    }
+
+    public function testInvalidCodeVerifier()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'authorization_code', // valid grant type
+            'client_id'     => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code'          => 'testcode-pkce-challenge-plain', // valid code
+            'code_verifier' => 'invalidcodeverifier', // invalid code verifier
+        ));
+        $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals('code_verifier_invalid', $response->getParameter('error'));
+        $this->assertEquals("The PKCE code verifier parameter is invalid.", $response->getParameter('error_description'));
+    }
+
+    public function testInvalidPkceChallengeMethod()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'authorization_code', // valid grant type
+            'client_id'     => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code'          => 'testcode-pkce-challenge-invalid-method', // valid code
+            'code_verifier' => 'testcodechallengetestcodechallengetestcodechallenge', // valid code verifier
+        ));
+        $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals('code_challenge_method_invalid', $response->getParameter('error'));
+        $this->assertEquals("Unknown PKCE code challenge method.", $response->getParameter('error_description'));
+    }
+
+    public function testPkceChallengeMismatch()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'authorization_code', // valid grant type
+            'client_id'     => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code'          => 'testcode-pkce-challenge-plain', // valid code
+            'code_verifier' => 'invalidcodeverifierinvalidcodeverifierinvalidcodeverifier', // invalid code verifier
+        ));
+        $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals('code_verifier_mismatch', $response->getParameter('error'));
+        $this->assertEquals("The PKCE code verifier parameter does not match the code challenge.", $response->getParameter('error_description'));
+    }
+
+    public function testSuccessfulPlainPkceTokenRequest()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'authorization_code', // valid grant type
+            'client_id'     => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code'          => 'testcode-pkce-challenge-plain', // valid code
+            'code_verifier' => 'testcodechallengetestcodechallengetestcodechallenge', // valid code verifier
+        ));
+        $token = $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+    }
+
+    public function testSuccessfulSha256PkceTokenRequest()
+    {
+        $server = $this->getTestServer();
+        $request = TestRequest::createPost(array(
+            'grant_type'    => 'authorization_code', // valid grant type
+            'client_id'     => 'Test Client ID', // valid client id
+            'client_secret' => 'TestSecret', // valid client secret
+            'code'          => 'testcode-pkce-challenge-s256', // valid code
+            'code_verifier' => 'testcodechallengetestcodechallengetestcodechallenge', // valid code verifier
+        ));
+        $token = $server->grantAccessToken($request, $response = new Response());
+
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertNotNull($token);
+        $this->assertArrayHasKey('access_token', $token);
+    }
+
+    private function getTestServer($config = [])
     {
         $storage = Bootstrap::getInstance()->getMemoryStorage();
-        $server = new Server($storage);
+        $server = new Server($storage, $config);
         $server->addGrantType(new AuthorizationCode($storage));
 
         return $server;

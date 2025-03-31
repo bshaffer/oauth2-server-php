@@ -112,7 +112,7 @@ class AuthorizationCode implements GrantTypeInterface
 
                 return FALSE;
             }
-            if ($code_verifier_hashed !== $authCode['code_challenge']) {
+            if (!hash_equals($authCode['code_challenge'], $code_verifier_hashed)) {
                 $response->setError(400, 'code_verifier_mismatch', "The PKCE code verifier parameter does not match the code challenge.");
 
                 return FALSE;
