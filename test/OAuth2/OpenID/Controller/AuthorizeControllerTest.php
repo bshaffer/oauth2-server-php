@@ -2,6 +2,8 @@
 
 namespace OAuth2\OpenID\Controller;
 
+use OAuth2\OpenID\ResponseType\AuthorizationCode;
+use OAuth2\OpenID\ResponseType\IdToken;
 use OAuth2\Storage\Bootstrap;
 use OAuth2\Server;
 use OAuth2\Request;
@@ -179,5 +181,36 @@ class AuthorizeControllerTest extends TestCase
         $server  = new Server($storage, $config);
 
         return $server;
+    }
+
+    public function testUserClaimsInIdToken()
+    {
+        $server = $this->getTestServer();
+        $idTokenResponseType = $this->createMock(IdToken::class);
+        $idTokenResponseType->expects($this->once())
+            ->method('createIdToken')
+            ->with('Test Client ID', null, 'n-0S6_WzA2Mj', ['sub' => 'test-sub', 'email' => 'test@email.com'])
+            ->willReturnOnConsecutiveCalls('unit-test-id-token-1', 'unit-test-id-token-2');
+
+        $server->addResponseType($idTokenResponseType, 'id_token');
+        $server->addResponseType(new AuthorizationCode($server->getStorage('authorization_code')), 'code');
+
+        $response = new Response();
+        $request = new Request(array(
+            'client_id'     => 'Test Client ID', // valid client id
+            'redirect_uri'  => 'http://adobe.com', // valid redirect URI
+            'response_type' => 'code',
+            'state'         => 'af0ifjsldkj',
+            'nonce'         => 'n-0S6_WzA2Mj',
+            'scope'         => 'openid',
+        ));
+
+        $userClaimsStorage = $this->createMock('OAuth2\OpenID\Storage\UserClaimsInterface');
+        $userClaimsStorage->method('getUserClaims')
+            ->willReturn(array('sub' => 'test-sub', 'email' => 'test@email.com'));
+
+        $server->addStorage($userClaimsStorage, 'user_claims');
+
+        $server->handleAuthorizeRequest($request, $response, true);
     }
 }
