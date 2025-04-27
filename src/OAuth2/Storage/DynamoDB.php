@@ -3,6 +3,7 @@
 namespace OAuth2\Storage;
 
 use Aws\DynamoDb\DynamoDbClient;
+use Aws\DynamoDb\Marshaler;
 
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface as OpenIDAuthorizationCodeInterface;
@@ -45,6 +46,7 @@ class DynamoDB implements
 {
     protected $client;
     protected $config;
+    protected $marshaler;
 
     public function __construct($connection, $config = array())
     {
@@ -74,6 +76,8 @@ class DynamoDB implements
             'scope_table'  => 'oauth_scopes',
             'public_key_table'  => 'oauth_public_keys',
         ), $config);
+
+        $this->marshaler = new Marshaler();
     }
 
     /* OAuth2\Storage\ClientCredentialsInterface */
@@ -84,7 +88,7 @@ class DynamoDB implements
             "Key" => array('client_id'   => array('S' => $client_id))
         ));
 
-        return  $result->count()==1 && $result["Item"]["client_secret"]["S"] == $client_secret;
+        return  $result->hasKey('Item') && $result["Item"]["client_secret"]["S"] == $client_secret;
     }
 
     public function isPublicClient($client_id)
@@ -128,7 +132,7 @@ class DynamoDB implements
 
         $result = $this->client->putItem(array(
             'TableName' =>  $this->config['client_table'],
-            'Item' => $this->client->formatAttributes($clientData)
+            'Item' => $this->marshaler->marshalItem($clientData)
         ));
 
         return true;
@@ -175,7 +179,7 @@ class DynamoDB implements
 
         $result = $this->client->putItem(array(
             'TableName' =>  $this->config['access_token_table'],
-            'Item' => $this->client->formatAttributes($clientData)
+            'Item' => $this->marshaler->marshalItem($clientData)
         ));
 
         return true;
@@ -186,7 +190,7 @@ class DynamoDB implements
     {
         $result = $this->client->deleteItem(array(
             'TableName' =>  $this->config['access_token_table'],
-            'Key' => $this->client->formatAttributes(array("access_token" => $access_token)),
+            'Key' => $this->marshaler->marshalItem(array("access_token" => $access_token)),
             'ReturnValues' => 'ALL_OLD',
         ));
 
@@ -223,7 +227,7 @@ class DynamoDB implements
 
         $result = $this->client->putItem(array(
             'TableName' =>  $this->config['code_table'],
-            'Item' => $this->client->formatAttributes($clientData)
+            'Item' => $this->marshaler->marshalItem($clientData)
         ));
 
         return true;
@@ -234,7 +238,7 @@ class DynamoDB implements
 
         $result = $this->client->deleteItem(array(
             'TableName' =>  $this->config['code_table'],
-            'Key' => $this->client->formatAttributes(array("authorization_code" => $code))
+            'Key' => $this->marshaler->marshalItem(array("authorization_code" => $code))
         ));
 
         return true;
@@ -324,7 +328,7 @@ class DynamoDB implements
 
         $result = $this->client->putItem(array(
             'TableName' =>  $this->config['refresh_token_table'],
-            'Item' => $this->client->formatAttributes($clientData)
+            'Item' => $this->marshaler->marshalItem($clientData)
         ));
 
         return true;
@@ -334,7 +338,7 @@ class DynamoDB implements
     {
         $result = $this->client->deleteItem(array(
             'TableName' =>  $this->config['refresh_token_table'],
-            'Key' => $this->client->formatAttributes(array("refresh_token" => $refresh_token))
+            'Key' => $this->marshaler->marshalItem(array("refresh_token" => $refresh_token))
         ));
 
         return true;
@@ -377,7 +381,7 @@ class DynamoDB implements
 
         $result = $this->client->putItem(array(
             'TableName' =>  $this->config['user_table'],
-            'Item' => $this->client->formatAttributes($clientData)
+            'Item' => $this->marshaler->marshalItem($clientData)
         ));
 
         return true;
